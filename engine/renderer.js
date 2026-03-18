@@ -53,7 +53,7 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
         const meta = options.getSeatMeta({ row: rowNum, seat: s }) || {};
 
         if (meta.price !== undefined) {
-          btn.title = `Ряд ${rowNum}, місце ${s} — ${meta.price} грн`;
+          btn.title = `Ряд ${rowNum}, місце ${s} — ${meta.price} грн`; 
         }
 
         if (meta.color) {
