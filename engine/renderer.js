@@ -32,7 +32,7 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
       // offset (пустота слева)
       if (block.offset) {
         for (let i = 0; i < block.offset; i++) {
-          const spacer = document.createElement('div');
+          const spacer = document.createElement('div'); 
           spacer.className = 'seat spacer';
           seatsWrap.appendChild(spacer);
         }
