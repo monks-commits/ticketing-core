@@ -1,0 +1,29 @@
+{
+  "name": "Академія руху — велика сцена",
+  "rows": [
+    { "row": 1,  "seats": 11, "offset": 6 },
+
+    { "row": 2,  "seats": 23, "aisles": [6, 17] },
+    { "row": 3,  "seats": 23, "aisles": [6, 17] },
+    { "row": 4,  "seats": 23, "aisles": [6, 17] },
+    { "row": 5,  "seats": 23, "aisles": [6, 17] },
+    { "row": 6,  "seats": 23, "aisles": [6, 17] },
+
+    { "row": 7,  "seats": 23, "aisles": [6, 17] },
+
+    { "row": 8,  "seats": 23, "aisles": [6, 17] },
+    { "row": 9,  "seats": 23, "aisles": [6, 17] },
+    { "row": 10, "seats": 23, "aisles": [6, 17] },
+    { "row": 11, "seats": 23, "aisles": [6, 17] },
+    { "row": 12, "seats": 23, "aisles": [6, 17] },
+    { "row": 13, "seats": 23, "aisles": [6, 17] },
+
+    { "row": 14, "seats": 23, "aisles": [6, 17] },
+    { "row": 15, "seats": 23, "aisles": [6, 17] },
+    { "row": 16, "seats": 23, "aisles": [6, 17] },
+
+    { "row": 17, "seats": 23, "aisles": [6, 17], "gapAfter": true },
+
+    { "row": 18, "seats": 20, "aisles": [10] }
+  ]
+}
