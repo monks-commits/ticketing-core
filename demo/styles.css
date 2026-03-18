@@ -16,6 +16,7 @@ body {
 
 .hall-row-seats {
   display: flex;
+  flex-wrap: nowrap;
   gap: 4px;
 }
 
