@@ -39,11 +39,13 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
     for (let s = 1; s <= seatsCount; s++) {
 
       // 🔥 ПРОХОД ДО МЕСТА
-      if (aisles.includes(s)) {
-        const aisle = document.createElement('div');
-        aisle.className = 'aisle';
-        seatsWrap.appendChild(aisle);
-      }
+      seatsWrap.appendChild(btn);
+
+if (aisles.includes(s)) {
+  const aisle = document.createElement("div");
+  aisle.className = "aisle";
+  seatsWrap.appendChild(aisle);
+}
 
       const seatId = `P${rowNum}-M${s}`;
 
