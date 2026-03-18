@@ -30,9 +30,9 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
 
     // offset (сдвиг первого ряда)
     for (let i = 0; i < offset; i++) {
-      const spacer = document.createElement('div');
-      spacer.className = 'seat spacer';
-      seatsWrap.appendChild(spacer);
+      const spacer = document.createElement('button');
+spacer.className = 'seat';
+spacer.style.visibility = 'hidden';
     }
 
     // генерация мест
