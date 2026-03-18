@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>VA Ticketing Core</title>
+  <style>
+    .hall-row{display:flex;margin:4px 0}
+    .row-label{width:30px}
+    .seat{width:28px;height:28px;margin:2px}
+    .selected{outline:2px solid black}
+    .taken{background:#999}
+    .aisle{width:20px}
+  </style>
+</head>
+<body>
+
+<h1>Core Demo</h1>
+<div id="hall"></div>
+
+<script type="module">
+import { renderHall } from '../engine/renderer.js';
+import { createSeatMetaGetter } from '../adapters/seance.js';
+
+const hall = await fetch('../data/hall/academy.json').then(r=>r.json());
+const seance = await fetch('../data/seances/demo.json').then(r=>r.json());
+
+const getSeatMeta = createSeatMetaGetter(seance);
+
+renderHall(
+  document.getElementById('hall'),
+  hall,
+  {},
+  {
+    getSeatMeta,
+    onSelect: (seats) => console.log(seats)
+  }
+);
+</script>
+
+</body>
+</html>
