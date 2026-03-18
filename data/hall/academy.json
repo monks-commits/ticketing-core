@@ -6,106 +6,73 @@
       "row": 1,
       "blocks": [
         { "offset": 6 },
-        { "seats": 11 }
+        { "seats": 11, "zone": "center" }
       ]
     },
 
     {
       "row": 2,
       "blocks": [
-        { "seats": 6 },
+        { "seats": 6, "zone": "left" },
         { "gap": 2 },
-        { "seats": 11 },
+        { "seats": 11, "zone": "center" },
         { "gap": 2 },
-        { "seats": 6 }
+        { "seats": 6, "zone": "right" }
       ]
     },
 
     {
       "row": 3,
       "blocks": [
-        { "seats": 6 },
+        { "seats": 6, "zone": "left" },
         { "gap": 2 },
-        { "seats": 11 },
+        { "seats": 11, "zone": "center" },
         { "gap": 2 },
-        { "seats": 6 }
+        { "seats": 6, "zone": "right" }
       ]
     },
 
     {
       "row": 4,
       "blocks": [
-        { "seats": 6 },
+        { "seats": 6, "zone": "left" },
         { "gap": 2 },
-        { "seats": 11 },
+        { "seats": 11, "zone": "center" },
         { "gap": 2 },
-        { "seats": 6 }
+        { "seats": 6, "zone": "right" }
       ]
     },
 
     {
       "row": 5,
       "blocks": [
-        { "seats": 6 },
+        { "seats": 6, "zone": "left" },
         { "gap": 2 },
-        { "seats": 11 },
+        { "seats": 11, "zone": "center" },
         { "gap": 2 },
-        { "seats": 6 }
+        { "seats": 6, "zone": "right" }
       ]
     },
 
     {
       "row": 6,
       "blocks": [
-        { "seats": 6 },
+        { "seats": 6, "zone": "left" },
         { "gap": 2 },
-        { "seats": 11 },
+        { "seats": 11, "zone": "center" },
         { "gap": 2 },
-        { "seats": 6 }
+        { "seats": 6, "zone": "right" }
       ]
     },
 
     {
       "row": 7,
       "blocks": [
-        { "seats": 6 },
+        { "seats": 6, "zone": "left" },
         { "gap": 2 },
-        { "seats": 11 },
+        { "seats": 11, "zone": "center" },
         { "gap": 2 },
-        { "seats": 6 }
-      ]
-    },
-
-    {
-      "row": 8,
-      "blocks": [
-        { "seats": 6 },
-        { "gap": 2 },
-        { "seats": 11 },
-        { "gap": 2 },
-        { "seats": 6 }
-      ]
-    },
-
-    {
-      "row": 9,
-      "blocks": [
-        { "seats": 6 },
-        { "gap": 2 },
-        { "seats": 11 },
-        { "gap": 2 },
-        { "seats": 6 }
-      ]
-    },
-
-    {
-      "row": 10,
-      "blocks": [
-        { "seats": 6 },
-        { "gap": 2 },
-        { "seats": 11 },
-        { "gap": 2 },
-        { "seats": 6 }
+        { "seats": 6, "zone": "right" }
       ]
     }
 
