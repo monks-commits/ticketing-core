@@ -39,7 +39,7 @@ export function createSeatMetaGetter(seance) {
 
 return {
   price: 0,
-  color: zoneColors[arguments[0]?.zone] || "#e5e7eb"
+  color: zoneColors[zone] || "#e5e7eb"
 };
   };
 }
