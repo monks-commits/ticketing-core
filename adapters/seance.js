@@ -1,18 +1,26 @@
 export function createSeatMetaGetter(seance) {
-  return ({ row, seat }) => {
+
+  // ✅ ОБЯЗАТЕЛЬНО ВВЕРХУ
+  const zoneColors = {
+    left: "#3b82f6",    // синий
+    center: "#a855f7",  // фиолетовый
+    right: "#06b6d4"    // голубой
+  };
+
+  return ({ row, seat, zone }) => {
     const seatKey = `P${row}-M${seat}`;
 
-    // override (приоритет)
+    // 1. override (приоритет)
     if (seance.seat_overrides?.[seatKey]) {
       const o = seance.seat_overrides[seatKey];
       return {
         price: o.price ?? 0,
-        color: o.color,
+        color: o.color ?? zoneColors[zone],
         disabled: o.sale === false
       };
     }
 
-    // pricing rules
+    // 2. pricing rules
     for (const key in seance.pricing) {
       const match = key.match(/^P(\d+)-(\d+)$/);
       if (!match) continue;
@@ -22,24 +30,19 @@ export function createSeatMetaGetter(seance) {
 
       if (row >= from && row <= to) {
         const rule = seance.pricing[key];
+
         return {
-          price: rule.price,
-          color: zoneColors[zone],
+          price: rule.price ?? 0,
+          color: zoneColors[zone],   // ✅ фикс
           disabled: rule.sale === false
         };
       }
     }
 
-    // fallback
-    const zoneColors = {
-  left: "#3b82f6",    // синий
-  center: "#a855f7",  // фиолетовый
-  right: "#06b6d4"    // голубой
-};
-
-return {
-  price: 0,
-  color: zoneColors[zone] || "#e5e7eb"
-};
+    // 3. fallback
+    return {
+      price: 0,
+      color: zoneColors[zone] || "#e5e7eb"
+    };
   };
 }
