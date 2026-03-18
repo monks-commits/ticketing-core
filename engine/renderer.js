@@ -52,7 +52,9 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
         for (let i = 0; i < block.seats; i++) {
           const s = seatCounter++;
           const seatId = `P${rowNum}-M${s}`;
+          const zone = block.zone;
 
+          
           const btn = document.createElement('button');
           btn.className = 'seat';
           btn.dataset.seatId = seatId;
