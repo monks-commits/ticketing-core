@@ -31,8 +31,15 @@ export function createSeatMetaGetter(seance) {
     }
 
     // fallback
-    return {
-      price: 0
-    };
+    const zoneColors = {
+  left: "#3b82f6",    // синий
+  center: "#a855f7",  // фиолетовый
+  right: "#06b6d4"    // голубой
+};
+
+return {
+  price: 0,
+  color: zoneColors[arguments[0]?.zone] || "#e5e7eb"
+};
   };
 }
