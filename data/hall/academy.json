@@ -13,7 +13,7 @@
     {
       "row": 2,
       "blocks": [
-        { "seats": 6, "zone": "left" },
+        { "seats": 6, "zone": "left" }, 
         { "gap": 2 },
         { "seats": 11, "zone": "center" },
         { "gap": 2 },
