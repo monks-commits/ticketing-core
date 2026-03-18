@@ -44,4 +44,6 @@ body {
 /* 🔥 проход */
 .aisle {
   width: 16px;
+  height: 28px;      /* ← КРИТИЧНО */
 }
+
