@@ -18,7 +18,8 @@
     import { createSeatMetaGetter } from "../adapters/seance.js";
 
     // 👉 hall схема
-    import hallConfig from "../data/hall/academy.json" assert { type: "json" };
+    const hallConfig = await fetch("../data/hall/academy.json")
+  .then(r => r.json());
 
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
     const SUPABASE_ANON_KEY = "ВАШ_ANON_KEY"; // ← вставьте свой
