@@ -1,41 +1,67 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>VA Ticketing Core</title>
-  <style>
-    .hall-row{display:flex;margin:4px 0}
-    .row-label{width:30px}
-    .seat{width:28px;height:28px;margin:2px}
-    .selected{outline:2px solid black}
-    .taken{background:#999}
-    .aisle{width:20px}
-  </style>
+  <meta charset="UTF-8" />
+  <title>Core Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="../styles.css" />
 </head>
+
 <body>
+  <h1>Core Demo</h1>
 
-<h1>Core Demo</h1>
-<div id="hall"></div>
+  <div id="hall"></div>
 
-<script type="module">
-import { renderHall } from '../engine/renderer.js';
-import { createSeatMetaGetter } from '../adapters/seance.js';
+  <script type="module">
+    import { renderHall } from "../core/renderer.js";
+    import { createSeatMetaGetter } from "../adapters/seance.js";
 
-const hall = await fetch('../data/hall/academy.json').then(r=>r.json());
-const seance = await fetch('../data/seances/demo.json').then(r=>r.json());
+    // 👉 hall схема
+    import hallConfig from "../data/hall/academy.json" assert { type: "json" };
 
-const getSeatMeta = createSeatMetaGetter(seance);
+    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+    const SUPABASE_ANON_KEY = "ВАШ_ANON_KEY"; // ← вставьте свой
 
-renderHall(
-  document.getElementById('hall'),
-  hall,
-  {},
-  {
-    getSeatMeta,
-    onSelect: (seats) => console.log(seats)
-  }
-);
-</script>
+    // 👉 читаем seance из URL
+    const params = new URLSearchParams(window.location.search);
+    const seanceId = params.get("seance");
 
+    console.log("SEANCE:", seanceId);
+
+    // 👉 загрузка seance
+    async function loadSeance(seanceId) {
+      if (!seanceId) {
+        return { pricing: {}, seat_overrides: {} };
+      }
+
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seanceId)}&select=pricing,seat_overrides`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+
+      const rows = await res.json();
+      console.log("LOADED:", rows);
+
+      return rows[0] || { pricing: {}, seat_overrides: {} };
+    }
+
+    // 👉 старт
+    const seance = await loadSeance(seanceId);
+
+    renderHall(
+      document.getElementById("hall"),
+      hallConfig,
+      {},
+      {
+        getSeatMeta: createSeatMetaGetter(seance)
+      }
+    );
+  </script>
 </body>
 </html>
