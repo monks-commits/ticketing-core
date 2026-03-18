@@ -47,8 +47,7 @@ body {
   background: transparent;
 }
 .aisle {
-  width: 28px;
-  margin-right: 20px; /* регулируете “проход” */
+  width: 16px;
 }
 .seat {
   width: 28px;
