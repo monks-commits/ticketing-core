@@ -1,7 +1,7 @@
 // engine/renderer.js
 
 export function renderHall(container, hallConfig, state = {}, options = {}) {
-  if (!hallConfig?.rows) {
+  if (!hallConfig?.rows || !Array.isArray(hallConfig.rows)) {
     container.innerHTML = '<p>Hall config error</p>';
     return;
   }
@@ -10,60 +10,53 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
   const selected = new Set();
 
   hallConfig.rows.forEach((rowCfg) => {
-    const rowNum = rowCfg.row;
+    const rowNum     = rowCfg.row;
     const seatsCount = Number(rowCfg.seats || 0);
-    const aisles = rowCfg.aisles || [];
-    const offset = Number(rowCfg.offset || 0);
+    const aisles     = Array.isArray(rowCfg.aisles) ? rowCfg.aisles : [];
+    const offset     = Number(rowCfg.offset || 0);
 
-    const rowEl = document.createElement('div');
-    rowEl.className = 'hall-row';
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'hall-row';
 
     // номер ряда
     const label = document.createElement('div');
     label.className = 'row-label';
     label.textContent = rowNum;
-    rowEl.appendChild(label);
+    rowDiv.appendChild(label);
 
     // контейнер мест
     const seatsWrap = document.createElement('div');
     seatsWrap.className = 'hall-row-seats';
 
-    // offset (сдвиг первого ряда)
+    // OFFSET (сдвиг)
     for (let i = 0; i < offset; i++) {
       const spacer = document.createElement('button');
-spacer.className = 'seat';
-spacer.style.visibility = 'hidden';
+      spacer.className = 'seat';
+      spacer.style.visibility = 'hidden';
+      seatsWrap.appendChild(spacer);
     }
 
-    // генерация мест
+    // СИДЕНЬЯ
     for (let s = 1; s <= seatsCount; s++) {
-
-      // 🔥 ПРОХОД ДО МЕСТА
-      seatsWrap.appendChild(btn);
-
-if (aisles.includes(s)) {
-  const aisle = document.createElement("div");
-  aisle.className = "aisle";
-  seatsWrap.appendChild(aisle);
-}
 
       const seatId = `P${rowNum}-M${s}`;
 
+      // 1️⃣ создаём кнопку
       const btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = 'seat';
       btn.dataset.seatId = seatId;
       btn.textContent = s;
 
-      const st = state[seatId];
-
-      if (st === 'taken') {
+      // состояние (занято / свободно)
+      if (state[seatId] === 'taken') {
         btn.classList.add('taken');
         btn.disabled = true;
       } else {
         btn.classList.add('free');
       }
 
-      // 🔥 ВНЕШНЯЯ ЛОГИКА (editor / Supabase)
+      // внешняя логика (editor / Supabase)
       if (options.getSeatMeta) {
         const meta = options.getSeatMeta({
           row: rowNum,
@@ -88,7 +81,7 @@ if (aisles.includes(s)) {
         }
       }
 
-      // выбор места
+      // выбор
       btn.addEventListener('click', () => {
         if (btn.disabled) return;
 
@@ -103,13 +96,21 @@ if (aisles.includes(s)) {
         options.onSelect?.(Array.from(selected));
       });
 
+      // 2️⃣ добавляем место
       seatsWrap.appendChild(btn);
+
+      // 3️⃣ ПРОХОД ПОСЛЕ МЕСТА
+      if (aisles.includes(s)) {
+        const aisle = document.createElement('div');
+        aisle.className = 'aisle';
+        seatsWrap.appendChild(aisle);
+      }
     }
 
-    rowEl.appendChild(seatsWrap);
-    container.appendChild(rowEl);
+    rowDiv.appendChild(seatsWrap);
+    container.appendChild(rowDiv);
 
-    // отступ между блоками (если есть)
+    // gap между блоками (если задан)
     if (rowCfg.gapAfter) {
       const gap = document.createElement('div');
       gap.className = 'hall-row-gap';
