@@ -24,7 +24,7 @@ export function createSeatMetaGetter(seance) {
         const rule = seance.pricing[key];
         return {
           price: rule.price,
-          color: rule.color,
+          color: zoneColors[zone],
           disabled: rule.sale === false
         };
       }
