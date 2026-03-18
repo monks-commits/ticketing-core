@@ -1,0 +1,47 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+.hall-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.row-label {
+  width: 30px;
+  text-align: right;
+  margin-right: 8px;
+}
+
+.hall-row-seats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.seat {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #333;
+  background: #22c55e;
+  cursor: pointer;
+}
+
+.seat.taken {
+  background: #999;
+}
+
+.seat.selected {
+  outline: 2px solid #000;
+}
+
+/* 🔥 spacer (невидимый отступ) */
+.seat.spacer {
+  visibility: hidden;
+}
+
+/* 🔥 проход */
+.aisle {
+  width: 16px;
+}
