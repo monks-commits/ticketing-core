@@ -71,7 +71,7 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
 
           // 🔥 внешняя логика
           if (options.getSeatMeta) {
-            const meta = options.getSeatMeta({ row: rowNum, seat: s }) || {};
+            const meta = options.getSeatMeta({ row: rowNum, seat: s, zone }) || {};
 
             if (meta.price !== undefined) {
               btn.title = `Ряд ${rowNum}, місце ${s} — ${meta.price} грн`;
