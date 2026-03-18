@@ -42,63 +42,70 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
       }
 
       // seats
-      for (let i = 0; i < seatsCount; i++) {
-        const s = seatCounter++;
-        const seatId = `P${rowNum}-M${s}`;
-        const zone = block.zone;
 
-        const btn = document.createElement('button');
-        btn.className = 'seat';
-        btn.dataset.seatId = seatId;
-        btn.textContent = s;
+const aisles = rowCfg.aisles || [];
 
-        const st = state[seatId];
+for (let i = 0; i < seatsCount; i++) {
+  const s = seatCounter++;
 
-        if (st === 'taken') {
-          btn.classList.add('taken');
-          btn.disabled = true;
-        } else {
-          btn.classList.add('free');
-        }
+  // 🔥 ВСТАВКА ПРОХОДА ПЕРЕД НУЖНЫМ МЕСТОМ
+  if (aisles.includes(s - 1)) {
+    const gapEl = document.createElement('div');
+    gapEl.className = 'aisle';
+    seatsWrap.appendChild(gapEl);
+  }
 
-        // 🔥 внешняя логика
-        if (options.getSeatMeta) {
-          const meta = options.getSeatMeta({ row: rowNum, seat: s, zone }) || {};
+  const seatId = `P${rowNum}-M${s}`;
+  const zone = null; // больше не нужен
 
-          if (meta.price !== undefined) {
-            btn.title = `Ряд ${rowNum}, місце ${s} — ${meta.price} грн`;
-          }
+  const btn = document.createElement('button');
+  btn.className = 'seat';
+  btn.dataset.seatId = seatId;
+  btn.textContent = s;
 
-          if (meta.color) {
-            btn.style.background = meta.color;
-          }
+  const st = state[seatId];
 
-          if (meta.disabled) {
-            btn.disabled = true;
-            btn.style.opacity = 0.4;
-          }
+  if (st === 'taken') {
+    btn.classList.add('taken');
+    btn.disabled = true;
+  } else {
+    btn.classList.add('free');
+  }
 
-          if (meta.className) {
-            btn.classList.add(meta.className);
-          }
-        }
+  if (options.getSeatMeta) {
+    const meta = options.getSeatMeta({ row: rowNum, seat: s }) || {};
 
-        btn.addEventListener('click', () => {
-          if (btn.disabled) return;
+    if (meta.price !== undefined) {
+      btn.title = `Ряд ${rowNum}, місце ${s} — ${meta.price} грн`;
+    }
 
-          if (btn.classList.contains('selected')) {
-            btn.classList.remove('selected');
-            selected.delete(seatId);
-          } else {
-            btn.classList.add('selected');
-            selected.add(seatId);
-          }
+    if (meta.color) {
+      btn.style.background = meta.color;
+    }
 
-          options.onSelect?.(Array.from(selected));
-        });
+    if (meta.disabled) {
+      btn.disabled = true;
+      btn.style.opacity = 0.4;
+    }
+  }
 
-        seatsWrap.appendChild(btn);
-      }
+  btn.addEventListener('click', () => {
+    if (btn.disabled) return;
+
+    if (btn.classList.contains('selected')) {
+      btn.classList.remove('selected');
+      selected.delete(seatId);
+    } else {
+      btn.classList.add('selected');
+      selected.add(seatId);
+    }
+
+    options.onSelect?.(Array.from(selected));
+  });
+
+  seatsWrap.appendChild(btn);
+}
+      
 
       // gap (проход)
       for (let i = 0; i < gap; i++) {
