@@ -1,0 +1,10 @@
+{
+  "seance_id": "demo",
+  "pricing": {
+    "P1-1": { "price": 220, "color": "#f97316" },
+    "P2-18": { "price": 120, "color": "#22c55e" }
+  },
+  "seat_overrides": {
+    "P3-M5": { "price": 300, "color": "#ef4444", "sale": false }
+  }
+}
