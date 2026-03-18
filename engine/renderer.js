@@ -1,6 +1,6 @@
 export function renderHall(container, hallConfig, state = {}, options = {}) {
   if (!hallConfig?.rows) {
-    container.innerHTML = '<p>Hall config error</p>';
+    container.innerHTML = '<p>Hall config error</p>'; 
     return;
   }
 
@@ -10,7 +10,7 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
   hallConfig.rows.forEach((rowCfg) => {
     const rowNum = rowCfg.row;
     const seatsCount = rowCfg.seats || 0;
-    const aisles = rowCfg.aisles || [];
+    const AISLES = [6, 17]; // 🔥 настраиваемо
 
     const rowEl = document.createElement('div');
     rowEl.className = 'hall-row';
