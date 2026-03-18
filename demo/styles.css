@@ -19,6 +19,8 @@ body {
   grid-auto-flow: column;
   grid-auto-columns: 28px;
   gap: 4px;
+
+  grid-template-columns: repeat(40, 28px); /* 🔥 ВОТ ЭТО КЛЮЧ */
 }
 
 .seat {
