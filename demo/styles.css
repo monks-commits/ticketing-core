@@ -43,7 +43,8 @@ body {
 
 /* 🔥 проход */
 .aisle {
-  flex: 0 0 20px;   /* ← КРИТИЧНО */
+  flex: 0 0 40px;
   height: 28px;
+  background: rgba(255, 0, 0, 0.2);
 }
 
