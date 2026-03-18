@@ -1,6 +1,8 @@
+// engine/renderer.js
+
 export function renderHall(container, hallConfig, state = {}, options = {}) {
   if (!hallConfig?.rows) {
-    container.innerHTML = '<p>Hall config error</p>'; 
+    container.innerHTML = '<p>Hall config error</p>';
     return;
   }
 
@@ -9,30 +11,39 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
 
   hallConfig.rows.forEach((rowCfg) => {
     const rowNum = rowCfg.row;
-    const seatsCount = rowCfg.seats || 0;
-    const AISLES = [6, 17]; // 🔥 настраиваемо
+    const seatsCount = Number(rowCfg.seats || 0);
+    const aisles = rowCfg.aisles || [];
+    const offset = Number(rowCfg.offset || 0);
 
     const rowEl = document.createElement('div');
     rowEl.className = 'hall-row';
 
+    // номер ряда
     const label = document.createElement('div');
     label.className = 'row-label';
     label.textContent = rowNum;
     rowEl.appendChild(label);
 
+    // контейнер мест
     const seatsWrap = document.createElement('div');
     seatsWrap.className = 'hall-row-seats';
 
+    // offset (сдвиг первого ряда)
+    for (let i = 0; i < offset; i++) {
+      const spacer = document.createElement('div');
+      spacer.className = 'seat spacer';
+      seatsWrap.appendChild(spacer);
+    }
+
+    // генерация мест
     for (let s = 1; s <= seatsCount; s++) {
 
-      // 🔥 считаем сколько проходов слева
-      const passedAisles = aisles.filter(a => a < s).length;
-
-      // 🔥 ширина прохода (в "ячейках")
-      const aisleWidth = 2;
-
-      // 🔥 итоговая колонка
-      const col = s + passedAisles * aisleWidth;
+      // 🔥 ПРОХОД ДО МЕСТА
+      if (aisles.includes(s)) {
+        const aisle = document.createElement('div');
+        aisle.className = 'aisle';
+        seatsWrap.appendChild(aisle);
+      }
 
       const seatId = `P${rowNum}-M${s}`;
 
@@ -40,9 +51,6 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
       btn.className = 'seat';
       btn.dataset.seatId = seatId;
       btn.textContent = s;
-
-      // 🔥 позиционирование через grid
-      btn.style.gridColumn = col;
 
       const st = state[seatId];
 
@@ -53,9 +61,12 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
         btn.classList.add('free');
       }
 
-      // 🔥 adapter (цены / цвета / блокировки)
+      // 🔥 ВНЕШНЯЯ ЛОГИКА (editor / Supabase)
       if (options.getSeatMeta) {
-        const meta = options.getSeatMeta({ row: rowNum, seat: s }) || {};
+        const meta = options.getSeatMeta({
+          row: rowNum,
+          seat: s
+        }) || {};
 
         if (meta.price !== undefined) {
           btn.title = `Ряд ${rowNum}, місце ${s} — ${meta.price} грн`;
@@ -75,6 +86,7 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
         }
       }
 
+      // выбор места
       btn.addEventListener('click', () => {
         if (btn.disabled) return;
 
@@ -95,6 +107,7 @@ export function renderHall(container, hallConfig, state = {}, options = {}) {
     rowEl.appendChild(seatsWrap);
     container.appendChild(rowEl);
 
+    // отступ между блоками (если есть)
     if (rowCfg.gapAfter) {
       const gap = document.createElement('div');
       gap.className = 'hall-row-gap';
