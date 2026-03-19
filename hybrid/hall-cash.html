@@ -1586,12 +1586,51 @@ seatsRow.appendChild(
   CASH_PATCH = loadCashPatch();
   await loadTakenSeatsOnline();
 
-  renderParter();
-  renderLodges();
-  
+// 🔥 ВСТАВКА
+const hallContainer = document.getElementById("hall-container");
 
-  updateSummary();
-  renderCashLog();
+const hallConfig = await fetch("../data/hall/academy.json")
+  .then(r => r.json());
+
+const takenState = {};
+takenSeatsOnline.forEach(k => takenState[k] = "taken");
+
+renderHall(
+  hallContainer,
+  hallConfig,
+  takenState,
+  {
+    getSeatMeta: ({ row, seat, zone }) => {
+      const key = seatKey({ row, seat, zone });
+
+      return {
+        price: 0,
+        status: getEffectiveStatus(key)
+      };
+    },
+
+    onSelect: (selectedSeats) => {
+      clearSelection();
+
+      selectedSeats.forEach(k => {
+        selected.set(k, { price: 0 });
+
+        const btn = seatButtons.get(k);
+        if (btn) btn.classList.add("seat--selected");
+      });
+
+      updateSummary();
+    }
+  }
+);
+
+document.querySelectorAll(".seat").forEach(btn => {
+  const key = btn.dataset.key;
+  if (key) seatButtons.set(key, btn);
+});
+
+updateSummary();
+renderCashLog();
 
 })();
 
