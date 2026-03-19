@@ -1,8 +1,7 @@
-function createSeatMetaGetter(seance)
+function createSeatMetaGetter(seance) {
   return ({ row, seat }) => {
     const seatKey = `P${row}-M${seat}`;
 
-    // 🎯 1. override (приоритет)
     if (seance.seat_overrides?.[seatKey]) {
       const o = seance.seat_overrides[seatKey];
 
@@ -13,16 +12,14 @@ function createSeatMetaGetter(seance)
       };
     }
 
-    // 🎯 2. pricing rules (из editor)
     for (const key in seance.pricing) {
-      const match = key.match(/^([A-Z])(\d+)-(\d+)$/);
+      const match = key.match(/^([A-Z])(\\d+)-(\\d+)$/);
       if (!match) continue;
 
-      const zone = match[1]; // P / A / B
+      const zone = match[1];
       const from = Number(match[2]);
       const to   = Number(match[3]);
 
-      // 👉 сейчас используем только P (партер)
       if (zone !== 'P') continue;
 
       if (row >= from && row <= to) {
@@ -36,11 +33,11 @@ function createSeatMetaGetter(seance)
       }
     }
 
-    // 🎯 3. fallback
     return {
       price: 0,
       color: '#e5e7eb'
     };
   };
 }
+
 window.createSeatMetaGetter = createSeatMetaGetter;
