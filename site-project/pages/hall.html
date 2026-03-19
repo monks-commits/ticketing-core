@@ -1,15 +1,25 @@
-/site-project
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>Схема залу</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  /pages
-    hall.html        ← СОЗДАЛИ
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
 
-  /integrations
-    site.js          ← уже сделали
+<body>
 
-  /core
-    engine/
-    adapters/
-    data/
+  <h1>Схема залу</h1>
 
-  /assets
-    styles.css
+  <!-- контейнер для рендера -->
+  <div id="hall"></div>
+
+  <!-- подключаем ядро -->
+  <script type="module">
+    import { initHall } from "../integrations/site.js";
+    initHall("hall");
+  </script>
+
+</body>
+</html>
