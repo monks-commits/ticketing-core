@@ -40,4 +40,8 @@ function createSeatMetaGetter(seance) {
   };
 }
 
+// 👇 ДЛЯ MODULE (demo)
+export { createSeatMetaGetter };
+
+// 👇 ДЛЯ ОФЛАЙН/КАССЫ
 window.createSeatMetaGetter = createSeatMetaGetter;
