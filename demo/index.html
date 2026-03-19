@@ -122,29 +122,31 @@
 
     // ================= GO ORDER =================
 
-    buyBtn.onclick = () => {
-      if (!selectedSeats.length) return;
+buyBtn.onclick = () => {
+  if (!selectedSeats.length) return;
 
-      const total = selectedSeats.reduce((sum, seatId) => {
-        const [p, m] = seatId.split("-");
-        const row = Number(p.replace("P", ""));
-        const seat = Number(m.replace("M", ""));
+  const total = selectedSeats.reduce((sum, seatId) => {
+    const [p, m] = seatId.split("-");
+    const row = Number(p.replace("P", ""));
+    const seat = Number(m.replace("M", ""));
 
-        const meta = getMeta({ row, seat }) || {};
-        return sum + (meta.price || 0);
-      }, 0);
+    const meta = getMeta({ row, seat }) || {};
+    return sum + (meta.price || 0);
+  }, 0);
 
-      const url = new URL("../site-project/pages/order.html", location.href);
+  const url = new URL("../site-project/pages/order.html", location.href);
 
-      url.searchParams.set("seats", selectedSeats.join(","));
-      url.searchParams.set("amount", total);
+  url.searchParams.set("seats", selectedSeats.join(","));
+  url.searchParams.set("amount", total);
+  url.searchParams.set("seance", seanceId);
 
-      if (seanceId) {
-        url.searchParams.set("seance", seanceId);
-      }
+  // 👉 добавим title (чтобы красиво было)
+  url.searchParams.set("title", "Концерт / Тест");
 
-      location.href = url.toString();
-    };
+  location.href = url.toString();
+};
+
+    
   </script>
 </body>
 </html>
