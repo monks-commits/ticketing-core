@@ -5,51 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" /> 
   <title>Схема залу — каса</title>
 
-  <link rel="stylesheet" href="/ticketing-core/demo/styles.css" />
-
-<style>
-/* 🔥 ВСТАВЬ ВЕСЬ ЭТОТ БЛОК */
-
-.hall-layout{display:flex;gap:24px;align-items:flex-start;}
-.hall-left{flex:1 1 auto;min-width:0;display:flex;justify-content:center;}
-.hall-sidebar{width:360px;flex:0 0 360px;}
-
-.hall-scroll{
-  background:#e5e7eb;
-  border-radius:16px;
-  padding:12px;
-  overflow-x:auto;
-  overflow-y:visible;
-}
-
-.hall-inner{
-  width:max-content;
-  margin:0 auto;
-}
-
-.row-line{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
-.row-label{width:22px;text-align:right;font-size:11px;color:#6b7280;}
-.seats-row{display:flex;gap:4px;flex-wrap:nowrap;}
-
-.seat{
-  width:24px;height:24px;
-  border-radius:6px;
-  border:1px solid #d1d5db;
-  background:#fff;
-  font-size:11px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-}
-
-.seat--selected{background:#2563eb;color:#fff;}
-.seat--sold{background:#9ca3af;color:#fff;cursor:not-allowed;}
-
-</style>
+  <link rel="stylesheet" href="../styles.css" />
 
   <!-- QR генерация в браузере -->
- 
+  <script type="module">
+  import QRCode from "https://esm.sh/qrcode@1.5.4";
+  window.QRCode = QRCode;
+</script>
 
   <style>
     .hall-layout{display:flex;gap:24px;align-items:flex-start;}
@@ -194,10 +156,6 @@
     html.embed .hall-layout { gap: 0 !important; }
     html.embed .hall-scroll { padding: 8px !important; }
     html.embed .hall-inner { width: max(1200px, 100%) !important; }
-.parter-wrap > *:not(#hall-container) {
-  display: none;
-}
-    
   </style>
 </head>
 
@@ -257,10 +215,7 @@
               <section class="hall-section">
                 <div class="hall-section-title">СЦЕНА</div>
 
-              
                 <div class="parter-wrap">
-<div id="hall-container"></div>
-                  
                   <!-- IMPORTANT: Ложа А зліва -->
                   <div class="hall-lodge">
                     <div class="hall-lodge-label">Ложа А</div>
@@ -374,14 +329,7 @@
     </div>
   </div>
 
-  <script src="../adapters/seance.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
-
-import { renderHall } from "../engine/renderer.js";
-import QRCode from "https://esm.sh/qrcode@1.5.4";
-
-window.QRCode = QRCode;
-    
+  <script>
     const qs = new URLSearchParams(location.search);
     const showSlug  = (qs.get("show")   || "").trim();
 const SEANCE_ID = (qs.get("seance") || "").trim();
@@ -1635,55 +1583,12 @@ seatsRow.appendChild(
   CASH_PATCH = loadCashPatch();
   await loadTakenSeatsOnline();
 
-// 🔥 ВСТАВКА
-const hallContainer = document.getElementById("hall-container");
+  renderParter();
+  renderLodges();
+  
 
-const hallConfig = await fetch("../data/hall/academy.json")
-  .then(r => r.json());
-
-const takenState = {};
-takenSeatsOnline.forEach(k => takenState[k] = "taken");
-const getMeta = createSeatMetaGetter(SEANCE_CONFIG);
-renderHall(
-  hallContainer,
-  hallConfig,
-  takenState,
-  {
-    getSeatMeta: ({ row, seat, zone }) => {
-  const key = seatKey({ row, seat, zone });
-
-  const meta = getMeta({ row, seat, zone });
-
-  return {
-    price: meta.price,
-    color: meta.color,
-    status: getEffectiveStatus(key),
-    disabled: meta.disabled
-  };
-},
-
-    onSelect: (selectedSeats) => {
-      clearSelection();
-
-      selectedSeats.forEach(k => {
-        selected.set(k, { price: 0 });
-
-        const btn = seatButtons.get(k);
-        if (btn) btn.classList.add("seat--selected");
-      });
-
-      updateSummary();
-    }
-  }
-);
-
-document.querySelectorAll(".seat").forEach(btn => {
-  const key = btn.dataset.key;
-  if (key) seatButtons.set(key, btn);
-});
-
-updateSummary();
-renderCashLog();
+  updateSummary();
+  renderCashLog();
 
 })();
 
