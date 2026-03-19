@@ -1642,20 +1642,24 @@ const hallConfig = await fetch("../data/hall/academy.json")
 
 const takenState = {};
 takenSeatsOnline.forEach(k => takenState[k] = "taken");
-
+const getMeta = createSeatMetaGetter(SEANCE_CONFIG);
 renderHall(
   hallContainer,
   hallConfig,
   takenState,
   {
     getSeatMeta: ({ row, seat, zone }) => {
-      const key = seatKey({ row, seat, zone });
+  const key = seatKey({ row, seat, zone);
 
-      return {
-        price: 0,
-        status: getEffectiveStatus(key)
-      };
-    },
+  const meta = getMeta({ row, seat, zone });
+
+  return {
+    price: meta.price,
+    color: meta.color,
+    status: getEffectiveStatus(key),
+    disabled: meta.disabled
+  };
+}
 
     onSelect: (selectedSeats) => {
       clearSelection();
