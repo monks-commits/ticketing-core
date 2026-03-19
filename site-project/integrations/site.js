@@ -1,14 +1,16 @@
-// /integrations/site.js
+// /site-project/integrations/site.js
 
-import { renderHall } from "../core/engine/renderer.js";
-import { createSeatMetaGetter } from "../core/adapters/seance.js";
+import { renderHall } from "../../engine/renderer.js";
+import { createSeatMetaGetter } from "../../adapters/seance.js";
 
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-// ===================== INIT =====================
+// ================= INIT =================
 
 export async function initHall(containerId = "hall") {
+  console.log("INIT START");
+
   const container = document.getElementById(containerId);
   if (!container) {
     console.error("Hall container not found");
@@ -20,15 +22,19 @@ export async function initHall(containerId = "hall") {
   const show = params.get("show") || "";
   const title = params.get("title") || show;
 
-  // ===================== LOAD DATA =====================
+  // ================= LOAD DATA =================
 
   const hallConfig = await fetch("../../data/hall/academy.json")
     .then(r => r.json());
 
+  console.log("HALL CONFIG OK");
+
   const seance = await loadSeance(seanceId);
   const takenState = await loadTakenSeats(seanceId);
 
-  // ===================== UI =====================
+  console.log("SEANCE:", seance);
+
+  // ================= UI =================
 
   const summary = document.createElement("div");
   summary.innerHTML = `
@@ -46,14 +52,16 @@ export async function initHall(containerId = "hall") {
 
   let selectedSeats = [];
 
-  // ===================== RENDER =====================
+  const getMeta = createSeatMetaGetter(seance);
+
+  // ================= RENDER =================
 
   renderHall(
     container,
     hallConfig,
     takenState,
     {
-      getSeatMeta: createSeatMetaGetter(seance),
+      getSeatMeta: getMeta,
 
       onSelect: (selected) => {
         selectedSeats = selected;
@@ -65,7 +73,7 @@ export async function initHall(containerId = "hall") {
           const row = Number(p.replace("P", ""));
           const seat = Number(m.replace("M", ""));
 
-          const meta = createSeatMetaGetter(seance)({ row, seat }) || {};
+          const meta = getMeta({ row, seat }) || {};
           return sum + (meta.price || 0);
         }, 0);
 
@@ -75,12 +83,12 @@ export async function initHall(containerId = "hall") {
     }
   );
 
-  // ===================== NAVIGATION =====================
+  // ================= NAVIGATION =================
 
   buyBtn.onclick = () => {
     if (!selectedSeats.length) return;
 
-    const url = new URL("../pages/order.html", location.href);
+    const url = new URL("../order.html", location.href);
 
     url.searchParams.set("show", show);
     if (title) url.searchParams.set("title", title);
@@ -95,7 +103,7 @@ export async function initHall(containerId = "hall") {
   };
 }
 
-// ===================== LOADERS =====================
+// ================= LOADERS =================
 
 async function loadSeance(seanceId) {
   if (!seanceId) return { pricing: {}, seat_overrides: {} };
