@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Каса</title>
+
+<link rel="stylesheet" href="../styles.css" />
+
+<script type="module">
+import QRCode from "https://esm.sh/qrcode@1.5.4";
+window.QRCode = QRCode;
+</script>
+
+<style>
+.hall {display:flex;gap:20px;}
+.left {flex:1;display:flex;justify-content:center;}
+.right {width:320px;}
+
+.row {display:flex;gap:4px;margin:4px 0;}
+.seat {
+  width:26px;height:26px;border:1px solid #ccc;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border-radius:6px;
+}
+.seat.selected {background:#2563eb;color:#fff;}
+.seat.sold {background:#999;color:#fff;cursor:not-allowed;}
+</style>
+</head>
+
+<body>
+
+<h1>Каса</h1>
+
+<div class="hall">
+
+<div class="left">
+  <div id="hall"></div>
+</div>
+
+<div class="right">
+  <h3>Кошик</h3>
+  <div id="summary"></div>
+  <button id="sell">Продати</button>
+</div>
+
+</div>
+
+<script>
+
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_KEY = "YOUR_KEY";
+
+const qs = new URLSearchParams(location.search);
+const SEANCE_ID = qs.get("seance");
+
+const selected = new Set();
+const sold = new Set();
+
+function seatKey(r,s){ return `R${r}-S${s}`; }
+
+function render() {
+  const hall = document.getElementById("hall");
+  hall.innerHTML = "";
+
+  for(let r=1;r<=10;r++){
+    const row = document.createElement("div");
+    row.className = "row";
+
+    for(let s=1;s<=12;s++){
+      const key = seatKey(r,s);
+      const el = document.createElement("div");
+      el.className = "seat";
+      el.textContent = s;
+
+      if (sold.has(key)) {
+        el.classList.add("sold");
+      }
+
+      el.onclick = () => {
+        if (sold.has(key)) return;
+
+        if (selected.has(key)){
+          selected.delete(key);
+          el.classList.remove("selected");
+        } else {
+          selected.add(key);
+          el.classList.add("selected");
+        }
+
+        updateSummary();
+      };
+
+      row.appendChild(el);
+    }
+
+    hall.appendChild(row);
+  }
+}
+
+function updateSummary(){
+  const el = document.getElementById("summary");
+  el.textContent = Array.from(selected).join(", ");
+}
+
+async function loadSold(){
+  if (!SEANCE_ID) return;
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${SEANCE_ID}&select=seat_label`,
+    {
+      headers:{
+        apikey: SUPABASE_KEY,
+        Authorization:`Bearer ${SUPABASE_KEY}`
+      }
+    }
+  );
+
+  const rows = await res.json();
+
+  rows.forEach(r => sold.add(r.seat_label));
+}
+
+async function sell(){
+
+  const seats = Array.from(selected);
+
+  const payload = {
+    op_id: Date.now().toString(),
+    type:"sale",
+    seance_id: SEANCE_ID,
+    seats
+  };
+
+  await fetch(`${SUPABASE_URL}/functions/v1/cash-sync-ts`,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ ops:[payload] })
+  });
+
+  alert("Продано");
+
+  location.reload();
+}
+
+document.getElementById("sell").onclick = sell;
+
+(async ()=>{
+  await loadSold();
+  render();
+})();
+
+</script>
+
+</body>
+</html>
