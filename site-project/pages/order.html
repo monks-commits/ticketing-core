@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Замовлення квитків</title>
+  <link rel="stylesheet" href="../../demo/styles.css" />
+</head>
+
+<body>
+  <h1>Підтвердження вибору</h1>
+
+  <div style="max-width:500px; display:grid; gap:12px;">
+
+    <div>
+      <div>Обрані місця:</div>
+      <div id="seats" style="font-weight:700;"></div>
+    </div>
+
+    <div>
+      <div>Сума:</div>
+      <div id="amount" style="font-weight:700;"></div>
+    </div>
+
+    <button id="goPay" disabled>
+      Перейти до оплати
+    </button>
+
+  </div>
+
+  <script>
+    const p = new URLSearchParams(location.search);
+
+    const seatsRaw = p.get("seats") || "";
+    const amount = p.get("amount") || "0";
+    const seance = p.get("seance") || "";
+    const title = p.get("title") || "";
+
+    const seats = seatsRaw
+      ? seatsRaw.split(",").map(s => s.trim()).filter(Boolean)
+      : [];
+
+    document.getElementById("seats").textContent =
+      seats.length ? seats.join(", ") : "—";
+
+    document.getElementById("amount").textContent =
+      Number(amount).toFixed(2) + " грн";
+
+    const btn = document.getElementById("goPay");
+    btn.disabled = !seats.length;
+
+    btn.onclick = () => {
+      const url = new URL("./checkout.html", location.href);
+
+      url.searchParams.set("seats", seatsRaw);
+      url.searchParams.set("amount", amount);
+      url.searchParams.set("seance", seance);
+
+      if (title) {
+        url.searchParams.set("title", title);
+      }
+
+      location.href = url.toString();
+    };
+  </script>
+</body>
+</html>
