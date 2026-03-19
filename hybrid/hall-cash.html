@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Каса</title>
 
-<link rel="stylesheet" href="../styles.css" />
+<link rel="stylesheet" href="../styles.css"/>
 
 <script type="module">
 import QRCode from "https://esm.sh/qrcode@1.5.4";
@@ -13,143 +13,225 @@ window.QRCode = QRCode;
 </script>
 
 <style>
-.hall {display:flex;gap:20px;}
-.left {flex:1;display:flex;justify-content:center;}
-.right {width:320px;}
+.hall-layout{display:flex;gap:24px}
+.hall-left{flex:1}
+.hall-sidebar{width:320px}
 
-.row {display:flex;gap:4px;margin:4px 0;}
-.seat {
-  width:26px;height:26px;border:1px solid #ccc;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;border-radius:6px;
+.row-line{display:flex;gap:8px;margin-bottom:6px}
+.row-label{width:24px;text-align:right;font-size:12px;color:#666}
+.seats-row{display:flex;gap:4px}
+
+.seat{
+  width:26px;height:26px;border:1px solid #ccc;border-radius:6px;
+  font-size:11px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;background:#fff;
 }
-.seat.selected {background:#2563eb;color:#fff;}
-.seat.sold {background:#999;color:#fff;cursor:not-allowed;}
+.seat--selected{background:#2563eb;color:#fff}
+.seat--sold{background:#9ca3af;color:#fff;cursor:not-allowed}
+.seat--blocked{background:#111827;color:#fff;cursor:not-allowed}
 </style>
 </head>
 
 <body>
 
+<main class="main">
+<div class="container">
+
 <h1>Каса</h1>
 
-<div class="hall">
+<div class="hall-layout">
 
-<div class="left">
-  <div id="hall"></div>
+<!-- ЗАЛ -->
+<div class="hall-left">
+  <div id="hall-root"></div>
 </div>
 
-<div class="right">
-  <h3>Кошик</h3>
-  <div id="summary"></div>
-  <button id="sell">Продати</button>
-</div>
+<!-- КОРЗИНА -->
+<div class="hall-sidebar">
+
+<h3>Кошик</h3>
+
+<p id="summary-places">—</p>
+<p id="summary-amount">0 грн</p>
+
+<button id="btn-sell">Продати</button>
+<button id="btn-sync">SYNC</button>
 
 </div>
+</div>
+</div>
+</main>
 
 <script>
-
-const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_KEY = "YOUR_KEY";
-
 const qs = new URLSearchParams(location.search);
 const SEANCE_ID = qs.get("seance");
 
-const selected = new Set();
-const sold = new Set();
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_KEY = "ВАШ_КЛЮЧ";
 
-function seatKey(r,s){ return `R${r}-S${s}`; }
+const takenSeatsOnline = new Set();
+const selected = new Map();
+const seatButtons = new Map();
 
-function render() {
-  const hall = document.getElementById("hall");
-  hall.innerHTML = "";
+/* ===== SAFE LOAD SOLD ===== */
+async function loadTakenSeatsOnline(){
 
-  for(let r=1;r<=10;r++){
-    const row = document.createElement("div");
-    row.className = "row";
+  if(!SEANCE_ID) return;
 
-    for(let s=1;s<=12;s++){
-      const key = seatKey(r,s);
-      const el = document.createElement("div");
-      el.className = "seat";
-      el.textContent = s;
-
-      if (sold.has(key)) {
-        el.classList.add("sold");
-      }
-
-      el.onclick = () => {
-        if (sold.has(key)) return;
-
-        if (selected.has(key)){
-          selected.delete(key);
-          el.classList.remove("selected");
-        } else {
-          selected.add(key);
-          el.classList.add("selected");
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${SEANCE_ID}&select=seat_label`,
+      {
+        headers:{
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
         }
+      }
+    );
 
-        updateSummary();
-      };
+    const rows = await res.json();
 
-      row.appendChild(el);
+    if(!Array.isArray(rows)){
+      console.warn("tickets error", rows);
+      return;
     }
 
-    hall.appendChild(row);
+    takenSeatsOnline.clear();
+
+    rows.forEach(r=>{
+      if(r.seat_label){
+        takenSeatsOnline.add(r.seat_label);
+      }
+    });
+
+  }catch(e){
+    console.warn("offline mode");
   }
 }
 
-function updateSummary(){
-  const el = document.getElementById("summary");
-  el.textContent = Array.from(selected).join(", ");
+/* ===== SEAT ===== */
+function seatKey(r,s){
+  return `P${r}-M${s}`;
 }
 
-async function loadSold(){
-  if (!SEANCE_ID) return;
+function makeSeat(r,s){
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${SEANCE_ID}&select=seat_label`,
-    {
-      headers:{
-        apikey: SUPABASE_KEY,
-        Authorization:`Bearer ${SUPABASE_KEY}`
-      }
+  const key = seatKey(r,s);
+
+  const btn = document.createElement("button");
+  btn.className = "seat";
+  btn.textContent = s;
+
+  if(takenSeatsOnline.has(key)){
+    btn.classList.add("seat--sold");
+    btn.disabled = true;
+  }
+
+  btn.onclick = ()=>{
+
+    if(btn.classList.contains("seat--selected")){
+      btn.classList.remove("seat--selected");
+      selected.delete(key);
+    }else{
+      btn.classList.add("seat--selected");
+      selected.set(key, {price:100});
     }
-  );
 
-  const rows = await res.json();
-
-  rows.forEach(r => sold.add(r.seat_label));
-}
-
-async function sell(){
-
-  const seats = Array.from(selected);
-
-  const payload = {
-    op_id: Date.now().toString(),
-    type:"sale",
-    seance_id: SEANCE_ID,
-    seats
+    updateSummary();
   };
 
-  await fetch(`${SUPABASE_URL}/functions/v1/cash-sync-ts`,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ ops:[payload] })
-  });
+  seatButtons.set(key, btn);
 
-  alert("Продано");
-
-  location.reload();
+  return btn;
 }
 
-document.getElementById("sell").onclick = sell;
+/* ===== RENDER ===== */
+function renderHall(){
 
+  const root = document.getElementById("hall-root");
+  root.innerHTML = "";
+
+  for(let r=1;r<=10;r++){
+
+    const row = document.createElement("div");
+    row.className = "row-line";
+
+    const label = document.createElement("div");
+    label.className = "row-label";
+    label.textContent = r;
+
+    const seats = document.createElement("div");
+    seats.className = "seats-row";
+
+    for(let s=1;s<=12;s++){
+      seats.appendChild(makeSeat(r,s));
+    }
+
+    row.appendChild(label);
+    row.appendChild(seats);
+    root.appendChild(row);
+  }
+}
+
+/* ===== SUMMARY ===== */
+function updateSummary(){
+
+  const keys = Array.from(selected.keys());
+
+  if(!keys.length){
+    document.getElementById("summary-places").textContent = "немає";
+    document.getElementById("summary-amount").textContent = "0 грн";
+    return;
+  }
+
+  document.getElementById("summary-places").textContent = keys.join(", ");
+  document.getElementById("summary-amount").textContent =
+    (keys.length * 100) + " грн";
+}
+
+/* ===== SELL ===== */
+document.getElementById("btn-sell").onclick = async ()=>{
+
+  const keys = Array.from(selected.keys());
+  if(!keys.length) return;
+
+  const tickets = keys.map(k=>({
+    seat_label:k,
+    order_id:"CASH-"+Date.now()
+  }));
+
+  await printTickets(tickets);
+};
+
+/* ===== PRINT ===== */
+async function printTickets(tickets){
+
+  let html = "";
+
+  for(const t of tickets){
+
+    const qr = await QRCode.toDataURL(t.seat_label);
+
+    html += `
+      <div>
+        ${t.seat_label}<br/>
+        <img src="${qr}" width="120"/>
+      </div>
+    `;
+  }
+
+  const w = window.open("");
+  w.document.write(html);
+  w.print();
+}
+
+/* ===== INIT ===== */
 (async ()=>{
-  await loadSold();
-  render();
-})();
 
+  await loadTakenSeatsOnline();
+  renderHall();
+
+})();
 </script>
 
 </body>
