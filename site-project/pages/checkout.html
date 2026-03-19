@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Оплата</title>
+  <link rel="stylesheet" href="../../demo/styles.css" />
+</head>
+
+<body>
+  <h1>Оплата</h1>
+
+  <div style="max-width:600px; display:grid; gap:12px;">
+
+    <div>
+      <div>Місця:</div>
+      <div id="seats" style="font-weight:700;"></div>
+    </div>
+
+    <div>
+      <div>Сума:</div>
+      <div id="amount" style="font-weight:700;"></div>
+    </div>
+
+    <input type="text" id="name" placeholder="Ім’я" />
+    <input type="email" id="email" placeholder="Email" />
+    <input type="tel" id="phone" placeholder="Телефон" />
+
+    <button id="payBtn">Оплатити</button>
+
+    <div id="err" style="color:red;"></div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+    const LIQPAY_INIT_URL = `${SUPABASE_URL}/functions/v1/liqpay-init`;
+
+    const p = new URLSearchParams(location.search);
+
+    const seatsRaw = p.get("seats") || "";
+    const amount = Number(p.get("amount") || 0);
+    const seance = p.get("seance") || "";
+    const title = p.get("title") || "";
+    const show = p.get("show") || "demo";
+
+    const seats = seatsRaw.split(",").map(s => s.trim()).filter(Boolean);
+
+    document.getElementById("seats").textContent = seats.join(", ");
+    document.getElementById("amount").textContent = amount.toFixed(2) + " грн";
+
+    function newIdempotencyKey() {
+      return "idem_" + crypto.randomUUID();
+    }
+
+    function submitToLiqPay(data, signature) {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "https://www.liqpay.ua/api/3/checkout";
+
+      const i1 = document.createElement("input");
+      i1.type = "hidden";
+      i1.name = "data";
+      i1.value = data;
+
+      const i2 = document.createElement("input");
+      i2.type = "hidden";
+      i2.name = "signature";
+      i2.value = signature;
+
+      form.appendChild(i1);
+      form.appendChild(i2);
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    document.getElementById("payBtn").onclick = async () => {
+      const buyer_name = document.getElementById("name").value.trim();
+      const buyer_email = document.getElementById("email").value.trim();
+      const buyer_phone = document.getElementById("phone").value.trim();
+
+      if (!buyer_name || !buyer_email || !buyer_phone) {
+        document.getElementById("err").textContent = "Заповніть всі поля";
+        return;
+      }
+
+      const payload = {
+        idempotency_key: newIdempotencyKey(),
+        show_slug: show,
+        seance_id: seance,
+        seats,
+        amount,
+        currency: "UAH",
+        buyer_name,
+        buyer_email,
+        buyer_phone,
+      };
+
+      try {
+        const r = await fetch(LIQPAY_INIT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const j = await r.json();
+
+        if (!r.ok || !j.data) {
+          document.getElementById("err").textContent = j.error || "Помилка оплати";
+          return;
+        }
+
+        submitToLiqPay(j.data, j.signature);
+
+      } catch (e) {
+        document.getElementById("err").textContent = "Помилка мережі";
+      }
+    };
+  </script>
+</body>
+</html>
