@@ -22,7 +22,7 @@ export async function initHall(containerId = "hall") {
 
   // ===================== LOAD DATA =====================
 
-  const hallConfig = await fetch("../core/data/hall/academy.json")
+  const hallConfig = await fetch("../../data/hall/academy.json")
     .then(r => r.json());
 
   const seance = await loadSeance(seanceId);
