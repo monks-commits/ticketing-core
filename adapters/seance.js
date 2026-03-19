@@ -1,4 +1,4 @@
-export function createSeatMetaGetter(seance) {
+function createSeatMetaGetter(seance)
   return ({ row, seat }) => {
     const seatKey = `P${row}-M${seat}`;
 
@@ -43,3 +43,4 @@ export function createSeatMetaGetter(seance) {
     };
   };
 }
+window.createSeatMetaGetter = createSeatMetaGetter;
