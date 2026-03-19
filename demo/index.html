@@ -13,28 +13,32 @@
 
   <div id="hall"></div>
 
+  <!-- UI -->
+  <div style="margin-top:20px;">
+    <div id="summary">Місця: —</div>
+    <div id="amount">Сума: 0 грн</div>
+    <button id="buyBtn" disabled>Оформити</button>
+  </div>
+
   <script type="module">
     import { renderHall } from "../engine/renderer.js";
     import { createSeatMetaGetter } from "../adapters/seance.js";
 
-    // 👉 hall схема
-    const hallConfig = await fetch("../data/hall/academy.json")
-  .then(r => r.json());
-
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-    // 👉 читаем seance из URL
     const params = new URLSearchParams(window.location.search);
     const seanceId = params.get("seance");
 
-    console.log("SEANCE:", seanceId);
+    // ================= LOAD HALL =================
 
-    // 👉 загрузка seance
+    const hallConfig = await fetch("../data/hall/academy.json")
+      .then(r => r.json());
+
+    // ================= LOAD SEANCE =================
+
     async function loadSeance(seanceId) {
-      if (!seanceId) {
-        return { pricing: {}, seat_overrides: {} };
-      }
+      if (!seanceId) return { pricing: {}, seat_overrides: {} };
 
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seanceId)}&select=pricing,seat_overrides`,
@@ -47,22 +51,100 @@
       );
 
       const rows = await res.json();
-      console.log("LOADED:", rows);
-
       return rows[0] || { pricing: {}, seat_overrides: {} };
     }
 
-    // 👉 старт
+    // ================= LOAD TAKEN =================
+
+    async function loadTakenSeats(seanceId) {
+      if (!seanceId) return {};
+
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(seanceId)}&select=seat_label`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+
+      const rows = await res.json();
+
+      const state = {};
+      rows.forEach(r => {
+        state[r.seat_label] = "taken";
+      });
+
+      return state;
+    }
+
     const seance = await loadSeance(seanceId);
+    const takenState = await loadTakenSeats(seanceId);
+
+    const getMeta = createSeatMetaGetter(seance);
+
+    let selectedSeats = [];
+
+    const summaryEl = document.getElementById("summary");
+    const amountEl = document.getElementById("amount");
+    const buyBtn = document.getElementById("buyBtn");
+
+    // ================= RENDER =================
 
     renderHall(
       document.getElementById("hall"),
       hallConfig,
-      {},
+      takenState,
       {
-        getSeatMeta: createSeatMetaGetter(seance)
+        getSeatMeta: getMeta,
+
+        onSelect: (selected) => {
+          selectedSeats = selected;
+
+          summaryEl.textContent =
+            selected.length ? "Місця: " + selected.join(", ") : "Місця: —";
+
+          const total = selected.reduce((sum, seatId) => {
+            const [p, m] = seatId.split("-");
+            const row = Number(p.replace("P", ""));
+            const seat = Number(m.replace("M", ""));
+
+            const meta = getMeta({ row, seat }) || {};
+            return sum + (meta.price || 0);
+          }, 0);
+
+          amountEl.textContent = "Сума: " + total + " грн";
+          buyBtn.disabled = !selected.length;
+        }
       }
     );
+
+    // ================= GO ORDER =================
+
+    buyBtn.onclick = () => {
+      if (!selectedSeats.length) return;
+
+      const total = selectedSeats.reduce((sum, seatId) => {
+        const [p, m] = seatId.split("-");
+        const row = Number(p.replace("P", ""));
+        const seat = Number(m.replace("M", ""));
+
+        const meta = getMeta({ row, seat }) || {};
+        return sum + (meta.price || 0);
+      }, 0);
+
+      const url = new URL("../site-project/pages/order.html", location.href);
+
+      url.searchParams.set("seats", selectedSeats.join(","));
+      url.searchParams.set("amount", total);
+
+      if (seanceId) {
+        url.searchParams.set("seance", seanceId);
+      }
+
+      location.href = url.toString();
+    };
   </script>
 </body>
 </html>
