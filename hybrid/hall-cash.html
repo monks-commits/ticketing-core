@@ -7,6 +7,47 @@
 
   <link rel="stylesheet" href="/ticketing-core/demo/styles.css" />
 
+<style>
+/* 🔥 ВСТАВЬ ВЕСЬ ЭТОТ БЛОК */
+
+.hall-layout{display:flex;gap:24px;align-items:flex-start;}
+.hall-left{flex:1 1 auto;min-width:0;display:flex;justify-content:center;}
+.hall-sidebar{width:360px;flex:0 0 360px;}
+
+.hall-scroll{
+  background:#e5e7eb;
+  border-radius:16px;
+  padding:12px;
+  overflow-x:auto;
+  overflow-y:visible;
+}
+
+.hall-inner{
+  width:max-content;
+  margin:0 auto;
+}
+
+.row-line{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.row-label{width:22px;text-align:right;font-size:11px;color:#6b7280;}
+.seats-row{display:flex;gap:4px;flex-wrap:nowrap;}
+
+.seat{
+  width:24px;height:24px;
+  border-radius:6px;
+  border:1px solid #d1d5db;
+  background:#fff;
+  font-size:11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.seat--selected{background:#2563eb;color:#fff;}
+.seat--sold{background:#9ca3af;color:#fff;cursor:not-allowed;}
+
+</style>
+
   <!-- QR генерация в браузере -->
  
 
