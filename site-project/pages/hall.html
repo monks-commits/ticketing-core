@@ -467,6 +467,12 @@ function renderHallFromConfig(hall){
       btn.style.height = "32px";
 
       row.appendChild(btn);
+      if (r.aisles && r.aisles.includes(s)){
+  const gap = document.createElement("span");
+  gap.style.display = "inline-block";
+  gap.style.width = "20px";
+  row.appendChild(gap);
+}
     }
 
     wrap.appendChild(row);
