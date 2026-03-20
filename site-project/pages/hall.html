@@ -126,7 +126,8 @@
 const showSlug  = (qs.get("show")   || "").trim();
 const showTitle = (qs.get("title")  || "").trim() || showSlug || "Вистава";
 const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
-
+    
+const selected = new Map();
 
     document.getElementById("summary-show").textContent = "Вистава: " + (showTitle || "—");
 
