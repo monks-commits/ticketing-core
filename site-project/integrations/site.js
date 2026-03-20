@@ -109,7 +109,7 @@ async function loadSeance(seanceId) {
   if (!seanceId) return { pricing: {}, seat_overrides: {} };
 
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seanceId)}&select=pricing,seat_overrides`,
+    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seanceId)}&select=pricing,seat_overrides,hall`,
     {
       headers: {
         apikey: SUPABASE_ANON_KEY,
