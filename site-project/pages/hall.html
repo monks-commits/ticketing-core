@@ -164,15 +164,7 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
 
     // Партер 1–18 по 20 місць, проход після 10-го
    const parterRows = [];
-  const row = i + 1;
-
-  return {
-    row,
-    seats: 20,
-    zone: "Партер",
-    price: 0,
-    className: ""
-  };
+  
 });
 
 
@@ -188,10 +180,7 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
     const balconyRow6 = { row:6, zone:"Балкон", price:0, className:"seat--balcony" };
 
     const lodgeSeats = [];
-  index: i + 1,
-  price: 0,
-  zone: "Ложа",
-  className: ""
+  
 }));
 
 
