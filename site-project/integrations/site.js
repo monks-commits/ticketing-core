@@ -27,7 +27,9 @@ export async function initHall(containerId = "hall") {
   // ================= LOAD SEANCE =================
 
   const seance = await loadSeance(seanceId);
-
+console.log("SEANCE FULL:", seance);
+console.log("PRICING:", seance.pricing);
+console.log("OVERRIDES:", seance.seat_overrides);
   console.log("SEANCE DATA:", seance);
 
   // 🔥 ГЛАВНОЕ: hall из seance
