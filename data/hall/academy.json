@@ -1,14 +1,6 @@
 {
   "name": "Велика сцена (Академія руху)",
-
-{
-  "rows": [
-    { "row": 1, "seats": 11 },
-    { "row": 2, "seats": 23, "gapAfter": 11 },
-    { "row": 3, "seats": 23, "gapAfter": 11 }
-  ]
-}
-  
+ 
   "rows": [
     {
       "row": 1,
