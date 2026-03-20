@@ -22,17 +22,43 @@ export async function initHall(containerId = "hall") {
   const show = params.get("show") || "";
   const title = params.get("title") || show;
 
-  // ================= LOAD DATA =================
+  console.log("SEANCE ID:", seanceId);
 
-  const hallConfig = await fetch("../../data/hall/academy.json")
-    .then(r => r.json());
+  // ================= LOAD SEANCE =================
+
+  const seance = await loadSeance(seanceId);
+
+  console.log("SEANCE DATA:", seance);
+
+  // 🔥 ГЛАВНОЕ: hall из seance
+  const hallName = seance?.hall || "academy";
+
+  console.log("HALL FROM SEANCE:", hallName);
+
+  // ================= LOAD HALL =================
+
+  const hallConfig = await fetch(`../../data/hall/${hallName}.json`)
+    .then(r => {
+      if (!r.ok) throw new Error("hall.json not found");
+      return r.json();
+    })
+    .catch(err => {
+      console.error("HALL LOAD ERROR:", err);
+      return null;
+    });
+
+  if (!hallConfig) {
+    container.innerHTML = "<p>Ошибка загрузки схемы зала</p>";
+    return;
+  }
 
   console.log("HALL CONFIG OK");
 
-  const seance = await loadSeance(seanceId);
+  // ================= LOAD TAKEN =================
+
   const takenState = await loadTakenSeats(seanceId);
 
-  console.log("SEANCE:", seance);
+  console.log("TAKEN:", takenState);
 
   // ================= UI =================
 
@@ -52,14 +78,15 @@ export async function initHall(containerId = "hall") {
 
   let selectedSeats = [];
 
-  const getMeta = createSeatMetaGetter(seance);
+  // 🔥 АДАПТЕР
+  const getMeta = createSeatMetaGetter(seance || {});
 
   // ================= RENDER =================
 
   renderHall(
     container,
     hallConfig,
-    takenState,
+    takenState || {},
     {
       getSeatMeta: getMeta,
 
@@ -106,20 +133,34 @@ export async function initHall(containerId = "hall") {
 // ================= LOADERS =================
 
 async function loadSeance(seanceId) {
-  if (!seanceId) return { pricing: {}, seat_overrides: {} };
+  if (!seanceId) {
+    console.warn("NO SEANCE ID");
+    return { pricing: {}, seat_overrides: {}, hall: "academy" };
+  }
 
   const res = await fetch(
-  `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seanceId)}&select=pricing,seat_overrides,hall`,
-  {
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seanceId)}&select=pricing,seat_overrides,hall`,
+    {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
     }
+  );
+
+  if (!res.ok) {
+    console.error("SEANCE LOAD ERROR");
+    return { pricing: {}, seat_overrides: {}, hall: "academy" };
   }
-);
 
   const rows = await res.json();
-  return rows[0] || { pricing: {}, seat_overrides: {} };
+
+  if (!rows.length) {
+    console.warn("SEANCE NOT FOUND IN SUPA");
+    return { pricing: {}, seat_overrides: {}, hall: "academy" };
+  }
+
+  return rows[0];
 }
 
 async function loadTakenSeats(seanceId) {
@@ -134,6 +175,11 @@ async function loadTakenSeats(seanceId) {
       }
     }
   );
+
+  if (!res.ok) {
+    console.error("TAKEN LOAD ERROR");
+    return {};
+  }
 
   const rows = await res.json();
 
