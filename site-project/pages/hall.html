@@ -449,6 +449,37 @@ if (!saleAllowed) {
 
   updateSummary();
 })();
+
+async function loadHall(){
+  const res = await fetch("../../data/hall/academy.json");
+  return await res.json();
+}
+
+function renderHallFromConfig(hall){
+  const root = document.body;
+
+  const wrap = document.createElement("div");
+  wrap.style.padding = "20px";
+
+  hall.rows.forEach(r=>{
+    const row = document.createElement("div");
+
+    for(let s=1; s<=r.seats; s++){
+      const btn = document.createElement("button");
+      btn.textContent = s;
+      btn.style.margin = "2px";
+      btn.style.width = "32px";
+      btn.style.height = "32px";
+
+      row.appendChild(btn);
+    }
+
+    wrap.appendChild(row);
+  });
+
+  root.appendChild(wrap);
+}
+    
   </script>
 </body>
 </html>
