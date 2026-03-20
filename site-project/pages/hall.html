@@ -461,28 +461,40 @@ function renderHallFromConfig(hall){
 
     for(let s=1; s<=r.seats; s++){
       const btn = document.createElement("button");
+
+// 👉 считаем цену
+let price = 0;
+
+if (r.zones){
+  const zone = r.zones.find(z => s >= z.from && s <= z.to);
+  if (zone) price = zone.price;
+}
+
+// 👉 текст
+btn.textContent = s;
+
+// 👉 тултип
+btn.title = price + " грн";
+
+// 👉 цвет
 if (price >= 200) {
-  btn.style.background = "#f97316"; // дорогие
+  btn.style.background = "#f97316";
   btn.style.color = "#fff";
 }
 else if (price >= 160) {
-  btn.style.background = "#22c55e"; // средние
+  btn.style.background = "#22c55e";
 }
 else if (price > 0) {
-  btn.style.background = "#3b82f6"; // дешёвые
+  btn.style.background = "#3b82f6";
   btn.style.color = "#fff";
 }
 else {
-  btn.style.background = "#e5e7eb"; // нет цены
+  btn.style.background = "#e5e7eb";
 }
 
-
-btn.title = price + " грн";
-      btn.textContent = s;
-      btn.style.margin = "2px";
-      btn.style.width = "32px";
-      btn.style.height = "32px";
-
+btn.style.margin = "2px";
+btn.style.width = "32px";
+btn.style.height = "32px";
       row.appendChild(btn);
       if (r.aisles && r.aisles.includes(s)){
   const gap = document.createElement("span");
