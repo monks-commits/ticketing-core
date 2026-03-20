@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Схема залу</title>
+
+  <link rel="stylesheet" href="../styles.css" />
+
+  <style>
+    .layout {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .left {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .right {
+      width: 300px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="layout">
+
+    <!-- ЗАЛ -->
+    <div class="left">
+      <div id="hall"></div>
+    </div>
+
+    <!-- САЙДБАР -->
+    <div class="right">
+      <div class="card">
+        <h2>Ваше замовлення</h2>
+        <p id="count">Місць: 0</p>
+        <p id="amount">Сума: 0 грн</p>
+        <button id="buyBtn" disabled>Оформити</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initHall } from "../integrations/site.js";
+
+    initHall("hall");
+  </script>
+
+</body>
+</html>
