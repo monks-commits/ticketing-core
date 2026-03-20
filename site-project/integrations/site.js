@@ -109,14 +109,14 @@ async function loadSeance(seanceId) {
   if (!seanceId) return { pricing: {}, seat_overrides: {} };
 
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seanceId)}&select=pricing,seat_overrides,hall`,
-    {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
+  `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seanceId)}&select=pricing,seat_overrides,hall`,
+  {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
     }
-  );
+  }
+);
 
   const rows = await res.json();
   return rows[0] || { pricing: {}, seat_overrides: {} };
