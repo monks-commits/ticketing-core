@@ -187,7 +187,7 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
     const balconyRows15 = [1,2,3,4,5].map(n=>( { row:n, zone:"Балкон", price:0, className:"seat--balcony" } ));
     const balconyRow6 = { row:6, zone:"Балкон", price:0, className:"seat--balcony" };
 
-    const lodgeSeats = Array.from({ length: 18 }, (_, i) => ({
+    const lodgeSeats = [];
   index: i + 1,
   price: 0,
   zone: "Ложа",
