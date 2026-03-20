@@ -163,7 +163,7 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
     const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
     // Партер 1–18 по 20 місць, проход після 10-го
-    const parterRows = Array.from({ length: 18 }, (_, i) => {
+   const parterRows = [];
   const row = i + 1;
 
   return {
