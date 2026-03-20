@@ -441,14 +441,9 @@ if (!saleAllowed) {
 });
 
    (async ()=>{
-  SEANCE_CONFIG = await loadSeanceConfig();
-  await loadTakenSeats();
-
-  // renderParter();
-  // renderLodges();
-
-  updateSummary();
-})();
+  const hall = await loadHall();
+  renderHallFromConfig(hall);
+})();;
 
 async function loadHall(){
   const res = await fetch("../../data/hall/academy.json");
