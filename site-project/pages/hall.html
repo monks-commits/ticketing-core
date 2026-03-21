@@ -134,6 +134,9 @@ const selected = new Map();
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
+    const normalize = s =>
+  String(s).toUpperCase().replace(/\s+/g, "");
+
     // Партер 1–18 по 20 місць, проход після 10-го
    const parterRows = [];
   
@@ -223,7 +226,7 @@ async function loadTakenSeats() {
 
     rows.forEach(t => {
       if (t?.seat_label) {
-        soldSeatIds.add(String(t.seat_label).trim());
+        soldSeatIds.add(normalize(t.seat_label));
       }
     });
 
