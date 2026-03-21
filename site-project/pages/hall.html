@@ -419,9 +419,11 @@ if (!saleAllowed) {
         for (let s=1; s<=r.seats; s++){
           const meta = { zone:r.zone, row:r.row, seat:s };
           const key  = seatKey(meta);
-          const cls  = r.className + (s===10 ? " seat--gap-right" : "");
-          seatsRow.appendChild(makeSeatElement(key, s, cls, r.price, meta));
-        }
+          let cls = r.className || "";
+
+if (r.aisles && r.aisles.includes(s)) {
+  cls += " seat--gap-right";
+}
 
         rowLine.appendChild(seatsRow);
         block.appendChild(rowLine);
