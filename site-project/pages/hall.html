@@ -582,7 +582,7 @@ if (!saleAllowed) {
 
   const seatsCsv = keys.join(",");
 
-  const u = new URL("../order.html", location.href);
+  const u = new URL("./order.html", location.href);
   u.searchParams.set("show", showSlug);
   u.searchParams.set("title", showTitle);
   u.searchParams.set("seats", seatsCsv);
