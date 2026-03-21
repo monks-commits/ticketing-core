@@ -490,6 +490,17 @@ btn.style.height = "32px";
 
 const key = `${r.row}-${s}`;
 
+
+
+// 👉 ВОТ ЭТО ДОБАВЬ
+if (takenSeats.has(key)){
+  btn.disabled = true;
+  btn.style.background = "#9ca3af";
+  btn.style.color = "#fff";
+}
+
+
+      
 btn.addEventListener("click", ()=>{
   if (selected.has(key)){
     selected.delete(key);
