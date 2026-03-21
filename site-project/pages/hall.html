@@ -239,6 +239,8 @@ async function loadTakenSeats() {
   // =========================
   takenSeatIds = new Set([...bookingSeatIds, ...soldSeatIds]);
 
+  console.log("DB:", Array.from(takenSeatIds));
+  
   console.log("TAKEN:", takenSeatIds);
 }
 async function loadSeanceConfig() {
@@ -538,6 +540,8 @@ btn.style.height = "32px";
 
 const key = normalize(`P${r.row}-M${s}`);
 
+console.log("UI:", key);
+      
 // 👉 считаем цену
 let seatPrice = 0;
 
