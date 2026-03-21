@@ -322,11 +322,6 @@ if (cfg && cfg.color) {
   btn.style.background = cfg.color;
   btn.style.color = "#fff";
 }
-
-
-      
-      
-
       if (takenSeats.has(key)){
         btn.classList.add("seat--taken");
         btn.disabled = true;
@@ -335,14 +330,10 @@ if (cfg && cfg.color) {
 if (!saleAllowed) {
   btn.classList.add("seat--no-sale");
   btn.disabled = true;
-}
-
-      
+}      
       btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
       return btn;
     }
-
-
 
     function onSeatClick(btn, key, meta, price){
       if (btn.classList.contains("seat--selected")){
@@ -496,6 +487,20 @@ else {
 btn.style.margin = "2px";
 btn.style.width = "32px";
 btn.style.height = "32px";
+
+const key = `${r.row}-${s}`;
+
+btn.addEventListener("click", ()=>{
+  if (selected.has(key)){
+    selected.delete(key);
+    btn.style.outline = "";
+  } else {
+    selected.set(key, { price, row: r.row, seat: s });
+    btn.style.outline = "3px solid black";
+  }
+
+  updateSummary();
+});
       
       row.appendChild(btn);
       if (r.aisles && r.aisles.includes(s)){
