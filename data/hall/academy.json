@@ -8,7 +8,7 @@
       "offset": 6,
       "aisles": [],
       "zones": [
-        { "from": 1, "to": 11, "price": 220 }
+        { "from": 1, "to": 11, "price": 5 }
       ]
     },
 
