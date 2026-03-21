@@ -490,22 +490,19 @@ btn.style.height = "32px";
 
 const key = `P${r.row}-M${s}`;
 
+// 👉 считаем цену
+let price = 0;
+if (r.zones){
+  const zone = r.zones.find(z => s >= z.from && s <= z.to);
+  if (zone) price = zone.price;
+}
+
 // 👉 ЗАНЯТО
 if (takenSeats.has(key)){
   btn.disabled = true;
   btn.style.background = "#9ca3af";
   btn.style.color = "#fff";
 } else {
-
-  // 👉 ЦЕНА
-  let price = 0;
-
-  if (r.zones){
-    const zone = r.zones.find(z => s >= z.from && s <= z.to);
-    if (zone) price = zone.price;
-  }
-
-  btn.title = price + " грн";
 
   if (price >= 200) {
     btn.style.background = "#f97316";
@@ -519,12 +516,10 @@ if (takenSeats.has(key)){
     btn.style.color = "#fff";
   }
   else {
-    btn.style.backgroundColor = "#9ca3af";
-btn.style.setProperty("background-color", "#9ca3af", "important");
+    btn.style.background = "#e5e7eb";
   }
 
 }
-
 
       
 btn.addEventListener("click", ()=>{
