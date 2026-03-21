@@ -597,12 +597,17 @@ if (!saleAllowed) {
   location.href = u.toString();
 });
 
-    (async ()=>{
+   (async ()=>{
   SEANCE_CONFIG = await loadSeanceConfig();
   await loadTakenSeats();
 
- 
-  
+  const res = await fetch("../data/hall/academy.json");
+  const RAW_HALL = await res.json();
+
+  console.log("DRAW HALL", RAW_HALL); // контроль
+
+  renderHallFromJson(RAW_HALL);
+
   updateSummary();
 })();
 
