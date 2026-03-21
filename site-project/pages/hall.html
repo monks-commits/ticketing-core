@@ -160,39 +160,84 @@ const selected = new Map();
 
 
 async function loadTakenSeats() {
-  takenSeats.clear();
+  takenSeatIds.clear();
 
-  
+  if (!SEANCE_ID) return;
 
-  const url =
-  `${SUPABASE_URL}/rest/v1/tickets` +
-  `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-  `&select=seat_label`;
+  const nowIso = new Date().toISOString();
 
+  // =========================
+  // 1. БРОНИ (bookings)
+  // =========================
+  let bookingSeatIds = new Set();
 
-  const res = await fetch(url, {
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    cache: "no-store"
-  });
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/bookings` +
+      `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+      `&select=seats,expires_at`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
 
-  if (!res.ok) {
-    console.warn("tickets load failed", res.status);
-    return;
+    const rows = await res.json().catch(() => []);
+
+    rows.forEach(b => {
+      // если истекло — пропускаем
+      if (b.expires_at && b.expires_at <= nowIso) return;
+
+      const arr = Array.isArray(b.seats) ? b.seats : [];
+
+      arr.forEach(seat => {
+        if (seat) bookingSeatIds.add(String(seat).trim());
+      });
+    });
+
+  } catch (e) {
+    console.warn("bookings load error", e);
   }
 
-  const rows = await res.json().catch(() => []);
-  rows.forEach(r => {
-    if (r?.seat_label) takenSeats.add(String(r.seat_label).toUpperCase().trim());
-  });
+  // =========================
+  // 2. ПРОДАННЫЕ (tickets)
+  // =========================
+  let soldSeatIds = new Set();
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets` +
+      `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+      `&select=seat_label`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const rows = await res.json().catch(() => []);
+
+    rows.forEach(t => {
+      if (t?.seat_label) {
+        soldSeatIds.add(String(t.seat_label).trim());
+      }
+    });
+
+  } catch (e) {
+    console.warn("tickets load error", e);
+  }
+
+  // =========================
+  // 3. ОБЪЕДИНЕНИЕ
+  // =========================
+  takenSeatIds = new Set([...bookingSeatIds, ...soldSeatIds]);
+
+  console.log("TAKEN:", takenSeatIds);
 }
-
-    
-
-let SEANCE_CONFIG = null;
-
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
 
