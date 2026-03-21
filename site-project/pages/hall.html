@@ -598,8 +598,22 @@ if (!saleAllowed) {
 });
 
     (async ()=>{
-  SEANCE_CONFIG = await loadSeanceConfig();
-  await loadTakenSeats();
+  const res = await fetch("../../data/hall/academy.json");
+const HALL = await res.json();
+
+// очищаем старую схему
+parterRows.length = 0;
+
+// заполняем из JSON
+HALL.rows.forEach(r=>{
+  parterRows.push({
+    row: r.row,
+    seats: r.seats,
+    zone: "Партер",
+    price: 0,
+    className: ""
+  });
+});
 
   renderParter();
   renderLodges();
