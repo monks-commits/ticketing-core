@@ -488,7 +488,7 @@ btn.style.margin = "2px";
 btn.style.width = "32px";
 btn.style.height = "32px";
 
-const key = `P${r.row}-M${s}`;
+const key = `${r.row}-${s}`;
 
 // 👉 ЗАНЯТО
 if (takenSeats.has(key)){
@@ -519,7 +519,8 @@ if (takenSeats.has(key)){
     btn.style.color = "#fff";
   }
   else {
-    btn.style.background = "#e5e7eb";
+    btn.style.backgroundColor = "#9ca3af";
+btn.style.setProperty("background-color", "#9ca3af", "important");
   }
 
 }
