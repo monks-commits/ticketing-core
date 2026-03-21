@@ -185,7 +185,7 @@ async function loadTakenSeats() {
 
   const rows = await res.json().catch(() => []);
   rows.forEach(r => {
-    if (r?.seat_label) takenSeats.add(String(r.seat_label));
+    if (r?.seat_label) takenSeats.add(String(r.seat_label).toUpperCase().trim());
   });
 }
 
