@@ -1583,8 +1583,13 @@ seatsRow.appendChild(
   CASH_PATCH = loadCashPatch();
   await loadTakenSeatsOnline();
 
-  renderParter();
-  renderLodges();
+  const res = await fetch("../data/hall/academy.json");
+const RAW_HALL = await res.json();
+
+renderHallFromJson(RAW_HALL);
+
+updateSummary();
+renderCashLog();
   
 
   updateSummary();
