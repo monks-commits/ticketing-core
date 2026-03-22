@@ -327,6 +327,9 @@ function applySeanceConfig(meta) {
 
     
     function makeSeatElement(key,label,extraClass,price,meta){
+
+      console.log("KEY:", key);
+      
         let finalPrice = price;
   let finalClass = extraClass;
   let saleAllowed = true;
@@ -348,10 +351,6 @@ if (cfg && cfg.color) {
   btn.style.background = cfg.color;
   btn.style.color = "#fff";
 }
-
-
-      
-      
 
       if (takenSeats.has(key)){
         btn.classList.add("seat--taken");
