@@ -192,7 +192,7 @@ async function loadTakenSeats() {
 
   const url =
   `${SUPABASE_URL}/rest/v1/tickets` +
-  `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+  `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` + 
   `&select=seat_label`;
 
 
