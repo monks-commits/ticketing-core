@@ -154,9 +154,14 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
 
 
     document.getElementById("summary-show").textContent = "Вистава: " + (showTitle || "—");
-const supabaseClient = supabase.createClient(
+
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+    const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
     // Партер 1–18 по 20 місць, проход після 10-го
     const parterRows = Array.from({ length: 18 }, (_, i) => {
