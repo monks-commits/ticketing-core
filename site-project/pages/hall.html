@@ -186,31 +186,44 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
 async function loadTakenSeats() {
   takenSeats.clear();
 
-  if (!showSlug) return;
-
-  const url =
-  `${SUPABASE_URL}/rest/v1/tickets` +
-  `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-  `&select=seat_label`;
-
-
-  const res = await fetch(url, {
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    cache: "no-store"
-  });
-
-  if (!res.ok) {
-    console.warn("tickets load failed", res.status);
+  // ❗ работаем только от SEANCE_ID
+  if (!SEANCE_ID) {
+    console.warn("NO SEANCE_ID");
     return;
   }
 
-  const rows = await res.json().catch(() => []);
-  rows.forEach(r => {
-    if (r?.seat_label) takenSeats.add(String(r.seat_label));
-  });
+  const url =
+    `${SUPABASE_URL}/rest/v1/tickets` +
+    `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+    `&select=seat_label`;
+
+  try {
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      cache: "no-store"
+    });
+
+    if (!res.ok) {
+      console.warn("tickets load failed", res.status);
+      return;
+    }
+
+    const rows = await res.json();
+
+    rows.forEach(r => {
+      if (r?.seat_label) {
+        takenSeats.add(String(r.seat_label).trim());
+      }
+    });
+
+    console.log("TAKEN SEATS:", Array.from(takenSeats));
+
+  } catch (e) {
+    console.error("loadTakenSeats error", e);
+  }
 }
 
     
