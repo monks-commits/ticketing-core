@@ -631,13 +631,13 @@ function makeSeatElement(key,label,extraClass,price,meta){
   location.href = u.toString();
 });
 
-   (async ()=>{
+   (async () => {
 
-  // 🔴 ДОБАВИТЬ ЭТО
-  SEANCE_CONFIG = await loadSeanceConfig();
+  // 1. сначала брони (ВАЖНО)
   await loadTakenSeats();
 
-  const res = await fetch("../../data/hall/academy.json");
+  // 2. потом зал
+  const res = await fetch("../../../data/hall/academy.json");
   const HALL = await res.json();
 
   parterRows.length = 0;
@@ -652,10 +652,11 @@ function makeSeatElement(key,label,extraClass,price,meta){
     });
   });
 
-await loadTakenSeats();
+  // 3. только теперь рендер
+  renderParter();
 
-renderParter();
-updateSummary();
+  updateSummary();
+
 })();
 
   </script>
