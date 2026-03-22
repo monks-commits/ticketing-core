@@ -182,6 +182,69 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
 
     const takenSeats = new Set(); // seat_label keys like P2-M2 / A19-M12 / B1-M5 / A0-M1 / B0-M1
 
+function renderHallFromJson(HALL_RAW) {
+  const block = document.getElementById("parter-block");
+  block.innerHTML = "";
+
+  HALL_RAW.rows.forEach(r => {
+
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const seatsRow = document.createElement("div");
+    seatsRow.className = "seats-row";
+
+    // offset
+    const offset = r.offset || 0;
+    for (let i = 0; i < offset; i++) {
+      const spacer = document.createElement("div");
+      spacer.className = "seat seat--empty";
+      seatsRow.appendChild(spacer);
+    }
+
+    for (let s = 1; s <= r.seats; s++) {
+
+      const meta = {
+        zone: "Партер",
+        row: r.row,
+        seat: s
+      };
+
+      let cls = "";
+
+      if (r.aisles && r.aisles.includes(s)) {
+        cls += " seat--gap-right";
+      }
+
+      seatsRow.appendChild(
+        makeSeatElement(
+          seatKey(meta),
+          s,
+          cls,
+          0,
+          meta
+        )
+      );
+    }
+
+    rowLine.appendChild(seatsRow);
+    block.appendChild(rowLine);
+
+    // проход между рядами
+    if (r.gapAfter) {
+      const gap = document.createElement("div");
+      gap.style.height = "60px";
+      block.appendChild(gap);
+    }
+
+  });
+}
+    
 
 async function loadTakenSeats() {
   takenSeats.clear();
@@ -601,19 +664,7 @@ if (!saleAllowed) {
   const res = await fetch("../../data/hall/academy.json");
   const HALL = await res.json();
 
-  parterRows.length = 0;
-
-  HALL.rows.forEach(r=>{
-    parterRows.push({
-      row: r.row,
-      seats: r.seats,
-      zone: "Партер",
-      price: 0,
-      className: ""
-    });
-  });
-
-  renderParter();
+ renderHallFromJson(HALL);
   
 
   updateSummary();
