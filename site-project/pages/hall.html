@@ -140,9 +140,32 @@ function seatKey(meta){
 }
 
 function makeSeatElement(key, label, extraClass, price, meta){
+
   const btn = document.createElement("button");
+
   btn.className = "seat " + (extraClass || "");
   btn.textContent = label;
+
+  // цена
+  btn.dataset.price = price;
+
+  // цвет по цене (как в кассе)
+  if (price >= 200) {
+    btn.style.background = "#7c3aed"; // фиолет
+    btn.style.color = "#fff";
+  } else if (price >= 160) {
+    btn.style.background = "#22c55e"; // зелёный
+    btn.style.color = "#fff";
+  } else if (price >= 130) {
+    btn.style.background = "#eab308"; // жёлтый
+    btn.style.color = "#fff";
+  }
+
+  // клик
+  btn.addEventListener("click", () => {
+    btn.classList.toggle("seat--selected");
+  });
+
   return btn;
 }
 
