@@ -213,7 +213,7 @@ function renderHallFromJson(HALL) {
 (async () => {
   console.log("LOAD HALL");
 
-  const res = await fetch("../../data/hall/academy.json");
+ const res = await fetch("../data/hall/academy.json");
   const HALL = await res.json();
 
   renderHallFromJson(HALL);
