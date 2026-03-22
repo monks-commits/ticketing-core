@@ -438,6 +438,73 @@ if (!saleAllowed) {
   });
 }
 
+function renderHallFromJson(HALL_RAW) {
+
+  const block = document.getElementById("parter-block");
+  block.innerHTML = "";
+
+  HALL_RAW.rows.forEach(r => {
+
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    // номер ряда
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const seatsRow = document.createElement("div");
+    seatsRow.className = "seats-row";
+
+    // offset (сдвиг ряда)
+    const offset = r.offset || 0;
+    for (let i = 0; i < offset; i++) {
+      const spacer = document.createElement("div");
+      spacer.className = "seat seat--empty";
+      seatsRow.appendChild(spacer);
+    }
+
+    // места
+    for (let s = 1; s <= r.seats; s++) {
+
+      const meta = {
+        zone: "Партер",
+        row: r.row,
+        seat: s
+      };
+
+      let cls = "";
+
+      // проходы (aisles)
+      if (r.aisles && r.aisles.includes(s)) {
+        cls += " seat--gap-right";
+      }
+
+      seatsRow.appendChild(
+        makeSeatElement(
+          seatKey(meta),
+          s,
+          cls,
+          0,
+          meta
+        )
+      );
+    }
+
+    rowLine.appendChild(seatsRow);
+    block.appendChild(rowLine);
+
+    // проход между рядами
+    if (r.gapAfter) {
+      const gap = document.createElement("div");
+      gap.style.height = "60px";
+      block.appendChild(gap);
+    }
+
+  });
+}
+    
     function renderLodges(){
       const a = document.getElementById("lodge-a-seats");
       const b = document.getElementById("lodge-b-seats");
@@ -613,7 +680,7 @@ if (!saleAllowed) {
     });
   });
 
-  renderParter();
+
   
 
   updateSummary();
