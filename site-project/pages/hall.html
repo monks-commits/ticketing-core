@@ -626,10 +626,10 @@ if (!saleAllowed) {
     });
   });
 
-  renderParter();
-  
+await loadTakenSeats();
 
-  updateSummary();
+renderParter();
+updateSummary();
 })();
 
   </script>
