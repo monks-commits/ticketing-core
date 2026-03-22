@@ -183,12 +183,13 @@
     },
 
     {
-      "row": 18,
-      "seats": 20,
-      "aisles": [10],
-      "zones": [
-        { "from": 1, "to": 20, "price": 110 }
-      ]
-    }
+  "row": 18,
+  "seats": 20,
+  "offset": 2,
+  "aisles": [10],
+  "zones": [
+    { "from": 1, "to": 20, "price": 110 }
+  ]
+}
   ]
 }
