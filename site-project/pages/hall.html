@@ -353,55 +353,61 @@ function applySeanceConfig(meta) {
   return null;
 }
 
-    
-    function makeSeatElement(key,label,extraClass,price,meta){
 
-console.log("KEY:", key);
+function makeSeatElement(key,label,extraClass,price,meta){
 
-      
-        let finalPrice = price;
-  let finalClass = extraClass;
+  let finalPrice = price;
+  let finalClass = extraClass || "";
   let saleAllowed = true;
 
   const cfg = applySeanceConfig(meta);
-  if (cfg) {
+
+  if (cfg){
     if (cfg.price !== undefined) finalPrice = cfg.price;
     if (cfg.class) finalClass = cfg.class;
     if (cfg.sale === false) saleAllowed = false;
   }
-      const btn = document.createElement("button");
-btn.type = "button";
-btn.textContent = label;
-btn.className = "seat" + (finalClass ? " " + finalClass : "");
-btn.dataset.price = finalPrice;
 
-// 🎨 APPLY COLOR FROM SEANCE
-if (cfg && cfg.color) {
-  btn.style.background = cfg.color;
-  btn.style.color = "#fff";
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = label;
+
+  // ❗ сначала базовый класс
+  btn.classList.add("seat");
+
+  if (finalClass){
+    btn.classList.add(finalClass);
+  }
+
+  btn.dataset.price = finalPrice;
+
+  // --- ЦВЕТА ---
+  if (cfg && cfg.color){
+    btn.style.background = cfg.color;
+    btn.style.color = "#fff";
+  }
+
+  // --- ВОТ ГЛАВНОЕ ---
+  if (takenSeats.has(key)) {
+    btn.classList.add("seat-taken");
+    btn.disabled = true;
+  }
+
+  if (!saleAllowed) {
+    btn.classList.add("seat-no-sale");
+    btn.disabled = true;
+  }
+
+  btn.addEventListener("click", () =>
+    onSeatClick(btn, key, meta, finalPrice)
+  );
+
+  return btn;
 }
 
 
-      
-      
-
-      if (takenSeats.has(key)){
-        btn.classList.add("seat--taken");
-        btn.disabled = true;
-      }
-
-if (!saleAllowed) {
-  btn.classList.add("seat--no-sale");
-  btn.disabled = true;
-}
-
-      
-      btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
-      return btn;
-    }
-
-    const selected = new Map(); // key -> { meta, price }
-
+    
+    
     function onSeatClick(btn, key, meta, price){
       if (btn.classList.contains("seat--selected")){
         btn.classList.remove("seat--selected");
