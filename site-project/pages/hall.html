@@ -135,6 +135,13 @@
   <script type="module" src="../scripts/include.js"></script>
 
   <script>
+
+const hallDataUrl = "../../data/hall/academy.json";
+
+function showInlineError(el, msg) {
+  console.error(msg);
+}
+    
     const qs = new URLSearchParams(location.search);
 
 const showSlug  = (qs.get("show")   || "").trim();
@@ -183,6 +190,7 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
     const takenSeats = new Set(); // seat_label keys like P2-M2 / A19-M12 / B1-M5 / A0-M1 / B0-M1
 
 
+    
 async function loadHallAndBookings() {
   try {
     const hallResp = await fetch(hallDataUrl, { cache: "no-store" });
