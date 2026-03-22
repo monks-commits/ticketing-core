@@ -186,63 +186,33 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
 async function loadTakenSeats() {
   takenSeats.clear();
 
-  if (!SEANCE_ID) return;
+  if (!showSlug) return;
 
-  try {
-    // --- 1. BOOKINGS (временные брони) ---
-    const bookingsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at`,
-      {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        cache: "no-store"
-      }
-    );
+  const url =
+  `${SUPABASE_URL}/rest/v1/tickets` +
+  `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+  `&select=seat_label`;
 
-    if (bookingsRes.ok) {
-      const bookings = await bookingsRes.json();
-      const now = new Date();
 
-      bookings.forEach(b => {
-        // если есть expires_at — проверяем
-        if (b.expires_at && new Date(b.expires_at) < now) return;
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    cache: "no-store"
+  });
 
-        (b.seats || []).forEach(s => {
-          if (s) takenSeats.add(String(s).trim());
-        });
-      });
-    }
-
-    // --- 2. TICKETS (оплаченные) ---
-    const ticketsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seat_label`,
-      {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        cache: "no-store"
-      }
-    );
-
-    if (ticketsRes.ok) {
-      const tickets = await ticketsRes.json();
-
-      tickets.forEach(t => {
-        if (t?.seat_label) {
-          takenSeats.add(String(t.seat_label).trim());
-        }
-      });
-    }
-
-    console.log("TAKEN (bookings+tickets):", Array.from(takenSeats));
-
-  } catch (e) {
-    console.error("loadTakenSeats error", e);
+  if (!res.ok) {
+    console.warn("tickets load failed", res.status);
+    return;
   }
+
+  const rows = await res.json().catch(() => []);
+  rows.forEach(r => {
+    if (r?.seat_label) takenSeats.add(String(r.seat_label));
+  });
 }
+
     
 
 let SEANCE_CONFIG = null;
@@ -353,60 +323,51 @@ function applySeanceConfig(meta) {
   return null;
 }
 
-
-function makeSeatElement(key,label,extraClass,price,meta){
-
-  let finalPrice = price;
-  let finalClass = extraClass || "";
+    
+    function makeSeatElement(key,label,extraClass,price,meta){
+        let finalPrice = price;
+  let finalClass = extraClass;
   let saleAllowed = true;
 
   const cfg = applySeanceConfig(meta);
-
-  if (cfg){
+  if (cfg) {
     if (cfg.price !== undefined) finalPrice = cfg.price;
     if (cfg.class) finalClass = cfg.class;
     if (cfg.sale === false) saleAllowed = false;
   }
+      const btn = document.createElement("button");
+btn.type = "button";
+btn.textContent = label;
+btn.className = "seat" + (finalClass ? " " + finalClass : "");
+btn.dataset.price = finalPrice;
 
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.textContent = label;
-
-  // ❗ сначала базовый класс
-  btn.classList.add("seat");
-
-  if (finalClass){
-    btn.classList.add(finalClass);
-  }
-
-  btn.dataset.price = finalPrice;
-
-  // --- ЦВЕТА ---
-  if (cfg && cfg.color){
-    btn.style.background = cfg.color;
-    btn.style.color = "#fff";
-  }
-
-  // --- ВОТ ГЛАВНОЕ ---
-  if (takenSeats.has(key)) {
-   btn.classList.add("seat--taken");
-    btn.disabled = true;
-  }
-
-  if (!saleAllowed) {
-    btn.classList.add("seat-no-sale");
-    btn.disabled = true;
-  }
-
-  btn.addEventListener("click", () =>
-    onSeatClick(btn, key, meta, finalPrice)
-  );
-
-  return btn;
+// 🎨 APPLY COLOR FROM SEANCE
+if (cfg && cfg.color) {
+  btn.style.background = cfg.color;
+  btn.style.color = "#fff";
 }
-   
-   const selected = new Map(); // key -> { meta, price } 
-    
+
+
+      
+      
+
+      if (takenSeats.has(key)){
+        btn.classList.add("seat--taken");
+        btn.disabled = true;
+      }
+
+if (!saleAllowed) {
+  btn.classList.add("seat--no-sale");
+  btn.disabled = true;
+}
+
+      
+      btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
+      return btn;
+    }
+
+    const selected = new Map(); // key -> { meta, price }
+
     function onSeatClick(btn, key, meta, price){
       if (btn.classList.contains("seat--selected")){
         btn.classList.remove("seat--selected");
@@ -440,42 +401,34 @@ function makeSeatElement(key,label,extraClass,price,meta){
     }
 
     function renderParter(){
-  const block = document.getElementById("parter-block");
-  block.innerHTML = "";
+      const block = document.getElementById("parter-block");
+      block.innerHTML = "";
 
-  parterRows.forEach(r=>{
-    const rowLine = document.createElement("div");
-    rowLine.className = "row-line";
+      parterRows.forEach(r=>{
+        const rowLine = document.createElement("div");
+        rowLine.className = "row-line";
 
-    const lab = document.createElement("div");
-    lab.className = "row-label";
-    lab.textContent = r.row;
-    rowLine.appendChild(lab);
+        const lab = document.createElement("div");
+        lab.className = "row-label";
+        lab.textContent = r.row;
+        rowLine.appendChild(lab);
 
-    const seatsRow = document.createElement("div");
-    seatsRow.className = "seats-row";
+        const seatsRow = document.createElement("div");
+        seatsRow.className = "seats-row";
 
-    for (let s=1; s<=r.seats; s++){
-      const meta = { zone:r.zone, row:r.row, seat:s };
-      const key  = seatKey(meta);
+        for (let s=1; s<=r.seats; s++){
+          const meta = { zone:r.zone, row:r.row, seat:s };
+          const key  = seatKey(meta);
+          let cls = r.className || "";
 
-      let cls = r.className || "";
-
-      // 🔥 ПРОХОДЫ ИЗ JSON
-      if (r.aisles && r.aisles.includes(s)) {
-        cls += " seat--gap-right";
-      }
-
-      // ✅ ВОТ ЭТОГО У ТЕБЯ НЕ БЫЛО
-      seatsRow.appendChild(
-        makeSeatElement(key, s, cls, r.price, meta)
-      );
-    }
-
-    rowLine.appendChild(seatsRow);
-    block.appendChild(rowLine);
-  });
+if (r.aisles && r.aisles.includes(s)) {
+  cls += " seat--gap-right";
 }
+
+        rowLine.appendChild(seatsRow);
+        block.appendChild(rowLine);
+      
+    }
 
     function renderLodges(){
       const a = document.getElementById("lodge-a-seats");
@@ -621,7 +574,7 @@ function makeSeatElement(key,label,extraClass,price,meta){
 
   const seatsCsv = keys.join(",");
 
-  const u = new URL("./order.html", location.href);
+  const u = new URL("../order.html", location.href);
   u.searchParams.set("show", showSlug);
   u.searchParams.set("title", showTitle);
   u.searchParams.set("seats", seatsCsv);
@@ -631,13 +584,13 @@ function makeSeatElement(key,label,extraClass,price,meta){
   location.href = u.toString();
 });
 
-   (async () => {
+   (async ()=>{
 
-  // 1. сначала брони (ВАЖНО)
+  // 🔴 ДОБАВИТЬ ЭТО
+  SEANCE_CONFIG = await loadSeanceConfig();
   await loadTakenSeats();
 
-  // 2. потом зал
-  const res = await fetch("/ticketing-core/data/hall/academy.json");
+  const res = await fetch("../../data/hall/academy.json");
   const HALL = await res.json();
 
   parterRows.length = 0;
@@ -647,16 +600,15 @@ function makeSeatElement(key,label,extraClass,price,meta){
       row: r.row,
       seats: r.seats,
       zone: "Партер",
-      price: 0, 
+      price: 0,
       className: ""
     });
   });
 
-  // 3. только теперь рендер
   renderParter();
+  
 
   updateSummary();
-
 })();
 
   </script>
