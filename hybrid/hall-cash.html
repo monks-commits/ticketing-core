@@ -1170,6 +1170,15 @@ function renderHallFromJson(HALL_RAW) {
     const rowLine = document.createElement("div");
     rowLine.className = "row-line";
 
+    // 👇 ВОТ ЭТО ДОБАВЛЯЕМ
+const lab = document.createElement("div");
+lab.className = "row-label";
+lab.textContent = r.row;
+rowLine.appendChild(lab);
+
+const seatsRow = document.createElement("div");
+seatsRow.className = "seats-row";
+
     const seatsRow = document.createElement("div");
 seatsRow.className = "seats-row";
 
