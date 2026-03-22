@@ -619,6 +619,84 @@ if (!saleAllowed) {
   updateSummary();
 })();
 
+// ===== BLOCK SEATS BY SEANCE_ID (READY) =====
+(async () => {
+  try {
+    // --- проверка supabase
+    if (!window.supabase) {
+      console.warn("Supabase not loaded");
+      return;
+    }
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    // --- берем seance_id из URL
+    const qs = new URLSearchParams(location.search);
+    const SEANCE_ID = (qs.get("seance") || "").trim();
+
+    if (!SEANCE_ID) {
+      console.warn("No SEANCE_ID");
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    const taken = new Set();
+
+    // ===== 1. ВРЕМЕННЫЕ БРОНИ =====
+    const { data: bookings } = await supabaseClient
+      .from("bookings")
+      .select("seats, expires_at, seance_id")
+      .eq("seance_id", SEANCE_ID);
+
+    if (bookings) {
+      bookings.forEach(b => {
+        if (b.expires_at && b.expires_at <= nowIso) return;
+
+        (b.seats || []).forEach(s => {
+          if (s) taken.add(s.trim());
+        });
+      });
+    }
+
+    // ===== 2. ПРОДАННЫЕ =====
+    const { data: tickets } = await supabaseClient
+      .from("tickets")
+      .select("seat_label, seance_id")
+      .eq("seance_id", SEANCE_ID);
+
+    if (tickets) {
+      tickets.forEach(t => {
+        if (t.seat_label) taken.add(t.seat_label.trim());
+      });
+    }
+
+    console.log("TAKEN SEATS:", [...taken]);
+
+    // ===== 3. ПРИМЕНЯЕМ К ЗАЛУ =====
+    setTimeout(() => {
+      document.querySelectorAll(".seat").forEach(el => {
+        const row = el.dataset.row;
+        const seat = el.dataset.seat;
+
+        if (!row || !seat) return;
+
+        const id = `P${row}-M${seat}`;
+
+        if (taken.has(id)) {
+          el.classList.add("seat-taken");
+          el.style.pointerEvents = "none";
+        }
+      });
+    }, 400);
+
+  } catch (e) {
+    console.error("BLOCK ERROR:", e);
+  }
+})();
+    
   </script>
 </body>
 </html>
