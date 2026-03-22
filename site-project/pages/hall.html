@@ -328,7 +328,7 @@ function applySeanceConfig(meta) {
     
     function makeSeatElement(key,label,extraClass,price,meta){
 
-      console.log("CHECK:", `"${key}"`, takenSeats.has(key));
+      
       
         let finalPrice = price;
   let finalClass = extraClass;
@@ -597,6 +597,7 @@ if (!saleAllowed) {
 
   // 🔴 ДОБАВИТЬ ЭТО
   SEANCE_CONFIG = await loadSeanceConfig();
+     
   await loadTakenSeats();
 
   const res = await fetch("../../data/hall/academy.json");
@@ -670,7 +671,7 @@ if (!saleAllowed) {
 
     if (tickets) {
       tickets.forEach(t => {
-        if (t.seat_label) taken.add(t.seat_label.trim());
+        if (t.seat_label) taken.add(t.seat_label.trim()); 
       });
     }
 
