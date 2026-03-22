@@ -197,7 +197,8 @@ function renderHallFromJson(HALL) {
     }
 
     // места
-    for (let s = 1; s <= r.seats; s++) {
+
+for (let s = 1; s <= r.seats; s++) {
 
   const meta = { row: r.row, seat: s };
 
@@ -207,7 +208,7 @@ function renderHallFromJson(HALL) {
     cls += " seat--gap-right";
   }
 
-  // ✅ цена
+  // цена по зонам
   let price = 0;
 
   if (r.zones) {
@@ -219,25 +220,17 @@ function renderHallFromJson(HALL) {
     }
   }
 
-  // ✅ добавляем кнопку
-  seatsRow.appendChild(
-  makeSeatElement(
+  const btn = makeSeatElement(
     seatKey(meta),
     s,
     cls,
     price,
     meta
-  )
-);
+  );
 
-makeSeatElement(
-  seatKey(meta),
-  s,
-  cls,
-  price,
-  meta
-)
-      
+  seatsRow.appendChild(btn);
+}
+    
     
     rowLine.appendChild(seatsRow);
     block.appendChild(rowLine);
