@@ -637,7 +637,7 @@ function makeSeatElement(key,label,extraClass,price,meta){
   await loadTakenSeats();
 
   // 2. потом зал
-  const res = await fetch("../../../data/hall/academy.json");
+  const res = await fetch("/ticketing-core/data/hall/academy.json");
   const HALL = await res.json();
 
   parterRows.length = 0;
