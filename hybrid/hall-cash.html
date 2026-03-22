@@ -1210,6 +1210,15 @@ for (let s = 1; s <= r.seats; s++) {
 
     rowLine.appendChild(seatsRow);
     block.appendChild(rowLine);
+
+// ===== ПРОХОД МЕЖДУ РЯДАМИ =====
+if (r.gapAfter) {
+  const gap = document.createElement("div");
+  gap.style.height = "40px";   // ← ВОТ ТУТ регулируешь размер прохода
+  gap.style.width = "100%";
+  block.appendChild(gap);
+}
+    
   });
 }
     
