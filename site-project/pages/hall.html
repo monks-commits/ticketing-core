@@ -352,7 +352,7 @@ if (cfg && cfg.color) {
   btn.style.color = "#fff";
 }
 
-      if (takenSeats.has(key)){
+      if (takenSeats.has(key.trim()))
         btn.classList.add("seat--taken");
         btn.disabled = true;
       }
