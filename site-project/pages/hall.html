@@ -404,9 +404,8 @@ function makeSeatElement(key,label,extraClass,price,meta){
 
   return btn;
 }
-
-
-    
+   
+   const selected = new Map(); // key -> { meta, price } 
     
     function onSeatClick(btn, key, meta, price){
       if (btn.classList.contains("seat--selected")){
