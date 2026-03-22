@@ -209,13 +209,25 @@ function renderHallFromJson(HALL) {
       }
 
       seatsRow.appendChild(
-        makeSeatElement(
-          seatKey(meta),
-          s,
-          cls,
-          0,
-          meta
-        )
+        // определяем цену по зонам
+let price = 0;
+
+if (r.zones) {
+  for (const z of r.zones) {
+    if (s >= z.from && s <= z.to) {
+      price = z.price;
+      break;
+    }
+  }
+}
+
+makeSeatElement(
+  seatKey(meta),
+  s,
+  cls,
+  price,
+  meta
+)
       );
     }
 
