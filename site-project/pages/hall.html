@@ -199,26 +199,36 @@ function renderHallFromJson(HALL) {
     // места
     for (let s = 1; s <= r.seats; s++) {
 
-      const meta = { row: r.row, seat: s };
+  const meta = { row: r.row, seat: s };
 
-      let cls = "";
+  let cls = "";
 
-      // проходы
-      if (r.aisles && r.aisles.includes(s)) {
-        cls += " seat--gap-right";
+  if (r.aisles && r.aisles.includes(s)) {
+    cls += " seat--gap-right";
+  }
+
+  // ✅ цена
+  let price = 0;
+
+  if (r.zones) {
+    for (const z of r.zones) {
+      if (s >= z.from && s <= z.to) {
+        price = z.price;
+        break;
       }
-
-      seatsRow.appendChild(
-        // определяем цену по зонам
-let price = 0;
-
-if (r.zones) {
-  for (const z of r.zones) {
-    if (s >= z.from && s <= z.to) {
-      price = z.price;
-      break;
     }
   }
+
+  // ✅ добавляем кнопку
+  seatsRow.appendChild(
+    makeSeatElement(
+      seatKey(meta),
+      s,
+      cls,
+      price,
+      meta
+    )
+  );
 }
 
 makeSeatElement(
