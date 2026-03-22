@@ -132,20 +132,9 @@
   </main>
 
   <div id="site-footer"></div>
-
-  
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script type="module" src="../scripts/include.js"></script>
+  <script type="module" src="../scripts/include.js"></script>
 
   <script>
-
-const hallDataUrl = "../../data/hall/academy.json";
-
-function showInlineError(el, msg) {
-  console.error(msg);
-}
-    
     const qs = new URLSearchParams(location.search);
 
 const showSlug  = (qs.get("show")   || "").trim();
@@ -157,11 +146,6 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
 
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-
-    const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
 
     // Партер 1–18 по 20 місць, проход після 10-го
     const parterRows = Array.from({ length: 18 }, (_, i) => {
@@ -199,75 +183,36 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
     const takenSeats = new Set(); // seat_label keys like P2-M2 / A19-M12 / B1-M5 / A0-M1 / B0-M1
 
 
-    
-async function loadHallAndBookings() {
-  try {
-    const hallResp = await fetch(hallDataUrl, { cache: "no-store" });
-    if (!hallResp.ok) {
-      throw new Error("Hall not found: " + hallDataUrl);
-    }
+async function loadTakenSeats() {
+  takenSeats.clear();
 
-    hallConfig = await hallResp.json();
+  if (!showSlug) return;
 
-    // если нет сеанса — просто рендер
-    if (!SEANCE_ID) {
-      takenSeatIds = new Set();
-      renderHall();
-      return;
-    }
+  const url =
+  `${SUPABASE_URL}/rest/v1/tickets` +
+  `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+  `&select=seat_label`;
 
-    const nowIso = new Date().toISOString();
 
-    // 1) БРОНИ
-    let bookingSeatIds = new Set();
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    cache: "no-store"
+  });
 
-    const { data: bookings, error: bookingsError } = await supabaseClient
-      .from("bookings")
-      .select("seats, expires_at")
-      .eq("seance_id", SEANCE_ID);
-
-    if (bookingsError) {
-      console.warn("bookingsError", bookingsError);
-    } else if (bookings?.length) {
-      for (const b of bookings) {
-        if (b.expires_at && b.expires_at <= nowIso) continue;
-
-        const arr = Array.isArray(b.seats) ? b.seats : [];
-        for (const seatLabel of arr) {
-          if (seatLabel) bookingSeatIds.add(seatLabel);
-        }
-      }
-    }
-
-    // 2) ПРОДАННЫЕ
-    let soldSeatIds = new Set();
-
-    const { data: tickets, error: ticketsError } = await supabaseClient
-      .from("tickets")
-      .select("seat_label")
-      .eq("seance_id", SEANCE_ID);
-
-    if (ticketsError) {
-      console.warn("ticketsError", ticketsError);
-    } else if (tickets?.length) {
-      for (const t of tickets) {
-        if (t?.seat_label) soldSeatIds.add(t.seat_label);
-      }
-    }
-
-    // 3) ОБЪЕДИНЕНИЕ
-    takenSeatIds = new Set([
-      ...bookingSeatIds,
-      ...soldSeatIds
-    ]);
-
-    renderHall();
-
-  } catch (e) {
-    console.error(e);
-    showInlineError(hallErrorEl, "Помилка завантаження залу: " + e.message);
+  if (!res.ok) {
+    console.warn("tickets load failed", res.status);
+    return;
   }
+
+  const rows = await res.json().catch(() => []);
+  rows.forEach(r => {
+    if (r?.seat_label) takenSeats.add(String(r.seat_label));
+  });
 }
+
     
 
 let SEANCE_CONFIG = null;
@@ -651,7 +596,7 @@ if (!saleAllowed) {
 
   // 🔴 ДОБАВИТЬ ЭТО
   SEANCE_CONFIG = await loadSeanceConfig();
-  await loadHallAndBookings();
+  await loadTakenSeats();
 
   const res = await fetch("../../data/hall/academy.json");
   const HALL = await res.json();
