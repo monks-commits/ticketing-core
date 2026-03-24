@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Події</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+  background:#f3f4f6;
+}
+header{
+  background:#111827;
+  color:#fff;
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:800;
+}
+a.back{
+  background:#2563eb;
+  color:#fff;
+  text-decoration:none;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:14px;
+}
+main{
+  max-width:900px;
+  margin:40px auto;
+  padding:0 20px;
+}
+.card{
+  background:#fff;
+  border-radius:14px;
+  padding:24px;
+  box-shadow:0 4px 14px rgba(0,0,0,.06);
+}
+select{
+  padding:10px 14px;
+  font-size:16px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  min-width:340px;
+}
+button{
+  margin-left:12px;
+  padding:10px 18px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+  background:#2563eb;
+  color:#fff;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  Події
+  <a href="../index.html" class="back">Назад</a>
+</header>
+
+<main>
+  <div class="card">
+    <h2>Вибір сеансу</h2>
+
+    <select id="seanceSelect">
+      <option value="">Завантаження…</option>
+    </select>
+
+    <button id="goBtn">В касу</button>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const select = document.getElementById("seanceSelect");
+const goBtn = document.getElementById("goBtn");
+
+let SEANCE_MAP = {}; // id → show
+
+async function loadSeances(){
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?select=id,show&active=eq.true&order=created_at.desc`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const rows = await res.json();
+
+    select.innerHTML = `<option value="">Оберіть сеанс…</option>`;
+
+    rows.forEach(s=>{
+      SEANCE_MAP[s.id] = s.show;
+
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.id;
+      select.appendChild(opt);
+    });
+
+  }catch(e){
+    select.innerHTML = `<option value="">Помилка</option>`;
+  }
+}
+
+goBtn.onclick = async () => {
+  const val = select.value;
+  if (!val) return;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(val)}&select=show`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const rows = await res.json();
+    if (!rows.length) return;
+
+    location.href =
+  `../../spectacles/hall-cash.html?seance=${encodeURIComponent(val)}`;
+
+
+
+  } catch(e) {
+    alert("Помилка переходу");
+  }
+};
+
+</script>
+
+
+</body>
+</html>
