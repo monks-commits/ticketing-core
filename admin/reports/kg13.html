@@ -1,105 +1,39 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<title>КГ-13</title>
+  <meta charset="UTF-8">
+  <title>КГ-13</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #000; padding: 6px; text-align: center; }
+    @media print { button { display: none; } }
+  </style>
 </head>
-<body style="font-family: Arial; padding:20px;">
+<body>
 
-<h1>Форма КГ-13 (щоденний звіт касира)</h1>
+<h2>Форма КГ-13 (щоденний звіт касира)</h2>
 
-<div style="margin-bottom:15px;">
-  <button onclick="history.back()">← Назад</button>
+<button onclick="window.api.navigate('cashier/index.html')">
+  ← Назад
+</button>
 
-  Дата:
-  <input type="date" id="day">
 
+<label>Дата:
+  <input type="date" id="date">
+</label>
+
+<label style="margin-left:15px;">
   Касир:
-  <input type="text" id="cashier" value="cash">
+  <input type="text" id="cashier" value="КАСА">
+</label>
 
-  <button onclick="generate()">Сформувати</button>
-  <button onclick="window.print()">Друк</button>
-</div>
+<button onclick="loadKG13()">Сформувати</button>
+<button onclick="window.print()">Друк</button>
 
-<hr>
+<div id="report"></div>
 
-<div>
-  <p><b>Дата:</b> <span id="r-day">—</span></p>
-  <p><b>Касир:</b> <span id="r-cashier">—</span></p>
-  <br>
-  <p><b>Кількість квитків:</b> <span id="r-count">0</span></p>
-  <p><b>Сума:</b> <span id="r-sum">0</span> грн</p>
-</div>
-
-<script>
-const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-
-function params() {
-  const p = new URLSearchParams(location.search);
-  return {
-    day: p.get("day"),
-    cashier: p.get("cashier")
-  };
-}
-
-function generate() {
-  const d = document.getElementById("day").value;
-  const c = document.getElementById("cashier").value.trim();
-
-  if (!d) {
-    alert("Вкажіть дату");
-    return;
-  }
-
-  location.href = `kg13.html?day=${d}&cashier=${encodeURIComponent(c)}`;
-}
-
-async function load() {
-  const { day, cashier } = params();
-  if (!day) return;
-
-  document.getElementById("day").value = day;
-  document.getElementById("cashier").value = cashier || "cash";
-
-  document.getElementById("r-day").textContent = day;
-  document.getElementById("r-cashier").textContent = cashier || "cash";
-
-  try {
-    const start = day + "T00:00:00";
-    const end = day + "T23:59:59";
-
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?select=price,created_at,status&created_at=gte.${start}&created_at=lte.${end}&status=in.(sold,used)`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: "Bearer " + SUPABASE_KEY
-        }
-      }
-    );
-
-    const data = await res.json();
-
-    let count = 0;
-    let sum = 0;
-
-    for (const t of data) {
-      count++;
-      sum += Number(t.price || 0);
-    }
-
-    document.getElementById("r-count").textContent = count;
-    document.getElementById("r-sum").textContent = sum;
-
-  } catch (e) {
-    console.error(e);
-    alert("Помилка завантаження звіту");
-  }
-}
-
-load();
-</script>
+<script src="kg13.js"></script>
 
 </body>
 </html>
