@@ -1,32 +1,90 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>КГ-10</title>
+<link rel="stylesheet" href="../../styles/styles.css">
+</head>
+
+<body class="main">
+
+<div class="container">
+
+<h2>КГ-10 (звіт по сеансу)</h2>
+
+<button class="btn secondary" onclick="location.href='../panel.html'">
+← Назад
+</button>
+
+<br><br>
+
+ID сеансу:
+<input type="text" id="seance" placeholder="встав ID">
+
+<button class="btn" onclick="run()">Сформувати</button>
+<button class="btn secondary" onclick="window.print()">Друк</button>
+
+<hr>
+
+<div id="out"></div>
+
+</div>
+
 <script>
-const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_KEY = "ТВОЙ_КЛЮЧ";
 
-async function load() {
-  const seanceId = new URLSearchParams(location.search).get("id");
+const URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const KEY = "ВСТАВЬ_СВОЙ_КЛЮЧ";
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${seanceId}`,
-    { headers: { apikey: SUPABASE_KEY } }
-  );
+async function run() {
 
-  const rows = await res.json();
+  const seance = document.getElementById("seance").value.trim();
 
-  let issued = rows.length;
-  let sold = rows.filter(r => ["sold","used"].includes(r.status)).length;
-  let returned = rows.filter(r => r.status === "returned").length;
-  let amount = rows
-    .filter(r => ["sold","used"].includes(r.status))
-    .reduce((s,r)=>s+(r.price||0),0);
+  if (!seance) {
+    alert("Вкажіть seance_id");
+    return;
+  }
 
-  document.body.innerHTML = `
-    <h1>КГ-10</h1>
-    <p>Видано: ${issued}</p>
-    <p>Продано: ${sold}</p>
-    <p>Повернуто: ${returned}</p>
-    <p>Сума: ${amount}</p>
-  `;
+  try {
+
+    const res = await fetch(
+      `${URL}/rest/v1/tickets?select=price,seance_id&seance_id=eq.${seance}`,
+      {
+        headers: {
+          apikey: KEY,
+          Authorization: "Bearer " + KEY
+        }
+      }
+    );
+
+    if (!res.ok) {
+      const t = await res.text();
+      console.error(t);
+      alert("Помилка");
+      return;
+    }
+
+    const data = await res.json();
+
+    let count = data.length;
+    let sum = 0;
+
+    for (const t of data) {
+      sum += Number(t.price || 0);
+    }
+
+    document.getElementById("out").innerHTML = `
+      <p><b>Сеанс:</b> ${seance}</p>
+      <p><b>Кількість квитків:</b> ${count}</p>
+      <p><b>Сума:</b> ${sum} грн</p>
+    `;
+
+  } catch(e) {
+    console.error(e);
+    alert("Помилка звіту");
+  }
 }
 
-load();
 </script>
+
+</body>
+</html>
