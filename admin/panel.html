@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Адмін</title>
+<link rel="stylesheet" href="../styles/styles.css">
+</head>
+
+<body>
+
+<div class="admin-center">
+  <div class="admin-card">
+
+    <div class="admin-title">🎛 Адмін</div>
+
+    <button class="admin-btn admin-btn-blue" onclick="toCash()">Події / Каса</button>
+    <button class="admin-btn admin-btn-green" onclick="toEditor()">Редактор сеансів</button>
+    <button class="admin-btn admin-btn-gray" onclick="toManage()">Керування сеансами</button>
+    <button class="admin-btn admin-btn-gray" onclick="toReports()">Звіти</button>
+    <button class="admin-btn admin-btn-red" onclick="logout()">Вихід</button>
+
+  </div>
+</div>
+
+<script>
+if (localStorage.getItem("role") !== "admin") {
+  location.href = "../index.html";
+}
+
+function toCash(){
+  location.href = "events/index.html";
+}
+
+function toEditor(){
+  location.href = "seance-editor.html";
+}
+
+function toManage(){
+  location.href = "manage.html";
+}
+
+function toReports(){
+  location.href = "reports/kg13.html";
+}
+
+function logout(){
+  localStorage.removeItem("role");
+  location.href = "../index.html";
+}
+</script>
+
+</body>
+</html>
