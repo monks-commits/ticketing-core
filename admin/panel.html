@@ -28,7 +28,11 @@ if (localStorage.getItem("role") !== "admin") {
 }
 
 function toCash(){
-  location.href = "../hybrid/hall-cash.html";
+  window.open(
+    "../hybrid/hall-cash.html",
+    "cashWindow",
+    "width=1200,height=800"
+  );
 }
 
 function toEditor(){
