@@ -27,11 +27,14 @@
   <p><b>Дата:</b> <span id="r-day">—</span></p>
   <p><b>Касир:</b> <span id="r-cashier">—</span></p>
   <br>
-  <p><b>Кількість чеків:</b> <span id="r-count">0</span></p>
+  <p><b>Кількість квитків:</b> <span id="r-count">0</span></p>
   <p><b>Сума:</b> <span id="r-sum">0</span> грн</p>
 </div>
 
 <script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
 function params() {
   const p = new URLSearchParams(location.search);
   return {
@@ -44,15 +47,15 @@ function generate() {
   const d = document.getElementById("day").value;
   const c = document.getElementById("cashier").value.trim();
 
-  if (!d || !c) {
-    alert("Вкажіть дату та касира");
+  if (!d) {
+    alert("Вкажіть дату");
     return;
   }
 
   location.href = `kg13.html?day=${d}&cashier=${encodeURIComponent(c)}`;
 }
 
-function load() {
+async function load() {
   const { day, cashier } = params();
   if (!day) return;
 
@@ -62,53 +65,37 @@ function load() {
   document.getElementById("r-day").textContent = day;
   document.getElementById("r-cashier").textContent = cashier || "cash";
 
-  let count = 0;
-  let sum = 0;
+  try {
+    const start = day + "T00:00:00";
+    const end = day + "T23:59:59";
 
-  // ключ очереди (как у тебя в системе)
-  const STORAGE_KEY = "cash_ops_queue_v1_fhusjlkneckbvnrdhbil";
-
-  const raw = localStorage.getItem(STORAGE_KEY);
-
-  if (raw) {
-    try {
-      const ops = JSON.parse(raw);
-
-      const start = new Date(day + "T00:00:00");
-      const end = new Date(day + "T23:59:59");
-
-      for (const op of ops) {
-        if (!op) continue;
-
-        // берем только продажи
-        if (op.type !== "sale" && op.payload?.type !== "sale") continue;
-
-        const ts = op.created_at || op.ts;
-        if (!ts) continue;
-
-        const d = new Date(ts);
-
-        if (d >= start && d <= end) {
-          count++;
-
-          // разные варианты где может лежать сумма
-          const amount =
-            op.amount ||
-            op.payload?.amount ||
-            op.total ||
-            op.payload?.total ||
-            0;
-
-          sum += Number(amount);
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?select=price,created_at,status&created_at=gte.${start}&created_at=lte.${end}&status=in.(sold,used)`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: "Bearer " + SUPABASE_KEY
         }
       }
-    } catch (e) {
-      console.error("JSON error", e);
-    }
-  }
+    );
 
-  document.getElementById("r-count").textContent = count;
-  document.getElementById("r-sum").textContent = sum;
+    const data = await res.json();
+
+    let count = 0;
+    let sum = 0;
+
+    for (const t of data) {
+      count++;
+      sum += Number(t.price || 0);
+    }
+
+    document.getElementById("r-count").textContent = count;
+    document.getElementById("r-sum").textContent = sum;
+
+  } catch (e) {
+    console.error(e);
+    alert("Помилка завантаження звіту");
+  }
 }
 
 load();
