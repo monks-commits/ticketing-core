@@ -1,37 +1,68 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>КГ-13</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    h1 { margin-bottom: 10px; }
+    .block { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<h1>КГ-13 (денний звіт касира)</h1>
+
+<div id="result">Завантаження...</div>
+
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_KEY = "ТВОЙ_КЛЮЧ";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const params = new URLSearchParams(location.search);
+const day = params.get("day");
+const cashier = params.get("cashier") || "cash";
 
 async function load() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=*&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59&cashier=eq.${cashier}`, {
-  headers: {
-    "apikey": SUPABASE_ANON_KEY,
-    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+  try {
+    const from = day + "T00:00:00";
+    const to = day + "T23:59:59";
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?select=*&created_at=gte.${from}&created_at=lte.${to}&cashier=eq.${cashier}`,
+      {
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + SUPABASE_ANON_KEY
+        }
+      }
+    );
+
+    const orders = await res.json();
+
+    let total = 0;
+    let count = 0;
+
+    for (const o of orders) {
+      total += Number(o.total || 0);
+      count++;
+    }
+
+    document.getElementById("result").innerHTML = `
+      <div class="block">
+        <b>Дата:</b> ${day}<br>
+        <b>Касир:</b> ${cashier}<br><br>
+        <b>Кількість чеків:</b> ${count}<br>
+        <b>Сума:</b> ${total} грн
+      </div>
+    `;
+  } catch (e) {
+    document.getElementById("result").innerText = "Помилка: " + e.message;
   }
-});
-
-  const rows = await res.json();
-
-  const map = {};
-
-  rows.forEach(r => {
-    const day = r.created_at?.slice(0,10);
-    const key = day + "|" + (r.cashier || "—");
-
-    if (!map[key]) map[key] = { count:0, sum:0 };
-
-    map[key].count++;
-    map[key].sum += r.price || 0;
-  });
-
-  let html = "<h1>КГ-13</h1>";
-
-  Object.entries(map).forEach(([k,v]) => {
-    html += `<p>${k} → ${v.count} билетов / ${v.sum} грн</p>`;
-  });
-
-  document.body.innerHTML = html;
 }
 
 load();
 </script>
+
+</body>
+</html>
