@@ -1,0 +1,35 @@
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_KEY = "ТВОЙ_КЛЮЧ";
+
+async function load() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/tickets?status=eq.sold`,
+    { headers: { apikey: SUPABASE_KEY } }
+  );
+
+  const rows = await res.json();
+
+  const map = {};
+
+  rows.forEach(r => {
+    const day = r.created_at?.slice(0,10);
+    const key = day + "|" + (r.cashier || "—");
+
+    if (!map[key]) map[key] = { count:0, sum:0 };
+
+    map[key].count++;
+    map[key].sum += r.price || 0;
+  });
+
+  let html = "<h1>КГ-13</h1>";
+
+  Object.entries(map).forEach(([k,v]) => {
+    html += `<p>${k} → ${v.count} билетов / ${v.sum} грн</p>`;
+  });
+
+  document.body.innerHTML = html;
+}
+
+load();
+</script>
