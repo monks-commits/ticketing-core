@@ -1,4 +1,4 @@
-const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 async function loadKG13() {
