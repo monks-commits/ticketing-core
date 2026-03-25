@@ -1,6 +1,6 @@
 async function getKG13(day, cashier) {
 
-  const data = await sbFetch("tickets?select=price,created_at,status");
+  const data = await sbFetch("tickets?select=price,created_at");
 
   const start = new Date(day + "T00:00:00");
   const end = new Date(day + "T23:59:59");
