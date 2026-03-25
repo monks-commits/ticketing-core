@@ -1658,6 +1658,16 @@ renderHallFromJson(RAW_HALL);
 
 })();
 
+document.getElementById("btn-kg13").onclick = () => {
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  window.open(
+    `/ticketing-core/admin/reports/kg13.html?day=${today}`,
+    "_blank"
+  );
+};
+    
   </script>
 </body>
 </html>
