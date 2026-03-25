@@ -17,7 +17,7 @@
 
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const SUPABASE_ANON_KEY = "ВСТАВЬ_СЮДА_КЛЮЧ";
 
 const params = new URLSearchParams(location.search);
 const day = params.get("day");
@@ -28,17 +28,28 @@ async function load() {
     const from = day + "T00:00:00";
     const to = day + "T23:59:59";
 
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?select=*&created_at=gte.${from}&created_at=lte.${to}&cashier=eq.${cashier}`,
-      {
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": "Bearer " + SUPABASE_ANON_KEY
-        }
-      }
-    );
+    const url = `${SUPABASE_URL}/rest/v1/orders?select=*&created_at=gte.${from}&created_at=lte.${to}`;
 
-    const orders = await res.json();
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY
+      }
+    });
+
+    const data = await res.json();
+
+    // защита от ошибок Supabase
+    if (!Array.isArray(data)) {
+      document.getElementById("result").innerText =
+        "Ошибка запроса: " + JSON.stringify(data);
+      return;
+    }
+
+    // если поле cashier есть — фильтруем
+    const orders = data.filter(o =>
+      !o.cashier || o.cashier === cashier
+    );
 
     let total = 0;
     let count = 0;
@@ -49,12 +60,10 @@ async function load() {
     }
 
     document.getElementById("result").innerHTML = `
-      <div class="block">
-        <b>Дата:</b> ${day}<br>
-        <b>Касир:</b> ${cashier}<br><br>
-        <b>Кількість чеків:</b> ${count}<br>
-        <b>Сума:</b> ${total} грн
-      </div>
+      <b>Дата:</b> ${day}<br>
+      <b>Касир:</b> ${cashier}<br><br>
+      <b>Кількість чеків:</b> ${count}<br>
+      <b>Сума:</b> ${total} грн
     `;
   } catch (e) {
     document.getElementById("result").innerText = "Помилка: " + e.message;
