@@ -3,10 +3,12 @@ const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "ТВОЙ_КЛЮЧ";
 
 async function load() {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/tickets?status=eq.sold`,
-    { headers: { apikey: SUPABASE_KEY } }
-  );
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=*&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59&cashier=eq.${cashier}`, {
+  headers: {
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+  }
+});
 
   const rows = await res.json();
 
