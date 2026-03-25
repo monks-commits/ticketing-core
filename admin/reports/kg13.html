@@ -1,52 +1,100 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <title>КГ-13</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    h1 { margin-bottom: 10px; }
-    .block { margin-top: 20px; }
-  </style>
+<meta charset="UTF-8" />
+<title>КГ-13</title>
+
+<style>
+  body {
+    font-family: Arial;
+    padding: 20px;
+  }
+
+  h1 {
+    margin-bottom: 20px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  input, button {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  .report {
+    margin-top: 20px;
+    font-size: 16px;
+  }
+</style>
 </head>
+
 <body>
 
-<h1>КГ-13 (денний звіт касира)</h1>
+<h1>Форма КГ-13 (щоденний звіт касира)</h1>
 
-<div id="result">Завантаження...</div>
+<div class="toolbar">
+  <button onclick="history.back()">← Назад</button>
+
+  Дата:
+  <input type="date" id="day">
+
+  Касир:
+  <input type="text" id="cashier" value="cash">
+
+  <button onclick="load()">Сформувати</button>
+  <button onclick="window.print()">Друк</button>
+</div>
+
+<div id="result" class="report"></div>
 
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
+// авто подстановка из URL
 const params = new URLSearchParams(location.search);
-const day = params.get("day");
-const cashier = params.get("cashier") || "cash";
+const dayParam = params.get("day");
+const cashierParam = params.get("cashier");
+
+if (dayParam) document.getElementById("day").value = dayParam;
+if (cashierParam) document.getElementById("cashier").value = cashierParam;
 
 async function load() {
+  const day = document.getElementById("day").value;
+  const cashier = document.getElementById("cashier").value;
+
+  if (!day) {
+    alert("Вкажіть дату");
+    return;
+  }
+
+  const from = day + "T00:00:00";
+  const to = day + "T23:59:59";
+
   try {
-    const from = day + "T00:00:00";
-    const to = day + "T23:59:59";
-
-    const url = `${SUPABASE_URL}/rest/v1/orders?select=*&created_at=gte.${from}&created_at=lte.${to}`;
-
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?select=*&created_at=gte.${from}&created_at=lte.${to}`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY
+        }
       }
-    });
+    );
 
     const data = await res.json();
 
-    // защита от ошибок Supabase
     if (!Array.isArray(data)) {
       document.getElementById("result").innerText =
-        "Ошибка запроса: " + JSON.stringify(data);
+        "Помилка: " + JSON.stringify(data);
       return;
     }
 
-    // если поле cashier есть — фильтруем
     const orders = data.filter(o =>
       !o.cashier || o.cashier === cashier
     );
@@ -65,12 +113,14 @@ async function load() {
       <b>Кількість чеків:</b> ${count}<br>
       <b>Сума:</b> ${total} грн
     `;
+
   } catch (e) {
     document.getElementById("result").innerText = "Помилка: " + e.message;
   }
 }
 
-load();
+// автозапуск если пришли параметры
+if (dayParam) load();
 </script>
 
 </body>
