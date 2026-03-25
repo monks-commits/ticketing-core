@@ -1,0 +1,32 @@
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_KEY = "ТВОЙ_КЛЮЧ";
+
+async function load() {
+  const seanceId = new URLSearchParams(location.search).get("id");
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${seanceId}`,
+    { headers: { apikey: SUPABASE_KEY } }
+  );
+
+  const rows = await res.json();
+
+  let issued = rows.length;
+  let sold = rows.filter(r => ["sold","used"].includes(r.status)).length;
+  let returned = rows.filter(r => r.status === "returned").length;
+  let amount = rows
+    .filter(r => ["sold","used"].includes(r.status))
+    .reduce((s,r)=>s+(r.price||0),0);
+
+  document.body.innerHTML = `
+    <h1>КГ-10</h1>
+    <p>Видано: ${issued}</p>
+    <p>Продано: ${sold}</p>
+    <p>Повернуто: ${returned}</p>
+    <p>Сума: ${amount}</p>
+  `;
+}
+
+load();
+</script>
