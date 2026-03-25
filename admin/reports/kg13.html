@@ -1,3 +1,36 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>КГ-13</title>
+</head>
+<body style="font-family: Arial; padding:20px;">
+
+<h1>Форма КГ-13 (щоденний звіт касира)</h1>
+
+<div style="margin-bottom:15px;">
+  <button onclick="history.back()">← Назад</button>
+
+  Дата:
+  <input type="date" id="day">
+
+  Касир:
+  <input type="text" id="cashier" value="cash">
+
+  <button onclick="generate()">Сформувати</button>
+  <button onclick="window.print()">Друк</button>
+</div>
+
+<hr>
+
+<div>
+  <p><b>Дата:</b> <span id="r-day">—</span></p>
+  <p><b>Касир:</b> <span id="r-cashier">—</span></p>
+  <br>
+  <p><b>Кількість чеків:</b> <span id="r-count">0</span></p>
+  <p><b>Сума:</b> <span id="r-sum">0</span> грн</p>
+</div>
+
 <script>
 function params() {
   const p = new URLSearchParams(location.search);
@@ -32,10 +65,10 @@ function load() {
   let count = 0;
   let sum = 0;
 
-  // =========================
-  // Берём локальную очередь кассы
-  // =========================
-  const raw = localStorage.getItem("cash_ops_queue_v1_fhusjlkneckbvnrdhbil");
+  // ключ очереди (как у тебя в системе)
+  const STORAGE_KEY = "cash_ops_queue_v1_fhusjlkneckbvnrdhbil";
+
+  const raw = localStorage.getItem(STORAGE_KEY);
 
   if (raw) {
     try {
@@ -45,19 +78,33 @@ function load() {
       const end = new Date(day + "T23:59:59");
 
       for (const op of ops) {
-        if (!op || op.type !== "sale") continue;
+        if (!op) continue;
 
-        const d = new Date(op.created_at || op.ts || Date.now());
+        // берем только продажи
+        if (op.type !== "sale" && op.payload?.type !== "sale") continue;
+
+        const ts = op.created_at || op.ts;
+        if (!ts) continue;
+
+        const d = new Date(ts);
 
         if (d >= start && d <= end) {
           count++;
 
-          if (op.amount) {
-            sum += Number(op.amount);
-          }
+          // разные варианты где может лежать сумма
+          const amount =
+            op.amount ||
+            op.payload?.amount ||
+            op.total ||
+            op.payload?.total ||
+            0;
+
+          sum += Number(amount);
         }
       }
-    } catch {}
+    } catch (e) {
+      console.error("JSON error", e);
+    }
   }
 
   document.getElementById("r-count").textContent = count;
@@ -66,3 +113,6 @@ function load() {
 
 load();
 </script>
+
+</body>
+</html>
