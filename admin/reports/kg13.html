@@ -1,39 +1,58 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>КГ-13</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #000; padding: 6px; text-align: center; }
-    @media print { button { display: none; } }
-  </style>
+<meta charset="UTF-8">
+<title>КГ-13</title>
+<script src="../lib/supabase.js"></script>
+<script src="../lib/reports-api.js"></script>
 </head>
-<body>
 
-<h2>Форма КГ-13 (щоденний звіт касира)</h2>
+<body style="font-family:Arial;padding:20px;">
 
-<button onclick="window.api.navigate('cashier/index.html')">
-  ← Назад
-</button>
+<h2>КГ-13 (щоденний звіт касира)</h2>
 
+<button onclick="history.back()">← Назад</button>
 
-<label>Дата:
-  <input type="date" id="date">
-</label>
+Дата:
+<input type="date" id="day">
 
-<label style="margin-left:15px;">
-  Касир:
-  <input type="text" id="cashier" value="КАСА">
-</label>
+Касир:
+<input type="text" id="cashier" value="cash">
 
-<button onclick="loadKG13()">Сформувати</button>
+<button onclick="run()">Сформувати</button>
 <button onclick="window.print()">Друк</button>
 
-<div id="report"></div>
+<hr>
 
-<script src="kg13.js"></script>
+<div id="out"></div>
+
+<script>
+async function run() {
+
+  const day = document.getElementById("day").value;
+  const cashier = document.getElementById("cashier").value.trim();
+
+  if (!day || !cashier) {
+    alert("Вкажіть дату та касира");
+    return;
+  }
+
+  try {
+    const r = await getKG13(day, cashier);
+
+    document.getElementById("out").innerHTML = `
+      <p><b>Дата:</b> ${r.date}</p>
+      <p><b>Касир:</b> ${r.cashier}</p>
+      <p><b>Кількість:</b> ${r.count}</p>
+      <p><b>Сума:</b> ${r.sum} грн</p>
+    `;
+
+  } catch(e) {
+    alert("Помилка звіту");
+    console.error(e);
+  }
+}
+</script>
 
 </body>
 </html>
