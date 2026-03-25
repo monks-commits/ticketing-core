@@ -3,18 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <title>Вхід</title>
-<link rel="stylesheet" href="styles/styles.css">
+<link rel="stylesheet" href="../styles/styles.css">
 </head>
 
 <body>
 
-<div class="admin-center">
-  <div class="admin-card">
+<div style="
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:#0f172a;
+">
 
-    <div class="admin-title">Оберіть режим</div>
+  <div class="card" style="
+    width:320px;
+    text-align:center;
+    background:#1e293b;
+    color:white;
+    border-radius:20px;
+    padding:40px;
+  ">
 
-    <button class="admin-btn admin-btn-blue" onclick="admin()">Адмін</button>
-    <button class="admin-btn admin-btn-green" onclick="cash()">Касир</button>
+    <h2 style="margin-bottom:20px;">Оберіть режим</h2>
+
+    <button class="btn" style="
+      width:100%;
+      height:50px;
+      margin-bottom:10px;
+      background:#3b82f6;
+    " onclick="admin()">Адмін</button>
+
+    <button class="btn" style="
+      width:100%;
+      height:50px;
+      background:#22c55e;
+    " onclick="cash()">Касир</button>
 
   </div>
 </div>
@@ -22,12 +46,12 @@
 <script>
 function admin(){
   localStorage.setItem("role","admin");
-  location.href="admin/panel.html";
+  location.href="panel.html";
 }
 
 function cash(){
   localStorage.setItem("role","cashier");
-  location.href="hybrid/hall-cash.html";
+  location.href="../hybrid/hall-cash.html";
 }
 </script>
 
