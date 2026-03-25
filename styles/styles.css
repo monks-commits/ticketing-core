@@ -267,3 +267,46 @@ body {
 #amphi-block .row-line{
   justify-content:center;
 }
+/* ===== ADMIN UI ===== */
+
+.admin-center {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:#0f172a;
+}
+
+.admin-card {
+  background:#1e293b;
+  padding:40px;
+  border-radius:20px;
+  width:320px;
+  text-align:center;
+  color:white;
+}
+
+.admin-title {
+  margin-bottom:20px;
+  font-size:22px;
+  font-weight:600;
+}
+
+.admin-btn {
+  width:100%;
+  height:50px;
+  margin:10px 0;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+.admin-btn-blue { background:#3b82f6; color:white; }
+.admin-btn-green { background:#22c55e; color:white; }
+.admin-btn-gray { background:#475569; color:white; }
+.admin-btn-red { background:#ef4444; color:white; }
+
+.admin-btn:hover {
+  opacity:0.9;
+}
