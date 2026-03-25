@@ -2,34 +2,32 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Адмінка</title>
+<title>Вхід</title>
+<link rel="stylesheet" href="styles/styles.css">
 </head>
 
-<body style="font-family:Arial;padding:40px;">
+<body>
 
-<h1>Ваш Адмін</h1>
+<div class="admin-center">
+  <div class="admin-card">
 
-<div style="display:flex;gap:20px;">
+    <div class="admin-title">Оберіть режим</div>
 
-  <button onclick="goCashier()"
-    style="width:200px;height:80px;font-size:18px;">
-    Каса
-  </button>
+    <button class="admin-btn admin-btn-blue" onclick="admin()">Адмін</button>
+    <button class="admin-btn admin-btn-green" onclick="cash()">Касир</button>
 
-  <button onclick="goEvents()"
-    style="width:200px;height:80px;font-size:18px;">
-    Події
-  </button>
-
+  </div>
 </div>
 
 <script>
-function goCashier() {
-  location.href = "/ticketing-core/hybrid/hall-cash.html";
+function admin(){
+  localStorage.setItem("role","admin");
+  location.href="admin/panel.html";
 }
 
-function goEvents() {
-  location.href = "/ticketing-core/admin/events.html";
+function cash(){
+  localStorage.setItem("role","cashier");
+  location.href="hybrid/hall-cash.html";
 }
 </script>
 
