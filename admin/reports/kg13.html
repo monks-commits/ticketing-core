@@ -1,43 +1,14 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8" />
-<title>КГ-13</title>
-
-<style>
-  body {
-    font-family: Arial;
-    padding: 20px;
-  }
-
-  h1 {
-    margin-bottom: 20px;
-  }
-
-  .toolbar {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-
-  input, button {
-    padding: 6px 10px;
-    font-size: 14px;
-  }
-
-  .report {
-    margin-top: 20px;
-    font-size: 16px;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>КГ-13 (щоденний звіт касира)</title>
 </head>
-
-<body>
+<body style="font-family: Arial; padding:20px;">
 
 <h1>Форма КГ-13 (щоденний звіт касира)</h1>
 
-<div class="toolbar">
+<div style="margin-bottom:15px;">
   <button onclick="history.back()">← Назад</button>
 
   Дата:
@@ -46,81 +17,103 @@
   Касир:
   <input type="text" id="cashier" value="cash">
 
-  <button onclick="load()">Сформувати</button>
+  <button onclick="generate()">Сформувати</button>
   <button onclick="window.print()">Друк</button>
 </div>
 
-<div id="result" class="report"></div>
+<hr>
+
+<div id="result">
+  <p><b>Дата:</b> <span id="r-day">—</span></p>
+  <p><b>Касир:</b> <span id="r-cashier">—</span></p>
+  <br>
+  <p><b>Кількість чеків:</b> <span id="r-count">0</span></p>
+  <p><b>Сума:</b> <span id="r-sum">0</span> грн</p>
+</div>
 
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const SUPABASE_KEY = "ВСТАВЬ_СВОЙ_АНОН_KEY"; // ← вставь свой ключ
 
-// авто подстановка из URL
-const params = new URLSearchParams(location.search);
-const dayParam = params.get("day");
-const cashierParam = params.get("cashier");
+function getParams() {
+  const p = new URLSearchParams(location.search);
+  return {
+    day: p.get("day"),
+    cashier: p.get("cashier")
+  };
+}
 
-if (dayParam) document.getElementById("day").value = dayParam;
-if (cashierParam) document.getElementById("cashier").value = cashierParam;
+function setForm(day, cashier) {
+  if (day) document.getElementById("day").value = day;
+  if (cashier) document.getElementById("cashier").value = cashier;
+}
 
-async function load() {
+function generate() {
   const day = document.getElementById("day").value;
-  const cashier = document.getElementById("cashier").value;
+  const cashier = document.getElementById("cashier").value.trim();
 
-  if (!day) {
-    alert("Вкажіть дату");
+  if (!day || !cashier) {
+    alert("Вкажіть дату та касира");
     return;
   }
 
-  const from = day + "T00:00:00";
-  const to = day + "T23:59:59";
+  location.href = `kg13.html?day=${day}&cashier=${encodeURIComponent(cashier)}`;
+}
+
+async function load() {
+  const { day, cashier } = getParams();
+
+  if (!day || !cashier) return;
+
+  document.getElementById("r-day").textContent = day;
+  document.getElementById("r-cashier").textContent = cashier;
 
   try {
+    // ✅ БЕРЕМ ТОЛЬКО ПРОДАННЫЕ БИЛЕТЫ
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?select=*&created_at=gte.${from}&created_at=lte.${to}`,
+      `${SUPABASE_URL}/rest/v1/tickets?select=price,status,created_at,cashier&status=in.(sold,used)`,
       {
         headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: "Bearer " + SUPABASE_ANON_KEY
+          apikey: SUPABASE_KEY,
+          Authorization: "Bearer " + SUPABASE_KEY
         }
       }
     );
 
-    const data = await res.json();
+    const tickets = await res.json();
 
-    if (!Array.isArray(data)) {
-      document.getElementById("result").innerText =
-        "Помилка: " + JSON.stringify(data);
-      return;
-    }
-
-    const orders = data.filter(o =>
-      !o.cashier || o.cashier === cashier
+    // фильтр по дате и кассиру
+    const filtered = tickets.filter(t =>
+      t.created_at &&
+      t.created_at.startsWith(day) &&
+      (!t.cashier || t.cashier === cashier)
     );
 
-    let total = 0;
-    let count = 0;
+    const count = filtered.length;
 
-    for (const o of orders) {
-      total += Number(o.total || 0);
-      count++;
-    }
+    const sum = filtered.reduce((acc, t) => {
+      return acc + Number(t.price || 0);
+    }, 0);
 
-    document.getElementById("result").innerHTML = `
-      <b>Дата:</b> ${day}<br>
-      <b>Касир:</b> ${cashier}<br><br>
-      <b>Кількість чеків:</b> ${count}<br>
-      <b>Сума:</b> ${total} грн
-    `;
+    document.getElementById("r-count").textContent = count;
+    document.getElementById("r-sum").textContent = sum;
 
   } catch (e) {
-    document.getElementById("result").innerText = "Помилка: " + e.message;
+    console.error(e);
+    alert("Помилка завантаження звіту");
   }
 }
 
-// автозапуск если пришли параметры
-if (dayParam) load();
+// init
+(function () {
+  const { day, cashier } = getParams();
+
+  setForm(day, cashier);
+
+  if (day && cashier) {
+    load();
+  }
+})();
 </script>
 
 </body>
