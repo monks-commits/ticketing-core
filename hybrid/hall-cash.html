@@ -1659,10 +1659,7 @@ document.getElementById("btn-kg13").onclick = () => {
   const today = new Date().toISOString().slice(0,10);
   const cashier = localStorage.getItem("cashier") || "cash";
 
-  window.open(
-    `/admin/reports/kg13.html?day=${today}&cashier=${cashier}`,
-    "_blank"
-  );
+  window.open(`/teatr-shevchenka/admin/reports/kg13.html?day=${today}&cashier=${cashier}`, "_blank");
 };
     
   </script>
