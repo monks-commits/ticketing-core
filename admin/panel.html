@@ -27,8 +27,9 @@ if (localStorage.getItem("role") !== "admin") {
   location.href = "../index.html";
 }
 
-function toCash(){
-  location.href = "../hybrid/hall-cash.html";
+function cash(){
+  localStorage.setItem("role","cashier");
+  location.href="../hybrid/hall-cash.html";
 }
 
 function toEditor(){
