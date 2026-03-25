@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Керування сеансами</title>
+<link rel="stylesheet" href="../styles/styles.css">
+</head>
+
+<body class="main">
+
+<div class="container">
+
+<h2>Керування сеансами</h2>
+
+<button class="btn secondary" onclick="location.href='panel.html'">
+← Назад
+</button>
+
+<hr>
+
+<div id="list"></div>
+
+</div>
+
+<script>
+
+const URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const KEY = "ВСТАВЬ_СВОЙ_КЛЮЧ";
+
+// 🔄 загрузка
+async function load() {
+
+  const res = await fetch(`${URL}/rest/v1/seances?select=*`, {
+    headers: {
+      apikey: KEY,
+      Authorization: "Bearer " + KEY
+    }
+  });
+
+  const data = await res.json();
+
+  const el = document.getElementById("list");
+  el.innerHTML = "";
+
+  if (!data.length) {
+    el.innerHTML = "<p>Немає сеансів</p>";
+    return;
+  }
+
+  data.forEach(s => {
+
+    const row = document.createElement("div");
+
+    row.className = "card";
+
+    row.innerHTML = `
+      <b>${s.title || "Без назви"}</b><br>
+      <span class="meta">${s.date || ""} ${s.time || ""}</span>
+
+      <div style="margin-top:10px;">
+        <button class="btn secondary" onclick="archive('${s.id}')">
+          Архів
+        </button>
+
+        <button class="btn secondary" onclick="del('${s.id}')">
+          Видалити
+        </button>
+      </div>
+    `;
+
+    el.appendChild(row);
+  });
+}
+
+// 📦 архив (выключаем)
+async function archive(id) {
+
+  await fetch(`${URL}/rest/v1/seances?id=eq.${id}`, {
+    method: "PATCH",
+    headers: {
+      apikey: KEY,
+      Authorization: "Bearer " + KEY,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      active: false
+    })
+  });
+
+  load();
+}
+
+// 🗑 удаление
+async function del(id) {
+
+  if (!confirm("Точно видалити?")) return;
+
+  await fetch(`${URL}/rest/v1/seances?id=eq.${id}`, {
+    method: "DELETE",
+    headers: {
+      apikey: KEY,
+      Authorization: "Bearer " + KEY
+    }
+  });
+
+  load();
+}
+
+load();
+
+</script>
+
+</body>
+</html>
