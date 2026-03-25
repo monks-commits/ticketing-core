@@ -3,8 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>КГ-13</title>
-<script src="../lib/supabase.js"></script>
-<script src="../lib/reports-api.js"></script>
 </head>
 
 <body style="font-family:Arial;padding:20px;">
@@ -26,33 +24,7 @@
 
 <div id="out"></div>
 
-<script>
-async function run() {
-
-  const day = document.getElementById("day").value;
-  const cashier = document.getElementById("cashier").value.trim();
-
-  if (!day || !cashier) {
-    alert("Вкажіть дату та касира");
-    return;
-  }
-
-  try {
-    const r = await getKG13(day, cashier);
-
-    document.getElementById("out").innerHTML = `
-      <p><b>Дата:</b> ${r.date}</p>
-      <p><b>Касир:</b> ${r.cashier}</p>
-      <p><b>Кількість:</b> ${r.count}</p>
-      <p><b>Сума:</b> ${r.sum} грн</p>
-    `;
-
-  } catch(e) {
-    alert("Помилка звіту");
-    console.error(e);
-  }
-}
-</script>
+<script src="kg13.js"></script>
 
 </body>
 </html>
