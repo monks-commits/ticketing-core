@@ -245,7 +245,6 @@
               <button id="btn-clear" class="btn btn-clear">ОЧИСТИТИ</button>
               <button id="btn-sync" class="btn btn-sync">SYNC (відправити чергу)</button>
               <button id="btn-reprint" class="btn btn-ghost" disabled>Повторити друк останньої продажі</button>
-              <button id="btn-kg13" style="width:100%;margin-top:10px;">КГ-13 (зміна)</button>
               <button id="btn-reset" class="btn btn-reset">Скинути локальні зміни для цього сеансу</button>
             </div>
 
@@ -1655,51 +1654,6 @@ renderHallFromJson(RAW_HALL);
 
 })();
 
-
-
- // ===== КГ-13 (кнопка кассира) =====
-(function () {
-
-  function openKg13() {
-    try {
-      const today = new Date().toISOString().slice(0, 10);
-      const cashier = localStorage.getItem("cashier") || "cash";
-
-      const url = "/ticketing-core/admin/reports/kg13.html"
-        + "?day=" + today
-        + "&cashier=" + encodeURIComponent(cashier);
-
-      window.open(url, "_blank");
-    } catch (e) {
-      console.error("KG13 error:", e);
-      alert("Помилка відкриття КГ-13");
-    }
-  }
-
-  function init() {
-    const btn = document.getElementById("btn-kg13");
-
-    if (!btn) {
-      console.warn("btn-kg13 not found");
-      return;
-    }
-
-    // убираем старые обработчики
-    btn.onclick = null;
-
-    // назначаем новый
-    btn.addEventListener("click", openKg13);
-  }
-
-  // гарантированная инициализация
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
-
-})();
-    
   </script>
 </body>
 </html>
