@@ -1,5 +1,5 @@
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_ANON_KEY = "ТВОЙ_КЛЮЧ";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 async function sbFetch(path) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
