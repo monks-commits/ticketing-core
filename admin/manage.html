@@ -86,8 +86,8 @@ async function load() {
   const data = await res.json();
 
   // 🔥 ЧЁТКАЯ ФИЛЬТРАЦИЯ
-  const active = data.filter(s => s.archived !== true);
-  const archived = data.filter(s => s.archived === true);
+  const active = data.filter(s => s.archived != true);
+const archived = data.filter(s => s.archived == true);
 
   const activeEl = document.getElementById("active");
   const archivedEl = document.getElementById("archived");
