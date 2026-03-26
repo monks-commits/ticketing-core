@@ -5,79 +5,84 @@
 <title>Керування сеансами</title>
 
 <style>
-body {
-  font-family: Arial;
-  background: #0b1628;
-  color: #fff;
-  padding: 20px;
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#0b1a2b;
+  color:#fff;
 }
 
-h1 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.container{
+  max-width:900px;
+  margin:40px auto;
 }
 
-.section {
-  background: #1c2a3f;
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 20px;
+h1{
+  margin-bottom:20px;
 }
 
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #2c3e5a;
+.card{
+  background:#1c2b3f;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:30px;
 }
 
-.btn {
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  margin-left: 5px;
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.1);
 }
 
-.blue { background: #2d6cdf; color: #fff; }
-.red { background: #e53935; color: #fff; }
-.green { background: #2e7d32; color: #fff; }
+.btn{
+  padding:6px 12px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  margin-left:6px;
+}
 
-.back {
-  margin-bottom: 10px;
+.blue{background:#2d6cdf;color:#fff;}
+.red{background:#e53935;color:#fff;}
+.green{background:#2ecc71;color:#fff;}
+.back{
+  background:#fff;
+  color:#000;
+  margin-bottom:20px;
 }
 </style>
-
 </head>
+
 <body>
 
-<button class="back" onclick="history.back()">← Назад</button>
+<div class="container">
+
+<button class="btn back" onclick="location.href='index.html'">← Назад</button>
 
 <h1>🎭 Керування сеансами</h1>
 
-<div class="section">
+<div class="card">
   <h3>Активні</h3>
   <div id="active"></div>
 </div>
 
-<div class="section">
+<div class="card">
   <h3>Архів</h3>
   <div id="archived"></div>
 </div>
 
-<script>
+</div>
 
+<script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-// ================= LOAD =================
-
-async function load() {
+async function load(){
 
   const res = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
-    headers: {
+    headers:{
       apikey: SUPABASE_ANON_KEY,
       Authorization: "Bearer " + SUPABASE_ANON_KEY
     }
@@ -85,22 +90,18 @@ async function load() {
 
   const data = await res.json();
 
-console.log(data);
-  
-  // 🔥 ЧЁТКАЯ ФИЛЬТРАЦИЯ
+  // 🔥 главное — НЕ строгое сравнение
   const active = data.filter(s => s.archived != true);
-const archived = data.filter(s => s.archived == true);
+  const archived = data.filter(s => s.archived == true);
 
-  const activeEl = document.getElementById("active");
-  const archivedEl = document.getElementById("archived");
+  const activeDiv = document.getElementById("active");
+  const archDiv = document.getElementById("archived");
 
-  // 💥 ОБЯЗАТЕЛЬНО ОЧИЩАЕМ
-  activeEl.innerHTML = "";
-  archivedEl.innerHTML = "";
+  activeDiv.innerHTML = "";
+  archDiv.innerHTML = "";
 
-  // ===== АКТИВНЫЕ =====
   active.forEach(s => {
-    activeEl.innerHTML += `
+    activeDiv.innerHTML += `
       <div class="row">
         <div>${s.id}</div>
         <div>
@@ -111,9 +112,8 @@ const archived = data.filter(s => s.archived == true);
     `;
   });
 
-  // ===== АРХИВ =====
   archived.forEach(s => {
-    archivedEl.innerHTML += `
+    archDiv.innerHTML += `
       <div class="row">
         <div>${s.id}</div>
         <div>
@@ -122,62 +122,44 @@ const archived = data.filter(s => s.archived == true);
       </div>
     `;
   });
+
 }
 
-// ================= ARCHIVE =================
+async function archive(id){
 
-async function archive(id) {
+  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${id}`, {
+    method:"PATCH",
+    headers:{
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({ archived:true })
+  });
 
-  console.log("ARCHIVE:", id);
-
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?id=eq.${id}`,
-    {
-      method: "PATCH",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ archived: true })
-    }
-  );
-
-  console.log("STATUS:", res.status);
-
-  await load();
+  load(); // 🔥 сразу обновляем UI
 }
 
-// ================= RESTORE =================
+async function restore(id){
 
-async function restore(id) {
+  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${id}`, {
+    method:"PATCH",
+    headers:{
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({ archived:false })
+  });
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?id=eq.${id}`,
-    {
-      method: "PATCH",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ archived: false })
-    }
-  );
-
-  await load();
+  load();
 }
 
-// ================= OPEN =================
-
-function openSeance(id) {
+function openSeance(id){
   window.open(`../hybrid/hall-cash.html?seance=${id}`, "_blank");
 }
 
-// ================= START =================
-
 load();
-
 </script>
 
 </body>
