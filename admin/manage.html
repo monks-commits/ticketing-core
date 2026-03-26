@@ -54,7 +54,7 @@ async function load() {
     row.className = "card";
 
     row.innerHTML = `
-      <b>${s.title || "Без назви"}</b><br>
+      <b>${s.title || s.name || s.id}</b>
       <span class="meta">${s.date || ""} ${s.time || ""}</span>
 
       <div style="margin-top:10px;">
