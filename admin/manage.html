@@ -92,8 +92,16 @@ async function load(){
 
   const data = await res.json();
 
-  const active = data.filter(s => s.archived != true);
-  const archived = data.filter(s => s.archived == true);
+  const active = [];
+const archived = [];
+
+data.forEach(s => {
+  if (s.archived === true) {
+    archived.push(s);
+  } else {
+    active.push(s);
+  }
+});
 
   const activeDiv = document.getElementById("active");
   const archDiv = document.getElementById("archived");
