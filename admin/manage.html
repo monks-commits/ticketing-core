@@ -54,19 +54,19 @@ async function load() {
     row.className = "card";
 
     row.innerHTML = `
-      <b>${s.title || s.name || s.id}</b>
-      <span class="meta">${s.date || ""} ${s.time || ""}</span>
+  <b>${s.title || s.name || s.id}</b><br>
+  <span>${s.date || ""} ${s.time || ""}</span>
 
-      <div style="margin-top:10px;">
-        <button class="btn secondary" onclick="archive('${s.id}')">
-          Архів
-        </button>
+  <div style="margin-top:10px;">
+    <button class="btn secondary" onclick="archive('${s.id}')">
+      Архів
+    </button>
 
-        <button class="btn secondary" onclick="del('${s.id}')">
-          Видалити
-        </button>
-      </div>
-    `;
+    <button class="btn secondary" onclick="del('${s.id}')">
+      Видалити
+    </button>
+  </div>
+`;
 
     el.appendChild(row);
   });
