@@ -79,8 +79,8 @@ async function load() {
 
   const data = await res.json();
 
-  const active = data.filter(s => !s.archived);
-  const archived = data.filter(s => s.archived);
+  const active = data.filter(s => s.archived !== true && s.archived !== "true");
+const archived = data.filter(s => s.archived === true || s.archived === "true");
 
   render(active, document.getElementById("active"), false);
   render(archived, document.getElementById("archived"), true);
