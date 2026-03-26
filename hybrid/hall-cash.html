@@ -615,7 +615,17 @@ async function loadShowMeta(){
     const rows = await res.json();
     if (!rows || !rows.length) throw new Error("empty seance");
 
-    
+    const realShowSlug = rows[0].show_slug;
+    if (!realShowSlug) throw new Error("no show_slug");
+
+    // 2️⃣ Грузим show.json из data/shows
+    const showRes = await fetch(`../data/shows/${realShowSlug}.json`, {
+      cache: "no-store"
+    });
+
+    if (!showRes.ok) throw new Error("show json not found");
+
+    SHOW_META = await showRes.json();
 
     const title = SHOW_META?.title || "—";
 
