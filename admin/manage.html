@@ -1,101 +1,147 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Керування сеансами</title>
+<link rel="stylesheet" href="../styles/styles.css">
+
+<style>
+.block {
+  background: #f3f4f6;
+  padding: 20px;
+  border-radius: 14px;
+  margin-bottom: 25px;
+}
+
+.row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #ddd;
+}
+
+.row:last-child {
+  border-bottom:none;
+}
+
+.buttons button {
+  margin-left:8px;
+}
+</style>
+
+</head>
+
+<body class="main">
+
+<div class="container">
+
+<h2>🎭 Керування сеансами</h2>
+
+<button class="btn secondary" onclick="location.href='panel.html'">
+← Назад
+</button>
+
+<hr>
+
+<!-- АКТИВНЫЕ -->
+<div class="block">
+<h3>Активні</h3>
+<div id="active"></div>
+</div>
+
+<!-- АРХИВ -->
+<div class="block">
+<h3>Архів</h3>
+<div id="archive"></div>
+</div>
+
+</div>
+
 <script>
 
 const URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const KEY = "ВСТАВЬ_СВОЙ_КЛЮЧ";
 
 async function load() {
 
-  try {
+  const res = await fetch(`${URL}/rest/v1/seances?select=*`, {
+    headers: {
+      apikey: KEY,
+      Authorization: "Bearer " + KEY
+    }
+  });
 
-    const res = await fetch(`${URL}/rest/v1/seances?select=*`, {
-      headers: {
-        apikey: KEY,
-        Authorization: "Bearer " + KEY
-      }
-    });
+  const data = await res.json();
 
-    if (!res.ok) {
-      const t = await res.text();
-      console.error("SUPABASE ERROR:", t);
-      alert("Помилка завантаження сеансів");
-      return;
+  const activeEl = document.getElementById("active");
+  const archiveEl = document.getElementById("archive");
+
+  activeEl.innerHTML = "";
+  archiveEl.innerHTML = "";
+
+  data.forEach(s => {
+
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const title = s.title || s.name || s.id;
+
+    row.innerHTML = `
+      <div>${title}</div>
+
+      <div class="buttons">
+
+        ${
+          s.active !== false
+          ? `
+            <button class="btn primary" onclick="openCash('${s.id}')">
+              Відкрити
+            </button>
+
+            <button class="btn danger" onclick="archive('${s.id}')">
+              Архівувати
+            </button>
+
+            <button class="btn danger" onclick="del('${s.id}')">
+              Видалити
+            </button>
+          `
+          : `
+            <button class="btn success" onclick="restore('${s.id}')">
+              Відновити
+            </button>
+
+            <button class="btn danger" onclick="del('${s.id}')">
+              Видалити
+            </button>
+          `
+        }
+
+      </div>
+    `;
+
+    if (s.active === false) {
+      archiveEl.appendChild(row);
+    } else {
+      activeEl.appendChild(row);
     }
 
-    const data = await res.json();
-
-    console.log("SEANCES:", data); // 👈 ВАЖНО
-
-    const activeEl = document.getElementById("active");
-    const archiveEl = document.getElementById("archive");
-
-    activeEl.innerHTML = "";
-    archiveEl.innerHTML = "";
-
-    if (!data.length) {
-      activeEl.innerHTML = "<p>Немає сеансів</p>";
-      return;
-    }
-
-    data.forEach(s => {
-
-      const row = document.createElement("div");
-      row.className = "row";
-
-      const title = s.title || s.name || s.id;
-
-      row.innerHTML = `
-        <div>${title}</div>
-
-        <div class="buttons">
-
-          ${
-            s.active !== false
-            ? `
-              <button class="btn primary" onclick="openCash('${s.id}')">
-                Відкрити
-              </button>
-
-              <button class="btn danger" onclick="archive('${s.id}')">
-                Архівувати
-              </button>
-
-              <button class="btn danger" onclick="del('${s.id}')">
-                Видалити
-              </button>
-            `
-            : `
-              <button class="btn success" onclick="restore('${s.id}')">
-                Відновити
-              </button>
-
-              <button class="btn danger" onclick="del('${s.id}')">
-                Видалити
-              </button>
-            `
-          }
-
-        </div>
-      `;
-
-      if (s.active === false) {
-        archiveEl.appendChild(row);
-      } else {
-        activeEl.appendChild(row);
-      }
-
-    });
-
-  } catch(e) {
-    console.error(e);
-    alert("Помилка");
-  }
+  });
 }
 
+// 🎟 открыть кассу
 function openCash(id) {
-  window.open(`/hybrid/hall-cash.html?seance=${id}`, "_blank");
+
+  window.open(
+    `/hybrid/hall-cash.html?seance=${id}`,
+    "_blank"
+  );
 }
 
+// 📦 архив
 async function archive(id) {
+
   await fetch(`${URL}/rest/v1/seances?id=eq.${id}`, {
     method: "PATCH",
     headers: {
@@ -103,12 +149,17 @@ async function archive(id) {
       Authorization: "Bearer " + KEY,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ active: false })
+    body: JSON.stringify({
+      active: false
+    })
   });
+
   load();
 }
 
+// ♻️ восстановить
 async function restore(id) {
+
   await fetch(`${URL}/rest/v1/seances?id=eq.${id}`, {
     method: "PATCH",
     headers: {
@@ -116,13 +167,18 @@ async function restore(id) {
       Authorization: "Bearer " + KEY,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ active: true })
+    body: JSON.stringify({
+      active: true
+    })
   });
+
   load();
 }
 
+// 🗑 удалить
 async function del(id) {
-  if (!confirm("Точно видалити?")) return;
+
+  if (!confirm("Точно видалити сеанс?")) return;
 
   await fetch(`${URL}/rest/v1/seances?id=eq.${id}`, {
     method: "DELETE",
@@ -138,3 +194,6 @@ async function del(id) {
 load();
 
 </script>
+
+</body>
+</html>
