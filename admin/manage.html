@@ -3,14 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <title>Керування сеансами</title>
-<link rel="stylesheet" href="../styles/styles.css">
 
 <style>
+body {
+  font-family: Arial;
+  background:#0f172a;
+  color:white;
+  padding:30px;
+}
+
+h1 {
+  margin-bottom:20px;
+}
+
 .block {
-  background: #f3f4f6;
-  padding: 20px;
-  border-radius: 14px;
-  margin-bottom: 25px;
+  background:#1e293b;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
 }
 
 .row {
@@ -18,185 +28,123 @@
   justify-content:space-between;
   align-items:center;
   padding:10px 0;
-  border-bottom:1px solid #ddd;
+  border-bottom:1px solid #334155;
 }
 
-.row:last-child {
-  border-bottom:none;
+button {
+  border:none;
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-left:6px;
 }
 
-.buttons button {
-  margin-left:8px;
+.open { background:#2563eb; color:white; }
+.archive { background:#dc2626; color:white; }
+.restore { background:#16a34a; color:white; }
+
+.back {
+  margin-bottom:20px;
 }
 </style>
 
 </head>
+<body>
 
-<body class="main">
+<h1>🎭 Керування сеансами</h1>
 
-<div class="container">
+<button class="back" onclick="location.href='index.html'">← Назад</button>
 
-<h2>🎭 Керування сеансами</h2>
-
-<button class="btn secondary" onclick="location.href='panel.html'">
-← Назад
-</button>
-
-<hr>
-
-<!-- АКТИВНЫЕ -->
 <div class="block">
-<h3>Активні</h3>
-<div id="active"></div>
+  <h3>Активні</h3>
+  <div id="active"></div>
 </div>
 
-<!-- АРХИВ -->
 <div class="block">
-<h3>Архів</h3>
-<div id="archive"></div>
-</div>
-
+  <h3>Архів</h3>
+  <div id="archived"></div>
 </div>
 
 <script>
-
-const URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 async function load() {
-
-  try {
-
-    const res = await fetch(`${URL}/rest/v1/seances?select=*`, {
-      headers: {
-        apikey: KEY,
-        Authorization: "Bearer " + KEY
-      }
-    });
-
-    if (!res.ok) {
-      const t = await res.text();
-      console.error("SUPABASE ERROR:", t);
-      alert("Помилка завантаження сеансів");
-      return;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY
     }
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    console.log("SEANCES:", data); // 👈 ВАЖНО
+  const active = data.filter(s => !s.archived);
+  const archived = data.filter(s => s.archived);
 
-    const activeEl = document.getElementById("active");
-    const archiveEl = document.getElementById("archive");
+  render(active, document.getElementById("active"), false);
+  render(archived, document.getElementById("archived"), true);
+}
 
-    activeEl.innerHTML = "";
-    archiveEl.innerHTML = "";
+function render(list, container, isArchive) {
+  container.innerHTML = "";
 
-    if (!data.length) {
-      activeEl.innerHTML = "<p>Немає сеансів</p>";
-      return;
-    }
+  list.forEach(s => {
+    const row = document.createElement("div");
+    row.className = "row";
 
-    data.forEach(s => {
+    row.innerHTML = `
+      <div>${s.id}</div>
 
-      const row = document.createElement("div");
-      row.className = "row";
-
-      const title = s.title || s.name || s.id;
-
-      row.innerHTML = `
-        <div>${title}</div>
-
-        <div class="buttons">
-
-          ${
-            s.active !== false
-            ? `
-              <button class="btn primary" onclick="openCash('${s.id}')">
-                Відкрити
-              </button>
-
-              <button class="btn danger" onclick="archive('${s.id}')">
-                Архівувати
-              </button>
-
-              <button class="btn danger" onclick="del('${s.id}')">
-                Видалити
-              </button>
-            `
+      <div>
+        ${
+          isArchive
+            ? `<button class="restore" onclick="restore('${s.id}')">Відновити</button>`
             : `
-              <button class="btn success" onclick="restore('${s.id}')">
-                Відновити
-              </button>
-
-              <button class="btn danger" onclick="del('${s.id}')">
-                Видалити
-              </button>
+              <button class="open" onclick="openSeance('${s.id}')">Відкрити</button>
+              <button class="archive" onclick="archive('${s.id}')">Архівувати</button>
             `
-          }
+        }
+      </div>
+    `;
 
-        </div>
-      `;
-
-      if (s.active === false) {
-        archiveEl.appendChild(row);
-      } else {
-        activeEl.appendChild(row);
-      }
-
-    });
-
-  } catch(e) {
-    console.error(e);
-    alert("Помилка");
-  }
+    container.appendChild(row);
+  });
 }
 
-function openCash(id) {
-  window.open(`/hybrid/hall-cash.html?seance=${id}`, "_blank");
+function openSeance(id){
+  window.open("../hybrid/hall-cash.html?seance=" + id, "_blank");
 }
 
-async function archive(id) {
-  await fetch(`${URL}/rest/v1/seances?id=eq.${id}`, {
+async function archive(id){
+  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${id}`, {
     method: "PATCH",
     headers: {
-      apikey: KEY,
-      Authorization: "Bearer " + KEY,
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ active: false })
+    body: JSON.stringify({ archived: true })
   });
+
   load();
 }
 
-async function restore(id) {
-  await fetch(`${URL}/rest/v1/seances?id=eq.${id}`, {
+async function restore(id){
+  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${id}`, {
     method: "PATCH",
     headers: {
-      apikey: KEY,
-      Authorization: "Bearer " + KEY,
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ active: true })
-  });
-  load();
-}
-
-async function del(id) {
-  if (!confirm("Точно видалити?")) return;
-
-  await fetch(`${URL}/rest/v1/seances?id=eq.${id}`, {
-    method: "DELETE",
-    headers: {
-      apikey: KEY,
-      Authorization: "Bearer " + KEY
-    }
+    body: JSON.stringify({ archived: false })
   });
 
   load();
 }
 
 load();
-
 </script>
 
 </body>
