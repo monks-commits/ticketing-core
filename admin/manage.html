@@ -81,50 +81,73 @@ const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 async function load(){
 
+  // 🔵 грузим сеансы
   const res = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
     headers:{
       apikey: SUPABASE_ANON_KEY,
       Authorization: "Bearer " + SUPABASE_ANON_KEY,
       "Cache-Control": "no-cache"
     },
-    cache: "no-store" // 🔥 ВОТ ЭТО ГЛАВНОЕ
+    cache: "no-store"
   });
 
   const data = await res.json();
 
-const now = new Date();
+  const now = new Date();
+  const toArchive = [];
 
-for (const s of data) {
-  const dt = new Date(`${s.date}T${s.time}`);
+  // 🔴 ищем просроченные
+  data.forEach(s => {
 
-  if (dt < now && s.active !== false) {
-    // авто-архив
-    fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${s.id}`, {
-      method: "PATCH",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ active: false })
-    });
-    
-    s.active = false; // сразу в UI тоже скрыли
+    if (s.archived === true) return;
+    if (!s.date || !s.time) return;
+
+    const dt = new Date(`${s.date}T${s.time}`);
+
+    if (dt < now) {
+      toArchive.push(s.id);
+    }
+
+  });
+
+  // 🔴 архивируем
+  if (toArchive.length){
+
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=in.(${toArchive.join(",")})`,
+      {
+        method:"PATCH",
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+          "Content-Type":"application/json"
+        },
+        body: JSON.stringify({ archived:true })
+      }
+    );
+
   }
-}
-  
+
+  // 🔄 перечитываем
+  const res2 = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
+    headers:{
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY
+    },
+    cache: "no-store"
+  });
+
+  const fresh = await res2.json();
 
   const active = [];
-const archived = [];
+  const archived = [];
 
-data.forEach(s => {
-  if (s.archived === true) {
-    archived.push(s);
-  } else {
-    active.push(s);
-  }
-});
+  fresh.forEach(s => {
+    if (s.archived === true) archived.push(s);
+    else active.push(s);
+  });
 
+  // 🔵 вывод
   const activeDiv = document.getElementById("active");
   const archDiv = document.getElementById("archived");
 
@@ -155,6 +178,8 @@ data.forEach(s => {
   });
 
 }
+
+  
 async function archive(id){
 
   await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${id}`, {
