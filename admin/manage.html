@@ -100,9 +100,26 @@ async function load(){
   data.forEach(s => {
 
     if (s.archived === true) return;
-    if (!s.date || !s.time) return;
+    let dt;
 
-    const dt = new Date(`${s.date}T${s.time}`);
+// если есть date/time — используем
+if (s.date && s.time) {
+  dt = new Date(`${s.date}T${s.time}`);
+}
+
+// иначе парсим из id
+else if (s.id) {
+
+  const match = s.id.match(/(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/);
+
+  if (match) {
+    const [_, y, m, d, h, min] = match;
+    dt = new Date(`${y}-${m}-${d}T${h}:${min}`);
+  }
+}
+
+// если не смогли определить — пропускаем
+if (!dt || isNaN(dt)) return;
 
     if (dt < now) {
       toArchive.push(s.id);
