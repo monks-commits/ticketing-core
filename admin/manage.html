@@ -92,6 +92,28 @@ async function load(){
 
   const data = await res.json();
 
+const now = new Date();
+
+for (const s of data) {
+  const dt = new Date(`${s.date}T${s.time}`);
+
+  if (dt < now && s.active !== false) {
+    // авто-архив
+    fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${s.id}`, {
+      method: "PATCH",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ active: false })
+    });
+    
+    s.active = false; // сразу в UI тоже скрыли
+  }
+}
+  
+
   const active = [];
 const archived = [];
 
