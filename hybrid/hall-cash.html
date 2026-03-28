@@ -1187,6 +1187,19 @@ seatsRow.appendChild(
 
 function renderHallFromJson(HALL_RAW) {
 
+  // 🔴 ЕСЛИ НЕТ СЕАНСА — НИЧЕГО НЕ РИСУЕМ
+  if (!SEANCE_ID) {
+
+    const block = document.getElementById("parter-block");
+    if (block) block.innerHTML = "";
+
+    console.log("нет SEANCE_ID — схема очищена");
+
+    return;
+  }
+
+  // 🟢 ДАЛЬШЕ ТВОЙ СТАРЫЙ КОД БЕЗ ИЗМЕНЕНИЙ
+
   const block = document.getElementById("parter-block");
   block.innerHTML = "";
 
@@ -1195,55 +1208,26 @@ function renderHallFromJson(HALL_RAW) {
     const rowLine = document.createElement("div");
     rowLine.className = "row-line";
 
-    // 👇 ВОТ ЭТО ДОБАВЛЯЕМ
-const lab = document.createElement("div");
-lab.className = "row-label";
-lab.textContent = r.row;
-rowLine.appendChild(lab);
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
 
-const seatsRow = document.createElement("div");
-seatsRow.className = "seats-row";
+    const seatsRow = document.createElement("div");
+    seatsRow.className = "seats-row";
 
-   
-
-// offset из JSON
-const offset = r.offset || 0;
-
-for (let i = 0; i < offset; i++) {
-  const spacer = document.createElement("div");
-  spacer.className = "seat seat--empty";
-  spacer.style.visibility = "hidden";
-  seatsRow.appendChild(spacer);
-}
-
-for (let s = 1; s <= r.seats; s++) {
-
-      const meta = {
-        zone: "Партер",
-        row: r.row,
-        seat: s
-      };
-
-      let cls = "";
-
-      if (r.aisles && r.aisles.includes(s)) {
-        cls += " seat--gap-right";
-      }
-
-      seatsRow.appendChild(
-        makeSeatElement(
-          seatKey(meta),
-          s,
-          cls,
-          0,
-          meta
-        )
-      );
-    }
+    r.seats.forEach(s => {
+      const seat = document.createElement("div");
+      seat.className = "seat";
+      seat.textContent = s;
+      seatsRow.appendChild(seat);
+    });
 
     rowLine.appendChild(seatsRow);
     block.appendChild(rowLine);
 
+  });
+}
 // ===== ПРОХОД МЕЖДУ РЯДАМИ =====
 if (r.gapAfter) {
   const gap = document.createElement("div");
