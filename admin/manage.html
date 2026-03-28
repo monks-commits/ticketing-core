@@ -214,7 +214,10 @@ async function restore(id){
       Authorization: "Bearer " + SUPABASE_ANON_KEY,
       "Content-Type":"application/json"
     },
-    body: JSON.stringify({ archived:false, active:true })
+    body: JSON.stringify({
+  archived: false,
+  active: true
+})
   });
   load();
 }
