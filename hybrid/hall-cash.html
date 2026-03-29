@@ -583,15 +583,44 @@ async function loadSeanceConfig() {
 async function loadShowMeta(){
 
   if (!SEANCE_ID) {
-    const elShow = document.getElementById("summary-show");
-    const elSeance = document.getElementById("summary-seance");
 
-    if (elShow) elShow.textContent = "Вистава: —";
-    if (elSeance) elSeance.textContent = "Seance: —";
+  const elShow = document.getElementById("summary-show");
+  const elSeance = document.getElementById("summary-seance");
 
-    renderCashLog();
-    return;
+  if (elShow) elShow.textContent = "Вистава: —";
+  if (elSeance) elSeance.textContent = "Seance: —";
+
+  // 🔴 УДАЛЯЕМ СХЕМУ ЗАЛА
+  const hallWrap = document.querySelector('.hall-layout') 
+    || document.querySelector('.hall') 
+    || document.querySelector('[class*="hall"]');
+
+  if (hallWrap) hallWrap.innerHTML = '';
+
+  // 🔴 ЧИСТИМ ПРАВУЮ ПАНЕЛЬ (КОРЗИНА)
+  const basket = document.querySelector('.hall-sidebar') 
+    || document.querySelector('.basket');
+
+  if (basket) {
+    basket.innerHTML = `
+      <div style="padding:30px;font-size:18px;color:#888;">
+        Оберіть сеанс
+      </div>
+    `;
   }
+
+  // 🔴 БЛОКИРУЕМ КНОПКИ ПРОДАЖИ
+  document.querySelectorAll('button').forEach(btn => {
+    const txt = btn.textContent || "";
+    if (txt.includes('ПРОДАТИ') || txt.includes('РЕЗЕРВ')) {
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+    }
+  });
+
+  renderCashLog();
+  return;
+}
 
   try {
 
@@ -649,10 +678,6 @@ async function loadShowMeta(){
 
   renderCashLog();
 }
-
-
- 
-
 
     // Онлайн-проданные места из tickets (блокируем их)
     const takenSeatsOnline = new Set();
