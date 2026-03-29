@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Бронювання</title>
+
+<style>
+body{font-family:Arial;padding:20px}
+select,button{padding:6px;margin:6px 0}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:20px;
+}
+
+th,td{
+  border:1px solid #ccc;
+  padding:8px;
+  font-size:14px;
+}
+
+th{
+  background:#f3f4f6;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Бронювання по сеансу</h2>
+
+<button onclick="history.back()">← Назад</button>
+
+<br><br>
+
+Сеанс:
+<select id="seance"></select>
+
+<button onclick="run()">Показати</button>
+
+<hr>
+
+<div id="out"></div>
+
+<script>
+
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+async function loadSeances(){
+
+  const sel = document.getElementById("seance");
+
+  sel.innerHTML = `<option value="">Оберіть сеанс...</option>`;
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?select=id&archived=eq.false`,
+    {
+      headers:{
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY
+      }
+    }
+  );
+
+  const rows = await res.json();
+
+  rows.forEach(s=>{
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.id;
+    sel.appendChild(opt);
+  });
+}
+
+async function run(){
+
+  const seance = document.getElementById("seance").value;
+
+  if (!seance){
+    alert("Оберіть сеанс");
+    return;
+  }
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/bookings?select=buyer_name,buyer_email,seats,amount,status,created_at&seance_id=eq.${encodeURIComponent(seance)}`,
+    {
+      headers:{
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY
+      }
+    }
+  );
+
+  const data = await res.json();
+
+  if (!data.length){
+    document.getElementById("out").innerHTML = "Немає бронювань";
+    return;
+  }
+
+  let html = `
+    <table>
+      <tr>
+        <th>Час</th>
+        <th>Клієнт</th>
+        <th>Email</th>
+        <th>Місця</th>
+        <th>Сума</th>
+        <th>Статус</th>
+      </tr>
+  `;
+
+  data.forEach(b => {
+
+    const seats = Array.isArray(b.seats)
+      ? b.seats.join(", ")
+      : "";
+
+    html += `
+      <tr>
+        <td>${(b.created_at || "").replace("T"," ").slice(0,16)}</td>
+        <td>${b.buyer_name || ""}</td>
+        <td>${b.buyer_email || ""}</td>
+        <td>${seats}</td>
+        <td>${b.amount || 0}</td>
+        <td>${b.status || ""}</td>
+      </tr>
+    `;
+  });
+
+  html += "</table>";
+
+  document.getElementById("out").innerHTML = html;
+}
+
+loadSeances();
+
+</script>
+
+</body>
+</html>
