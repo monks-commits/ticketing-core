@@ -618,13 +618,23 @@ async function loadShowMeta(){
     const realShowSlug = rows[0].show_slug;
     if (!realShowSlug) throw new Error("no show_slug");
 
-    // 🔹 НЕ грузим show.json (он не нужен)
-const elShow = document.getElementById("summary-show");
-const elSeance = document.getElementById("summary-seance");
+    // 2️⃣ Грузим show.json из data/shows
+    const showRes = await fetch(`../data/shows/${realShowSlug}.json`, {
+      cache: "no-store"
+    });
 
-if (elShow) {
-  elShow.textContent = "Вистава: —";
-}
+    if (!showRes.ok) throw new Error("show json not found");
+
+    SHOW_META = await showRes.json();
+
+    const title = SHOW_META?.title || "—";
+
+    const elShow = document.getElementById("summary-show");
+    const elSeance = document.getElementById("summary-seance");
+
+    if (elShow) {
+      elShow.textContent = `Вистава: ${title}`;
+    }
 
     if (elSeance) {
       elSeance.textContent = `Seance: ${SEANCE_ID}`;
