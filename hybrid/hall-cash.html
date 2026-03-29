@@ -598,8 +598,9 @@ async function loadShowMeta(){
 
   try {
 
+    // 👉 Просто берем данные самого сеанса (если есть title — используем)
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?id=eq."${SEANCE_ID}"&select=title`,
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(SEANCE_ID)}&select=title`,
       {
         headers:{
           apikey: SUPABASE_ANON_KEY,
@@ -608,23 +609,21 @@ async function loadShowMeta(){
       }
     );
 
-    if (!res.ok) throw new Error("seance fetch error");
+    let title = "—";
 
-    const rows = await res.json();
-
-    const title = rows?.[0]?.title || "—";
-
-    if (elShow) {
-      elShow.textContent = `Вистава: ${title}`;
+    if (res.ok) {
+      const rows = await res.json().catch(() => []);
+      if (rows && rows.length && rows[0].title) {
+        title = rows[0].title;
+      }
     }
 
-    if (elSeance) {
-      elSeance.textContent = `Seance: ${SEANCE_ID}`;
-    }
+    if (elShow) elShow.textContent = `Вистава: ${title}`;
+    if (elSeance) elSeance.textContent = `Seance: ${SEANCE_ID}`;
 
   } catch(e) {
 
-    console.warn("loadShowMeta:", e);
+    console.warn("loadShowMeta fallback:", e);
 
     if (elShow) elShow.textContent = "Вистава: —";
     if (elSeance) elSeance.textContent = `Seance: ${SEANCE_ID}`;
