@@ -902,6 +902,28 @@ if (cfg && cfg.color) {
         total: Array.from(selected.values()).reduce((s,x)=>s+(x.price||0),0)
       });
 
+// === 🔥 ДОБАВЛЯЕМ В SUPABASE ===
+if (status === "reserved") {
+  fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      seance_id: SEANCE_ID,
+      show_slug: showSlug,
+      seats: keys,
+      amount: keys.length,
+      buyer_name: "касса",
+      buyer_email: "",
+      status: "hold"
+    })
+  }).catch(e => console.error("booking error", e));
+}
+
+      
       clearSelection();
       reapplyAllStatuses();
     }
