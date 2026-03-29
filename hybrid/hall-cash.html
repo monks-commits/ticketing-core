@@ -1464,7 +1464,7 @@ seatsRow.appendChild(
           ts: Date.now(),
           type: "RESERVE",
           seats: keys,
-          total: keys.reduce((s,k)=>s + Number(seatButtons.get(k)?.dataset?.price || 0), 0)
+          total: keys.reduce((s,k)=>s + Number(seatButtons.get(k)?.dataset?.price || 0), 0) 
         });
         reapplyAllStatuses();
         return;
