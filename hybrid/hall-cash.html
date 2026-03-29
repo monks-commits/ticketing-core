@@ -245,6 +245,10 @@
               <button id="btn-clear" class="btn btn-clear">ОЧИСТИТИ</button>
               <button id="btn-sync" class="btn btn-sync">SYNC (відправити чергу)</button>
               <button id="btn-reprint" class="btn btn-ghost" disabled>Повторити друк останньої продажі</button>
+              <button id="btn-kg13"
+  style="width:100%;margin-top:10px;height:40px;">
+  КГ-13 (зміна)
+</button>
               <button id="btn-reset" class="btn btn-reset">Скинути локальні зміни для цього сеансу</button>
             </div>
 
@@ -1654,6 +1658,16 @@ renderHallFromJson(RAW_HALL);
 
 })();
 
+document.getElementById("btn-kg13").onclick = () => {
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  window.open(
+    `/ticketing-core/admin/reports/kg13.html?day=${today}`,
+    "_blank"
+  );
+};
+    
   </script>
 </body>
 </html>
