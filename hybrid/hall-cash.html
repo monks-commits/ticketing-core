@@ -616,18 +616,7 @@ async function loadShowMeta(){
     if (!rows || !rows.length) throw new Error("empty seance");
 
     const realShowSlug = rows[0].show_slug;
-
-if (!realShowSlug) {
-  console.warn("no show_slug — пропускаем show.json");
-
-  const elShow = document.getElementById("summary-show");
-  if (elShow) elShow.textContent = "Вистава: —";
-
-  const elSeance = document.getElementById("summary-seance");
-  if (elSeance) elSeance.textContent = `Seance: ${SEANCE_ID}`;
-
-  return; // ⬅️ ВАЖНО: просто выходим, без ошибки
-}
+    if (!realShowSlug) throw new Error("no show_slug");
 
     // 2️⃣ Грузим show.json из data/shows
     const showRes = await fetch(`../data/shows/${realShowSlug}.json`, {
