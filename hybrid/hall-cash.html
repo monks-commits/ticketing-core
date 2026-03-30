@@ -1027,7 +1027,7 @@ for (const k of keys) prices[k] = Number(selected.get(k)?.price || 0);
 
       const queue = loadQueue();
       queue.push({
-  op_id: op_id,
+  op_id: op.op_id,
   payload: op
 });
       saveQueue(queue);
