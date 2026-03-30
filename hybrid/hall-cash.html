@@ -1576,7 +1576,7 @@ function applyStatusFromBackoffice(status, seats){
   await loadShowMeta();
   SEANCE_CONFIG = await loadSeanceConfig();
   CASH_PATCH = loadCashPatch();
-  await loadTakenSeatsOnline();
+  // await loadTakenSeatsOnline();
 const res = await fetch("../data/hall/academy.json");
 const RAW_HALL = await res.json();
 
