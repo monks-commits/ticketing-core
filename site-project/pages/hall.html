@@ -399,6 +399,7 @@ function applySeanceConfig(meta) {
     if (cfg.sale === false) saleAllowed = false;
   }
       const btn = document.createElement("button");
+     btn.dataset.key = key; 
 btn.type = "button";
 btn.textContent = label;
 btn.className = "seat" + (finalClass ? " " + finalClass : "");
@@ -410,10 +411,6 @@ if (cfg && cfg.color) {
   btn.style.color = "#fff";
 }
 
-
-      
-      
-
       if (takenSeats.has(key)){
         btn.classList.add("seat--taken");
         btn.disabled = true;
@@ -423,8 +420,7 @@ if (!saleAllowed) {
   btn.classList.add("seat--no-sale");
   btn.disabled = true;
 }
-
-      
+     
       btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
       return btn;
     }
