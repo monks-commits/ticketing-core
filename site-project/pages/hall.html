@@ -260,7 +260,7 @@ async function loadTakenSeats(){
 
     console.log("ROWS:", rows);
 
-    // 👉 создаём Set занятых мест
+    // 🔥 ВАЖНО: просто перезаписываем Set
     takenSeats = new Set(rows.map(r => r.seat_label));
 
   } catch(e){
