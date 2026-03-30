@@ -1050,13 +1050,15 @@ async function sellAndPrintOffline(){
   const total = tickets.reduce((s,t)=>s + t.price, 0);
 
   const op = {
-    op_id,
-    type: "sale",
-    seance_id: SEANCE_ID,
-    tickets,
-    total,
-    sold_at: new Date().toISOString()
-  };
+  op_id,
+  type: "sale",
+  seance_id: SEANCE_ID,
+  show_slug: showSlug || "test",
+  seats: keys,
+  prices,
+  total,
+  sold_at: new Date().toISOString()
+};
 
   // очередь
   const queue = loadQueue();
