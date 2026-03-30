@@ -1036,6 +1036,9 @@ async function sellAndPrintOffline(){
     return;
   }
 
+  // 🔴 ВАЖНО: гарантируем show_slug
+  const safeShowSlug = showSlug || "test";
+
   // --- цены и сумма ---
   const prices = {};
   let total = 0;
@@ -1047,52 +1050,47 @@ async function sellAndPrintOffline(){
   }
 
   // --- операция ---
+  const op_id = genOpId();
+
   const op = {
-  op_id,
-  type: "sale",
-  seance_id: SEANCE_ID,
-
-  // ВАЖНО: даём оба поля (старое + новое)
-  show_slug: showSlug || "test",
-  show: showSlug || "test",
-
-  seats: keys,
-  prices,
-  total,
-  sold_at: new Date().toISOString()
-};
+    op_id,
+    type: "sale",
+    seance_id: SEANCE_ID,
+    show_slug: safeShowSlug,   // ← КРИТИЧНО
+    seats: keys,
+    prices,
+    total,
+    sold_at: new Date().toISOString()
+  };
 
   // --- очередь ---
   const queue = loadQueue();
-
   queue.push({
     op_id,
     payload: op
   });
-
   saveQueue(queue);
 
-  // --- локально помечаем как проданные ---
+  // --- локальная блокировка ---
   for (const k of keys){
     if (takenSeatsOnline?.has(k)) continue;
     CASH_PATCH[k] = { status: "sold", ts: Date.now(), op_id };
   }
-
   saveCashPatch(CASH_PATCH);
 
-  // --- создаём заказ ---
-  const order_id = `CASH-${Date.now()}`;
+  // --- заказ ---
+  const order_id = `CASH-${SEANCE_ID}-${op_id}`;
 
   const tickets = keys.map(k => ({
     op_id,
     order_id,
+    show_slug: safeShowSlug,
     seance_id: SEANCE_ID,
-    show_slug: showSlug || "test",
     seat_label: k,
     price: prices[k] || 0
   }));
 
-  // --- лог кассы ---
+  // --- лог ---
   pushCashLog({
     ts: Date.now(),
     type: "sale",
@@ -1102,29 +1100,32 @@ async function sellAndPrintOffline(){
   });
 
   // --- UI ---
-  reapplyAllStatuses();
-  clearSelection();
+  if (typeof reapplyAllStatuses === "function"){
+    reapplyAllStatuses();
+  }
+  if (typeof clearSelection === "function"){
+    clearSelection();
+  }
 
   // --- печать ---
-  try {
+  try{
     if (typeof printTicketsOffline === "function"){
-      printTicketsOffline(tickets, showSlug || "test", SEANCE_ID);
+      printTicketsOffline(tickets, safeShowSlug, SEANCE_ID);
     }
-  } catch(e){
+  }catch(e){
     console.warn("print error", e);
   }
 
-  // --- авто sync ---
-  try {
+  // --- SYNC ---
+  try{
     if (navigator.onLine){
       const q = loadQueue();
       if (q.length) await syncQueue();
     }
-  } catch(e){
+  }catch(e){
     console.warn("sync error", e);
   }
 }
-
     
     // ---- reprint last sale ----
     async function reprintLastSale(){
