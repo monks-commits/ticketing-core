@@ -1022,20 +1022,8 @@ if (cfg && cfg.color) {
         return;
       }
 
-      const op_id = genOpId();
-
       const prices = {};
-      for (const k of keys) prices[k] = Number(selected.get(k)?.price || 0);
-
-      const op = {
-        op_id,
-        type: "sale",
-        seance_id: SEANCE_ID,
-        show_slug: showSlug,
-        seats: keys,
-        prices,
-        sold_at: new Date().toISOString(),
-      };
+for (const k of keys) prices[k] = Number(selected.get(k)?.price || 0);
 
       const queue = loadQueue();
       queue.push({
