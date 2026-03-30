@@ -240,6 +240,10 @@ function renderHallFromJson(HALL_RAW) {
     
 
 async function loadTakenSeats() {
+
+console.log("LOAD seats for", SEANCE_ID);
+console.log("DATA:", data);
+  
   takenSeats.clear();
 
   if (!showSlug) return;
