@@ -583,44 +583,15 @@ async function loadSeanceConfig() {
 async function loadShowMeta(){
 
   if (!SEANCE_ID) {
+    const elShow = document.getElementById("summary-show");
+    const elSeance = document.getElementById("summary-seance");
 
-  const elShow = document.getElementById("summary-show");
-  const elSeance = document.getElementById("summary-seance");
+    if (elShow) elShow.textContent = "Вистава: —";
+    if (elSeance) elSeance.textContent = "Seance: —";
 
-  if (elShow) elShow.textContent = "Вистава: —";
-  if (elSeance) elSeance.textContent = "Seance: —";
-
-  // 🔴 УДАЛЯЕМ СХЕМУ ЗАЛА
-  const hallWrap = document.querySelector('.hall-layout') 
-    || document.querySelector('.hall') 
-    || document.querySelector('[class*="hall"]');
-
-  if (hallWrap) hallWrap.innerHTML = '';
-
-  // 🔴 ЧИСТИМ ПРАВУЮ ПАНЕЛЬ (КОРЗИНА)
-  const basket = document.querySelector('.hall-sidebar') 
-    || document.querySelector('.basket');
-
-  if (basket) {
-    basket.innerHTML = `
-      <div style="padding:30px;font-size:18px;color:#888;">
-        Оберіть сеанс
-      </div>
-    `;
+    renderCashLog();
+    return;
   }
-
-  // 🔴 БЛОКИРУЕМ КНОПКИ ПРОДАЖИ
-  document.querySelectorAll('button').forEach(btn => {
-    const txt = btn.textContent || "";
-    if (txt.includes('ПРОДАТИ') || txt.includes('РЕЗЕРВ')) {
-      btn.disabled = true;
-      btn.style.opacity = '0.4';
-    }
-  });
-
-  renderCashLog();
-  return;
-}
 
   try {
 
@@ -678,6 +649,10 @@ async function loadShowMeta(){
 
   renderCashLog();
 }
+
+
+ 
+
 
     // Онлайн-проданные места из tickets (блокируем их)
     const takenSeatsOnline = new Set();
@@ -1187,45 +1162,71 @@ seatsRow.appendChild(
 
 function renderHallFromJson(HALL_RAW) {
 
-  // 🔴 если нет сеанса — очищаем и выходим
-  if (!SEANCE_ID) {
-    const block = document.getElementById("parter-block");
-    if (block) block.innerHTML = "";
-    return;
-  }
-
   const block = document.getElementById("parter-block");
-  if (!block) return;
-
   block.innerHTML = "";
-
-  if (!HALL_RAW || !HALL_RAW.rows) return;
 
   HALL_RAW.rows.forEach(r => {
 
     const rowLine = document.createElement("div");
     rowLine.className = "row-line";
 
-    const lab = document.createElement("div");
-    lab.className = "row-label";
-    lab.textContent = r.row;
-    rowLine.appendChild(lab);
+    // 👇 ВОТ ЭТО ДОБАВЛЯЕМ
+const lab = document.createElement("div");
+lab.className = "row-label";
+lab.textContent = r.row;
+rowLine.appendChild(lab);
 
-    const seatsRow = document.createElement("div");
-    seatsRow.className = "seats-row";
+const seatsRow = document.createElement("div");
+seatsRow.className = "seats-row";
 
-    if (r.seats && Array.isArray(r.seats)) {
-      r.seats.forEach(s => {
-        const seat = document.createElement("div");
-        seat.className = "seat";
-        seat.textContent = s;
-        seatsRow.appendChild(seat);
-      });
+   
+
+// offset из JSON
+const offset = r.offset || 0;
+
+for (let i = 0; i < offset; i++) {
+  const spacer = document.createElement("div");
+  spacer.className = "seat seat--empty";
+  spacer.style.visibility = "hidden";
+  seatsRow.appendChild(spacer);
+}
+
+for (let s = 1; s <= r.seats; s++) {
+
+      const meta = {
+        zone: "Партер",
+        row: r.row,
+        seat: s
+      };
+
+      let cls = "";
+
+      if (r.aisles && r.aisles.includes(s)) {
+        cls += " seat--gap-right";
+      }
+
+      seatsRow.appendChild(
+        makeSeatElement(
+          seatKey(meta),
+          s,
+          cls,
+          0,
+          meta
+        )
+      );
     }
 
     rowLine.appendChild(seatsRow);
     block.appendChild(rowLine);
 
+// ===== ПРОХОД МЕЖДУ РЯДАМИ =====
+if (r.gapAfter) {
+  const gap = document.createElement("div");
+  gap.style.height = "40px";   // ← ВОТ ТУТ регулируешь размер прохода
+  gap.style.width = "100%";
+  block.appendChild(gap);
+}
+    
   });
 }
     
