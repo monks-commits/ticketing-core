@@ -238,43 +238,35 @@ function renderHallFromJson(HALL_RAW) {
   });
 }
     
+async function loadTakenSeats(){
 
-async function loadTakenSeats() {
+  if (!SEANCE_ID) return;
 
-console.log("LOAD seats for", SEANCE_ID);
-console.log("DATA:", data);
-  
-  takenSeats.clear();
+  console.log("LOAD seats for", SEANCE_ID);
 
-  if (!showSlug) return;
+  try {
 
-  const url =
-  `${SUPABASE_URL}/rest/v1/tickets` +
-  `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-  `&select=seat_label`;
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seat_label`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
 
+    const rows = await res.json();
 
-  const res = await fetch(url, {
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    cache: "no-store"
-  });
+    console.log("ROWS:", rows);
 
-  if (!res.ok) {
-    console.warn("tickets load failed", res.status);
-    return;
+    // 👉 создаём Set занятых мест
+    takenSeats = new Set(rows.map(r => r.seat_label));
+
+  } catch(e){
+    console.warn("loadTakenSeats error", e);
   }
-
-  const rows = await res.json().catch(() => []);
-  rows.forEach(r => {
-    if (r?.seat_label) takenSeats.add(String(r.seat_label));
-  });
 }
-
-    
-let SEANCE_CONFIG = null;
 
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
