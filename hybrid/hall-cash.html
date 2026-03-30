@@ -1027,13 +1027,12 @@ async function sellAndPrintOffline(){
 
   const op_id = genOpId();
 
-  // цены по местам
+  // цены
   const prices = {};
   for (const k of keys){
     prices[k] = Number(selected.get(k)?.price || 0);
   }
 
-  // сумма
   const total = keys.reduce((s, k) => s + (prices[k] || 0), 0);
 
   // операция
@@ -1048,27 +1047,25 @@ async function sellAndPrintOffline(){
     sold_at: new Date().toISOString(),
   };
 
-  // кладём в очередь
+  // очередь
   const queue = loadQueue();
-
   queue.push({
     op_id: op.op_id,
     payload: op
   });
-
   saveQueue(queue);
 
-  // локально помечаем как проданные
+  // локальный статус мест
   for (const k of keys){
     if (takenSeatsOnline.has(k)) continue;
     CASH_PATCH[k] = { status: "sold", ts: Date.now(), op_id };
   }
-
   saveCashPatch(CASH_PATCH);
 
-  // создаём локальный ордер
-  const order_id = calcOrderId(SEANCE_ID, showSlug, op_id);
+  // 🔴 ВАЖНО: order_id БЕЗ calcOrderId
+  const order_id = `ORD-${SEANCE_ID}-${op_id.slice(-6)}`;
 
+  // билеты
   const tickets = keys.map(k => ({
     op_id,
     order_id,
@@ -1077,6 +1074,7 @@ async function sellAndPrintOffline(){
     price: prices[k] || 0
   }));
 
+  // лог
   pushCashLog({
     ts: Date.now(),
     type: "sale",
@@ -1086,12 +1084,14 @@ async function sellAndPrintOffline(){
 
   repaintAllStatuses();
 
-  // печать
+  // печать (если есть)
   try{
-    printTicketsOffline(tickets, showSlug, SEANCE_ID);
+    if (typeof printTicketsOffline === "function"){
+      printTicketsOffline(tickets, showSlug, SEANCE_ID);
+    }
   }catch(e){}
 
-  // авто sync если онлайн
+  // sync
   try{
     if (navigator.onLine){
       const q = loadQueue();
@@ -1100,8 +1100,6 @@ async function sellAndPrintOffline(){
   }catch(e){}
 
 }
-    
-
     // ---- reprint last sale ----
     async function reprintLastSale(){
       const arr = loadCashLog();
