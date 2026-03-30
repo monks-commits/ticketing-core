@@ -1032,81 +1032,98 @@ async function sellAndPrintOffline(){
   if (!keys.length) return;
 
   if (!SEANCE_ID){
-    alert("Немає seance_id (потрібні date/time в afisha.json).");
+    alert("Немає seance_id");
     return;
   }
 
+  // --- цены и сумма ---
+  const prices = {};
+  let total = 0;
+
+  for (const k of keys){
+    const price = Number(selected.get(k)?.price || 0);
+    prices[k] = price;
+    total += price;
+  }
+
+  // --- операция ---
   const op_id = genOpId();
 
-  // собираем билеты
-  const tickets = keys.map(k => {
-    const btn = seatButtons.get(k);
-    return {
-      seat_label: k,
-      price: Number(btn?.dataset?.price || 0)
-    };
-  });
-
-  const total = tickets.reduce((s,t)=>s + t.price, 0);
-
   const op = {
-  op_id,
-  type: "sale",
-  seance_id: SEANCE_ID,
-  show_slug: showSlug || "test",
-  seats: keys,
-  prices,
-  total,
-  sold_at: new Date().toISOString()
-};
+    op_id,
+    type: "sale",
+    seance_id: SEANCE_ID,
+    show_slug: showSlug || "test",
+    seats: keys,
+    prices,
+    total,
+    sold_at: new Date().toISOString()
+  };
 
-  // очередь
+  // --- очередь ---
   const queue = loadQueue();
+
   queue.push({
-    op_id: op.op_id,
+    op_id,
     payload: op
   });
+
   saveQueue(queue);
 
-  // локальные статусы
-  for (const t of tickets){
-    if (takenSeatsOnline.has(t.seat_label)) continue;
-    CASH_PATCH[t.seat_label] = {
-      status: "sold",
-      ts: Date.now(),
-      op_id
-    };
+  // --- локально помечаем как проданные ---
+  for (const k of keys){
+    if (takenSeatsOnline?.has(k)) continue;
+    CASH_PATCH[k] = { status: "sold", ts: Date.now(), op_id };
   }
+
   saveCashPatch(CASH_PATCH);
 
-  // лог
+  // --- создаём заказ ---
+  const order_id = `CASH-${Date.now()}`;
+
+  const tickets = keys.map(k => ({
+    op_id,
+    order_id,
+    seance_id: SEANCE_ID,
+    show_slug: showSlug || "test",
+    seat_label: k,
+    price: prices[k] || 0
+  }));
+
+  // --- лог кассы ---
   pushCashLog({
     ts: Date.now(),
     type: "sale",
+    order_id,
     total,
     tickets
   });
 
-  if (typeof repaintAllStatuses === "function"){
-    repaintAllStatuses();
+  // --- UI ---
+  reapplyAllStatuses();
+  clearSelection();
+
+  // --- печать ---
+  try {
+    if (typeof printTicketsOffline === "function"){
+      printTicketsOffline(tickets, showSlug || "test", SEANCE_ID);
+    }
+  } catch(e){
+    console.warn("print error", e);
   }
 
-  // печать
-  try{
-    if (typeof printTicketsOffline === "function"){
-      printTicketsOffline(tickets, showSlug, SEANCE_ID);
-    }
-  }catch(e){}
-
-  // sync
-  try{
+  // --- авто sync ---
+  try {
     if (navigator.onLine){
       const q = loadQueue();
       if (q.length) await syncQueue();
     }
-  }catch(e){}
+  } catch(e){
+    console.warn("sync error", e);
+  }
 }
 
+    
     // ---- reprint last sale ----
     async function reprintLastSale(){
       const arr = loadCashLog();
