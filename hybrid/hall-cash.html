@@ -1036,10 +1036,9 @@ async function sellAndPrintOffline(){
     return;
   }
 
-  // 🔴 ВАЖНО: гарантируем show_slug
   const safeShowSlug = showSlug || "test";
 
-  // --- цены и сумма ---
+  // --- цены ---
   const prices = {};
   let total = 0;
 
@@ -1056,7 +1055,7 @@ async function sellAndPrintOffline(){
     op_id,
     type: "sale",
     seance_id: SEANCE_ID,
-    show_slug: safeShowSlug,   // ← КРИТИЧНО
+    show_slug: safeShowSlug,
     seats: keys,
     prices,
     total,
@@ -1081,6 +1080,7 @@ async function sellAndPrintOffline(){
   // --- заказ ---
   const order_id = `CASH-${SEANCE_ID}-${op_id}`;
 
+  // 🔥 ВАЖНО: tickets существует ДО печати
   const tickets = keys.map(k => ({
     op_id,
     order_id,
@@ -1109,8 +1109,10 @@ async function sellAndPrintOffline(){
 
   // --- печать ---
   try{
-    if (typeof printTicketsOffline === "function"){
-      printTicketsOffline(tickets, safeShowSlug, SEANCE_ID);
+    if (typeof openPrintWindowOffline === "function"){
+      await openPrintWindowOffline(tickets, {
+        title: safeShowSlug
+      });
     }
   }catch(e){
     console.warn("print error", e);
