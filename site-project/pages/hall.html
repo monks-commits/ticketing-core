@@ -128,6 +128,37 @@
   <!-- <script type="module" src="../scripts/include.js"></script> -->
 
   <script>
+
+// ===== TAKEN SEATS STATE =====
+let takenSeats = new Set();
+
+// ===== LOAD FROM SUPABASE =====
+async function loadTakenSeats(){
+
+  if (!SEANCE_ID) return;
+
+  try {
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seat_label`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const rows = await res.json();
+
+    // 🔥 обновляем занятые места
+    takenSeats = new Set(rows.map(r => r.seat_label));
+
+  } catch(e){
+    console.warn("loadTakenSeats error", e);
+  }
+}
+    
     const qs = new URLSearchParams(location.search);
 
 const showSlug  = (qs.get("show")   || "").trim();
@@ -647,6 +678,38 @@ const res = await fetch("../../data/hall/academy.json");
 const HALL = await res.json();
 
 renderHallFromJson(HALL);
+
+// ===== ПЕРВАЯ ЗАГРУЗКА =====
+await loadTakenSeats();
+
+// применяем к кнопкам
+document.querySelectorAll(".seat").forEach(btn => {
+  const key = btn.dataset?.key;
+  if (!key) return;
+
+  if (takenSeats.has(key)) {
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+  }
+});
+
+// ===== АВТООБНОВЛЕНИЕ =====
+setInterval(async () => {
+
+  await loadTakenSeats();
+
+  document.querySelectorAll(".seat").forEach(btn => {
+    const key = btn.dataset?.key;
+    if (!key) return;
+
+    if (takenSeats.has(key)) {
+      btn.classList.add("seat--taken");
+      btn.disabled = true;
+    }
+  });
+
+}, 3000);
+     
 updateSummary();
 
 // 🔥 первичная загрузка занятых мест ПОСЛЕ рендера
