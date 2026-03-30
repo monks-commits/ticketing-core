@@ -1417,29 +1417,21 @@ seatsRow.appendChild(
       return !!ev && ev.origin === window.location.origin;
     }
 
-
 function applyStatusFromBackoffice(status, seats){
 
-  const keys = Array.isArray(seats) ? seats : [];
-  if (!keys.length) return;
+  const list = Array.isArray(seats) ? seats : [];
+  if (!list.length) return;
 
   clearSelection();
 
-  // === RESERVE ===
+  // === RESERVED ===
   if (status === "reserved"){
-
-    for (const k of keys){
+    for (const k of list){
       if (takenSeatsOnline.has(k)) continue;
       CASH_PATCH[k] = { status: "reserved", ts: Date.now() };
     }
 
     saveCashPatch(CASH_PATCH);
-
-    pushCashLog({
-      ts: Date.now(),
-      type: "reserve",
-      seats: keys
-    });
 
     if (typeof repaintAllStatuses === "function"){
       repaintAllStatuses();
@@ -1448,17 +1440,17 @@ function applyStatusFromBackoffice(status, seats){
     return;
   }
 
-  // === SALE ===
+  // === SOLD ===
   if (status === "sold"){
 
     if (!SEANCE_ID){
-      alert("Немає seance_id (потрібні date/time в afisha.json).");
+      alert("Немає seance_id");
       return;
     }
 
     const op_id = genOpId();
 
-    const tickets = keys.map(k => {
+    const tickets = list.map(k => {
       const btn = seatButtons.get(k);
       return {
         seat_label: k,
@@ -1466,7 +1458,7 @@ function applyStatusFromBackoffice(status, seats){
       };
     });
 
-    const total = tickets.reduce((s,t)=>s + t.price, 0);
+    const total = tickets.reduce((s,t)=>s+t.price,0);
 
     const op = {
       op_id,
@@ -1478,10 +1470,7 @@ function applyStatusFromBackoffice(status, seats){
     };
 
     const queue = loadQueue();
-    queue.push({
-      op_id: op.op_id,
-      payload: op
-    });
+    queue.push({ op_id: op.op_id, payload: op });
     saveQueue(queue);
 
     for (const t of tickets){
@@ -1495,36 +1484,29 @@ function applyStatusFromBackoffice(status, seats){
 
     saveCashPatch(CASH_PATCH);
 
-    pushCashLog({
-      ts: Date.now(),
-      type: "sale",
-      total,
-      tickets
-    });
-
     if (typeof repaintAllStatuses === "function"){
       repaintAllStatuses();
     }
 
-    try{
-      if (navigator.onLine){
-        const q = loadQueue();
-        if (q.length) syncQueue();
-      }
-    }catch(e){}
-
     return;
   }
+
+  // === ПРОЧИЕ СТАТУСЫ ===
+  for (const k of list){
+    if (takenSeatsOnline.has(k)) continue;
+    CASH_PATCH[k] = {
+      status: String(status || "free"),
+      ts: Date.now()
+    };
+  }
+
+  saveCashPatch(CASH_PATCH);
+
+  if (typeof repaintAllStatuses === "function"){
+    repaintAllStatuses();
+  }
 }
-    
-      // прочие статусы: просто применим локально
-      for(const k of keys){
-        if (takenSeatsOnline.has(k)) continue;
-        CASH_PATCH[k] = { status: String(status||"free"), ts: Date.now() };
-      }
-      saveCashPatch(CASH_PATCH);
-      reapplyAllStatuses();
-    
+
 
     function seatSearchFromBackoffice(key){
       const k = String(key || "").trim();
