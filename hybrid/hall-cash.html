@@ -1013,59 +1013,94 @@ if (cfg && cfg.color) {
     }
 
     // ---- ПРОДАЖА (офлайн) ----
-    async function sellAndPrintOffline(){
-      const keys = Array.from(selected.keys());
-      if (!keys.length) return;
 
-      if (!SEANCE_ID){
-        alert("Немає seance_id (потрібні date/time в afisha.json).");
-        return;
-      }
 
-      const prices = {};
-for (const k of keys) prices[k] = Number(selected.get(k)?.price || 0);
+async function sellAndPrintOffline(){
 
-      const queue = loadQueue();
-      queue.push({
-  op_id: op.op_id,
-  payload: op
-});
-      saveQueue(queue);
+  const keys = Array.from(selected.keys());
+  if (!keys.length) return;
 
-      for (const k of keys){
-        if (takenSeatsOnline.has(k)) continue;
-        CASH_PATCH[k] = { status: "sold", ts: Date.now(), op_id };
-      }
-      saveCashPatch(CASH_PATCH);
+  if (!SEANCE_ID){
+    alert("Немає seance_id (потрібні date/time в afisha.json).");
+    return;
+  }
 
-      const order_id = calcCashOrderId(SEANCE_ID, showSlug, op_id);
-      const tickets = keys.map(k => ({
-        op_id,
-        order_id,
-        show_slug: showSlug,
-        seat_label: k,
-        price: Number(prices[k] || 0),
-      }));
+  const op_id = genOpId();
 
-      pushCashLog({
-        ts: Date.now(),
-        type: "SALE",
-        seats: keys,
-        total: tickets.reduce((s,t)=>s+(t.price||0),0),
-        tickets
-      });
+  // цены по местам
+  const prices = {};
+  for (const k of keys){
+    prices[k] = Number(selected.get(k)?.price || 0);
+  }
 
-      clearSelection();
-      reapplyAllStatuses();
-      await openPrintWindowOffline(tickets, SHOW_META);
+  // сумма
+  const total = keys.reduce((s, k) => s + (prices[k] || 0), 0);
 
-      try{
-        if (navigator.onLine) {
-          const q2 = loadQueue();
-          if (q2.length) await syncQueue();
-        }
-      }catch(e){}
+  // операция
+  const op = {
+    op_id,
+    type: "sale",
+    seance_id: SEANCE_ID,
+    show_slug: showSlug,
+    seats: keys,
+    prices,
+    total,
+    sold_at: new Date().toISOString(),
+  };
+
+  // кладём в очередь
+  const queue = loadQueue();
+
+  queue.push({
+    op_id: op.op_id,
+    payload: op
+  });
+
+  saveQueue(queue);
+
+  // локально помечаем как проданные
+  for (const k of keys){
+    if (takenSeatsOnline.has(k)) continue;
+    CASH_PATCH[k] = { status: "sold", ts: Date.now(), op_id };
+  }
+
+  saveCashPatch(CASH_PATCH);
+
+  // создаём локальный ордер
+  const order_id = calcOrderId(SEANCE_ID, showSlug, op_id);
+
+  const tickets = keys.map(k => ({
+    op_id,
+    order_id,
+    show_slug: showSlug,
+    seat_label: k,
+    price: prices[k] || 0
+  }));
+
+  pushCashLog({
+    ts: Date.now(),
+    type: "sale",
+    total,
+    tickets
+  });
+
+  repaintAllStatuses();
+
+  // печать
+  try{
+    printTicketsOffline(tickets, showSlug, SEANCE_ID);
+  }catch(e){}
+
+  // авто sync если онлайн
+  try{
+    if (navigator.onLine){
+      const q = loadQueue();
+      if (q.length) await syncQueue();
     }
+  }catch(e){}
+
+}
+    
 
     // ---- reprint last sale ----
     async function reprintLastSale(){
