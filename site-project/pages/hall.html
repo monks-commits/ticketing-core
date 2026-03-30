@@ -204,7 +204,6 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
 }));
 
 
-    const takenSeats = new Set(); // seat_label keys like P2-M2 / A19-M12 / B1-M5 / A0-M1 / B0-M1
 
 function renderHallFromJson(HALL_RAW) {
   const block = document.getElementById("parter-block");
