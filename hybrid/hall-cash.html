@@ -215,21 +215,11 @@
               <section class="hall-section">
                 <div class="hall-section-title">СЦЕНА</div>
 
-                <div class="parter-wrap">
-                  <!-- IMPORTANT: Ложа А зліва -->
-                  <div class="hall-lodge">
-                    <div class="hall-lodge-label">Ложа А</div>
-                    <div class="hall-lodge-seats" id="lodge-a-seats"></div>
-                  </div>
+                
 
                   <div id="parter-block"></div>
 
-                  <!-- Ложа Б справа -->
-                  <div class="hall-lodge">
-                    <div class="hall-lodge-label">Ложа Б</div>
-                    <div class="hall-lodge-seats" id="lodge-b-seats"></div>
-                  </div>
-                </div>
+                  
               </section>
 
               
@@ -255,6 +245,7 @@
               <button id="btn-clear" class="btn btn-clear">ОЧИСТИТИ</button>
               <button id="btn-sync" class="btn btn-sync">SYNC (відправити чергу)</button>
               <button id="btn-reprint" class="btn btn-ghost" disabled>Повторити друк останньої продажі</button>
+              <button id="btn-kg13" style="width:100%;margin-top:10px;">КГ-13 (зміна)</button>
               <button id="btn-reset" class="btn btn-reset">Скинути локальні зміни для цього сеансу</button>
             </div>
 
@@ -1170,6 +1161,76 @@ seatsRow.appendChild(
       });
     }
 
+function renderHallFromJson(HALL_RAW) {
+
+  const block = document.getElementById("parter-block");
+  block.innerHTML = "";
+
+  HALL_RAW.rows.forEach(r => {
+
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    // 👇 ВОТ ЭТО ДОБАВЛЯЕМ
+const lab = document.createElement("div");
+lab.className = "row-label";
+lab.textContent = r.row;
+rowLine.appendChild(lab);
+
+const seatsRow = document.createElement("div");
+seatsRow.className = "seats-row";
+
+   
+
+// offset из JSON
+const offset = r.offset || 0;
+
+for (let i = 0; i < offset; i++) {
+  const spacer = document.createElement("div");
+  spacer.className = "seat seat--empty";
+  spacer.style.visibility = "hidden";
+  seatsRow.appendChild(spacer);
+}
+
+for (let s = 1; s <= r.seats; s++) {
+
+      const meta = {
+        zone: "Партер",
+        row: r.row,
+        seat: s
+      };
+
+      let cls = "";
+
+      if (r.aisles && r.aisles.includes(s)) {
+        cls += " seat--gap-right";
+      }
+
+      seatsRow.appendChild(
+        makeSeatElement(
+          seatKey(meta),
+          s,
+          cls,
+          0,
+          meta
+        )
+      );
+    }
+
+    rowLine.appendChild(seatsRow);
+    block.appendChild(rowLine);
+
+// ===== ПРОХОД МЕЖДУ РЯДАМИ =====
+if (r.gapAfter) {
+  const gap = document.createElement("div");
+  gap.style.height = "40px";   // ← ВОТ ТУТ регулируешь размер прохода
+  gap.style.width = "100%";
+  block.appendChild(gap);
+}
+    
+  });
+}
+    
     function renderLodges(){
       const a = document.getElementById("lodge-a-seats");
       const b = document.getElementById("lodge-b-seats");
@@ -1582,9 +1643,11 @@ seatsRow.appendChild(
   SEANCE_CONFIG = await loadSeanceConfig();
   CASH_PATCH = loadCashPatch();
   await loadTakenSeatsOnline();
+const res = await fetch("../data/hall/academy.json");
+const RAW_HALL = await res.json();
 
-  renderParter();
-  renderLodges();
+renderHallFromJson(RAW_HALL);
+
   
 
   updateSummary();
