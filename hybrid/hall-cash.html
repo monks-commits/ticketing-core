@@ -1454,7 +1454,10 @@ seatsRow.appendChild(
         };
 
         const queue = loadQueue();
-        queue.push(op);
+        queue.push({
+  op_id: op_id,
+  payload: op
+});
         saveQueue(queue);
 
         for (const k of keys){
