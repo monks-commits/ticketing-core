@@ -580,77 +580,51 @@ async function loadSeanceConfig() {
 // SEANCE_ID берётся из query (?seance=...)
 
 
-async function loadShowMeta() {
+async function loadShowMeta(){
 
-  try {
+  const elShow = document.getElementById("summary-show");
+  const elSeance = document.getElementById("summary-seance");
 
-    const elShow = document.getElementById("summary-show");
-    const elSeance = document.getElementById("summary-seance");
-
-    if (elShow) {
-      elShow.textContent = "Вистава: " + (s.show || "—");
-    }
-
-    if (elSeance) {
-      elSeance.textContent = "Seance: " + (SEANCE_ID || "—");
-    }
-
-    // если есть лог кассы — обновляем
-    if (typeof renderCashLog === "function") {
-      renderCashLog();
-    }
-
-  } catch (e) {
-
-    console.warn("loadShowMeta error", e);
-
+  // всегда показываем seance
+  if (elSeance) {
+    elSeance.textContent = "Seance: " + (SEANCE_ID || "—");
   }
-}
- 
 
-
-    // Онлайн-проданные места из tickets (блокируем их)
-    const takenSeatsOnline = new Set();
-    async function loadTakenSeatsOnline() {
-
+  // если нет id — выходим
   if (!SEANCE_ID) {
-    console.warn("SEANCE_ID пустой");
+    if (elShow) elShow.textContent = "Вистава: —";
     return;
   }
 
-  const url =
-    `${SUPABASE_URL}/rest/v1/tickets` +
-    `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-    `&select=seat_label`;
-
   try {
 
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(SEANCE_ID)}&select=show`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
       }
-    });
+    );
 
-    if (!res.ok) {
-      setTicketsPill("tickets: помилка", "bad");
-      return;
+    if (!res.ok) throw new Error("fetch failed");
+
+    const arr = await res.json();
+    const s = arr && arr.length ? arr[0] : null;
+
+    if (elShow) {
+      elShow.textContent = "Вистава: " + (s?.show || "—");
     }
 
-    const rows = await res.json().catch(() => []);
+  } catch(e) {
 
-    takenSeatsOnline.clear();
+    console.warn("loadShowMeta error:", e);
 
-    rows.forEach(r => {
-      if (r && r.seat_label) {
-        takenSeatsOnline.add(String(r.seat_label));
-      }
-    });
+    if (elShow) {
+      elShow.textContent = "Вистава: —";
+    }
 
-    setTicketsPill(`tickets: ok (${takenSeatsOnline.size})`, "ok");
-
-  } catch (e) {
-    setTicketsPill("tickets: нема інтернету", "bad");
   }
 }
 
