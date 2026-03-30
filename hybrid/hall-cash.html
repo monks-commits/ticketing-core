@@ -588,7 +588,7 @@ async function loadShowMeta() {
     const elSeance = document.getElementById("summary-seance");
 
     if (elShow) {
-      elShow.textContent = "Вистава: —";
+      elShow.textContent = "Вистава: " + (s.show || "—");
     }
 
     if (elSeance) {
