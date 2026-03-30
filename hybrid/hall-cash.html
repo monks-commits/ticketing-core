@@ -1047,13 +1047,15 @@ async function sellAndPrintOffline(){
   }
 
   // --- операция ---
-  const op_id = genOpId();
-
   const op = {
   op_id,
   type: "sale",
   seance_id: SEANCE_ID,
-  show: showSlug || "test",   // ← ВАЖНО
+
+  // ВАЖНО: даём оба поля (старое + новое)
+  show_slug: showSlug || "test",
+  show: showSlug || "test",
+
   seats: keys,
   prices,
   total,
