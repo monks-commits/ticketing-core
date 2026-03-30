@@ -580,34 +580,75 @@ async function loadSeanceConfig() {
 // SEANCE_ID берётся из query (?seance=...)
 
 
-async function loadShowMeta() {
+async function loadShowMeta(){
+
+  if (!SEANCE_ID) {
+    const elShow = document.getElementById("summary-show");
+    const elSeance = document.getElementById("summary-seance");
+
+    if (elShow) elShow.textContent = "Вистава: —";
+    if (elSeance) elSeance.textContent = "Seance: —";
+
+    renderCashLog();
+    return;
+  }
 
   try {
+
+    // 1️⃣ Получаем show_slug из Supabase по текущему сеансу
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(SEANCE_ID)}&select=show_slug`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    if (!res.ok) throw new Error("seance not found");
+
+    const rows = await res.json();
+    if (!rows || !rows.length) throw new Error("empty seance");
+
+    const realShowSlug = rows[0].show_slug;
+    if (!realShowSlug) throw new Error("no show_slug");
+
+    // 2️⃣ Грузим show.json из data/shows
+    const showRes = await fetch(`../data/shows/${realShowSlug}.json`, {
+      cache: "no-store"
+    });
+
+    if (!showRes.ok) throw new Error("show json not found");
+
+    SHOW_META = await showRes.json();
+
+    const title = SHOW_META?.title || "—";
 
     const elShow = document.getElementById("summary-show");
     const elSeance = document.getElementById("summary-seance");
 
     if (elShow) {
-      elShow.textContent = "Вистава: —";
+      elShow.textContent = `Вистава: ${title}`;
     }
 
     if (elSeance) {
-      elSeance.textContent = "Seance: " + (SEANCE_ID || "—");
+      elSeance.textContent = `Seance: ${SEANCE_ID}`;
     }
 
-    // если есть лог кассы — обновляем
-    if (typeof renderCashLog === "function") {
-      renderCashLog();
-    }
+  } catch(e) {
 
-  } catch (e) {
+    console.warn("Помилка loadShowMeta:", e);
 
-    console.warn("loadShowMeta error", e);
+    const elShow = document.getElementById("summary-show");
+    const elSeance = document.getElementById("summary-seance");
 
+    if (elShow) elShow.textContent = "Вистава: —";
+    if (elSeance) elSeance.textContent = `Seance: ${SEANCE_ID || "—"}`;
   }
-}
- 
 
+  renderCashLog();
+}
 
     // Онлайн-проданные места из tickets (блокируем их)
     const takenSeatsOnline = new Set();
