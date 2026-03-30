@@ -655,18 +655,16 @@ if (!saleAllowed) {
 
   // 🔴 ДОБАВИТЬ ЭТО
   SEANCE_CONFIG = await loadSeanceConfig();
-  
 
-  const res = await fetch("../../data/hall/academy.json");
-  const HALL = await res.json();
+const res = await fetch("../../data/hall/academy.json");
+const HALL = await res.json();
 
- renderHallFromJson(HALL);
-  updateSummary();
+renderHallFromJson(HALL);
+updateSummary();
 
-// 🔥 загрузка занятых мест ПОСЛЕ рендера
+// 👇 ВОТ ЭТО ТЫ ДОБАВИЛ
 await loadTakenSeats();
 
-// 🔥 сразу применяем к кнопкам
 document.querySelectorAll(".seat").forEach(btn => {
   const key = btn.dataset?.key;
   if (!key) return;
@@ -676,7 +674,6 @@ document.querySelectorAll(".seat").forEach(btn => {
     btn.disabled = true;
   }
 });
-
   </script>
 </body>
 </html>
