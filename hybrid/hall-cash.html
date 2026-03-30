@@ -1026,28 +1026,27 @@ async function sellAndPrintOffline(){
 
   const op_id = genOpId();
 
-  // ✅ цены (ВАЖНО: объект, не число)
-  const prices = {};
-  for (const k of keys){
-    const b = seatButtons.get(k);
-    prices[k] = Number(b?.dataset?.price || 0);
-  }
+  // собираем билеты
+  const tickets = keys.map(k => {
+    const btn = seatButtons.get(k);
+    return {
+      seat_label: k,
+      price: Number(btn?.dataset?.price || 0)
+    };
+  });
 
-  const total = keys.reduce((s, k) => s + (prices[k] || 0), 0);
+  const total = tickets.reduce((s,t)=>s + t.price, 0);
 
-  // операция
   const op = {
     op_id,
     type: "sale",
     seance_id: SEANCE_ID,
-    show_slug: showSlug || null,
-    seats: keys,
-    prices,
+    tickets,
     total,
-    sold_at: new Date().toISOString(),
+    sold_at: new Date().toISOString()
   };
 
-  // очередь (ЕДИНЫЙ ФОРМАТ)
+  // очередь
   const queue = loadQueue();
   queue.push({
     op_id: op.op_id,
@@ -1056,23 +1055,17 @@ async function sellAndPrintOffline(){
   saveQueue(queue);
 
   // локальные статусы
-  for (const k of keys){
-    if (takenSeatsOnline.has(k)) continue;
-    CASH_PATCH[k] = { status: "sold", ts: Date.now(), op_id };
+  for (const t of tickets){
+    if (takenSeatsOnline.has(t.seat_label)) continue;
+    CASH_PATCH[t.seat_label] = {
+      status: "sold",
+      ts: Date.now(),
+      op_id
+    };
   }
   saveCashPatch(CASH_PATCH);
 
-  // order_id без внешних функций
-  const order_id = `ORD-${SEANCE_ID}-${op_id.slice(-6)}`;
-
-  const tickets = keys.map(k => ({
-    op_id,
-    order_id,
-    show_slug: showSlug || null,
-    seat_label: k,
-    price: prices[k] || 0
-  }));
-
+  // лог
   pushCashLog({
     ts: Date.now(),
     type: "sale",
@@ -1080,19 +1073,18 @@ async function sellAndPrintOffline(){
     tickets
   });
 
-  // безопасный repaint
   if (typeof repaintAllStatuses === "function"){
     repaintAllStatuses();
   }
 
-  // печать (если есть)
+  // печать
   try{
     if (typeof printTicketsOffline === "function"){
       printTicketsOffline(tickets, showSlug, SEANCE_ID);
     }
   }catch(e){}
 
-  // авто sync
+  // sync
   try{
     if (navigator.onLine){
       const q = loadQueue();
