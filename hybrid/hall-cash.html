@@ -1082,7 +1082,9 @@ async function sellAndPrintOffline(){
     tickets
   });
 
+ if (typeof repaintAllStatuses === "function") {
   repaintAllStatuses();
+}
 
   // печать (если есть)
   try{
