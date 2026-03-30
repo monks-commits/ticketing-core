@@ -655,7 +655,7 @@ if (!saleAllowed) {
 
   // 🔴 ДОБАВИТЬ ЭТО
   SEANCE_CONFIG = await loadSeanceConfig();
-  await loadTakenSeats();
+  
 
   const res = await fetch("../../data/hall/academy.json");
   const HALL = await res.json();
@@ -663,24 +663,19 @@ if (!saleAllowed) {
  renderHallFromJson(HALL);
   updateSummary();
 
-// 🔁 автообновление занятых мест
-setInterval(async () => {
-  await loadTakenSeats();
+// 🔥 загрузка занятых мест ПОСЛЕ рендера
+await loadTakenSeats();
 
-  // пересобираем статусы ВСЕХ кнопок
-  document.querySelectorAll(".seat").forEach(btn => {
-    const key = btn.dataset?.key;
-    if (!key) return;
+// 🔥 сразу применяем к кнопкам
+document.querySelectorAll(".seat").forEach(btn => {
+  const key = btn.dataset?.key;
+  if (!key) return;
 
-    if (takenSeats.has(key)) {
-      btn.classList.add("seat--taken");
-      btn.disabled = true;
-    }
-  });
-
-}, 3000);
-     
-})();
+  if (takenSeats.has(key)) {
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+  }
+});
 
   </script>
 </body>
