@@ -665,9 +665,25 @@ if (!saleAllowed) {
   const HALL = await res.json();
 
  renderHallFromJson(HALL);
-  
-
   updateSummary();
+
+// 🔁 автообновление занятых мест
+setInterval(async () => {
+  await loadTakenSeats();
+
+  // пересобираем статусы ВСЕХ кнопок
+  document.querySelectorAll(".seat").forEach(btn => {
+    const key = btn.dataset?.key;
+    if (!key) return;
+
+    if (takenSeats.has(key)) {
+      btn.classList.add("seat--taken");
+      btn.disabled = true;
+    }
+  });
+
+}, 3000);
+     
 })();
 
   </script>
