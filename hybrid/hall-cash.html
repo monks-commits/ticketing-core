@@ -628,6 +628,41 @@ async function loadShowMeta(){
   }
 }
 
+let takenSeatsOnline = new Set();
+
+async function loadTakenSeatsOnline(){
+
+  takenSeatsOnline.clear();
+
+  if (!SEANCE_ID) return;
+
+  try {
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets` +
+      `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+      `&select=seat_label`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const arr = await res.json();
+
+    for (const t of arr){
+      if (t.seat_label){
+        takenSeatsOnline.add(t.seat_label);
+      }
+    }
+
+  } catch(e){
+    console.warn("loadTakenSeatsOnline error:", e);
+  }
+}
+    
     // Локальные состояния кассы по seance_id
     function cashPatchKey(){
       return `cash_patch_${SEANCE_ID || showSlug || "unknown"}`;
