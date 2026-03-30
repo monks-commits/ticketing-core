@@ -1426,20 +1426,24 @@ seatsRow.appendChild(
         const op_id = genOpId();
 
         const prices = {};
-        for (const k of keys){
-          const b = seatButtons.get(k);
-          prices[k] = Number(b?.dataset?.price || 0);
-        }
+for (const k of keys){
+  const b = seatButtons.get(k);
+  prices[k] = Number(b?.dataset?.price || 0);
+}
 
-        const op = {
-          op_id,
-          type: "sale",
-          seance_id: SEANCE_ID, 
-          show_slug: showSlug,
-          seats: keys,
-          prices,
-          sold_at: new Date().toISOString(),
-        };
+// 👇 ДОБАВИЛИ
+const total = keys.reduce((s, k) => s + (prices[k] || 0), 0);
+
+const op = {
+  op_id,
+  type: "sale",
+  seance_id: SEANCE_ID,
+  show_slug: showSlug,
+  seats: keys,
+  prices,
+  total, // 👈 ВОТ ЭТО КЛЮЧЕВОЕ
+  sold_at: new Date().toISOString(),
+};
 
         const queue = loadQueue();
         queue.push({
