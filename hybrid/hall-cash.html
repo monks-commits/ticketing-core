@@ -245,7 +245,6 @@
               <button id="btn-clear" class="btn btn-clear">ОЧИСТИТИ</button>
               <button id="btn-sync" class="btn btn-sync">SYNC (відправити чергу)</button>
               <button id="btn-reprint" class="btn btn-ghost" disabled>Повторити друк останньої продажі</button>
-              <button id="btn-kg13" style="width:100%;margin-top:10px;">КГ-13 (зміна)</button>
               <button id="btn-reset" class="btn btn-reset">Скинути локальні зміни для цього сеансу</button>
             </div>
 
@@ -292,7 +291,7 @@
   </main>
 
   <div id="site-footer"></div>
-  <script type="module" src="../scripts/include.js"></script>
+  
 
   <!-- Modal -->
   <div class="modalBack" id="modalBack">
@@ -581,77 +580,32 @@ async function loadSeanceConfig() {
 // SEANCE_ID берётся из query (?seance=...)
 
 
-async function loadShowMeta(){
-
-  if (!SEANCE_ID) {
-    const elShow = document.getElementById("summary-show");
-    const elSeance = document.getElementById("summary-seance");
-
-    if (elShow) elShow.textContent = "Вистава: —";
-    if (elSeance) elSeance.textContent = "Seance: —";
-
-    renderCashLog();
-    return;
-  }
+async function loadShowMeta() {
 
   try {
-
-    // 1️⃣ Получаем show_slug из Supabase по текущему сеансу
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(SEANCE_ID)}&select=show_slug`,
-      {
-        headers:{
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    );
-
-    if (!res.ok) throw new Error("seance not found");
-
-    const rows = await res.json();
-    if (!rows || !rows.length) throw new Error("empty seance");
-
-    const realShowSlug = rows[0].show_slug;
-    if (!realShowSlug) throw new Error("no show_slug");
-
-    // 2️⃣ Грузим show.json из data/shows
-    const showRes = await fetch(`../data/shows/${realShowSlug}.json`, {
-      cache: "no-store"
-    });
-
-    if (!showRes.ok) throw new Error("show json not found");
-
-    SHOW_META = await showRes.json();
-
-    const title = SHOW_META?.title || "—";
 
     const elShow = document.getElementById("summary-show");
     const elSeance = document.getElementById("summary-seance");
 
     if (elShow) {
-      elShow.textContent = `Вистава: ${title}`;
+      elShow.textContent = "Вистава: —";
     }
 
     if (elSeance) {
-      elSeance.textContent = `Seance: ${SEANCE_ID}`;
+      elSeance.textContent = "Seance: " + (SEANCE_ID || "—");
     }
 
-  } catch(e) {
+    // если есть лог кассы — обновляем
+    if (typeof renderCashLog === "function") {
+      renderCashLog();
+    }
 
-    console.warn("Помилка loadShowMeta:", e);
+  } catch (e) {
 
-    const elShow = document.getElementById("summary-show");
-    const elSeance = document.getElementById("summary-seance");
+    console.warn("loadShowMeta error", e);
 
-    if (elShow) elShow.textContent = "Вистава: —";
-    if (elSeance) elSeance.textContent = `Seance: ${SEANCE_ID || "—"}`;
   }
-
-  renderCashLog();
 }
-
-
  
 
 
@@ -1059,68 +1013,85 @@ if (cfg && cfg.color) {
     }
 
     // ---- ПРОДАЖА (офлайн) ----
-    async function sellAndPrintOffline(){
-      const keys = Array.from(selected.keys());
-      if (!keys.length) return;
 
-      if (!SEANCE_ID){
-        alert("Немає seance_id (потрібні date/time в afisha.json).");
-        return;
-      }
+async function sellAndPrintOffline(){
 
-      const op_id = genOpId();
+  const keys = Array.from(selected.keys());
+  if (!keys.length) return;
 
-      const prices = {};
-      for (const k of keys) prices[k] = Number(selected.get(k)?.price || 0);
+  if (!SEANCE_ID){
+    alert("Немає seance_id (потрібні date/time в afisha.json).");
+    return;
+  }
 
-      const op = {
-        op_id,
-        type: "sale",
-        seance_id: SEANCE_ID,
-        show_slug: showSlug,
-        seats: keys,
-        prices,
-        sold_at: new Date().toISOString(),
-      };
+  const op_id = genOpId();
 
-      const queue = loadQueue();
-      queue.push(op);
-      saveQueue(queue);
+  // собираем билеты
+  const tickets = keys.map(k => {
+    const btn = seatButtons.get(k);
+    return {
+      seat_label: k,
+      price: Number(btn?.dataset?.price || 0)
+    };
+  });
 
-      for (const k of keys){
-        if (takenSeatsOnline.has(k)) continue;
-        CASH_PATCH[k] = { status: "sold", ts: Date.now(), op_id };
-      }
-      saveCashPatch(CASH_PATCH);
+  const total = tickets.reduce((s,t)=>s + t.price, 0);
 
-      const order_id = calcCashOrderId(SEANCE_ID, showSlug, op_id);
-      const tickets = keys.map(k => ({
-        op_id,
-        order_id,
-        show_slug: showSlug,
-        seat_label: k,
-        price: Number(prices[k] || 0),
-      }));
+  const op = {
+    op_id,
+    type: "sale",
+    seance_id: SEANCE_ID,
+    tickets,
+    total,
+    sold_at: new Date().toISOString()
+  };
 
-      pushCashLog({
-        ts: Date.now(),
-        type: "SALE",
-        seats: keys,
-        total: tickets.reduce((s,t)=>s+(t.price||0),0),
-        tickets
-      });
+  // очередь
+  const queue = loadQueue();
+  queue.push({
+    op_id: op.op_id,
+    payload: op
+  });
+  saveQueue(queue);
 
-      clearSelection();
-      reapplyAllStatuses();
-      await openPrintWindowOffline(tickets, SHOW_META);
+  // локальные статусы
+  for (const t of tickets){
+    if (takenSeatsOnline.has(t.seat_label)) continue;
+    CASH_PATCH[t.seat_label] = {
+      status: "sold",
+      ts: Date.now(),
+      op_id
+    };
+  }
+  saveCashPatch(CASH_PATCH);
 
-      try{
-        if (navigator.onLine) {
-          const q2 = loadQueue();
-          if (q2.length) await syncQueue();
-        }
-      }catch(e){}
+  // лог
+  pushCashLog({
+    ts: Date.now(),
+    type: "sale",
+    total,
+    tickets
+  });
+
+  if (typeof repaintAllStatuses === "function"){
+    repaintAllStatuses();
+  }
+
+  // печать
+  try{
+    if (typeof printTicketsOffline === "function"){
+      printTicketsOffline(tickets, showSlug, SEANCE_ID);
     }
+  }catch(e){}
+
+  // sync
+  try{
+    if (navigator.onLine){
+      const q = loadQueue();
+      if (q.length) await syncQueue();
+    }
+  }catch(e){}
+}
 
     // ---- reprint last sale ----
     async function reprintLastSale(){
@@ -1446,99 +1417,106 @@ seatsRow.appendChild(
       return !!ev && ev.origin === window.location.origin;
     }
 
-    function applyStatusFromBackoffice(status, seats){
-      const keys = Array.isArray(seats) ? seats : [];
-      if(!keys.length) return;
 
-      // снимаем текущий выбор
-      clearSelection();
+function applyStatusFromBackoffice(status, seats){
 
-      // локально применяем как будто кассир нажал кнопку
-      if(status === "reserved"){
-        // резерв (локально)
-        for(const k of keys){
-          if (takenSeatsOnline.has(k)) continue;
-          CASH_PATCH[k] = { status: "reserved", ts: Date.now() };
-        }
-        saveCashPatch(CASH_PATCH);
-        pushCashLog({
-          ts: Date.now(),
-          type: "RESERVE",
-          seats: keys,
-          total: keys.reduce((s,k)=>s + Number(seatButtons.get(k)?.dataset?.price || 0), 0)
-        });
-        reapplyAllStatuses();
-        return;
+  const keys = Array.isArray(seats) ? seats : [];
+  if (!keys.length) return;
+
+  clearSelection();
+
+  // === RESERVE ===
+  if (status === "reserved"){
+
+    for (const k of keys){
+      if (takenSeatsOnline.has(k)) continue;
+      CASH_PATCH[k] = { status: "reserved", ts: Date.now() };
+    }
+
+    saveCashPatch(CASH_PATCH);
+
+    pushCashLog({
+      ts: Date.now(),
+      type: "reserve",
+      seats: keys
+    });
+
+    if (typeof repaintAllStatuses === "function"){
+      repaintAllStatuses();
+    }
+
+    return;
+  }
+
+  // === SALE ===
+  if (status === "sold"){
+
+    if (!SEANCE_ID){
+      alert("Немає seance_id (потрібні date/time в afisha.json).");
+      return;
+    }
+
+    const op_id = genOpId();
+
+    const tickets = keys.map(k => {
+      const btn = seatButtons.get(k);
+      return {
+        seat_label: k,
+        price: Number(btn?.dataset?.price || 0)
+      };
+    });
+
+    const total = tickets.reduce((s,t)=>s + t.price, 0);
+
+    const op = {
+      op_id,
+      type: "sale",
+      seance_id: SEANCE_ID,
+      tickets,
+      total,
+      sold_at: new Date().toISOString()
+    };
+
+    const queue = loadQueue();
+    queue.push({
+      op_id: op.op_id,
+      payload: op
+    });
+    saveQueue(queue);
+
+    for (const t of tickets){
+      if (takenSeatsOnline.has(t.seat_label)) continue;
+      CASH_PATCH[t.seat_label] = {
+        status: "sold",
+        ts: Date.now(),
+        op_id
+      };
+    }
+
+    saveCashPatch(CASH_PATCH);
+
+    pushCashLog({
+      ts: Date.now(),
+      type: "sale",
+      total,
+      tickets
+    });
+
+    if (typeof repaintAllStatuses === "function"){
+      repaintAllStatuses();
+    }
+
+    try{
+      if (navigator.onLine){
+        const q = loadQueue();
+        if (q.length) syncQueue();
       }
+    }catch(e){}
 
-      if(status === "sold"){
-        // продажа = то же, что sellAndPrintOffline(), но без кликов и с ценами из DOM
-        if(!SEANCE_ID){
-          alert("Немає seance_id (потрібні date/time в afisha.json).");
-          return;
-        }
-
-        const op_id = genOpId();
-
-        const prices = {};
-        for (const k of keys){
-          const b = seatButtons.get(k);
-          prices[k] = Number(b?.dataset?.price || 0);
-        }
-
-        const op = {
-          op_id,
-          type: "sale",
-          seance_id: SEANCE_ID, 
-          show_slug: showSlug,
-          seats: keys,
-          prices,
-          sold_at: new Date().toISOString(),
-        };
-
-        const queue = loadQueue();
-        queue.push(op);
-        saveQueue(queue);
-
-        for (const k of keys){
-          if (takenSeatsOnline.has(k)) continue;
-          CASH_PATCH[k] = { status: "sold", ts: Date.now(), op_id };
-        }
-        saveCashPatch(CASH_PATCH);
-
-        const order_id = calcCashOrderId(SEANCE_ID, showSlug, op_id);
-        const tickets = keys.map(k => ({
-          op_id,
-          order_id,
-          show_slug: showSlug,
-          seat_label: k,
-          price: Number(prices[k] || 0),
-        }));
-
-        pushCashLog({
-          ts: Date.now(),
-          type: "SALE",
-          seats: keys,
-          total: tickets.reduce((s,t)=>s+(t.price||0),0),
-          tickets
-        });
-
-        reapplyAllStatuses();
-        openPrintWindowOffline(tickets, SHOW_META).catch(()=>{});
-
-        // если онлайн — пробуем синкнуть
-        setTimeout(async ()=>{
-          try{
-            if (navigator.onLine) {
-              const q2 = loadQueue();
-              if (q2.length) await syncQueue();
-            }
-          }catch(e){}
-        }, 50);
-
-        return;
-      }
-
+    return;
+  }
+}
+    
       // прочие статусы: просто применим локально
       for(const k of keys){
         if (takenSeatsOnline.has(k)) continue;
@@ -1546,7 +1524,7 @@ seatsRow.appendChild(
       }
       saveCashPatch(CASH_PATCH);
       reapplyAllStatuses();
-    }
+    
 
     function seatSearchFromBackoffice(key){
       const k = String(key || "").trim();
