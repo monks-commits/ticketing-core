@@ -324,13 +324,47 @@
 let takenSeatsOnline = new Set();
 
 // ===== ACADEMY FIXED PRICING =====
-const ACADEMY_PRICING = {
-  "P1-1": { price: 220, color: "#32075a", sale: true },
-  "P2-4": { price: 200, color: "#1ef2f6", sale: true },
-  "P5-7": { price: 180, color: "#57f61e", sale: true },
-  "P8-10": { price: 160, color: "#f61e5f", sale: true },
-  "P11-13": { price: 140, color: "#f6a21e", sale: true },
-  "P14-17": { price: 120, color: "#16a34a", sale: true }
+SEANCE_CONFIG = {
+  pricing: {
+    "P1-1": { price: 220, color: "#41136c", sale: true }
+  },
+
+  seat_overrides: {
+
+    // 🔹 центральная зона (200)
+    ...Object.fromEntries([
+      ...Array.from({length:11}, (_,i)=>`P2-M${7+i}`),
+      ...Array.from({length:11}, (_,i)=>`P3-M${7+i}`)
+    ].map(k => [k, { price: 200, color: "#b641ec" }])),
+
+    // 🔹 ряды 4-6 (200 фиолет)
+    ...Object.fromEntries([
+      ...Array.from({length:11}, (_,i)=>`P4-M${7+i}`),
+      ...Array.from({length:11}, (_,i)=>`P5-M${7+i}`),
+      ...Array.from({length:11}, (_,i)=>`P6-M${7+i}`)
+    ].map(k => [k, { price: 200, color: "#a62adf" }])),
+
+    // 🔹 центр (180 розовый)
+    ...Object.fromEntries([
+      ...["P7","P8","P9","P10","P11","P12","P13"].flatMap(r =>
+        Array.from({length:5}, (_,i)=>`${r}-M${10+i}`)
+      )
+    ].map(k => [k, { price: 180, color: "#e03cec" }])),
+
+    // 🔹 голубые края (160)
+    ...Object.fromEntries([
+      ...["P2","P3","P4","P5","P6","P7","P8","P9","P10","P11","P12","P13"].flatMap(r =>
+        ["M7","M8","M9","M15","M16","M17"].map(m => `${r}-${m}`)
+      )
+    ].map(k => [k, { price: 160, color: "#42e4f0" }])),
+
+    // 🔹 отключённые боковые (серые)
+    ...Object.fromEntries([
+      ...["P2","P3","P4","P5","P6"].flatMap(r =>
+        ["M1","M2","M3","M4","M18","M19","M20","M21"].map(m => `${r}-${m}`)
+      )
+    ].map(k => [k, { price: 0, sale: false }]))
+  }
 };
     
 async function loadTakenSeatsOnline(){
