@@ -1,153 +1,130 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Квитки онлайн</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Афіша — Академія руху</title>
 
-<style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#081421;
-  color:#fff;
-}
+  <style>
+    body{
+      margin:0;
+      background: linear-gradient(180deg, #0b1320 0%, #0e1a2b 100%);
+      color:#e5e7eb;
+      font-family: system-ui, Arial;
+    }
 
-.container{
-  max-width:1100px;
-  margin:0 auto;
-  padding:24px;
-}
+    .page-title{
+      text-align:center;
+      font-size:34px;
+      margin-top:30px;
+      margin-bottom:10px;
+      color:#d6a44c;
+      letter-spacing:1px;
+    }
 
-h1{
-  margin-bottom:20px;
-}
+    .shows-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:28px;
+      padding:40px;
+      max-width:1200px;
+      margin:auto;
+    }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:24px;
-}
+    .show-card{
+      background: linear-gradient(145deg, #0f1c2e, #0a1422);
+      border-radius:16px;
+      overflow:hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      transition: all .3s ease;
+    }
 
-.card{
-  background:#0d2238;
-  border-radius:10px;
-  overflow:hidden;
-  transition:.2s;
-}
+    .show-card:hover{
+      transform: translateY(-6px);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.8);
+    }
 
-.card:hover{
-  transform:scale(1.03);
-}
+    .show-card img{
+      width:100%;
+      height:360px;
+      object-fit:cover;
+    }
 
-.poster{
-  width:100%;
-  aspect-ratio:2/3;
-  object-fit:cover;
-}
+    .show-info{
+      padding:20px;
+      text-align:center;
+    }
 
-.card-body{
-  padding:12px;
-}
+    .show-info h3{
+      font-size:22px;
+      margin-bottom:10px;
+      color:#f3f4f6;
+    }
 
-.title{
-  font-weight:600;
-  margin-bottom:6px;
-}
+    .show-info p{
+      margin-bottom:18px;
+      color:#9ca3af;
+    }
 
-.date{
-  color:#ccc;
-  font-size:14px;
-}
+    /* БРОНЗОВА КНОПКА */
+    .btn{
+      display:inline-block;
+      padding:12px 22px;
+      border-radius:10px;
+      font-weight:600;
+      text-decoration:none;
+      color:#2b1a00;
 
-.btn{
-  margin-top:10px;
-  width:100%;
-  padding:10px;
-  background:#d4af37;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:600;
-}
-</style>
+      background: linear-gradient(145deg, #d6a44c, #b8822a);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.4),
+        0 6px 15px rgba(0,0,0,0.5);
+
+      transition: all .25s ease;
+    }
+
+    .btn:hover{
+      background: linear-gradient(145deg, #e3b35c, #c99535);
+      transform: translateY(-2px);
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>Квитки онлайн</h1>
-  <div class="grid" id="grid"></div>
+<h1 class="page-title">Афіша</h1>
+
+<div class="shows-grid">
+
+  <!-- Сонечко -->
+  <div class="show-card">
+    <img src="../images/sonechko.jpg" alt="Сонечко">
+
+    <div class="show-info">
+      <h3>Сонечко</h3>
+      <p>11 квітня, 12:00</p>
+
+      <a href="hall.html?seance=sonechko-2026-04-11-12-00" class="btn">
+        Купити квитки
+      </a>
+    </div>
+  </div>
+
+  <!-- Залишайся -->
+  <div class="show-card">
+    <img src="../images/zalyshaysya.jpg" alt="Залишайся">
+
+    <div class="show-info">
+      <h3>Залишайся</h3>
+      <p>18 квітня, 12:00</p>
+
+      <a href="hall.html?seance=zalyshaysya-2026-04-18-12-00" class="btn">
+        Купити квитки
+      </a>
+    </div>
+  </div>
+
 </div>
-
-<script>
-
-const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-
-// 👉 вручную сопоставляем картинки
-const posters = {
-  "Сонечко всередині": "images/sonechko.jpg",
-  "Залишайся собою": "images/zalyshaysya.jpg"
-};
-
-async function loadSeances(){
-
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,archived&archived=eq.false`,
-    {
-      headers:{
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    }
-  );
-
-  const data = await res.json();
-
-  console.log("SEANCES:", data);
-
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "";
-
-  data.forEach(s => {
-
-    const img = posters[s.show] || "images/default.jpg";
-
-    const el = document.createElement("div");
-    el.className = "card";
-
-    el.innerHTML = `
-      <img src="${img}" class="poster">
-      <div class="card-body">
-        <div class="title">${s.show}</div>
-        <div class="date">${formatDate(s.date, s.time)}</div>
-        <button class="btn" onclick="go('${s.id}')">Купити квитки</button>
-      </div>
-    `;
-
-    grid.appendChild(el);
-  });
-
-}
-
-function formatDate(date, time){
-  if(!date) return "Дата уточнюється";
-
-  const d = new Date(date);
-  const day = d.getDate().toString().padStart(2,"0");
-  const month = (d.getMonth()+1).toString().padStart(2,"0");
-
-  return `${day}.${month} ${time || ""}`;
-}
-
-function go(id){
-  window.location.href = "hall.html?seance_id=" + id;
-}
-
-loadSeances();
-
-</script>
 
 </body>
 </html>
