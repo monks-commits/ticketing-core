@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Квитки онлайн — Академія Руху</title>
+
+<style>
+  body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#081421;
+    color:#fff;
+  }
+
+  .container{
+    max-width:1200px;
+    margin:0 auto;
+    padding:24px;
+  }
+
+  h1{
+    font-size:28px;
+    margin-bottom:20px;
+    font-weight:600;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:20px;
+  }
+
+  .card{
+    background:#0d2238;
+    border-radius:10px;
+    overflow:hidden;
+    transition:0.2s;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .card:hover{
+    transform:scale(1.03);
+  }
+
+  .poster{
+    width:100%;
+    aspect-ratio:2/3;
+    object-fit:cover;
+  }
+
+  .card-body{
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .title{
+    font-size:15px;
+    font-weight:600;
+  }
+
+  .date{
+    font-size:13px;
+    color:#ccc;
+  }
+
+  .btn{
+    margin-top:10px;
+    background:#d4af37;
+    color:#000;
+    border:none;
+    padding:10px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:600;
+  }
+
+  .btn:hover{
+    opacity:0.9;
+  }
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>Квитки онлайн</h1>
+
+  <div class="grid">
+
+    <!-- ОМРІЯНІ ЗОРІ -->
+    <div class="card">
+      <img src="images/omriyani-zori.jpg" class="poster">
+      <div class="card-body">
+        <div class="title">Омріяні зорі</div>
+        <div class="date">Дата уточнюється</div>
+        <button class="btn" onclick="go('omriyani-zori')">Купити квитки</button>
+      </div>
+    </div>
+
+    <!-- ПІТЕР ПЕН -->
+    <div class="card">
+      <img src="images/piter-pen.jpg" class="poster">
+      <div class="card-body">
+        <div class="title">Пітер Пен і Венді</div>
+        <div class="date">Дата уточнюється</div>
+        <button class="btn" onclick="go('piter-pen')">Купити квитки</button>
+      </div>
+    </div>
+
+    <!-- РУСАЛОНЬКА -->
+    <div class="card">
+      <img src="images/rusalonka.jpg" class="poster">
+      <div class="card-body">
+        <div class="title">Русалонька</div>
+        <div class="date">Дата уточнюється</div>
+        <button class="btn" onclick="go('rusalonka')">Купити квитки</button>
+      </div>
+    </div>
+
+    <!-- СОНЕЧКО -->
+    <div class="card">
+      <img src="images/sonechko.jpg" class="poster">
+      <div class="card-body">
+        <div class="title">Сонечко всередині</div>
+        <div class="date">Дата уточнюється</div>
+        <button class="btn" onclick="go('sonechko')">Купити квитки</button>
+      </div>
+    </div>
+
+    <!-- ВСІ МИШІ -->
+    <div class="card">
+      <img src="images/mishi.jpg" class="poster">
+      <div class="card-body">
+        <div class="title">Всі миші люблять сир</div>
+        <div class="date">Дата уточнюється</div>
+        <button class="btn" onclick="go('mishi')">Купити квитки</button>
+      </div>
+    </div>
+
+    <!-- ЗАЛИШАЙСЯ СОБОЮ -->
+    <div class="card">
+      <img src="images/zalyshaysya.jpg" class="poster">
+      <div class="card-body">
+        <div class="title">Залишайся собою</div>
+        <div class="date">Дата уточнюється</div>
+        <button class="btn" onclick="go('zalyshaysya')">Купити квитки</button>
+      </div>
+    </div>
+
+    <!-- АКАКІЙ -->
+    <div class="card">
+      <img src="images/akakiy.jpg" class="poster">
+      <div class="card-body">
+        <div class="title">Акакій</div>
+        <div class="date">Дата уточнюється</div>
+        <button class="btn" onclick="go('akakiy')">Купити квитки</button>
+      </div>
+    </div>
+
+    <!-- ХЕМ -->
+    <div class="card">
+      <img src="images/hem.jpg" class="poster">
+      <div class="card-body">
+        <div class="title">ХЕМ</div>
+        <div class="date">Дата уточнюється</div>
+        <button class="btn" onclick="go('hem')">Купити квитки</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function go(slug){
+  window.location.href = "hall.html?seance=" + slug;
+}
+</script>
+
+</body>
+</html>
