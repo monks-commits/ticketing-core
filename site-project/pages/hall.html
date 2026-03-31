@@ -673,6 +673,7 @@ if (!saleAllowed) {
 
   // 🔴 ДОБАВИТЬ ЭТО
   SEANCE_CONFIG = await loadSeanceConfig();
+console.log("CONFIG:", SEANCE_CONFIG);
 
 const res = await fetch("../../data/hall/academy.json");
 const HALL = await res.json();
