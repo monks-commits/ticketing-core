@@ -299,50 +299,39 @@ async function loadTakenSeats(){
   }
 }
 
-async function loadSeanceConfig() {
+async function loadSeanceConfig(){
   if (!SEANCE_ID) return null;
 
-  // 1️⃣ пробуем Supabase
   try {
-    const url =
-      `${SUPABASE_URL}/rest/v1/seances_pricing` +
-      `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-      `&select=pricing,seat_overrides`;
-
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-      cache: "no-store"
-    });
-
-    if (res.ok) {
-      const rows = await res.json();
-      if (rows && rows.length) {
-        return {
-          pricing: rows[0].pricing || {},
-          seat_overrides: rows[0].seat_overrides || {}
-        };
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=pricing,seat_overrides`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
       }
+    );
+
+    const rows = await res.json();
+
+    if (!rows || !rows.length) {
+      console.log("NO CONFIG FOUND");
+      return null;
     }
-  } catch (e) {
-    // молча падаем дальше
-  }
 
-  // 2️⃣ fallback на локальный файл
-  try {
-    const res = await fetch(`../data/seances/${SEANCE_ID}.json`, {
-      cache: "no-store"
-    });
+    console.log("RAW ROW:", rows[0]);
 
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
+    return {
+      pricing: rows[0].pricing?.pricing || rows[0].pricing,
+      seat_overrides: rows[0].seat_overrides || {}
+    };
+
+  } catch(e){
+    console.error("CONFIG LOAD ERROR:", e);
     return null;
   }
 }
-
     
     function seatKey(meta){
       const row  = meta.row ?? meta.index ?? 0;
