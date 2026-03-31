@@ -1,0 +1,5 @@
+{
+  "theatreName": "Найменування майданчика",
+  "endpoint": "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/toggle-online-sales",
+  "requireSecret": true
+}
