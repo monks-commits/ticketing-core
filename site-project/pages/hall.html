@@ -304,7 +304,7 @@ async function loadSeanceConfig(){
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=pricing,seat_overrides`,
+      `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq."${SEANCE_ID}"&select=pricing,seat_overrides`,
       {
         headers:{
           apikey: SUPABASE_ANON_KEY,
