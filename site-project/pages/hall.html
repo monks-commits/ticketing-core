@@ -132,6 +132,16 @@
 // ===== TAKEN SEATS STATE =====
 let takenSeats = new Set();
 
+// ===== ACADEMY FIXED PRICING =====
+const ACADEMY_PRICING = {
+  "P1-1": { price: 220, color: "#32075a", sale: true },
+  "P2-4": { price: 200, color: "#1ef2f6", sale: true },
+  "P5-7": { price: 180, color: "#57f61e", sale: true },
+  "P8-10": { price: 160, color: "#f61e5f", sale: true },
+  "P11-13": { price: 140, color: "#f6a21e", sale: true },
+  "P14-17": { price: 120, color: "#16a34a", sale: true }
+};
+    
 // ===== LOAD FROM SUPABASE =====
 async function loadTakenSeats(){
 
@@ -672,6 +682,17 @@ if (!saleAllowed) {
 
   // 🔴 ДОБАВИТЬ ЭТО
   SEANCE_CONFIG = await loadSeanceConfig();
+
+// ===== AUTO PRICING FOR ACADEMY =====
+if (SEANCE_ID && (
+  SEANCE_ID.includes("sonechko") ||
+  SEANCE_ID.includes("zalyshaysya")
+)) {
+  SEANCE_CONFIG = {
+    pricing: ACADEMY_PRICING,
+    seat_overrides: {}
+  };
+}
 
 const res = await fetch("../../data/hall/academy.json");
 const HALL = await res.json();
