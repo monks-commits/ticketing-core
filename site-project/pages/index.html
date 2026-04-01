@@ -1,141 +1,152 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Афіша</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Квитки онлайн</title>
 
-  <style>
-    body{
-      margin:0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(180deg,#0b1a2a,#02070d);
-      color:#fff;
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#081421;
+  color:#fff;
+}
 
-    h1{
-      text-align:center;
-      padding:30px 0 10px;
-      color:#d4a84f;
-      font-weight:600;
-      letter-spacing:1px;
-    }
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:24px;
+}
 
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
-      gap:24px;
-      padding:30px;
-      max-width:1100px;
-      margin:auto;
-    }
+h1{
+  margin-bottom:20px;
+}
 
-    .card{
-      background:#0f2236;
-      border-radius:16px;
-      overflow:hidden;
-      box-shadow:0 10px 30px rgba(0,0,0,0.6);
-      transition:0.3s;
-    }
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:24px;
+}
 
-    .card:hover{
-      transform:translateY(-5px);
-    }
+.card{
+  background:#0d2238;
+  border-radius:10px;
+  overflow:hidden;
+  transition:.2s;
+}
 
-    .poster{
-      width:100%;
-      height:360px;
-      object-fit:cover;
-      background:#222;
-    }
+.card:hover{
+  transform:scale(1.03);
+}
 
-    .card-body{
-      padding:18px;
-      text-align:center;
-    }
+.poster{
+  width:100%;
+  aspect-ratio:2/3;
+  object-fit:cover;
+}
 
-    .title{
-      font-size:18px;
-      margin-bottom:8px;
-    }
+.card-body{
+  padding:12px;
+}
 
-    .date{
-      font-size:14px;
-      opacity:0.8;
-      margin-bottom:14px;
-    }
+.title{
+  font-weight:600;
+  margin-bottom:6px;
+}
 
-    .btn{
-      display:inline-block;
-      padding:10px 18px;
-      border-radius:8px;
-      background:#d4a84f;
-      color:#000;
-      text-decoration:none;
-      font-weight:600;
-    }
-  </style>
+.date{
+  color:#ccc;
+  font-size:14px;
+}
+
+.btn{
+  margin-top:10px;
+  width:100%;
+  padding:10px;
+  background:#d4af37;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+}
+</style>
 </head>
+
 <body>
 
-<h1>Афіша</h1>
-
-<div id="afisha" class="grid"></div>
+<div class="container">
+  <h1>Квитки онлайн</h1>
+  <div class="grid" id="grid"></div>
+</div>
 
 <script>
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
-const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-// 🎭 загрузка сеансов
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+// 👉 вручную сопоставляем картинки
+const posters = {
+  "Сонечко всередині": "images/sonechko.jpg",
+  "Залишайся собою": "images/zalyshaysya.jpg"
+};
+
 async function loadSeances(){
 
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,active&active=eq.true&order=date.asc`,
+    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,archived&archived=eq.false`,
     {
       headers:{
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
       }
     }
   );
 
   const data = await res.json();
 
-  renderSeances(data);
-}
+  console.log("SEANCES:", data);
 
-// 🎨 рендер
-function renderSeances(list){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
 
-  const container = document.getElementById("afisha");
-  container.innerHTML = "";
+  data.forEach(s => {
 
-  list.forEach(s => {
+    const img = posters[s.show] || "images/default.jpg";
 
     const el = document.createElement("div");
     el.className = "card";
 
-    // 👉 картинка по названию (если нет — заглушка)
-    const img = `images/${(s.show || "default").toLowerCase().replaceAll(" ","-")}.jpg`;
-
     el.innerHTML = `
-      <img class="poster" src="${img}" onerror="this.src='images/default.jpg'">
-
+      <img src="${img}" class="poster">
       <div class="card-body">
-        <div class="title">${s.show || "Вистава"}</div>
-        <div class="date">${s.date || ""} ${s.time || ""}</div>
-
-        <a class="btn" href="hall.html?seance=${s.id}">
-          Купити квитки
-        </a>
+        <div class="title">${s.show}</div>
+        <div class="date">${formatDate(s.date, s.time)}</div>
+        <button class="btn" onclick="go('${s.id}')">Купити квитки</button>
       </div>
     `;
 
-    container.appendChild(el);
+    grid.appendChild(el);
   });
+
+}
+
+function formatDate(date, time){
+  if(!date) return "Дата уточнюється";
+
+  const d = new Date(date);
+  const day = d.getDate().toString().padStart(2,"0");
+  const month = (d.getMonth()+1).toString().padStart(2,"0");
+
+  return `${day}.${month} ${time || ""}`;
+}
+
+function go(id){
+  window.location.href = "hall.html?seance_id=" + id;
 }
 
 loadSeances();
+
 </script>
 
 </body>
