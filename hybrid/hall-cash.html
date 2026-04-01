@@ -1157,16 +1157,58 @@ async function sellAndPrintOffline(){
           const meta = { zone:"Партер", row:r.row, seat:s };
 const cls = r.className + (s===10 ? " seat--gap-right" : "");
 seatsRow.appendChild(
-  makeSeatElement(seatKey(meta), s, cls, r.price, meta)
-);
+ 
+  
+ function makeSeatElement(key, label, extraClass, price, meta){
 
+  let finalPrice = price;
+  let finalClass = extraClass;
+  let saleAllowed = true;
 
-        }
+  // 🔥 БЕРЁМ ИЗ ЖЁСТКОГО КОНФИГА
+  const cfg = (SEANCE_CONFIG && SEANCE_CONFIG.seat_overrides)
+    ? SEANCE_CONFIG.seat_overrides[key]
+    : null;
 
-        rowLine.appendChild(seatsRow);
-        block.appendChild(rowLine);
-      });
-    }
+  if (cfg) {
+    if (cfg.price !== undefined) finalPrice = cfg.price;
+    if (cfg.class) finalClass = cfg.class;
+    if (cfg.sale === false) saleAllowed = false;
+  }
+
+  const btn = document.createElement("button");
+
+  btn.dataset.key = key;
+  btn.type = "button";
+  btn.textContent = label;
+  btn.className = "seat" + (finalClass ? " " + finalClass : "");
+  btn.dataset.price = finalPrice;
+
+  // 🎨 ЦВЕТ
+  if (cfg && cfg.color) {
+    btn.style.background = cfg.color;
+    btn.style.color = "#fff";
+  }
+
+  // ❌ проданные (из Supa или локально)
+  if (takenSeats && takenSeats.has && takenSeats.has(key)){
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+  }
+
+  // 🚫 запрещённые (sale:false)
+  if (!saleAllowed) {
+    btn.classList.add("seat--no-sale");
+    btn.disabled = true;
+    btn.style.background = "#d1d5db";
+    btn.style.color = "#333";
+  }
+
+  // 🎟 клик
+  btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
+
+  return btn;
+}
 
 function renderHallFromJson(HALL_RAW) {
 
