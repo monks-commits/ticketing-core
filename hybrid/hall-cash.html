@@ -844,7 +844,7 @@ if (cfg && cfg.color) {
         applyStatusClass(b, getEffectiveStatus(k));
       }
     }
-
+const selected = new Map();
     function updateSummary(){
       const placesEl = document.getElementById("summary-places");
       const amountEl = document.getElementById("summary-amount");
