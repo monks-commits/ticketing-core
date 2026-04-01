@@ -61,13 +61,15 @@ h1{
 }
 
 .btn{
+  display:block;
   margin-top:10px;
   width:100%;
   padding:10px;
   background:#d4af37;
-  border:none;
   border-radius:6px;
-  cursor:pointer;
+  text-align:center;
+  text-decoration:none;
+  color:#000;
   font-weight:600;
 }
 </style>
@@ -82,10 +84,14 @@ h1{
 
 <script>
 
+// 🔴 контрольная метка (чтобы убедиться что это именно этот файл)
+console.log("INDEX FINAL VERSION");
+
+// 🔴 твои ключи
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-// 👉 вручную сопоставляем картинки
+// 🎭 картинки
 const posters = {
   "Сонечко всередині": "images/sonechko.jpg",
   "Залишайся собою": "images/zalyshaysya.jpg"
@@ -94,7 +100,7 @@ const posters = {
 async function loadSeances(){
 
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,archived&archived=eq.false`,
+    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time&order=date.asc`,
     {
       headers:{
         apikey: SUPABASE_ANON_KEY,
@@ -118,13 +124,16 @@ async function loadSeances(){
     el.className = "card";
 
     el.innerHTML = `
-      <img src="${img}" class="poster">
+      <img src="${img}" class="poster" onerror="this.src='images/default.jpg'">
+
       <div class="card-body">
-        <div class="title">${s.show}</div>
+        <div class="title">${s.show || "Вистава"}</div>
         <div class="date">${formatDate(s.date, s.time)}</div>
+
+        <!-- 🔥 ВАЖНО: ТОЛЬКО seance -->
         <a class="btn" href="hall.html?seance=${s.id}">
-  Купити квитки
-</a>
+          Купити квитки
+        </a>
       </div>
     `;
 
@@ -141,10 +150,6 @@ function formatDate(date, time){
   const month = (d.getMonth()+1).toString().padStart(2,"0");
 
   return `${day}.${month} ${time || ""}`;
-}
-
-function go(id){
-  window.location.href = "hall.html?seance=" + id;
 }
 
 loadSeances();
