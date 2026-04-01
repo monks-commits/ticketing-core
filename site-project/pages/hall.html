@@ -129,6 +129,38 @@
 
   <script>
 
+let SEANCE_CONFIG = {
+  pricing: {},
+  seat_overrides: {
+
+    // 🔹 центр (фиолет)
+    "P2-M7": { price: 200, color: "#b641ec" },
+    "P2-M8": { price: 200, color: "#b641ec" },
+    "P2-M9": { price: 200, color: "#b641ec" },
+    "P2-M10": { price: 200, color: "#b641ec" },
+    "P2-M11": { price: 200, color: "#b641ec" },
+
+    "P3-M7": { price: 200, color: "#b641ec" },
+    "P3-M8": { price: 200, color: "#b641ec" },
+    "P3-M9": { price: 200, color: "#b641ec" },
+    "P3-M10": { price: 200, color: "#b641ec" },
+    "P3-M11": { price: 200, color: "#b641ec" },
+
+    // 🔹 розовый центр
+    "P8-M10": { price: 180, color: "#e03cec" },
+    "P8-M11": { price: 180, color: "#e03cec" },
+
+    // 🔹 голубые края
+    "P5-M7": { price: 160, color: "#42e4f0" },
+    "P5-M8": { price: 160, color: "#42e4f0" },
+
+    // 🔹 отключённые (серые)
+    "P14-M1": { price: 0, sale: false },
+    "P14-M2": { price: 0, sale: false },
+    "P14-M3": { price: 0, sale: false }
+  }
+};
+    
 // ===== TAKEN SEATS STATE =====
 let takenSeats = new Set();
 
