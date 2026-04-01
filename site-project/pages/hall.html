@@ -129,38 +129,6 @@
 
   <script>
 
-let SEANCE_CONFIG = {
-  pricing: {},
-  seat_overrides: {
-
-    // 🔹 центр (фиолет)
-    "P2-M7": { price: 200, color: "#b641ec" },
-    "P2-M8": { price: 200, color: "#b641ec" },
-    "P2-M9": { price: 200, color: "#b641ec" },
-    "P2-M10": { price: 200, color: "#b641ec" },
-    "P2-M11": { price: 200, color: "#b641ec" },
-
-    "P3-M7": { price: 200, color: "#b641ec" },
-    "P3-M8": { price: 200, color: "#b641ec" },
-    "P3-M9": { price: 200, color: "#b641ec" },
-    "P3-M10": { price: 200, color: "#b641ec" },
-    "P3-M11": { price: 200, color: "#b641ec" },
-
-    // 🔹 розовый центр
-    "P8-M10": { price: 180, color: "#e03cec" },
-    "P8-M11": { price: 180, color: "#e03cec" },
-
-    // 🔹 голубые края
-    "P5-M7": { price: 160, color: "#42e4f0" },
-    "P5-M8": { price: 160, color: "#42e4f0" },
-
-    // 🔹 отключённые (серые)
-    "P14-M1": { price: 0, sale: false },
-    "P14-M2": { price: 0, sale: false },
-    "P14-M3": { price: 0, sale: false }
-  }
-};
-    
 // ===== TAKEN SEATS STATE =====
 let takenSeats = new Set();
 
@@ -436,52 +404,46 @@ function applySeanceConfig(meta) {
   return null;
 }
     
-   function makeSeatElement(key,label,extraClass,price,meta){
-
-  let finalPrice = price;
+    function makeSeatElement(key,label,extraClass,price,meta){
+        let finalPrice = price;
   let finalClass = extraClass;
   let saleAllowed = true;
 
-  // ✅ БЕРЁМ НАПРЯМУЮ ИЗ CONFIG
-  const cfg = SEANCE_CONFIG.seat_overrides[key];
-
+  const cfg = applySeanceConfig(meta);
   if (cfg) {
     if (cfg.price !== undefined) finalPrice = cfg.price;
     if (cfg.class) finalClass = cfg.class;
     if (cfg.sale === false) saleAllowed = false;
   }
+      const btn = document.createElement("button");
+     btn.dataset.key = key; 
+btn.type = "button";
+btn.textContent = label;
+btn.className = "seat" + (finalClass ? " " + finalClass : "");
+btn.dataset.price = finalPrice;
 
-  const btn = document.createElement("button");
+// 🎨 APPLY COLOR FROM SEANCE
+if (cfg && cfg.color) {
+  btn.style.background = cfg.color;
+  btn.style.color = "#fff";
+}
 
-  btn.dataset.key = key; 
-  btn.type = "button";
-  btn.textContent = label;
-  btn.className = "seat" + (finalClass ? " " + finalClass : "");
-  btn.dataset.price = finalPrice;
+      if (takenSeats.has(key)){
+        btn.classList.add("seat--taken");
+        btn.disabled = true;
+      }
 
-  // 🎨 ЦВЕТ
-  if (cfg && cfg.color) {
-    btn.style.background = cfg.color;
-    btn.style.color = "#fff";
-  }
+if (!saleAllowed) {
+  btn.classList.add("seat--no-sale");
+  btn.disabled = true;
+}
+     
+      btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
+      return btn;
+    }
 
-  // ❌ проданные
-  if (takenSeats.has(key)){
-    btn.classList.add("seat--taken");
-    btn.disabled = true;
-  }
+    const selected = new Map(); // key -> { meta, price }
 
-  // 🚫 запрещённые
-  if (!saleAllowed) {
-    btn.classList.add("seat--no-sale");
-    btn.disabled = true;
-    btn.style.background = "#d1d5db";
-  }
-
-  btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
-
-  return btn;
-} 
     function onSeatClick(btn, key, meta, price){
       if (btn.classList.contains("seat--selected")){
         btn.classList.remove("seat--selected");
@@ -492,7 +454,7 @@ function applySeanceConfig(meta) {
       }
       updateSummary();
     }
-const selected = new Map();
+
     function updateSummary(){
       const placesEl = document.getElementById("summary-places");
       const amountEl = document.getElementById("summary-amount");
