@@ -122,7 +122,9 @@ async function loadSeances(){
       <div class="card-body">
         <div class="title">${s.show}</div>
         <div class="date">${formatDate(s.date, s.time)}</div>
-        <button class="btn" onclick="go('${s.id}')">Купити квитки</button>
+        <a class="btn" href="hall.html?seance=${s.id}">
+  Купити квитки
+</a>
       </div>
     `;
 
