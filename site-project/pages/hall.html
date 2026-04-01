@@ -404,46 +404,52 @@ function applySeanceConfig(meta) {
   return null;
 }
     
-    function makeSeatElement(key,label,extraClass,price,meta){
-        let finalPrice = price;
+   function makeSeatElement(key,label,extraClass,price,meta){
+
+  let finalPrice = price;
   let finalClass = extraClass;
   let saleAllowed = true;
 
-  const cfg = applySeanceConfig(meta);
+  // ✅ БЕРЁМ НАПРЯМУЮ ИЗ CONFIG
+  const cfg = SEANCE_CONFIG.seat_overrides[key];
+
   if (cfg) {
     if (cfg.price !== undefined) finalPrice = cfg.price;
     if (cfg.class) finalClass = cfg.class;
     if (cfg.sale === false) saleAllowed = false;
   }
-      const btn = document.createElement("button");
-     btn.dataset.key = key; 
-btn.type = "button";
-btn.textContent = label;
-btn.className = "seat" + (finalClass ? " " + finalClass : "");
-btn.dataset.price = finalPrice;
 
-// 🎨 APPLY COLOR FROM SEANCE
-if (cfg && cfg.color) {
-  btn.style.background = cfg.color;
-  btn.style.color = "#fff";
-}
+  const btn = document.createElement("button");
 
-      if (takenSeats.has(key)){
-        btn.classList.add("seat--taken");
-        btn.disabled = true;
-      }
+  btn.dataset.key = key; 
+  btn.type = "button";
+  btn.textContent = label;
+  btn.className = "seat" + (finalClass ? " " + finalClass : "");
+  btn.dataset.price = finalPrice;
 
-if (!saleAllowed) {
-  btn.classList.add("seat--no-sale");
-  btn.disabled = true;
-}
-     
-      btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
-      return btn;
-    }
+  // 🎨 ЦВЕТ
+  if (cfg && cfg.color) {
+    btn.style.background = cfg.color;
+    btn.style.color = "#fff";
+  }
 
-    const selected = new Map(); // key -> { meta, price }
+  // ❌ проданные
+  if (takenSeats.has(key)){
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+  }
 
+  // 🚫 запрещённые
+  if (!saleAllowed) {
+    btn.classList.add("seat--no-sale");
+    btn.disabled = true;
+    btn.style.background = "#d1d5db";
+  }
+
+  btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
+
+  return btn;
+} 
     function onSeatClick(btn, key, meta, price){
       if (btn.classList.contains("seat--selected")){
         btn.classList.remove("seat--selected");
