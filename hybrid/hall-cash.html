@@ -403,7 +403,7 @@ const SEANCE_ID = (qs.get("seance") || "").trim();
     const PROJECT_REF = "fhusjlkneckbvnrdhbil";
     const CASH_SYNC_V1 = `https://${PROJECT_REF}.functions.supabase.co/functions/v1/cash-sync-ts`;
 
-let SEANCE_CONFIG = null;
+
 
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
