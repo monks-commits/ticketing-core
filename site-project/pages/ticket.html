@@ -16,7 +16,7 @@ body{
 }
 
 .ticket{
-  width:420px;
+  width:440px;
   background:#fff;
   border-radius:16px;
   box-shadow:0 15px 35px rgba(0,0,0,.12);
@@ -27,18 +27,19 @@ body{
   display:flex;
   justify-content:space-between;
   font-size:12px;
-  margin-bottom:10px;
+  border-bottom:1px solid #eee;
+  padding-bottom:6px;
 }
 
 .title{
-  font-size:18px;
+  font-size:20px;
   font-weight:800;
-  margin-bottom:6px;
+  margin:10px 0 6px;
 }
 
 .meta{
   font-size:13px;
-  margin-bottom:6px;
+  margin-bottom:4px;
 }
 
 .layout{
@@ -60,12 +61,16 @@ body{
   width:100%;
   border-radius:8px;
   margin-bottom:8px;
+  background:#eee;
 }
 
 .qr{
   width:120px;
   height:120px;
   margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .footer{
@@ -110,8 +115,8 @@ body{
   </div>
 
   <div class="footer">
-    Дійсний на одну особу.<br>
-    Зберігати до кінця вистави.
+    Квиток дійсний на одну особу.<br>
+    Зберігайте до кінця заходу.
   </div>
 
 </div>
@@ -121,11 +126,21 @@ body{
 
   const p = new URLSearchParams(location.search);
 
-  const venue = p.get("venue") || "shevchenko";
+  const data = {
+    ticket: p.get("ticket") || "—",
+    event: p.get("event") || "Подія",
+    date: p.get("date") || "—",
+    time: p.get("time") || "—",
+    seat: p.get("seat") || "—",
+    price: p.get("price") || "—",
+    order: p.get("order") || "—",
+    payload: p.get("payload") || "",
+    venue: p.get("venue") || "academy"
+  };
 
-  const theatreMap = {
-    shevchenko: "Театр ім. Т. Г. Шевченка",
-    academy: "Академія руху, Кривий Ріг"
+  const venueMap = {
+    academy: "Академія руху, Кривий Ріг",
+    shevchenko: "Театр ім. Т. Г. Шевченка"
   };
 
   const posterMap = {
@@ -133,38 +148,32 @@ body{
     "Залишайся собою": "../images/zalyshaysya.jpg"
   };
 
-  const ticketId = p.get("ticket") || "";
-  const event = p.get("event") || "";
-  const date = p.get("date") || "";
-  const time = p.get("time") || "";
-  const seat = p.get("seat") || "";
-  const price = p.get("price") || "";
-  const order = p.get("order") || "";
-  const payload = p.get("payload") || "";
+  document.getElementById("ticketId").textContent = "№ " + data.ticket;
+  document.getElementById("eventTitle").textContent = data.event;
 
-  document.getElementById("ticketId").textContent = "№ " + ticketId;
-  document.getElementById("eventTitle").textContent = event;
+  document.getElementById("eventDate").textContent = "Дата: " + data.date;
+  document.getElementById("eventTime").textContent = "Час: " + data.time;
 
-  document.getElementById("eventDate").textContent = "Дата: " + date;
-  document.getElementById("eventTime").textContent = "Час: " + time;
+  document.getElementById("theatreName").textContent =
+    venueMap[data.venue] || "Майданчик";
 
-  document.getElementById("theatreName").textContent = theatreMap[venue] || theatreMap.shevchenko;
+  document.getElementById("seatInfo").textContent = "Місце: " + data.seat;
+  document.getElementById("priceInfo").textContent = "Ціна: " + data.price + " грн";
+  document.getElementById("orderInfo").textContent = "Замовлення: " + data.order;
 
-  document.getElementById("seatInfo").textContent = "Місце: " + seat;
-  document.getElementById("priceInfo").textContent = "Ціна: " + price + " грн";
-  document.getElementById("orderInfo").textContent = "Замовлення: " + order;
+  document.getElementById("poster").src =
+    posterMap[data.event] || "../images/default.jpg";
 
-  // афиша
-  const poster = posterMap[event] || "../images/default.jpg";
-  document.getElementById("poster").src = poster;
+  const qrBox = document.getElementById("qr");
 
-  // QR
-  if(payload){
-    new QRCode(document.getElementById("qr"),{
-      text: payload,
+  if(data.payload){
+    new QRCode(qrBox,{
+      text: data.payload,
       width:120,
       height:120
     });
+  } else {
+    qrBox.innerHTML = "QR відсутній";
   }
 
 })();
