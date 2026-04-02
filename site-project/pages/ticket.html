@@ -2,50 +2,45 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Електронний квиток</title>
+<title>Квиток / E-Ticket</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+@page { size: A4; margin: 10mm; }
+
 body{
   margin:0;
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-family:Arial, sans-serif;
   background:#f3f4f6;
-  display:flex;
-  justify-content:center;
-  padding:20px;
 }
 
-.ticket{
-  width:440px;
+.page{
+  width:800px;
+  margin:0 auto;
   background:#fff;
-  border-radius:16px;
-  box-shadow:0 15px 35px rgba(0,0,0,.12);
-  padding:20px;
+  padding:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.1);
 }
 
 .header{
   display:flex;
   justify-content:space-between;
+  border-bottom:2px solid #000;
+  padding-bottom:8px;
+  margin-bottom:16px;
+}
+
+.logo{
+  font-weight:700;
+}
+
+.ticket-num{
   font-size:12px;
-  border-bottom:1px solid #eee;
-  padding-bottom:6px;
 }
 
-.title{
-  font-size:20px;
-  font-weight:800;
-  margin:10px 0 6px;
-}
-
-.meta{
-  font-size:13px;
-  margin-bottom:4px;
-}
-
-.layout{
+.main{
   display:flex;
-  gap:16px;
-  margin-top:12px;
+  gap:20px;
 }
 
 .left{
@@ -53,32 +48,42 @@ body{
 }
 
 .right{
-  width:140px;
+  width:200px;
   text-align:center;
 }
 
 .poster{
   width:100%;
-  border-radius:8px;
-  margin-bottom:8px;
-  background:#eee;
+  margin-bottom:10px;
 }
 
 .qr{
-  width:120px;
-  height:120px;
-  margin:0 auto;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  margin-top:10px;
+}
+
+.row{
+  margin-bottom:6px;
+  font-size:14px;
+}
+
+.title{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+.rules{
+  margin-top:20px;
+  border-top:1px solid #000;
+  padding-top:10px;
+  font-size:12px;
 }
 
 .footer{
-  font-size:11px;
-  margin-top:14px;
-  color:#555;
-  border-top:1px solid #eee;
+  margin-top:20px;
+  border-top:1px solid #000;
   padding-top:10px;
+  font-size:12px;
 }
 </style>
 
@@ -86,25 +91,26 @@ body{
 </head>
 
 <body>
-<div class="ticket">
+
+<div class="page">
 
   <div class="header">
-    <div>КВИТОК / E-TICKET</div>
-    <div id="ticketId"></div>
+    <div class="logo" id="venueName"></div>
+    <div class="ticket-num" id="ticketId"></div>
   </div>
 
-  <div class="title" id="eventTitle"></div>
-
-  <div class="meta" id="eventDate"></div>
-  <div class="meta" id="eventTime"></div>
-  <div class="meta" id="theatreName"></div>
-
-  <div class="layout">
+  <div class="main">
 
     <div class="left">
-      <div class="meta" id="seatInfo"></div>
-      <div class="meta" id="priceInfo"></div>
-      <div class="meta" id="orderInfo"></div>
+
+      <div class="title" id="eventTitle"></div>
+
+      <div class="row" id="eventDate"></div>
+      <div class="row" id="eventTime"></div>
+      <div class="row" id="seat"></div>
+      <div class="row" id="price"></div>
+      <div class="row" id="order"></div>
+
     </div>
 
     <div class="right">
@@ -114,33 +120,30 @@ body{
 
   </div>
 
-  <div class="footer">
-    Квиток дійсний на одну особу.<br>
-    Зберігайте до кінця заходу.
+  <div class="rules">
+    Квиток дійсний тільки на зазначений захід.<br>
+    Заборонено копіювання та передача третім особам.
   </div>
+
+  <div class="footer" id="venueFooter"></div>
 
 </div>
 
 <script>
 (function(){
 
-  const p = new URLSearchParams(location.search);
-
-  const data = {
-    ticket: p.get("ticket") || "—",
-    event: p.get("event") || "Подія",
-    date: p.get("date") || "—",
-    time: p.get("time") || "—",
-    seat: p.get("seat") || "—",
-    price: p.get("price") || "—",
-    order: p.get("order") || "—",
-    payload: p.get("payload") || "",
-    venue: p.get("venue") || "academy"
-  };
+  // 👉 ОДИН источник данных
+  const data = JSON.parse(decodeURIComponent(new URLSearchParams(location.search).get("data") || "{}"));
 
   const venueMap = {
-    academy: "Академія руху, Кривий Ріг",
-    shevchenko: "Театр ім. Т. Г. Шевченка"
+    academy: {
+      name: "Академія руху, Кривий Ріг",
+      footer: "Організатор: Академія руху"
+    },
+    shevchenko: {
+      name: "Театр ім. Т. Г. Шевченка",
+      footer: "Організатор: Театр ім. Т. Г. Шевченка"
+    }
   };
 
   const posterMap = {
@@ -148,32 +151,29 @@ body{
     "Залишайся собою": "../images/zalyshaysya.jpg"
   };
 
-  document.getElementById("ticketId").textContent = "№ " + data.ticket;
-  document.getElementById("eventTitle").textContent = data.event;
+  const venue = venueMap[data.venue] || venueMap.academy;
 
-  document.getElementById("eventDate").textContent = "Дата: " + data.date;
-  document.getElementById("eventTime").textContent = "Час: " + data.time;
+  document.getElementById("venueName").textContent = venue.name;
+  document.getElementById("venueFooter").textContent = venue.footer;
 
-  document.getElementById("theatreName").textContent =
-    venueMap[data.venue] || "Майданчик";
+  document.getElementById("ticketId").textContent = "№ " + (data.ticket || "");
+  document.getElementById("eventTitle").textContent = data.event || "";
 
-  document.getElementById("seatInfo").textContent = "Місце: " + data.seat;
-  document.getElementById("priceInfo").textContent = "Ціна: " + data.price + " грн";
-  document.getElementById("orderInfo").textContent = "Замовлення: " + data.order;
+  document.getElementById("eventDate").textContent = "Дата: " + (data.date || "");
+  document.getElementById("eventTime").textContent = "Час: " + (data.time || "");
+  document.getElementById("seat").textContent = "Місце: " + (data.seat || "");
+  document.getElementById("price").textContent = "Ціна: " + (data.price || "") + " грн";
+  document.getElementById("order").textContent = "Замовлення: " + (data.order || "");
 
   document.getElementById("poster").src =
     posterMap[data.event] || "../images/default.jpg";
 
-  const qrBox = document.getElementById("qr");
-
   if(data.payload){
-    new QRCode(qrBox,{
+    new QRCode(document.getElementById("qr"),{
       text: data.payload,
-      width:120,
-      height:120
+      width:140,
+      height:140
     });
-  } else {
-    qrBox.innerHTML = "QR відсутній";
   }
 
 })();
