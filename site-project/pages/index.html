@@ -118,7 +118,7 @@ async function loadSeances(){
 
   data.forEach(s => {
 
-    const img = s.poster_url || posters[s.show] || "images/default.jpg";
+    const img = s.poster_url || "images/default.jpg";
 
     const el = document.createElement("div");
     el.className = "card";
