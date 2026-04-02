@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Електронний квиток</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:#f3f4f6;
+  display:flex;
+  justify-content:center;
+  padding:20px;
+}
+
+.ticket{
+  width:420px;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 15px 35px rgba(0,0,0,.12);
+  padding:20px;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  margin-bottom:10px;
+}
+
+.title{
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+
+.meta{
+  font-size:13px;
+  margin-bottom:6px;
+}
+
+.layout{
+  display:flex;
+  gap:16px;
+  margin-top:12px;
+}
+
+.left{
+  flex:1;
+}
+
+.right{
+  width:140px;
+  text-align:center;
+}
+
+.poster{
+  width:100%;
+  border-radius:8px;
+  margin-bottom:8px;
+}
+
+.qr{
+  width:120px;
+  height:120px;
+  margin:0 auto;
+}
+
+.footer{
+  font-size:11px;
+  margin-top:14px;
+  color:#555;
+  border-top:1px solid #eee;
+  padding-top:10px;
+}
+</style>
+
+<script src="../vendor/qrcode.min.js"></script>
+</head>
+
+<body>
+<div class="ticket">
+
+  <div class="header">
+    <div>КВИТОК / E-TICKET</div>
+    <div id="ticketId"></div>
+  </div>
+
+  <div class="title" id="eventTitle"></div>
+
+  <div class="meta" id="eventDate"></div>
+  <div class="meta" id="eventTime"></div>
+  <div class="meta" id="theatreName"></div>
+
+  <div class="layout">
+
+    <div class="left">
+      <div class="meta" id="seatInfo"></div>
+      <div class="meta" id="priceInfo"></div>
+      <div class="meta" id="orderInfo"></div>
+    </div>
+
+    <div class="right">
+      <img id="poster" class="poster">
+      <div id="qr" class="qr"></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Дійсний на одну особу.<br>
+    Зберігати до кінця вистави.
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+  const p = new URLSearchParams(location.search);
+
+  const venue = p.get("venue") || "shevchenko";
+
+  const theatreMap = {
+    shevchenko: "Театр ім. Т. Г. Шевченка",
+    academy: "Академія руху, Кривий Ріг"
+  };
+
+  const posterMap = {
+    "Сонечко всередині": "../images/sonechko.jpg",
+    "Залишайся собою": "../images/zalyshaysya.jpg"
+  };
+
+  const ticketId = p.get("ticket") || "";
+  const event = p.get("event") || "";
+  const date = p.get("date") || "";
+  const time = p.get("time") || "";
+  const seat = p.get("seat") || "";
+  const price = p.get("price") || "";
+  const order = p.get("order") || "";
+  const payload = p.get("payload") || "";
+
+  document.getElementById("ticketId").textContent = "№ " + ticketId;
+  document.getElementById("eventTitle").textContent = event;
+
+  document.getElementById("eventDate").textContent = "Дата: " + date;
+  document.getElementById("eventTime").textContent = "Час: " + time;
+
+  document.getElementById("theatreName").textContent = theatreMap[venue] || theatreMap.shevchenko;
+
+  document.getElementById("seatInfo").textContent = "Місце: " + seat;
+  document.getElementById("priceInfo").textContent = "Ціна: " + price + " грн";
+  document.getElementById("orderInfo").textContent = "Замовлення: " + order;
+
+  // афиша
+  const poster = posterMap[event] || "../images/default.jpg";
+  document.getElementById("poster").src = poster;
+
+  // QR
+  if(payload){
+    new QRCode(document.getElementById("qr"),{
+      text: payload,
+      width:120,
+      height:120
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>
