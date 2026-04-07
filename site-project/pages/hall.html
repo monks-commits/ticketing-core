@@ -201,21 +201,58 @@ function renderHallFromJson(HALL_RAW) {
 
   if (!SEANCE_ID) return;
 
+  console.log("LOAD seats for", SEANCE_ID);
+
   try {
 
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?...`
-    );
+    const nowIso = new Date().toISOString();
 
-    const rows = await res.json();
+    // ===== 1. BOOKINGS (временные брони) =====
+    let bookingSeatIds = new Set();
 
-    takenSeats = new Set(rows.map(r => r.seat_label));
+    const { data: bookings, error: bookingsError } = await supabaseClient
+      .from("bookings")
+      .select("seats, expires_at")
+      .eq("seance_id", SEANCE_ID);
+
+    if (bookingsError) {
+      console.warn("bookingsError", bookingsError);
+    } else if (bookings && bookings.length) {
+      for (const b of bookings) {
+        if (b.expires_at && b.expires_at <= nowIso) continue;
+
+        const arr = Array.isArray(b.seats) ? b.seats : [];
+        for (const seatLabel of arr) {
+          if (seatLabel) bookingSeatIds.add(seatLabel.trim());
+        }
+      }
+    }
+
+    // ===== 2. TICKETS (проданные) =====
+    let soldSeatIds = new Set();
+
+    const { data: tickets, error: ticketsError } = await supabaseClient
+      .from("tickets")
+      .select("seat_label")
+      .eq("seance_id", SEANCE_ID);
+
+    if (ticketsError) {
+      console.warn("ticketsError", ticketsError);
+    } else if (tickets && tickets.length) {
+      for (const t of tickets) {
+        if (t.seat_label) soldSeatIds.add(t.seat_label.trim());
+      }
+    }
+
+    // ===== 3. ОБЪЕДИНЕНИЕ =====
+    takenSeats = new Set([...bookingSeatIds, ...soldSeatIds]);
+
+    console.log("TAKEN:", takenSeats);
 
   } catch(e){
     console.warn("loadTakenSeats error", e);
   }
-}   
-
+}
     
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
