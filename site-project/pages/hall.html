@@ -132,78 +132,6 @@
 // ===== TAKEN SEATS STATE =====
 let takenSeats = new Set();
 
-// ===== LOAD FROM SUPABASE =====
-async function loadTakenSeats(){
-
-  if (!SEANCE_ID) return;
-
-  try {
-
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seat_label`,
-      {
-        headers:{
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    );
-
-    const rows = await res.json();
-
-    // 🔥 обновляем занятые места
-    takenSeats = new Set(rows.map(r => r.seat_label));
-
-  } catch(e){
-    console.warn("loadTakenSeats error", e);
-  }
-}
-    
-    const qs = new URLSearchParams(location.search);
-
-const showSlug  = (qs.get("show")   || "").trim();
-const showTitle = (qs.get("title")  || "").trim() || showSlug || "Вистава";
-const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
-
-
-    document.getElementById("summary-show").textContent = "Вистава: " + (showTitle || "—");
-
-    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-
-    // Партер 1–18 по 20 місць, проход після 10-го
-    const parterRows = Array.from({ length: 18 }, (_, i) => {
-  const row = i + 1;
-
-  return {
-    row,
-    seats: 20,
-    zone: "Партер",
-    price: 0,
-    className: ""
-  };
-});
-
-
-    const amphiLeftRows  = [
-      {row:19,seats:11},{row:20,seats:11},{row:21,seats:11},{row:22,seats:11},{row:23,seats:11},
-    ].map(r=>({...r, zone:"Амфітеатр (ліва)", price:0, className:"seat--amphi"}));
-
-    const amphiRightRows = [
-      {row:19,seats:11},{row:20,seats:11},{row:21,seats:11},
-    ].map(r=>({...r, zone:"Амфітеатр (права)", price:0, className:"seat--amphi"}));
-
-    const balconyRows15 = [1,2,3,4,5].map(n=>( { row:n, zone:"Балкон", price:0, className:"seat--balcony" } ));
-    const balconyRow6 = { row:6, zone:"Балкон", price:0, className:"seat--balcony" };
-
-    const lodgeSeats = Array.from({ length: 18 }, (_, i) => ({
-  index: i + 1,
-  price: 0,
-  zone: "Ложа",
-  className: ""
-}));
-
-
 
 function renderHallFromJson(HALL_RAW) {
   const block = document.getElementById("parter-block");
@@ -268,36 +196,27 @@ function renderHallFromJson(HALL_RAW) {
   });
 }
     
-async function loadTakenSeats(){
+
+ async function loadTakenSeats(){
 
   if (!SEANCE_ID) return;
-
-  console.log("LOAD seats for", SEANCE_ID);
 
   try {
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seat_label`,
-      {
-        headers:{
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
+      `${SUPABASE_URL}/rest/v1/tickets?...`
     );
 
     const rows = await res.json();
 
-    console.log("ROWS:", rows);
-
-    // 🔥 ВАЖНО: просто перезаписываем Set
     takenSeats = new Set(rows.map(r => r.seat_label));
 
   } catch(e){
     console.warn("loadTakenSeats error", e);
   }
-}
+}   
 
+    
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
 
