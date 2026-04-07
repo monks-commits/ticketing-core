@@ -758,14 +758,14 @@ document.querySelectorAll(".seat").forEach(btn => {
         Prefer: "return=minimal"
       },
       body: JSON.stringify({
-        seance_id: SEANCE_ID,
-        seats: [key],
-        status: "hold",
-        amount: 0,
-        order_id: "hold-temp",
-        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-      })
-    });
+  seance_id: SEANCE_ID,
+  show_slug: showSlug || "demo",   // 🔥 ВАЖНО
+  seats: [key],
+  status: "hold",
+  amount: 0,
+  order_id: "hold-temp",
+  expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+})
 
     console.log("HOLD created:", key);
 
