@@ -301,6 +301,8 @@ async function loadTakenSeats(){
 
 async function loadBookingSeats() {
 console.log("BOOKINGS load for:", SEANCE_ID);
+  console.log("BOOKED seat:", seat);
+  
   if (!SEANCE_ID) return;
 
   try {
