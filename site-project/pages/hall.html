@@ -300,46 +300,51 @@ async function loadTakenSeats(){
 
 
 async function loadBookingSeats() {
-console.log("BOOKINGS load for:", SEANCE_ID);
-  console.log("BOOKED seat:", seat);
-  
   if (!SEANCE_ID) return;
+
+  console.log("BOOKINGS load for:", SEANCE_ID);
 
   try {
     const nowIso = new Date().toISOString();
 
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
-      {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    );
+    const { data: bookings, error } = await supabaseClient
+      .from("bookings")
+      .select("seats, expires_at, status, seance_id")
+      .eq("seance_id", SEANCE_ID);
 
-    if (!res.ok) {
-      console.warn("bookings fetch error", res.status);
+    if (error) {
+      console.warn("bookings error", error);
       return;
     }
 
-    const bookings = await res.json();
+    if (bookings && bookings.length) {
+      for (const b of bookings) {
 
-    if (!Array.isArray(bookings)) return;
+        // берём только активные hold
+        if (b.status !== "hold") continue;
 
-    for (const b of bookings) {
+        // пропускаем просроченные
+        if (b.expires_at && b.expires_at <= nowIso) continue;
 
-      // берём только активные HOLD
-      if (b.status !== "hold") continue;
+        let arr = [];
 
-      // пропускаем просроченные
-      if (b.expires_at && b.expires_at <= nowIso) continue;
+        // 💥 фикс формата seats (может быть строка!)
+        if (Array.isArray(b.seats)) {
+          arr = b.seats;
+        } else if (typeof b.seats === "string") {
+          try {
+            arr = JSON.parse(b.seats);
+          } catch (e) {
+            console.warn("seat parse error", b.seats);
+          }
+        }
 
-      const seats = Array.isArray(b.seats) ? b.seats : [];
-
-      for (const seat of seats) {
-        if (typeof seat === "string" && seat.trim()) {
-          takenSeats.add(seat.trim());
+        for (const seat of arr) {
+          if (seat) {
+            const key = seat.trim().toUpperCase();
+            console.log("BOOKED seat:", key);
+            takenSeats.add(key);
+          }
         }
       }
     }
