@@ -310,7 +310,7 @@ async function loadBookingSeats(){
     const { data: bookings, error } = await supabaseClient
       .from("bookings")
       .select("seats, expires_at")
-      .eq("show_slug", showSlug);
+      .eq("show_slug", SEANCE_ID);
 
     if (error) {
       console.warn("bookings error", error);
