@@ -126,7 +126,7 @@
 
   <div id="site-footer"></div>
   <!-- <script type="module" src="../scripts/include.js"></script> -->
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
 
 // ===== TAKEN SEATS STATE =====
@@ -170,6 +170,11 @@ const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
 
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+    const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
     // Партер 1–18 по 20 місць, проход після 10-го
     const parterRows = Array.from({ length: 18 }, (_, i) => {
