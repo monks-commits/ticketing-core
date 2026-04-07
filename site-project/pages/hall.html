@@ -299,42 +299,50 @@ async function loadTakenSeats(){
 }
 
 
-async function loadBookingSeats(){
+async function loadBookingSeats() {
 
-  if (!showSlug) return;
+  if (!SEANCE_ID) return;
 
   try {
-
     const nowIso = new Date().toISOString();
 
-    const { data: bookings, error } = await supabaseClient
-      .from("bookings")
-      .select("seats, expires_at")
-      .eq("seance_id", SEANCE_ID)
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
 
-    if (error) {
-      console.warn("bookings error", error);
+    if (!res.ok) {
+      console.warn("bookings fetch error", res.status);
       return;
     }
 
-    if (bookings && bookings.length){
+    const bookings = await res.json();
 
-      for (const b of bookings){
+    if (!Array.isArray(bookings)) return;
 
-        // пропускаем просроченные
-        if (b.expires_at && b.expires_at <= nowIso) continue;
+    for (const b of bookings) {
 
-        const arr = Array.isArray(b.seats) ? b.seats : [];
+      // берём только активные HOLD
+      if (b.status !== "hold") continue;
 
-        for (const seat of arr){
-          if (seat){
-            takenSeats.add(seat.trim());
-          }
+      // пропускаем просроченные
+      if (b.expires_at && b.expires_at <= nowIso) continue;
+
+      const seats = Array.isArray(b.seats) ? b.seats : [];
+
+      for (const seat of seats) {
+        if (typeof seat === "string" && seat.trim()) {
+          takenSeats.add(seat.trim());
         }
       }
     }
 
-  } catch(e){
+  } catch (e) {
     console.warn("loadBookingSeats error", e);
   }
 }
