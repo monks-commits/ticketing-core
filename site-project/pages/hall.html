@@ -298,6 +298,48 @@ async function loadTakenSeats(){
   }
 }
 
+
+async function loadBookingSeats(){
+
+  if (!showSlug) return;
+
+  try {
+
+    const nowIso = new Date().toISOString();
+
+    const { data: bookings, error } = await supabaseClient
+      .from("bookings")
+      .select("seats, expires_at")
+      .eq("show_slug", showSlug);
+
+    if (error) {
+      console.warn("bookings error", error);
+      return;
+    }
+
+    if (bookings && bookings.length){
+
+      for (const b of bookings){
+
+        // пропускаем просроченные
+        if (b.expires_at && b.expires_at <= nowIso) continue;
+
+        const arr = Array.isArray(b.seats) ? b.seats : [];
+
+        for (const seat of arr){
+          if (seat){
+            takenSeats.add(seat.trim());
+          }
+        }
+      }
+    }
+
+  } catch(e){
+    console.warn("loadBookingSeats error", e);
+  }
+}
+
+    
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
 
