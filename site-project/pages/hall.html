@@ -322,35 +322,40 @@ async function loadBookingSeats() {
       return;
     }
 
-    if (bookings && bookings.length) {
-      for (const b of bookings) {
+    console.log("RAW bookings:", bookings);
 
-        // берём только активные hold
-        if (b.status !== "hold") continue;
+    if (!bookings || !bookings.length) return;
 
-        // пропускаем просроченные
-        if (b.expires_at && b.expires_at <= nowIso) continue;
+    for (const b of bookings) {
 
-        let arr = [];
+      // только hold
+      if (b.status !== "hold") continue;
 
-        // 💥 фикс формата seats (может быть строка!)
-        if (Array.isArray(b.seats)) {
+      // не просроченные
+      if (b.expires_at && b.expires_at <= nowIso) continue;
+
+      let arr = [];
+
+      try {
+        if (typeof b.seats === "string") {
+          arr = JSON.parse(b.seats);
+        } else {
           arr = b.seats;
-        } else if (typeof b.seats === "string") {
-          try {
-            arr = JSON.parse(b.seats);
-          } catch (e) {
-            console.warn("seat parse error", b.seats);
-          }
         }
+      } catch (e) {
+        console.warn("seat parse error", b.seats);
+        continue;
+      }
 
-        for (const seat of arr) {
-          if (seat) {
-            const key = seat.trim().toUpperCase();
-            console.log("BOOKED seat:", key);
-            takenSeats.add(key);
-          }
-        }
+      if (!arr || !arr.length) continue;
+
+      for (const seat of arr) {
+        if (!seat) continue;
+
+        const key = String(seat).trim().toUpperCase();
+        console.log("BOOKED seat:", key);
+
+        takenSeats.add(key);
       }
     }
 
