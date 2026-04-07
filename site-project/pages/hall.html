@@ -771,7 +771,8 @@ document.querySelectorAll(".seat").forEach(btn => {
 setInterval(async () => {
 
   await loadTakenSeats();
-
+await loadBookingSeats();
+  
   document.querySelectorAll(".seat").forEach(btn => {
     const key = btn.dataset?.key;
     if (!key) return;
