@@ -748,12 +748,48 @@ renderHallFromJson(HALL);
 // ===== ПЕРВАЯ ЗАГРУЗКА =====
 await loadTakenSeats();
 await loadBookingSeats();
-     
-// применяем к кнопкам
+
+// 🔥 ВЕШАЕМ КЛИКИ ОДИН РАЗ
 document.querySelectorAll(".seat").forEach(btn => {
   const key = btn.dataset?.key;
   if (!key) return;
 
+  // клик = создание hold
+  btn.addEventListener("click", async () => {
+
+    if (takenSeats.has(key)) return;
+
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify({
+          seance_id: SEANCE_ID,
+          seats: [key],
+          status: "hold",
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        })
+      });
+
+      console.log("HOLD created:", key);
+
+      // 🔥 МГНОВЕННО сереем (без ожидания 3 сек)
+      takenSeats.add(key);
+      btn.classList.add("seat--taken");
+      btn.disabled = true;
+
+    } catch (e) {
+      console.error("booking insert error", e);
+    }
+
+  });
+
+  // применяем занятые
   if (takenSeats.has(key)) {
     btn.classList.add("seat--taken");
     btn.disabled = true;
@@ -764,50 +800,23 @@ document.querySelectorAll(".seat").forEach(btn => {
 setInterval(async () => {
 
   await loadTakenSeats();
+  await loadBookingSeats();
 
   document.querySelectorAll(".seat").forEach(btn => {
     const key = btn.dataset?.key;
-
-btn.addEventListener("click", async () => {
-
-  // если уже занято — не даём кликать
-  if (takenSeats.has(key)) return;
-
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal"
-      },
-      body: JSON.stringify({
-        seance_id: SEANCE_ID,
-        seats: [key],
-        status: "hold",
-        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-      })
-    });
-
-    console.log("HOLD created:", key);
-
-  } catch (e) {
-    console.error("booking insert error", e);
-  }
-
-});
-    
     if (!key) return;
 
     if (takenSeats.has(key)) {
       btn.classList.add("seat--taken");
       btn.disabled = true;
+    } else {
+      btn.classList.remove("seat--taken");
+      btn.disabled = false;
     }
   });
 
 }, 3000);
-     
+
 updateSummary();
 
 // 🔥 первичная загрузка занятых мест ПОСЛЕ рендера
