@@ -745,39 +745,40 @@ document.querySelectorAll(".seat").forEach(btn => {
   // клик = создание hold
   btn.addEventListener("click", async () => {
 
-    if (takenSeats.has(key)) return;
+  if (takenSeats.has(key)) return;
 
-    try {
-      await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=minimal"
-        },
-       body: JSON.stringify({
-  seance_id: SEANCE_ID,
-  seats: [key],
-  status: "hold",
-  amount: 0,
-  order_id: "hold-temp",
-  expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-})
+  try {
 
-      console.log("HOLD created:", key);
+    await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal"
+      },
+      body: JSON.stringify({
+        seance_id: SEANCE_ID,
+        seats: [key],
+        status: "hold",
+        amount: 0,
+        order_id: "hold-temp",
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      })
+    });
 
-      // 🔥 МГНОВЕННО сереем (без ожидания 3 сек)
-      takenSeats.add(key);
-      btn.classList.add("seat--taken");
-      btn.disabled = true;
+    console.log("HOLD created:", key);
 
-    } catch (e) {
-      console.error("booking insert error", e);
-    }
+    // мгновенно блокируем
+    takenSeats.add(key);
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
 
-  });
+  } catch (e) {
+    console.error("booking insert error", e);
+  }
 
+});
   // применяем занятые
   if (takenSeats.has(key)) {
     btn.classList.add("seat--taken");
