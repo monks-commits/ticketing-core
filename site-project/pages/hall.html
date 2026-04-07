@@ -305,57 +305,45 @@ async function loadTakenSeats(){
 
 
 async function loadBookingSeats() {
+
   if (!SEANCE_ID) return;
 
   console.log("BOOKINGS load for:", SEANCE_ID);
 
   try {
+
     const nowIso = new Date().toISOString();
 
-    const { data: bookings, error } = await supabaseClient
-      .from("bookings")
-      .select("seats, expires_at, status, seance_id")
-      .eq("seance_id", SEANCE_ID);
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
 
-    if (error) {
-      console.warn("bookings error", error);
-      return;
-    }
+    const bookings = await res.json();
 
     console.log("RAW bookings:", bookings);
 
-    if (!bookings || !bookings.length) return;
+    if (!Array.isArray(bookings)) return;
 
     for (const b of bookings) {
 
-      // только hold
+      // только HOLD
       if (b.status !== "hold") continue;
 
-      // не просроченные
+      // просроченные пропускаем
       if (b.expires_at && b.expires_at <= nowIso) continue;
 
-      let arr = [];
-
-      try {
-        if (typeof b.seats === "string") {
-          arr = JSON.parse(b.seats);
-        } else {
-          arr = b.seats;
-        }
-      } catch (e) {
-        console.warn("seat parse error", b.seats);
-        continue;
-      }
-
-      if (!arr || !arr.length) continue;
+      const arr = Array.isArray(b.seats) ? b.seats : [];
 
       for (const seat of arr) {
-        if (!seat) continue;
-
-        const key = String(seat).trim().toUpperCase();
-        console.log("BOOKED seat:", key);
-
-        takenSeats.add(key);
+        if (seat) {
+          takenSeats.add(seat.trim());
+        }
       }
     }
 
