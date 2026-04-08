@@ -753,9 +753,13 @@ async function loadShowMeta(){
     const seatButtons = new Map(); // key -> button
 
     function getEffectiveStatus(key){
-      if (takenSeatsOnline.has(key)) return "blocked";
-      return CASH_PATCH[key]?.status || "free";
-    }
+
+  if (takenSeatsOnline.has(key)) return "blocked";
+
+  if (takenSeatsBooking.has(key)) return "blocked";
+
+  return CASH_PATCH[key]?.status || "free";
+}
 
     function applyStatusClass(btn, status){
       btn.classList.remove("seat--sold","seat--reserved","seat--blocked");
