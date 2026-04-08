@@ -303,7 +303,6 @@ async function loadTakenSeats(){
   }
 }
 
-
 async function loadBookingSeats() {
 
   if (!SEANCE_ID) return;
@@ -332,10 +331,10 @@ async function loadBookingSeats() {
 
     for (const b of bookings) {
 
-      // только HOLD
+      // ✅ только HOLD
       if (b.status !== "hold") continue;
 
-      // просроченные пропускаем
+      // ✅ если истекло — пропускаем
       if (b.expires_at && b.expires_at <= nowIso) continue;
 
       const arr = Array.isArray(b.seats) ? b.seats : [];
@@ -351,6 +350,7 @@ async function loadBookingSeats() {
     console.warn("loadBookingSeats error", e);
   }
 }
+
     
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
@@ -743,29 +743,53 @@ document.querySelectorAll(".seat").forEach(btn => {
   if (!key) return;
 
   // клик = создание hold
-  btn.addEventListener("click", async () => {
+
+btn.addEventListener("click", async () => {
 
   if (takenSeats.has(key)) return;
 
   try {
 
-    await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
       method: "POST",
       headers: {
         apikey: SUPABASE_ANON_KEY,
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         "Content-Type": "application/json",
-        Prefer: "return=minimal"
+        Prefer: "return=representation"
       },
-      });
+      body: JSON.stringify({
+        seance_id: SEANCE_ID,
+        show_slug: showSlug || "demo", // 🔥 ОБЯЗАТЕЛЬНО
+        seats: [key],
+        status: "hold",
+        amount: 0,
+        order_id: "hold-temp",
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      })
+    });
+
+    const data = await res.json();
 
     if (!res.ok) {
-      console.error("HOLD ERROR:", await res.text());
+      console.error("❌ HOLD ERROR:", data);
       return;
     }
 
-    console.log("HOLD OK:", key);
+    console.log("✅ HOLD OK:", data);
 
+    // мгновенно блокируем
+    takenSeats.add(key);
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+
+  } catch (e) {
+    console.error("booking insert error", e);
+  }
+
+});
+
+  
     // мгновенно блокируем
     takenSeats.add(key);
     btn.classList.add("seat--taken");
