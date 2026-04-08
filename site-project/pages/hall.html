@@ -830,7 +830,7 @@ document.querySelectorAll(".seat").forEach(btn => {
   if (!key) return;
 
   if (takenSeats.has(key)) {
-    btn.classList.add("seat--taken");
+    btn.classList.add("seat--taken"); 
     btn.disabled = true;
   }
 });
