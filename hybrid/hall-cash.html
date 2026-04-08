@@ -1694,10 +1694,24 @@ const RAW_HALL = await res.json();
 
 renderHallFromJson(RAW_HALL);
 
-  
+// 🔥 первая загрузка статусов
+await loadTakenSeatsOnline();
+await loadBookingSeatsOnline();
 
-  updateSummary();
-  renderCashLog();
+reapplyAllStatuses();
+
+updateSummary();
+renderCashLog();
+
+// 🔁 автообновление
+setInterval(async () => {
+
+  await loadTakenSeatsOnline();
+  await loadBookingSeatsOnline();
+
+  reapplyAllStatuses();
+
+}, 3000);
 
 })();
 
