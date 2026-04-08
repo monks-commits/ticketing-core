@@ -211,8 +211,16 @@ body {
   border-color:#9ca3af !important;
   cursor:not-allowed !important;
 }
+
+.seat--hold{
+  background:#ef4444 !important; /* 🔴 HOLD */
+  color:#fff !important;
+  border-color:#ef4444 !important;
+  cursor:not-allowed !important;
+}
+
 .seat--reserved{
-  background:#f59e0b !important; /* жовта бронь */
+  background:#f59e0b !important; /* 🟠 касса */
   color:#111827 !important;
   border-color:#f59e0b !important;
 }
