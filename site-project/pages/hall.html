@@ -790,16 +790,7 @@ btn.addEventListener("click", async () => {
 });
 
   
-    // мгновенно блокируем
-    takenSeats.add(key);
-    btn.classList.add("seat--taken");
-    btn.disabled = true;
-
-  } catch (e) {
-    console.error("booking insert error", e);
-  }
-
-});
+    
   // применяем занятые
   if (takenSeats.has(key)) {
     btn.classList.add("seat--taken");
