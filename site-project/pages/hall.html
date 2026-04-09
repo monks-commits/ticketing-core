@@ -485,7 +485,9 @@ if (cfg && cfg.color) {
 
       if (takenSeats.has(key)){
         btn.classList.add("seat--taken");
-        btn.disabled = true;
+
+// ❌ НЕ делаем disabled
+// btn.disabled = true;
       }
 
 if (!saleAllowed) {
