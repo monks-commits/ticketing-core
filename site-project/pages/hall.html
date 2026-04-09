@@ -484,10 +484,8 @@ if (cfg && cfg.color) {
 }
 
       if (takenSeats.has(key)){
-        btn.classList.add("seat--taken");
-
-// ❌ НЕ делаем disabled
-// btn.disabled = true;
+        btn.classList.add("seat--selected"); // ← важно
+// НЕ делаем taken тут
       }
 
 if (!saleAllowed) {
