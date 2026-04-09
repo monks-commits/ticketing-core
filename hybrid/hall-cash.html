@@ -799,7 +799,6 @@ async function loadShowMeta(){
 }
 
 function makeSeatElement(key,label,extraClass,price,meta){
-
   let finalPrice = price;
   let finalClass = extraClass;
   let saleAllowed = true;
@@ -811,17 +810,19 @@ function makeSeatElement(key,label,extraClass,price,meta){
     if (cfg.sale === false) saleAllowed = false;
   }
 
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.textContent = label;
-  btn.className = "seat" + (finalClass ? " " + finalClass : "");
-  btn.dataset.key = key;
-  btn.dataset.price = String(finalPrice);
+ const btn = document.createElement("button");
+btn.type = "button";
+btn.textContent = label;
+btn.className = "seat" + (finalClass ? " " + finalClass : "");
+btn.dataset.key = key;
+btn.dataset.price = String(finalPrice);
 
-  if (cfg && cfg.color) {
-    btn.style.background = cfg.color;
-    btn.style.color = "#fff";
-  }
+// 🎨 APPLY COLOR FROM SEANCE (cash)
+if (cfg && cfg.color) {
+  btn.style.background = cfg.color;
+  btn.style.color = "#fff";
+}
+
 
   applyStatusClass(btn, getEffectiveStatus(key));
 
@@ -830,98 +831,24 @@ function makeSeatElement(key,label,extraClass,price,meta){
     btn.disabled = true;
   }
 
-  btn.addEventListener("click", async ()=>{
-
+  btn.addEventListener("click", ()=>{
     const st = getEffectiveStatus(key);
-    if (st === "sold" || !saleAllowed) return;
+    if (st === "sold" || st === "blocked" || !saleAllowed) return;
 
-    // ===============================
-    // 🔥 1. ЕСЛИ УЖЕ ВЫБРАНО → RELEASE
-    // ===============================
-    if (btn.classList.contains("seat--selected")) {
-
-      try {
-        await fetch(
-          `${SUPABASE_URL}/rest/v1/bookings` +
-          `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-          `&seats=cs.%5B"${key}"%5D`,
-          {
-            method: "DELETE",
-            headers: {
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-            }
-          }
-        );
-      } catch(e){
-        console.warn("release error", e);
-      }
-
-      takenSeatsBooking.delete(key);
+    if (btn.classList.contains("seat--selected")){
       btn.classList.remove("seat--selected");
-      applyStatusClass(btn, "free");
       selected.delete(key);
-
-      updateSummary();
-      return;
+    } else {
+      btn.classList.add("seat--selected");
+      selected.set(key, { price: finalPrice });
     }
-
-    // ===============================
-    // 🔥 2. ПРОВЕРКА ПЕРЕД HOLD
-    // ===============================
-    if (takenSeatsOnline.has(key) || takenSeatsBooking.has(key)) {
-      applyStatusClass(btn, "blocked");
-      return;
-    }
-
-    // ===============================
-    // 🔥 3. СОЗДАЁМ HOLD
-    // ===============================
-    try {
-
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify({
-          seance_id: SEANCE_ID,
-          show_slug: showSlug || "cash",
-          seats: [key],
-          status: "hold",
-          amount: 0,
-          order_id: "cash-hold",
-          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error("❌ HOLD ERROR:", data);
-        return;
-      }
-
-      takenSeatsBooking.add(key);
-      applyStatusClass(btn, "blocked");
-
-    } catch(e){
-      console.error("hold error", e);
-      return;
-    }
-
-    btn.classList.add("seat--selected");
-    selected.set(key, { price: finalPrice });
-
     updateSummary();
   });
 
   seatButtons.set(key, btn);
   return btn;
 }
+
 
     function clearSelection(){
       for (const k of selected.keys()){
