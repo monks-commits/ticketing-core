@@ -319,7 +319,8 @@
     </div>
   </div>
 
-  <script>
+ <script type="module">
+import { loadAllSeatsState } from "../../shared/booking-sync.js";
 
 let takenSeatsOnline = new Set();
 
@@ -1706,8 +1707,7 @@ function applyStatusFromBackoffice(status, seats){
       }
     });
 
-   <script type="module">
-import { loadAllSeatsState } from "../../shared/booking-sync.js";
+  
 
 // ---- boot ----
 (async ()=>{
