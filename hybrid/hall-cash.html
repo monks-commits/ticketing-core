@@ -377,22 +377,20 @@ let SEANCE_CONFIG = null;
 
 let takenSeatsBooking = new Set();
 
-async function loadBookingSeatsOnline(){
-
-  takenSeatsBooking.clear();
+async function loadBookingSeatsCash() {
 
   if (!SEANCE_ID) return;
+
+  console.log("CASH BOOKINGS load for:", SEANCE_ID);
 
   try {
 
     const nowIso = new Date().toISOString();
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/bookings` +
-      `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-      `&select=seats,expires_at,status`,
+      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
       {
-        headers:{
+        headers: {
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`
         }
@@ -401,25 +399,42 @@ async function loadBookingSeatsOnline(){
 
     const bookings = await res.json();
 
-    for (const b of bookings || []){
+    console.log("CASH RAW bookings:", bookings);
 
+    if (!Array.isArray(bookings)) return;
+
+    for (const b of bookings) {
+
+      // только HOLD
       if (b.status !== "hold") continue;
+
+      // пропускаем просроченные
       if (b.expires_at && b.expires_at <= nowIso) continue;
 
       const arr = Array.isArray(b.seats) ? b.seats : [];
 
-      for (const seat of arr){
-        if (seat){
-          takenSeatsBooking.add(seat.trim());
-        }
+      for (const seat of arr) {
+
+        if (!seat) continue;
+
+        const key = seat.trim();
+
+        // добавляем в занятые (логика как была)
+        takenSeats.add(key);
+
+        // 🔴 добавляем ВИЗУАЛ HOLD (красный)
+        document.querySelectorAll(".seat").forEach(btn => {
+          if (btn.dataset?.key === key) {
+            btn.classList.add("seat--hold");
+          }
+        });
       }
     }
 
-  } catch(e){
-    console.warn("loadBookingSeatsOnline error:", e);
+  } catch (e) {
+    console.warn("loadBookingSeatsCash error", e);
   }
 }
-
     
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
