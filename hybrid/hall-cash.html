@@ -762,12 +762,35 @@ async function loadShowMeta(){
 }
 
     function applyStatusClass(btn, status){
-      btn.classList.remove("seat--sold","seat--reserved","seat--blocked");
-      btn.disabled = false;
-      if (status === "sold"){ btn.classList.add("seat--sold"); btn.disabled = true; }
-      if (status === "reserved"){ btn.classList.add("seat--reserved"); }
-      if (status === "blocked"){ btn.classList.add("seat--blocked"); btn.disabled = true; }
-    }
+
+  btn.classList.remove(
+    "seat--sold",
+    "seat--reserved",
+    "seat--blocked",
+    "seat--hold"
+  );
+
+  btn.disabled = false;
+
+  if (status === "sold"){
+    btn.classList.add("seat--sold");
+    btn.disabled = true;
+  }
+
+  if (status === "hold"){
+    btn.classList.add("seat--hold"); // 🔴
+    btn.disabled = true;
+  }
+
+  if (status === "reserved"){
+    btn.classList.add("seat--reserved"); // 🟠
+  }
+
+  if (status === "blocked"){
+    btn.classList.add("seat--blocked");
+    btn.disabled = true;
+  }
+}
 
     function applySeanceConfig(meta){
   if (!SEANCE_CONFIG) return null;
