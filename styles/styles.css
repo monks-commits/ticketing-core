@@ -335,3 +335,9 @@ body {
   background:#f59e0b !important;
   color:#111827 !important;
 }
+/* 🔥 HOLD должен быть СИЛЬНЕЕ чем taken */
+.seat--hold {
+  background: #e53935 !important;
+  color: #fff !important;
+  border-color: #e53935 !important;
+}
