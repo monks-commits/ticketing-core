@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />  
   <title>Схема залу — каса</title>
 
- <link rel="stylesheet" href="../styles/styles.css">
+  <link rel="stylesheet" href="../styles.css" />
 
   <!-- QR генерация в браузере -->
   <script type="module">
@@ -319,8 +319,7 @@
     </div>
   </div>
 
- <script type="module">
-import { loadAllSeatsState } from "../../shared/booking-sync.js";
+  <script>
 
 let takenSeatsOnline = new Set();
 
@@ -378,20 +377,22 @@ let SEANCE_CONFIG = null;
 
 let takenSeatsBooking = new Set();
 
-async function loadBookingSeatsCash() {
+async function loadBookingSeatsOnline(){
+
+  takenSeatsBooking.clear();
 
   if (!SEANCE_ID) return;
-
-  console.log("CASH BOOKINGS load for:", SEANCE_ID);
 
   try {
 
     const nowIso = new Date().toISOString();
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
+      `${SUPABASE_URL}/rest/v1/bookings` +
+      `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+      `&select=seats,expires_at,status`,
       {
-        headers: {
+        headers:{
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`
         }
@@ -400,42 +401,25 @@ async function loadBookingSeatsCash() {
 
     const bookings = await res.json();
 
-    console.log("CASH RAW bookings:", bookings);
+    for (const b of bookings || []){
 
-    if (!Array.isArray(bookings)) return;
-
-    for (const b of bookings) {
-
-      // только HOLD
       if (b.status !== "hold") continue;
-
-      // пропускаем просроченные
       if (b.expires_at && b.expires_at <= nowIso) continue;
 
       const arr = Array.isArray(b.seats) ? b.seats : [];
 
-      for (const seat of arr) {
-
-        if (!seat) continue;
-
-        const key = seat.trim();
-
-        // добавляем в занятые (логика как была)
-        takenSeats.add(key);
-
-        // 🔴 добавляем ВИЗУАЛ HOLD (красный)
-        document.querySelectorAll(".seat").forEach(btn => {
-          if (btn.dataset?.key === key) {
-            btn.classList.add("seat--hold");
-          }
-        });
+      for (const seat of arr){
+        if (seat){
+          takenSeatsBooking.add(seat.trim());
+        }
       }
     }
 
-  } catch (e) {
-    console.warn("loadBookingSeatsCash error", e);
+  } catch(e){
+    console.warn("loadBookingSeatsOnline error:", e);
   }
 }
+
     
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
@@ -778,35 +762,12 @@ async function loadShowMeta(){
 }
 
     function applyStatusClass(btn, status){
-
-  btn.classList.remove(
-    "seat--sold",
-    "seat--reserved",
-    "seat--blocked",
-    "seat--hold"
-  );
-
-  btn.disabled = false;
-
-  if (status === "sold"){
-    btn.classList.add("seat--sold");
-    btn.disabled = true;
-  }
-
-  if (status === "hold"){
-    btn.classList.add("seat--hold"); // 🔴
-    btn.disabled = true;
-  }
-
-  if (status === "reserved"){
-    btn.classList.add("seat--reserved"); // 🟠
-  }
-
-  if (status === "blocked"){
-    btn.classList.add("seat--blocked");
-    btn.disabled = true;
-  }
-}
+      btn.classList.remove("seat--sold","seat--reserved","seat--blocked");
+      btn.disabled = false;
+      if (status === "sold"){ btn.classList.add("seat--sold"); btn.disabled = true; }
+      if (status === "reserved"){ btn.classList.add("seat--reserved"); }
+      if (status === "blocked"){ btn.classList.add("seat--blocked"); btn.disabled = true; }
+    }
 
     function applySeanceConfig(meta){
   if (!SEANCE_CONFIG) return null;
@@ -1118,27 +1079,6 @@ if (cfg && cfg.color) {
 async function sellAndPrintOffline(){
 
   const keys = Array.from(selected.keys());
-
-// 🔥 удаляем HOLD перед продажей
-try {
-
-  await fetch(
-    `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold`,
-    {
-      method: "DELETE",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    }
-  );
-
-  console.log("HOLD cleared for seance:", SEANCE_ID);
-
-} catch(e){
-  console.warn("hold delete error", e);
-}
-  
   if (!keys.length) return;
 
   if (!SEANCE_ID){
@@ -1634,7 +1574,7 @@ function applyStatusFromBackoffice(status, seats){
       seance_id: SEANCE_ID,
       tickets,
       total,
-      sold_at: new Date().toISOString() 
+      sold_at: new Date().toISOString()
     };
 
     const queue = loadQueue();
@@ -1707,9 +1647,7 @@ function applyStatusFromBackoffice(status, seats){
       }
     });
 
-  
-
-// ---- boot ----
+   // ---- boot ----
 (async ()=>{
 
   // загрузка списка сеансов
@@ -1749,12 +1687,12 @@ function applyStatusFromBackoffice(status, seats){
     }
 
     select.addEventListener("change", () => {
-      const val = select.value;
-      if (!val) return;
+  const val = select.value;
+  if (!val) return;
 
-      location.href =
-        `hall-cash.html?show=${encodeURIComponent(showSlug)}&seance=${encodeURIComponent(val)}`;
-    });
+  location.href =
+    `hall-cash.html?show=${encodeURIComponent(showSlug)}&seance=${encodeURIComponent(val)}`;
+});
 
   }
 
@@ -1772,39 +1710,34 @@ function applyStatusFromBackoffice(status, seats){
   await loadShowMeta();
   SEANCE_CONFIG = await loadSeanceConfig();
   CASH_PATCH = loadCashPatch();
+  // await loadTakenSeatsOnline();
+const res = await fetch("../data/hall/academy.json");
+const RAW_HALL = await res.json();
 
-  const res = await fetch("../data/hall/academy.json");
-  const RAW_HALL = await res.json();
+renderHallFromJson(RAW_HALL);
 
-  renderHallFromJson(RAW_HALL);
+// 🔥 первая загрузка статусов
+await loadTakenSeatsOnline();
+await loadBookingSeatsOnline();
 
-  // 🔥 ЕДИНАЯ ЗАГРУЗКА (вместо всего старого)
-  await loadAllSeatsState({
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
-    SEANCE_ID,
-    takenSeats
-  });
+reapplyAllStatuses();
 
-  updateSummary();
-  renderCashLog();
+updateSummary();
+renderCashLog();
 
-  // 🔁 автообновление (ЕДИНОЕ)
-  setInterval(async () => {
+// 🔁 автообновление
+setInterval(async () => {
 
-    await loadAllSeatsState({
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY,
-      SEANCE_ID,
-      takenSeats
-    });
+  await loadTakenSeatsOnline();
+  await loadBookingSeatsOnline();
 
-  }, 3000);
+  reapplyAllStatuses();
+
+}, 3000);
 
 })();
-</script>
-  
+
+  </script>
 </body>
 </html>
-
 
