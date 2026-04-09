@@ -1706,7 +1706,10 @@ function applyStatusFromBackoffice(status, seats){
       }
     });
 
-   // ---- boot ----
+   <script type="module">
+import { loadAllSeatsState } from "../../shared/booking-sync.js";
+
+// ---- boot ----
 (async ()=>{
 
   // загрузка списка сеансов
@@ -1746,12 +1749,12 @@ function applyStatusFromBackoffice(status, seats){
     }
 
     select.addEventListener("change", () => {
-  const val = select.value;
-  if (!val) return;
+      const val = select.value;
+      if (!val) return;
 
-  location.href =
-    `hall-cash.html?show=${encodeURIComponent(showSlug)}&seance=${encodeURIComponent(val)}`;
-});
+      location.href =
+        `hall-cash.html?show=${encodeURIComponent(showSlug)}&seance=${encodeURIComponent(val)}`;
+    });
 
   }
 
@@ -1769,34 +1772,38 @@ function applyStatusFromBackoffice(status, seats){
   await loadShowMeta();
   SEANCE_CONFIG = await loadSeanceConfig();
   CASH_PATCH = loadCashPatch();
-  // await loadTakenSeatsOnline();
-const res = await fetch("../data/hall/academy.json");
-const RAW_HALL = await res.json();
 
-renderHallFromJson(RAW_HALL);
+  const res = await fetch("../data/hall/academy.json");
+  const RAW_HALL = await res.json();
 
-// 🔥 первая загрузка статусов
-await loadTakenSeatsOnline();
-await loadBookingSeatsOnline();
+  renderHallFromJson(RAW_HALL);
 
-reapplyAllStatuses();
+  // 🔥 ЕДИНАЯ ЗАГРУЗКА (вместо всего старого)
+  await loadAllSeatsState({
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    SEANCE_ID,
+    takenSeats
+  });
 
-updateSummary();
-renderCashLog();
+  updateSummary();
+  renderCashLog();
 
-// 🔁 автообновление
-setInterval(async () => {
+  // 🔁 автообновление (ЕДИНОЕ)
+  setInterval(async () => {
 
-  await loadTakenSeatsOnline();
-  await loadBookingSeatsOnline();
+    await loadAllSeatsState({
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY,
+      SEANCE_ID,
+      takenSeats
+    });
 
-  reapplyAllStatuses();
-
-}, 3000);
+  }, 3000);
 
 })();
-
-  </script>
+</script>
+  
 </body>
 </html>
 
