@@ -130,8 +130,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
 
-// ===== TAKEN SEATS STATE =====
-let takenSeats = new Set();
+// === GLOBAL STATE ===
+let takenSeats = new Set();     // tickets (продано)
+let bookingSeats = new Set();   // bookings (HOLD)
+let selected = new Map();
+
+    
+
 
 // ===== LOAD FROM SUPABASE =====
 async function loadTakenSeats(){
