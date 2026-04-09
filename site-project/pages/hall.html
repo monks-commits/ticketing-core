@@ -130,13 +130,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
 
-// === GLOBAL STATE ===
-let takenSeats = new Set();     // tickets (продано)
-let bookingSeats = new Set();   // bookings (HOLD)
-let selected = new Map();
-
-    
-
+// ===== TAKEN SEATS STATE =====
+let takenSeats = new Set();
 
 // ===== LOAD FROM SUPABASE =====
 async function loadTakenSeats(){
@@ -319,13 +314,6 @@ async function loadBookingSeats() {
 
     const nowIso = new Date().toISOString();
 
-    // 🔥 важно — очищаем перед загрузкой
-    if (typeof bookingSeats === "undefined") {
-      window.bookingSeats = new Set();
-    } else {
-      bookingSeats.clear();
-    }
-
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
       {
@@ -344,17 +332,17 @@ async function loadBookingSeats() {
 
     for (const b of bookings) {
 
-      // только HOLD
+      // ✅ только HOLD
       if (b.status !== "hold") continue;
 
-      // если истекло — пропускаем
+      // ✅ если истекло — пропускаем
       if (b.expires_at && b.expires_at <= nowIso) continue;
 
       const arr = Array.isArray(b.seats) ? b.seats : [];
 
       for (const seat of arr) {
         if (seat) {
-          bookingSeats.add(seat.trim()); // 🔴 теперь сюда, не в takenSeats
+          takenSeats.add(seat.trim());
         }
       }
     }
@@ -363,6 +351,7 @@ async function loadBookingSeats() {
     console.warn("loadBookingSeats error", e);
   }
 }
+
     
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
@@ -495,13 +484,9 @@ if (cfg && cfg.color) {
 }
 
       if (takenSeats.has(key)){
-  btn.classList.add("seat--taken"); // ПРОДАНО
-  btn.disabled = true;
-}
-else if (bookingSeats.has(key)){
-  btn.classList.add("seat--hold"); // 🔴 HOLD
-  btn.disabled = true;
-}
+        btn.classList.add("seat--taken");
+        btn.disabled = true;
+      }
 
 if (!saleAllowed) {
   btn.classList.add("seat--no-sale");
