@@ -733,127 +733,83 @@ const HALL = await res.json();
 
 renderHallFromJson(HALL);
 
-// ===== ПЕРВАЯ ЗАГРУЗКА =====
-await loadTakenSeats();
-await loadBookingSeats();
-
-// 🔥 ВЕШАЕМ КЛИКИ ОДИН РАЗ
+// ===== КЛИКИ (HOLD) =====
 document.querySelectorAll(".seat").forEach(btn => {
+
   const key = btn.dataset?.key;
   if (!key) return;
 
-  // клик = создание hold
+  btn.addEventListener("click", async () => {
 
-btn.addEventListener("click", async () => {
+    if (takenSeats.has(key)) return;
 
-  if (takenSeats.has(key)) return;
+    try {
 
-  try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({
+          seance_id: SEANCE_ID,
+          show_slug: showSlug || "demo",
+          seats: [key],
+          status: "hold",
+          amount: 0,
+          order_id: "hold-temp",
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        })
+      });
 
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=representation"
-      },
-      body: JSON.stringify({
-        seance_id: SEANCE_ID,
-        show_slug: showSlug || "demo", // 🔥 ОБЯЗАТЕЛЬНО
-        seats: [key],
-        status: "hold",
-        amount: 0,
-        order_id: "hold-temp",
-        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-      })
-    });
+      const data = await res.json();
 
-    const data = await res.json();
+      if (!res.ok) {
+        console.error("❌ HOLD ERROR:", data);
+        return;
+      }
 
-    if (!res.ok) {
-      console.error("❌ HOLD ERROR:", data);
-      return;
+      console.log("✅ HOLD OK:", key);
+
+      // 🔥 мгновенная реакция UI
+      takenSeats.add(key);
+      btn.classList.add("seat--hold");
+      btn.disabled = true;
+
+    } catch (e) {
+      console.error("booking insert error", e);
     }
 
-    console.log("✅ HOLD OK:", data);
-
-    // мгновенно блокируем
-    takenSeats.add(key);
-btn.classList.add("seat--hold"); // 🔴
-btn.disabled = true;
-
-  } catch (e) {
-    console.error("booking insert error", e);
-  }
+  });
 
 });
 
-  
-    
-  // применяем занятые
-  if (takenSeats.has(key)) {
-    btn.classList.add("seat--taken");
-    btn.disabled = true;
-  }
+
+// ===== ПЕРВАЯ ЗАГРУЗКА ЧЕРЕЗ МОДУЛЬ =====
+await loadAllSeatsState({
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY,
+  SEANCE_ID,
+  takenSeats
 });
 
-// ===== АВТООБНОВЛЕНИЕ =====
+
+// ===== ЕДИНЫЙ АВТООБНОВИТЕЛЬ =====
 setInterval(async () => {
 
-  await loadTakenSeats();
-  await loadBookingSeats();
-
-  document.querySelectorAll(".seat").forEach(btn => {
-    const key = btn.dataset?.key;
-    if (!key) return;
-
-    if (takenSeats.has(key)) {
-      btn.classList.add("seat--taken");
-      btn.disabled = true;
-    } else {
-      btn.classList.remove("seat--taken");
-      btn.disabled = false;
-    }
+  await loadAllSeatsState({
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    SEANCE_ID,
+    takenSeats
   });
 
 }, 3000);
 
-updateSummary();
 
-// 🔥 первичная загрузка занятых мест ПОСЛЕ рендера
-await loadTakenSeats();
+updateSummary();     
 
-// 🔥 сразу применяем к кнопкам
-document.querySelectorAll(".seat").forEach(btn => {
-  const key = btn.dataset?.key;
-  if (!key) return;
-
-  if (takenSeats.has(key)) {
-    btn.classList.add("seat--taken"); 
-    btn.disabled = true;
-  }
-});
-
-// 🔁 автообновление каждые 3 сек
-setInterval(async () => {
-
-  await loadTakenSeats();
-await loadBookingSeats();
-  
-  document.querySelectorAll(".seat").forEach(btn => {
-    const key = btn.dataset?.key;
-    if (!key) return;
-
-    if (takenSeats.has(key)) {
-      btn.classList.add("seat--taken");
-      btn.disabled = true;
-    }
-  });
-
-}, 3000);
-
-  })();   
-  </script>
 </body>
 </html>
