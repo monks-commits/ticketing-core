@@ -818,13 +818,11 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.dataset.key = key;
   btn.dataset.price = String(finalPrice);
 
-  // 🎨 цвет
   if (cfg && cfg.color) {
     btn.style.background = cfg.color;
     btn.style.color = "#fff";
   }
 
-  // применяем статус
   applyStatusClass(btn, getEffectiveStatus(key));
 
   if (!saleAllowed) {
@@ -835,17 +833,52 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.addEventListener("click", async ()=>{
 
     const st = getEffectiveStatus(key);
-    if (st === "sold" || st === "blocked" || !saleAllowed) return;
+    if (st === "sold" || !saleAllowed) return;
 
-    // 🔥 защита от гонки
+    // ===============================
+    // 🔥 1. ЕСЛИ УЖЕ ВЫБРАНО → RELEASE
+    // ===============================
+    if (btn.classList.contains("seat--selected")) {
+
+      try {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings` +
+          `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+          `&seats=cs.%5B"${key}"%5D`,
+          {
+            method: "DELETE",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+            }
+          }
+        );
+      } catch(e){
+        console.warn("release error", e);
+      }
+
+      takenSeatsBooking.delete(key);
+      btn.classList.remove("seat--selected");
+      applyStatusClass(btn, "free");
+      selected.delete(key);
+
+      updateSummary();
+      return;
+    }
+
+    // ===============================
+    // 🔥 2. ПРОВЕРКА ПЕРЕД HOLD
+    // ===============================
     if (takenSeatsOnline.has(key) || takenSeatsBooking.has(key)) {
       applyStatusClass(btn, "blocked");
       return;
     }
 
+    // ===============================
+    // 🔥 3. СОЗДАЁМ HOLD
+    // ===============================
     try {
 
-      // 🔥 HOLD В SUPABASE (как на сайте)
       const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
         method: "POST",
         headers: {
@@ -868,22 +901,18 @@ function makeSeatElement(key,label,extraClass,price,meta){
       const data = await res.json();
 
       if (!res.ok) {
-        console.error("❌ CASH HOLD ERROR:", data);
+        console.error("❌ HOLD ERROR:", data);
         return;
       }
 
-      console.log("✅ CASH HOLD:", key);
-
-      // 🔥 локально сразу блокируем
       takenSeatsBooking.add(key);
       applyStatusClass(btn, "blocked");
 
     } catch(e){
-      console.error("cash booking error", e);
+      console.error("hold error", e);
       return;
     }
 
-    // UX (оставляем выбор)
     btn.classList.add("seat--selected");
     selected.set(key, { price: finalPrice });
 
@@ -893,7 +922,6 @@ function makeSeatElement(key,label,extraClass,price,meta){
   seatButtons.set(key, btn);
   return btn;
 }
-
 
     function clearSelection(){
       for (const k of selected.keys()){
