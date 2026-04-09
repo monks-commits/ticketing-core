@@ -484,9 +484,13 @@ if (cfg && cfg.color) {
 }
 
       if (takenSeats.has(key)){
-        btn.classList.add("seat--taken");
-        btn.disabled = true;
-      }
+  btn.classList.add("seat--taken"); // ПРОДАНО
+  btn.disabled = true;
+}
+else if (bookingSeats.has(key)){
+  btn.classList.add("seat--hold"); // 🔴 HOLD
+  btn.disabled = true;
+}
 
 if (!saleAllowed) {
   btn.classList.add("seat--no-sale");
