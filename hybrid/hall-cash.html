@@ -983,14 +983,29 @@ async function applyStatusToSelectedLocal(status){
   const keys = Array.from(selected.keys());
   if (!keys.length) return;
 
-  // если переводим в долгий резерв — снимаем временный hold из bookings
+  // 🔥 если переводим в долгий резерв — сразу убираем hold
   if (status === "reserved") {
-    for (const k of keys) {
-      try {
-        const seatsFilter = encodeURIComponent(JSON.stringify([k]));
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+
+      const rows = await res.json();
+
+      for (const row of rows) {
+        const seats = Array.isArray(row.seats) ? row.seats : [];
+
+        const hasSelected = seats.some(s => keys.includes(String(s).trim()));
+        if (!hasSelected) continue;
 
         await fetch(
-          `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&seats=cs.${seatsFilter}`,
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${row.id}`,
           {
             method: "DELETE",
             headers: {
@@ -1000,14 +1015,17 @@ async function applyStatusToSelectedLocal(status){
           }
         );
 
-        takenSeatsBooking.delete(k);
-
-      } catch(e){
-        console.warn("reserve hold delete error", e);
+        for (const s of seats){
+          takenSeatsBooking.delete(String(s).trim());
+        }
       }
+
+    } catch(e){
+      console.warn("reserve hold delete error", e);
     }
   }
 
+  // 🔥 записываем долгий резерв в локальный patch
   for (const k of keys){
     if (takenSeatsOnline.has(k)) continue;
     CASH_PATCH[k] = { status, ts: Date.now() };
