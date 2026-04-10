@@ -774,13 +774,12 @@ async function loadShowMeta(){
 
     function getEffectiveStatus(key){
 
-  // продано — всегда выше всего
   if (takenSeatsOnline.has(key)) return "sold";
 
-  // долгий резерв выше временного hold
-  if (CASH_PATCH[key]?.status === "reserved") return "reserved";
+  // 🟠 общий reserve из bookings
+  if (reservedSeatsOnline.has(key)) return "reserved";
 
-  // временная бронь 15 минут
+  // 🔴 hold 15 минут
   if (takenSeatsBooking.has(key)) return "hold";
 
   return CASH_PATCH[key]?.status || "free";
