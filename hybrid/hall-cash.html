@@ -392,6 +392,7 @@ const SEANCE_ID = (qs.get("seance") || "").trim();
 
 let SEANCE_CONFIG = null;
 
+let takenSeatsBooking = new Set();
 let reservedSeatsOnline = new Set();
 
 async function loadBookingSeatsOnline(){
@@ -420,7 +421,6 @@ async function loadBookingSeatsOnline(){
     for (const row of rows) {
       const seats = Array.isArray(row.seats) ? row.seats : [];
 
-      // 🔴 временный hold
       if (row.status === "hold") {
         if (row.expires_at && row.expires_at <= nowIso) continue;
         for (const s of seats) {
@@ -428,7 +428,6 @@ async function loadBookingSeatsOnline(){
         }
       }
 
-      // 🟠 долгий reserve
       if (row.status === "reserved") {
         for (const s of seats) {
           reservedSeatsOnline.add(String(s).trim());
