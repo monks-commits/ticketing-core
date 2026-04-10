@@ -310,7 +310,7 @@ async function loadBookingSeats() {
 
     const nowIso = new Date().toISOString();
 
-    // очищаем только долгий reserve
+    holdSeats.clear();
     reservedSeats.clear();
 
     const res = await fetch(
@@ -339,12 +339,12 @@ async function loadBookingSeats() {
 
         for (const seat of arr) {
           if (seat) {
-            takenSeats.add(String(seat).trim());
+            holdSeats.add(String(seat).trim());
           }
         }
       }
 
-      // 🟠 долгий reserve
+      // ⚪ долгий reserve — на сайте тоже серый
       if (b.status === "reserved") {
         for (const seat of arr) {
           if (seat) {
@@ -485,22 +485,27 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.className = "seat" + (finalClass ? " " + finalClass : "");
   btn.dataset.price = finalPrice;
 
-  // 🎨 APPLY COLOR FROM SEANCE
   if (cfg && cfg.color) {
     btn.style.background = cfg.color;
     btn.style.color = "#fff";
   }
 
-  // сначала sold/hold
+  // sold = серый
   if (takenSeats.has(key)){
-    btn.classList.add("seat--hold");
+    btn.classList.add("seat--taken");
     btn.disabled = true;
   }
 
-  // reserve должен быть сильнее hold
+  // reserved = тоже серый на сайте
   if (reservedSeats.has(key)){
-    btn.classList.remove("seat--hold");
-    btn.classList.add("seat--reserved");
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+  }
+
+  // hold = красный, сильнее серого
+  if (holdSeats.has(key)){
+    btn.classList.remove("seat--taken");
+    btn.classList.add("seat--hold");
     btn.disabled = true;
   }
 
@@ -825,12 +830,12 @@ setInterval(async () => {
     const key = btn.dataset?.key;
     if (!key) return;
 
-    btn.classList.remove("seat--sold", "seat--hold", "seat--taken");
+    btn.classList.remove("seat--taken", "seat--hold");
 
-if (takenSeats.has(key)) {
-  btn.classList.add("seat--sold");
+if (takenSeats.has(key) || reservedSeats.has(key)) {
+  btn.classList.add("seat--taken");
   btn.disabled = true;
-} else if (window.holdSeats && window.holdSeats.has(key)) {
+} else if (holdSeats.has(key)) {
   btn.classList.add("seat--hold");
   btn.disabled = true;
 } else {
