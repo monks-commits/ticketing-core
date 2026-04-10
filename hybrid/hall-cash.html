@@ -392,51 +392,54 @@ const SEANCE_ID = (qs.get("seance") || "").trim();
 
 let SEANCE_CONFIG = null;
 
-let takenSeatsBooking = new Set();
+let reservedSeatsOnline = new Set();
 
 async function loadBookingSeatsOnline(){
 
   takenSeatsBooking.clear();
+  reservedSeatsOnline.clear();
 
   if (!SEANCE_ID) return;
 
+  const nowIso = new Date().toISOString();
+
   try {
-
-    const nowIso = new Date().toISOString();
-
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/bookings` +
-      `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-      `&select=seats,expires_at,status`,
+      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
       {
-        headers:{
+        headers: {
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`
         }
       }
     );
 
-    const bookings = await res.json();
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return;
 
-    for (const b of bookings || []){
+    for (const row of rows) {
+      const seats = Array.isArray(row.seats) ? row.seats : [];
 
-      if (b.status !== "hold") continue;
-      if (b.expires_at && b.expires_at <= nowIso) continue;
+      // 🔴 временный hold
+      if (row.status === "hold") {
+        if (row.expires_at && row.expires_at <= nowIso) continue;
+        for (const s of seats) {
+          takenSeatsBooking.add(String(s).trim());
+        }
+      }
 
-      const arr = Array.isArray(b.seats) ? b.seats : [];
-
-      for (const seat of arr){
-        if (seat){
-          takenSeatsBooking.add(seat.trim());
+      // 🟠 долгий reserve
+      if (row.status === "reserved") {
+        for (const s of seats) {
+          reservedSeatsOnline.add(String(s).trim());
         }
       }
     }
 
   } catch(e){
-    console.warn("loadBookingSeatsOnline error:", e);
+    console.warn("loadBookingSeatsOnline error", e);
   }
 }
-
     
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
