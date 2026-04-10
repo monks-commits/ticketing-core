@@ -74,6 +74,13 @@
   outline-offset: 1px;
 }
 
+.seat--reserved{
+  background:#f59e0b !important;
+  color:#111827;
+  border-color:#f59e0b;
+  cursor:not-allowed;
+}
+    
     .seat--gap-right{margin-right:16px;}
     .amphi-gap{width:24px;flex:0 0 24px;}
 
@@ -292,44 +299,17 @@ function renderHallFromJson(HALL_RAW) {
   });
 }
     
-async function loadTakenSeats(){
-
-  if (!SEANCE_ID) return;
-
-  console.log("LOAD seats for", SEANCE_ID);
-
-  try {
-
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seat_label`,
-      {
-        headers:{
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    );
-
-    const rows = await res.json();
-
-    console.log("ROWS:", rows);
-
-    // 🔥 ВАЖНО: просто перезаписываем Set
-    takenSeats = new Set(rows.map(r => r.seat_label));
-
-  } catch(e){
-    console.warn("loadTakenSeats error", e);
-  }
-}
-
 async function loadBookingSeats() {
 
   if (!SEANCE_ID) return;
 
+  console.log("BOOKINGS load for:", SEANCE_ID);
+
   try {
 
     const nowIso = new Date().toISOString();
-    window.holdSeats = new Set();
+
+    reservedSeats.clear();
 
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
@@ -343,17 +323,31 @@ async function loadBookingSeats() {
 
     const bookings = await res.json();
 
+    console.log("RAW bookings:", bookings);
+
     if (!Array.isArray(bookings)) return;
 
     for (const b of bookings) {
-      if (b.status !== "hold") continue;
-      if (b.expires_at && b.expires_at <= nowIso) continue;
 
       const arr = Array.isArray(b.seats) ? b.seats : [];
 
-      for (const seat of arr) {
-        if (seat) {
-          window.holdSeats.add(seat.trim());
+      // 🔴 временный HOLD
+      if (b.status === "hold") {
+        if (b.expires_at && b.expires_at <= nowIso) continue;
+
+        for (const seat of arr) {
+          if (seat) {
+            takenSeats.add(String(seat).trim());
+          }
+        }
+      }
+
+      // 🟠 долгий RESERVE
+      if (b.status === "reserved") {
+        for (const seat of arr) {
+          if (seat) {
+            reservedSeats.add(String(seat).trim());
+          }
         }
       }
     }
@@ -489,17 +483,19 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.className = "seat" + (finalClass ? " " + finalClass : "");
   btn.dataset.price = finalPrice;
 
-  // 🎨 APPLY COLOR FROM SEANCE
   if (cfg && cfg.color) {
     btn.style.background = cfg.color;
     btn.style.color = "#fff";
   }
 
   if (takenSeats.has(key)){
-    btn.classList.add("seat--sold");
-    btn.disabled = true;
-  } else if (window.holdSeats && window.holdSeats.has(key)) {
     btn.classList.add("seat--hold");
+    btn.disabled = true;
+  }
+
+  if (reservedSeats.has(key)){
+    btn.classList.remove("seat--hold");
+    btn.classList.add("seat--reserved");
     btn.disabled = true;
   }
 
