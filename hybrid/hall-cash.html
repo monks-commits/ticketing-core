@@ -979,27 +979,54 @@ function makeSeatElement(key,label,extraClass,price,meta){
 
     }
 
-    function applyStatusToSelectedLocal(status){
-      const keys = Array.from(selected.keys());
-      if (!keys.length) return;
+async function applyStatusToSelectedLocal(status){
+  const keys = Array.from(selected.keys());
+  if (!keys.length) return;
 
-      for (const k of keys){
-        if (takenSeatsOnline.has(k)) continue;
-        CASH_PATCH[k] = { status, ts: Date.now() };
+  // если переводим в долгий резерв — снимаем временный hold из bookings
+  if (status === "reserved") {
+    for (const k of keys) {
+      try {
+        const seatsFilter = encodeURIComponent(JSON.stringify([k]));
+
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&seats=cs.${seatsFilter}`,
+          {
+            method: "DELETE",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+            }
+          }
+        );
+
+        takenSeatsBooking.delete(k);
+
+      } catch(e){
+        console.warn("reserve hold delete error", e);
       }
-      saveCashPatch(CASH_PATCH);
-
-      pushCashLog({
-        ts: Date.now(),
-        type: status === "reserved" ? "RESERVE" : String(status||"").toUpperCase(),
-        seats: keys,
-        total: Array.from(selected.values()).reduce((s,x)=>s+(x.price||0),0)
-      });
-
-      clearSelection();
-      reapplyAllStatuses();
     }
+  }
 
+  for (const k of keys){
+    if (takenSeatsOnline.has(k)) continue;
+    CASH_PATCH[k] = { status, ts: Date.now() };
+  }
+
+  saveCashPatch(CASH_PATCH);
+
+  pushCashLog({
+    ts: Date.now(),
+    type: status === "reserved" ? "RESERVE" : String(status || "").toUpperCase(),
+    seats: keys,
+    total: Array.from(selected.values()).reduce((s,x)=>s+(x.price||0),0)
+  });
+
+  clearSelection();
+  reapplyAllStatuses();
+}
+
+    
     // ---- op_id generator ----
     function genOpId(){
       const d = new Date();
