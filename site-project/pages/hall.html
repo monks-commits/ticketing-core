@@ -1,15 +1,14 @@
-
 <!DOCTYPE html>  
 <html lang="uk">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />  
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Схема залу</title>
 
   <link rel="stylesheet" href="../styles.css" />
 
   <style>
-    .hall-layout{display:flex;gap:24px;align-items:flex-start;} 
+    .hall-layout{display:flex;gap:24px;align-items:flex-start;}
     .hall-left{
   flex:1;
   min-width:0;
@@ -304,6 +303,7 @@ async function loadTakenSeats(){
   }
 }
 
+
 async function loadBookingSeats() {
 
   if (!SEANCE_ID) return;
@@ -343,6 +343,7 @@ async function loadBookingSeats() {
     console.warn("loadBookingSeats error", e);
   }
 }
+    
     
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
@@ -450,7 +451,7 @@ function applySeanceConfig(meta) {
   return null;
 }
     
-    function makeSeatElement(key,label,extraClass,price,meta){
+  function makeSeatElement(key,label,extraClass,price,meta){
   let finalPrice = price;
   let finalClass = extraClass;
   let saleAllowed = true;
@@ -489,9 +490,8 @@ function applySeanceConfig(meta) {
 
   btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
   return btn;
-}
+} 
 
-    
     const selected = new Map(); // key -> { meta, price }
 
     
@@ -841,7 +841,7 @@ btn.addEventListener("click", async () => {
     console.log("✅ HOLD OK:", data);
 
     // мгновенно блокируем
-    
+    takenSeats.add(key);
     btn.classList.add("seat--taken");
     btn.disabled = true;
 
