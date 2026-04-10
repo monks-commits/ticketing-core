@@ -60,7 +60,7 @@
 
     .seat--selected{background:#2563eb !important;color:#fff;border-color:#2563eb;}
 
-    .seat--sold{
+   .seat--sold{
   background:#9ca3af !important;
   color:#fff;
   border-color:#9ca3af;
@@ -73,8 +73,8 @@
   border-color:#f59e0b;
 }
 
-/* 🔴 15 минут HOLD */
-.seat--blocked{
+.seat--blocked,
+.seat--hold{
   background:#d32f2f !important;
   color:#fff;
   border-color:#d32f2f;
@@ -771,10 +771,13 @@ async function loadShowMeta(){
 
     function getEffectiveStatus(key){
 
+  // продано
   if (takenSeatsOnline.has(key)) return "sold";
 
+  // временный hold 15 минут
   if (takenSeatsBooking.has(key)) return "hold";
 
+  // локальные статусы кассы
   return CASH_PATCH[key]?.status || "free";
 }
     function applyStatusClass(btn, status){
@@ -801,9 +804,9 @@ async function loadShowMeta(){
   if (status === "blocked"){
     btn.classList.add("seat--hold");
     btn.disabled = true;
+    return;
   }
 }
-
     function applySeanceConfig(meta){
   if (!SEANCE_CONFIG) return null;
 
@@ -852,7 +855,6 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.dataset.key = key;
   btn.dataset.price = String(finalPrice);
 
-  // 🎨 APPLY COLOR FROM SEANCE (cash)
   if (cfg && cfg.color) {
     btn.style.background = cfg.color;
     btn.style.color = "#fff";
@@ -868,10 +870,11 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.addEventListener("click", async ()=>{
 
     const st = getEffectiveStatus(key);
-    if (st === "sold" || st === "blocked" || !saleAllowed) return;
 
-    // повторный клик — снимаем только выбор из корзины
-    // временный hold пока не удаляем
+    // главное: hold тоже запрещает клик
+    if (st === "sold" || st === "hold" || st === "blocked" || !saleAllowed) return;
+
+    // повторный клик по своему выбранному месту = снять только выбор из корзины
     if (btn.classList.contains("seat--selected")){
       btn.classList.remove("seat--selected");
       selected.delete(key);
@@ -906,12 +909,12 @@ function makeSeatElement(key,label,extraClass,price,meta){
         return;
       }
 
-      // чтобы касса сразу тоже видела hold
+      // сразу показываем в кассе как hold
       takenSeatsBooking.add(key);
-
-      // оставляем место в корзине для продажи
-      btn.classList.add("seat--selected");
       selected.set(key, { price: finalPrice });
+
+      btn.classList.remove("seat--selected");
+      applyStatusClass(btn, "hold");
       updateSummary();
 
     } catch(e){
@@ -923,7 +926,7 @@ function makeSeatElement(key,label,extraClass,price,meta){
   return btn;
 }
 
-
+    
     function clearSelection(){
       for (const k of selected.keys()){
         const b = seatButtons.get(k);
