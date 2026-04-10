@@ -309,7 +309,6 @@ async function loadBookingSeats() {
   if (!SEANCE_ID) return;
 
   try {
-
     const nowIso = new Date().toISOString();
 
     const res = await fetch(
@@ -324,24 +323,21 @@ async function loadBookingSeats() {
 
     const bookings = await res.json();
 
+    window.holdSeats = new Set();
+
     if (!Array.isArray(bookings)) return;
 
-    const holdSeats = new Set();
-
     for (const b of bookings) {
-
       if (b.status !== "hold") continue;
-      if (b.expires_at && b.expires_at < nowIso) continue;
+      if (b.expires_at && b.expires_at <= nowIso) continue;
 
-      if (!Array.isArray(b.seats)) continue;
-
-      for (const seat of b.seats) {
-        if (seat) holdSeats.add(seat.trim());
+      const arr = Array.isArray(b.seats) ? b.seats : [];
+      for (const seat of arr) {
+        if (seat) {
+          window.holdSeats.add(seat.trim());
+        }
       }
     }
-
-    // 👉 ДОБАВЛЯЕМ HOLD к уже проданным
-    holdSeats.forEach(seat => takenSeats.add(seat));
 
   } catch (e) {
     console.warn("loadBookingSeats error", e);
