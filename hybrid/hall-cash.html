@@ -798,31 +798,58 @@ async function loadShowMeta(){
   return null;
 }
 
+function makeSeatElement(key,label,extraClass,price,meta){
+  let finalPrice = price;
+  let finalClass = extraClass;
+  let saleAllowed = true;
 
-function makeSeatElement(key, label, extraClass, price, meta){
+  const cfg = applySeanceConfig(meta);
+  if (cfg) {
+    if (cfg.price !== undefined) finalPrice = cfg.price;
+    if (cfg.class) finalClass = cfg.class;
+    if (cfg.sale === false) saleAllowed = false;
+  }
 
-  const btn = document.createElement("button");
+ const btn = document.createElement("button");
+btn.type = "button";
+btn.textContent = label;
+btn.className = "seat" + (finalClass ? " " + finalClass : "");
+btn.dataset.key = key;
+btn.dataset.price = String(finalPrice);
 
-  btn.className = "seat";
-  if (extraClass) btn.classList.add(extraClass);
+// 🎨 APPLY COLOR FROM SEANCE (cash)
+if (cfg && cfg.color) {
+  btn.style.background = cfg.color;
+  btn.style.color = "#fff";
+}
 
-  btn.textContent = label;
 
-  btn.dataset.key = key;
-  btn.dataset.price = price || 0;
+  applyStatusClass(btn, getEffectiveStatus(key));
 
-  // === ПРОДАНО ===
-  if (takenSeats.has(key)){
-    btn.classList.add("seat--taken");
+  if (!saleAllowed) {
+    btn.classList.add("seat--no-sale");
     btn.disabled = true;
   }
 
-  // === КЛИК ===
-  btn.addEventListener("click", () => onSeatClick(btn, key, meta, price));
+  btn.addEventListener("click", ()=>{
+    const st = getEffectiveStatus(key);
+    if (st === "sold" || st === "blocked" || !saleAllowed) return;
 
+    if (btn.classList.contains("seat--selected")){
+      btn.classList.remove("seat--selected");
+      selected.delete(key);
+    } else {
+      btn.classList.add("seat--selected");
+      selected.set(key, { price: finalPrice });
+    }
+    updateSummary();
+  });
+
+  seatButtons.set(key, btn);
   return btn;
 }
-    
+
+
     function clearSelection(){
       for (const k of selected.keys()){
         const b = seatButtons.get(k);
