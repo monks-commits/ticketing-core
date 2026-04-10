@@ -451,7 +451,7 @@ function applySeanceConfig(meta) {
 }
     
     function makeSeatElement(key,label,extraClass,price,meta){
-        let finalPrice = price;
+  let finalPrice = price;
   let finalClass = extraClass;
   let saleAllowed = true;
 
@@ -461,33 +461,37 @@ function applySeanceConfig(meta) {
     if (cfg.class) finalClass = cfg.class;
     if (cfg.sale === false) saleAllowed = false;
   }
-      const btn = document.createElement("button");
-     btn.dataset.key = key; 
-btn.type = "button";
-btn.textContent = label;
-btn.className = "seat" + (finalClass ? " " + finalClass : "");
-btn.dataset.price = finalPrice;
 
-// 🎨 APPLY COLOR FROM SEANCE
-if (cfg && cfg.color) {
-  btn.style.background = cfg.color;
-  btn.style.color = "#fff";
+  const btn = document.createElement("button");
+  btn.dataset.key = key;
+  btn.type = "button";
+  btn.textContent = label;
+  btn.className = "seat" + (finalClass ? " " + finalClass : "");
+  btn.dataset.price = finalPrice;
+
+  if (cfg && cfg.color) {
+    btn.style.background = cfg.color;
+    btn.style.color = "#fff";
+  }
+
+  if (takenSeats.has(key)){
+    btn.classList.add("seat--sold");
+    btn.disabled = true;
+  } else if (window.holdSeats && window.holdSeats.has(key)) {
+    btn.classList.add("seat--hold");
+    btn.disabled = true;
+  }
+
+  if (!saleAllowed) {
+    btn.classList.add("seat--no-sale");
+    btn.disabled = true;
+  }
+
+  btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
+  return btn;
 }
 
-      if (takenSeats.has(key)){
-        btn.classList.add("seat--taken");
-        btn.disabled = true;
-      }
-
-if (!saleAllowed) {
-  btn.classList.add("seat--no-sale");
-  btn.disabled = true;
-}
-     
-      btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
-      return btn;
-    }
-
+    
     const selected = new Map(); // key -> { meta, price }
 
     function onSeatClick(btn, key, meta, price){
