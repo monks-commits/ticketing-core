@@ -799,89 +799,27 @@ async function loadShowMeta(){
 }
 
 
-function makeSeatElement(key,label,extraClass,price,meta){
-
-  let finalPrice = price;
-  let finalClass = extraClass;
-  let saleAllowed = true;
-
-  const cfg = applySeanceConfig(meta);
-  if (cfg) {
-    if (cfg.price !== undefined) finalPrice = cfg.price;
-    if (cfg.class) finalClass = cfg.class;
-    if (cfg.sale === false) saleAllowed = false;
-  }
+function makeSeatElement(key, label, extraClass, price, meta){
 
   const btn = document.createElement("button");
-  btn.type = "button";
+
+  btn.className = "seat";
+  if (extraClass) btn.classList.add(extraClass);
+
   btn.textContent = label;
-  btn.className = "seat" + (finalClass ? " " + finalClass : "");
+
   btn.dataset.key = key;
-  btn.dataset.price = String(finalPrice);
+  btn.dataset.price = price || 0;
 
-  if (cfg && cfg.color) {
-    btn.style.background = cfg.color;
-    btn.style.color = "#fff";
-  }
-
-  applyStatusClass(btn, getEffectiveStatus(key));
-
-  if (!saleAllowed) {
-    btn.classList.add("seat--no-sale");
+  // === ПРОДАНО ===
+  if (takenSeats.has(key)){
+    btn.classList.add("seat--taken");
     btn.disabled = true;
   }
 
-  btn.addEventListener("click", async ()=>{
+  // === КЛИК ===
+  btn.addEventListener("click", () => onSeatClick(btn, key, meta, price));
 
-    const st = getEffectiveStatus(key);
-    if (st === "sold" || st === "blocked" || !saleAllowed) return;
-
-    // защита
-    if (takenSeatsOnline.has(key) || takenSeatsBooking.has(key)) {
-      applyStatusClass(btn, "blocked");
-      return;
-    }
-
-    try {
-
-      // 🔥 ГЛАВНОЕ — ПИШЕМ В BOOKINGS
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify({
-          seance_id: SEANCE_ID,
-          show_slug: showSlug || "cash",
-          seats: [key],
-          status: "hold",
-          amount: 0,
-          order_id: "cash-hold",
-          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error("❌ CASH HOLD ERROR:", data);
-        return;
-      }
-
-      // сразу локально
-      takenSeatsBooking.add(key);
-      applyStatusClass(btn, "blocked");
-
-    } catch(e){
-      console.error("cash booking error", e);
-    }
-
-  });
-
-  seatButtons.set(key, btn);
   return btn;
 }
     
