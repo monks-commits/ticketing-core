@@ -303,12 +303,14 @@ async function loadTakenSeats(){
   }
 }
 
-
 async function loadBookingSeats() {
 
   if (!SEANCE_ID) return;
 
+  console.log("BOOKINGS load for:", SEANCE_ID);
+
   try {
+
     const nowIso = new Date().toISOString();
 
     const res = await fetch(
@@ -323,18 +325,23 @@ async function loadBookingSeats() {
 
     const bookings = await res.json();
 
-    window.holdSeats = new Set();
+    console.log("RAW bookings:", bookings);
 
     if (!Array.isArray(bookings)) return;
 
     for (const b of bookings) {
+
+      // ✅ только HOLD
       if (b.status !== "hold") continue;
+
+      // ✅ если истекло — пропускаем
       if (b.expires_at && b.expires_at <= nowIso) continue;
 
       const arr = Array.isArray(b.seats) ? b.seats : [];
+
       for (const seat of arr) {
         if (seat) {
-          window.holdSeats.add(seat.trim());
+          takenSeats.add(seat.trim());
         }
       }
     }
@@ -343,7 +350,7 @@ async function loadBookingSeats() {
     console.warn("loadBookingSeats error", e);
   }
 }
-    
+
     
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
@@ -451,8 +458,8 @@ function applySeanceConfig(meta) {
   return null;
 }
     
-  function makeSeatElement(key,label,extraClass,price,meta){
-  let finalPrice = price;
+    function makeSeatElement(key,label,extraClass,price,meta){
+        let finalPrice = price;
   let finalClass = extraClass;
   let saleAllowed = true;
 
@@ -462,114 +469,45 @@ function applySeanceConfig(meta) {
     if (cfg.class) finalClass = cfg.class;
     if (cfg.sale === false) saleAllowed = false;
   }
+      const btn = document.createElement("button");
+     btn.dataset.key = key; 
+btn.type = "button";
+btn.textContent = label;
+btn.className = "seat" + (finalClass ? " " + finalClass : "");
+btn.dataset.price = finalPrice;
 
-  const btn = document.createElement("button");
-  btn.dataset.key = key;
-  btn.type = "button";
-  btn.textContent = label;
-  btn.className = "seat" + (finalClass ? " " + finalClass : "");
-  btn.dataset.price = finalPrice;
+// 🎨 APPLY COLOR FROM SEANCE
+if (cfg && cfg.color) {
+  btn.style.background = cfg.color;
+  btn.style.color = "#fff";
+}
 
-  if (cfg && cfg.color) {
-    btn.style.background = cfg.color;
-    btn.style.color = "#fff";
-  }
+      if (takenSeats.has(key)){
+        btn.classList.add("seat--taken");
+        btn.disabled = true;
+      }
 
-  if (takenSeats.has(key)){
-    btn.classList.add("seat--sold");
-    btn.disabled = true;
-  } else if (window.holdSeats && window.holdSeats.has(key)) {
-    btn.classList.add("seat--hold");
-    btn.disabled = true;
-  }
-
-  if (!saleAllowed) {
-    btn.classList.add("seat--no-sale");
-    btn.disabled = true;
-  }
-
-  btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
-  return btn;
-} 
+if (!saleAllowed) {
+  btn.classList.add("seat--no-sale");
+  btn.disabled = true;
+}
+     
+      btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
+      return btn;
+    }
 
     const selected = new Map(); // key -> { meta, price }
 
-    
-async function onSeatClick(btn, key, meta, price){
-
-  if (takenSeats.has(key)) return;
-
-  if (window.holdSeats && window.holdSeats.has(key) && !selected.has(key)) return;
-
-  // повторный клик по своему выбранному месту = снять временную бронь
-  if (selected.has(key)) {
-    try {
-      const seatsFilter = encodeURIComponent(JSON.stringify([key]));
-
-      await fetch(
-        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&seats=cs.${seatsFilter}`,
-        {
-          method: "DELETE",
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        }
-      );
-    } catch (e) {
-      console.warn("hold delete error", e);
+    function onSeatClick(btn, key, meta, price){
+      if (btn.classList.contains("seat--selected")){
+        btn.classList.remove("seat--selected");
+        selected.delete(key);
+      } else {
+        btn.classList.add("seat--selected");
+        selected.set(key, { meta, price });
+      }
+      updateSummary();
     }
-
-    if (window.holdSeats) window.holdSeats.delete(key);
-    btn.classList.remove("seat--selected", "seat--hold");
-    btn.disabled = false;
-    selected.delete(key);
-    updateSummary();
-    return;
-  }
-
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=representation"
-      },
-      body: JSON.stringify({
-        seance_id: SEANCE_ID,
-        show_slug: showSlug || "demo",
-        seats: [key],
-        status: "hold",
-        amount: Number(price || 0),
-        order_id: `hold-temp-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
-        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("HOLD ERROR", data);
-      return;
-    }
-
-    if (!window.holdSeats) window.holdSeats = new Set();
-    window.holdSeats.add(key);
-
-    btn.classList.remove("seat--selected", "seat--sold");
-    btn.classList.add("seat--hold");
-    btn.disabled = true;
-
-    selected.set(key, { meta, price });
-    updateSummary();
-
-  } catch (e) {
-    console.error("hold error", e);
-  }
-}
-    
 
     function updateSummary(){
       const placesEl = document.getElementById("summary-places");
@@ -784,44 +722,137 @@ async function onSeatClick(btn, key, meta, price){
   location.href = u.toString();
 });
 
+   (async ()=>{
 
-(async ()=>{
-
+  // 🔴 ДОБАВИТЬ ЭТО
   SEANCE_CONFIG = await loadSeanceConfig();
+
+const res = await fetch("../../data/hall/academy.json");
+     
+const HALL = await res.json();
+
+renderHallFromJson(HALL);
+
+// ===== ПЕРВАЯ ЗАГРУЗКА =====
+await loadTakenSeats();
+await loadBookingSeats();
+
+// 🔥 ВЕШАЕМ КЛИКИ ОДИН РАЗ
+document.querySelectorAll(".seat").forEach(btn => {
+  const key = btn.dataset?.key;
+  if (!key) return;
+
+  // клик = создание hold
+
+btn.addEventListener("click", async () => {
+
+  if (takenSeats.has(key)) return;
+
+  try {
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({
+        seance_id: SEANCE_ID,
+        show_slug: showSlug || "demo", // 🔥 ОБЯЗАТЕЛЬНО
+        seats: [key],
+        status: "hold",
+        amount: 0,
+        order_id: "hold-temp",
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("❌ HOLD ERROR:", data);
+      return;
+    }
+
+    console.log("✅ HOLD OK:", data);
+
+    // мгновенно блокируем
+    takenSeats.add(key);
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+
+  } catch (e) {
+    console.error("booking insert error", e);
+  }
+
+});
+
+  
+    
+  // применяем занятые
+  if (takenSeats.has(key)) {
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+  }
+});
+
+// ===== АВТООБНОВЛЕНИЕ =====
+setInterval(async () => {
 
   await loadTakenSeats();
   await loadBookingSeats();
 
-  const res = await fetch("../../data/hall/academy.json");
-  const HALL = await res.json();
+  document.querySelectorAll(".seat").forEach(btn => {
+    const key = btn.dataset?.key;
+    if (!key) return;
 
-  renderHallFromJson(HALL);
-  updateSummary();
+    if (takenSeats.has(key)) {
+      btn.classList.add("seat--taken");
+      btn.disabled = true;
+    } else {
+      btn.classList.remove("seat--taken");
+      btn.disabled = false;
+    }
+  });
 
-  setInterval(async () => {
-    await loadTakenSeats();
-    await loadBookingSeats();
+}, 3000);
 
-    document.querySelectorAll(".seat").forEach(btn => {
-      const key = btn.dataset?.key;
-      if (!key) return;
+updateSummary();
 
-      btn.classList.remove("seat--sold", "seat--hold", "seat--taken");
+// 🔥 первичная загрузка занятых мест ПОСЛЕ рендера
+await loadTakenSeats();
 
-      if (takenSeats.has(key)) {
-        btn.classList.add("seat--sold");
-        btn.disabled = true;
-      } else if (window.holdSeats && window.holdSeats.has(key)) {
-        btn.classList.add("seat--hold");
-        btn.disabled = true;
-      } else if (!btn.classList.contains("seat--no-sale")) {
-        btn.disabled = false;
-      }
-    });
+// 🔥 сразу применяем к кнопкам
+document.querySelectorAll(".seat").forEach(btn => {
+  const key = btn.dataset?.key;
+  if (!key) return;
 
-  }, 3000);
+  if (takenSeats.has(key)) {
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+  }
+});
 
-   
+// 🔁 автообновление каждые 3 сек
+setInterval(async () => {
+
+  await loadTakenSeats();
+await loadBookingSeats();
+  
+  document.querySelectorAll(".seat").forEach(btn => {
+    const key = btn.dataset?.key;
+    if (!key) return;
+
+    if (takenSeats.has(key)) {
+      btn.classList.add("seat--taken");
+      btn.disabled = true;
+    }
+  });
+
+}, 3000);
+
   })();   
   </script>
 </body>
