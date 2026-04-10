@@ -326,11 +326,10 @@ async function loadBookingSeats() {
 
   if (!SEANCE_ID) return;
 
-  console.log("BOOKINGS load for:", SEANCE_ID);
-
   try {
 
     const nowIso = new Date().toISOString();
+    window.holdSeats = new Set();
 
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
@@ -344,23 +343,17 @@ async function loadBookingSeats() {
 
     const bookings = await res.json();
 
-    console.log("RAW bookings:", bookings);
-
     if (!Array.isArray(bookings)) return;
 
     for (const b of bookings) {
-
-      // ✅ только HOLD
       if (b.status !== "hold") continue;
-
-      // ✅ если истекло — пропускаем
       if (b.expires_at && b.expires_at <= nowIso) continue;
 
       const arr = Array.isArray(b.seats) ? b.seats : [];
 
       for (const seat of arr) {
         if (seat) {
-          takenSeats.add(seat.trim());
+          window.holdSeats.add(seat.trim());
         }
       }
     }
@@ -369,7 +362,6 @@ async function loadBookingSeats() {
     console.warn("loadBookingSeats error", e);
   }
 }
-
     
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
@@ -477,8 +469,9 @@ function applySeanceConfig(meta) {
   return null;
 }
     
-    function makeSeatElement(key,label,extraClass,price,meta){
-        let finalPrice = price;
+
+function makeSeatElement(key,label,extraClass,price,meta){
+  let finalPrice = price;
   let finalClass = extraClass;
   let saleAllowed = true;
 
@@ -488,33 +481,37 @@ function applySeanceConfig(meta) {
     if (cfg.class) finalClass = cfg.class;
     if (cfg.sale === false) saleAllowed = false;
   }
-      const btn = document.createElement("button");
-     btn.dataset.key = key; 
-btn.type = "button";
-btn.textContent = label;
-btn.className = "seat" + (finalClass ? " " + finalClass : "");
-btn.dataset.price = finalPrice;
 
-// 🎨 APPLY COLOR FROM SEANCE
-if (cfg && cfg.color) {
-  btn.style.background = cfg.color;
-  btn.style.color = "#fff";
+  const btn = document.createElement("button");
+  btn.dataset.key = key;
+  btn.type = "button";
+  btn.textContent = label;
+  btn.className = "seat" + (finalClass ? " " + finalClass : "");
+  btn.dataset.price = finalPrice;
+
+  // 🎨 APPLY COLOR FROM SEANCE
+  if (cfg && cfg.color) {
+    btn.style.background = cfg.color;
+    btn.style.color = "#fff";
+  }
+
+  if (takenSeats.has(key)){
+    btn.classList.add("seat--sold");
+    btn.disabled = true;
+  } else if (window.holdSeats && window.holdSeats.has(key)) {
+    btn.classList.add("seat--hold");
+    btn.disabled = true;
+  }
+
+  if (!saleAllowed) {
+    btn.classList.add("seat--no-sale");
+    btn.disabled = true;
+  }
+
+  btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
+  return btn;
 }
-
-      if (takenSeats.has(key)){
-        btn.classList.add("seat--taken");
-        btn.disabled = true;
-      }
-
-if (!saleAllowed) {
-  btn.classList.add("seat--no-sale");
-  btn.disabled = true;
-}
-     
-      btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
-      return btn;
-    }
-
+    
     const selected = new Map(); // key -> { meta, price }
 
     function onSeatClick(btn, key, meta, price){
@@ -827,13 +824,17 @@ setInterval(async () => {
     const key = btn.dataset?.key;
     if (!key) return;
 
-    if (takenSeats.has(key)) {
-      btn.classList.add("seat--taken");
-      btn.disabled = true;
-    } else {
-      btn.classList.remove("seat--taken");
-      btn.disabled = false;
-    }
+    btn.classList.remove("seat--sold", "seat--hold", "seat--taken");
+
+if (takenSeats.has(key)) {
+  btn.classList.add("seat--sold");
+  btn.disabled = true;
+} else if (window.holdSeats && window.holdSeats.has(key)) {
+  btn.classList.add("seat--hold");
+  btn.disabled = true;
+} else {
+  btn.disabled = false;
+}
   });
 
 }, 3000);
