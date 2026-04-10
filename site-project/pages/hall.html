@@ -52,8 +52,27 @@
   cursor:not-allowed;
 }
 
-    .seat--selected{background:#2563eb !important;color:#fff;border-color:#2563eb;}
-    .seat--taken{background:#9ca3af !important;color:#fff;cursor:not-allowed;}
+    /* ✅ ПРОДАНО */
+.seat--taken,
+.seat--sold {
+  background: #bfc5ce !important;
+  color: #fff !important;
+  border-color: #bfc5ce !important;
+}
+
+/* ✅ ВРЕМЕННАЯ БРОНЬ 15 МИН */
+.seat--blocked,
+.seat--hold {
+  background: #d32f2f !important;
+  color: #fff !important;
+  border-color: #d32f2f !important;
+}
+
+/* ✅ ВЫБРАНО В КОРЗИНУ */
+.seat--selected {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 1px;
+}
 
     .seat--gap-right{margin-right:16px;}
     .amphi-gap{width:24px;flex:0 0 24px;}
