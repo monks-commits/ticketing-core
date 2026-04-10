@@ -1434,7 +1434,8 @@ seatsRow.appendChild(
     }
 
     // ---- кнопки ----
-    document.getElementById("btn-clear")?.addEventListener("click", ()=>{
+
+document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
 
   const keys = Array.from(selected.keys());
 
@@ -1444,8 +1445,25 @@ seatsRow.appendChild(
   }
 
   for (const k of keys){
+    try {
+      const seatsFilter = encodeURIComponent(JSON.stringify([k]));
 
-    // снимаем только локальный резерв
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&seats=cs.${seatsFilter}`,
+        {
+          method: "DELETE",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+    } catch (e) {
+      console.warn("clear hold error", e);
+    }
+
+    takenSeatsBooking.delete(k);
+
     if (CASH_PATCH[k]?.status === "reserved"){
       delete CASH_PATCH[k];
     }
@@ -1455,8 +1473,8 @@ seatsRow.appendChild(
 
   clearSelection();
   reapplyAllStatuses();
-
 });
+    
     document.getElementById("btn-reserve")?.addEventListener("click", ()=> applyStatusToSelectedLocal("reserved"));
     document.getElementById("btn-sell")?.addEventListener("click", ()=> sellAndPrintOffline());
     document.getElementById("btn-sync")?.addEventListener("click", ()=> syncQueue());
