@@ -988,65 +988,107 @@ async function applyStatusToSelectedLocal(status){
   const keys = Array.from(selected.keys());
   if (!keys.length) return;
 
-  // если переводим в долгий резерв — сначала убираем временный hold
-  if (status === "reserved") {
-    try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&select=id,seats`,
+  // оставляем старое поведение для не-reserved, если вдруг понадобится
+  if (status !== "reserved") {
+    for (const k of keys){
+      if (takenSeatsOnline.has(k)) continue;
+      CASH_PATCH[k] = { status, ts: Date.now() };
+    }
+
+    saveCashPatch(CASH_PATCH);
+
+    pushCashLog({
+      ts: Date.now(),
+      type: String(status || "").toUpperCase(),
+      seats: keys,
+      total: Array.from(selected.values()).reduce((s,x)=>s+(x.price||0),0)
+    });
+
+    clearSelection();
+    reapplyAllStatuses();
+    return;
+  }
+
+  try {
+    // 1. забираем все bookings по сеансу
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=id,seats,status`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const rows = await res.json();
+
+    // 2. удаляем старые hold/reserved по выбранным местам
+    for (const row of rows || []) {
+      const seats = Array.isArray(row.seats) ? row.seats.map(s => String(s).trim()) : [];
+      const hasSelected = seats.some(s => keys.includes(s));
+      if (!hasSelected) continue;
+
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
         {
+          method: "DELETE",
           headers: {
             apikey: SUPABASE_ANON_KEY,
             Authorization: `Bearer ${SUPABASE_ANON_KEY}`
           }
         }
       );
-
-      const rows = await res.json();
-
-      for (const row of rows || []) {
-        const seats = Array.isArray(row.seats) ? row.seats.map(s => String(s).trim()) : [];
-        const hasSelected = seats.some(s => keys.includes(s));
-        if (!hasSelected) continue;
-
-        await fetch(
-          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
-          {
-            method: "DELETE",
-            headers: {
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-            }
-          }
-        );
-      }
-
-      // сразу локально убираем эти места из временного hold
-      for (const k of keys){
-        takenSeatsBooking.delete(k);
-      }
-
-    } catch(e){
-      console.warn("reserve hold delete error", e);
     }
+
+    // 3. создаём новый ДОЛГИЙ reserve
+    for (const k of keys) {
+      await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({
+          seance_id: SEANCE_ID,
+          show_slug: showSlug || "cash",
+          seats: [k],
+          status: "reserved",
+          amount: 0,
+          order_id: `reserved-${Date.now()}-${Math.random().toString(16).slice(2,8)}`
+        })
+      });
+
+      // локально тоже сразу фиксируем
+      takenSeatsBooking.delete(k);
+      if (typeof reservedSeatsOnline !== "undefined") {
+        reservedSeatsOnline.add(k);
+      }
+      CASH_PATCH[k] = { status: "reserved", ts: Date.now() };
+    }
+
+    saveCashPatch(CASH_PATCH);
+
+    pushCashLog({
+      ts: Date.now(),
+      type: "RESERVE",
+      seats: keys,
+      total: Array.from(selected.values()).reduce((s,x)=>s+(x.price||0),0)
+    });
+
+    clearSelection();
+
+    if (typeof loadBookingSeatsOnline === "function") {
+      await loadBookingSeatsOnline();
+    }
+
+    reapplyAllStatuses();
+
+  } catch(e){
+    console.warn("applyStatusToSelectedLocal reserved error", e);
   }
-
-  // записываем долгий резерв
-  for (const k of keys){
-    if (takenSeatsOnline.has(k)) continue;
-    CASH_PATCH[k] = { status, ts: Date.now() };
-  }
-
-  saveCashPatch(CASH_PATCH);
-
-  pushCashLog({
-    ts: Date.now(),
-    type: status === "reserved" ? "RESERVE" : String(status || "").toUpperCase(),
-    seats: keys,
-    total: Array.from(selected.values()).reduce((s,x)=>s+(x.price||0),0)
-  });
-
-  clearSelection();
-  reapplyAllStatuses();
 }
     
     // ---- op_id generator ----
