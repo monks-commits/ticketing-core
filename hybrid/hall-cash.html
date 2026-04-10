@@ -771,13 +771,15 @@ async function loadShowMeta(){
 
     function getEffectiveStatus(key){
 
-  // продано
+  // продано — всегда выше всего
   if (takenSeatsOnline.has(key)) return "sold";
 
-  // временный hold 15 минут
+  // долгий резерв выше временного hold
+  if (CASH_PATCH[key]?.status === "reserved") return "reserved";
+
+  // временная бронь 15 минут
   if (takenSeatsBooking.has(key)) return "hold";
 
-  // локальные статусы кассы
   return CASH_PATCH[key]?.status || "free";
 }
     function applyStatusClass(btn, status){
@@ -910,6 +912,8 @@ function makeSeatElement(key,label,extraClass,price,meta){
       }
 
       // сразу показываем в кассе как hold
+
+      
       takenSeatsBooking.add(key);
       selected.set(key, { price: finalPrice });
 
@@ -983,11 +987,11 @@ async function applyStatusToSelectedLocal(status){
   const keys = Array.from(selected.keys());
   if (!keys.length) return;
 
-  // 🔥 если переводим в долгий резерв — сразу убираем hold
+  // если переводим в долгий резерв — сначала убираем временный hold
   if (status === "reserved") {
     try {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold`,
+        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&select=id,seats`,
         {
           headers: {
             apikey: SUPABASE_ANON_KEY,
@@ -998,14 +1002,13 @@ async function applyStatusToSelectedLocal(status){
 
       const rows = await res.json();
 
-      for (const row of rows) {
-        const seats = Array.isArray(row.seats) ? row.seats : [];
-
-        const hasSelected = seats.some(s => keys.includes(String(s).trim()));
+      for (const row of rows || []) {
+        const seats = Array.isArray(row.seats) ? row.seats.map(s => String(s).trim()) : [];
+        const hasSelected = seats.some(s => keys.includes(s));
         if (!hasSelected) continue;
 
         await fetch(
-          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${row.id}`,
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
           {
             method: "DELETE",
             headers: {
@@ -1014,10 +1017,11 @@ async function applyStatusToSelectedLocal(status){
             }
           }
         );
+      }
 
-        for (const s of seats){
-          takenSeatsBooking.delete(String(s).trim());
-        }
+      // сразу локально убираем эти места из временного hold
+      for (const k of keys){
+        takenSeatsBooking.delete(k);
       }
 
     } catch(e){
@@ -1025,7 +1029,7 @@ async function applyStatusToSelectedLocal(status){
     }
   }
 
-  // 🔥 записываем долгий резерв в локальный patch
+  // записываем долгий резерв
   for (const k of keys){
     if (takenSeatsOnline.has(k)) continue;
     CASH_PATCH[k] = { status, ts: Date.now() };
@@ -1043,7 +1047,6 @@ async function applyStatusToSelectedLocal(status){
   clearSelection();
   reapplyAllStatuses();
 }
-
     
     // ---- op_id generator ----
     function genOpId(){
