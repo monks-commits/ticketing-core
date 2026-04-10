@@ -310,6 +310,7 @@ async function loadBookingSeats() {
 
     const nowIso = new Date().toISOString();
 
+    // очищаем только долгий reserve
     reservedSeats.clear();
 
     const res = await fetch(
@@ -332,7 +333,7 @@ async function loadBookingSeats() {
 
       const arr = Array.isArray(b.seats) ? b.seats : [];
 
-      // 🔴 временный HOLD
+      // 🔴 временный hold
       if (b.status === "hold") {
         if (b.expires_at && b.expires_at <= nowIso) continue;
 
@@ -343,7 +344,7 @@ async function loadBookingSeats() {
         }
       }
 
-      // 🟠 долгий RESERVE
+      // 🟠 долгий reserve
       if (b.status === "reserved") {
         for (const seat of arr) {
           if (seat) {
@@ -484,16 +485,19 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.className = "seat" + (finalClass ? " " + finalClass : "");
   btn.dataset.price = finalPrice;
 
+  // 🎨 APPLY COLOR FROM SEANCE
   if (cfg && cfg.color) {
     btn.style.background = cfg.color;
     btn.style.color = "#fff";
   }
 
+  // сначала sold/hold
   if (takenSeats.has(key)){
     btn.classList.add("seat--hold");
     btn.disabled = true;
   }
 
+  // reserve должен быть сильнее hold
   if (reservedSeats.has(key)){
     btn.classList.remove("seat--hold");
     btn.classList.add("seat--reserved");
