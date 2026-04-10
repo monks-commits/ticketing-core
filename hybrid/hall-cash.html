@@ -771,20 +771,38 @@ async function loadShowMeta(){
 
     function getEffectiveStatus(key){
 
-  if (takenSeatsOnline.has(key)) return "blocked";
+  if (takenSeatsOnline.has(key)) return "sold";
 
-  if (takenSeatsBooking.has(key)) return "blocked";
+  if (takenSeatsBooking.has(key)) return "hold";
 
   return CASH_PATCH[key]?.status || "free";
 }
-
     function applyStatusClass(btn, status){
-      btn.classList.remove("seat--sold","seat--reserved","seat--blocked");
-      btn.disabled = false;
-      if (status === "sold"){ btn.classList.add("seat--sold"); btn.disabled = true; }
-      if (status === "reserved"){ btn.classList.add("seat--reserved"); }
-      if (status === "blocked"){ btn.classList.add("seat--blocked"); btn.disabled = true; }
-    }
+  btn.classList.remove("seat--sold","seat--reserved","seat--blocked","seat--hold");
+  btn.disabled = false;
+
+  if (status === "sold"){
+    btn.classList.add("seat--sold");
+    btn.disabled = true;
+    return;
+  }
+
+  if (status === "hold"){
+    btn.classList.add("seat--hold");
+    btn.disabled = true;
+    return;
+  }
+
+  if (status === "reserved"){
+    btn.classList.add("seat--reserved");
+    return;
+  }
+
+  if (status === "blocked"){
+    btn.classList.add("seat--hold");
+    btn.disabled = true;
+  }
+}
 
     function applySeanceConfig(meta){
   if (!SEANCE_CONFIG) return null;
