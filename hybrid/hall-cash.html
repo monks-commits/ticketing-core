@@ -810,19 +810,18 @@ function makeSeatElement(key,label,extraClass,price,meta){
     if (cfg.sale === false) saleAllowed = false;
   }
 
- const btn = document.createElement("button");
-btn.type = "button";
-btn.textContent = label;
-btn.className = "seat" + (finalClass ? " " + finalClass : "");
-btn.dataset.key = key;
-btn.dataset.price = String(finalPrice);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = label;
+  btn.className = "seat" + (finalClass ? " " + finalClass : "");
+  btn.dataset.key = key;
+  btn.dataset.price = String(finalPrice);
 
-// 🎨 APPLY COLOR FROM SEANCE (cash)
-if (cfg && cfg.color) {
-  btn.style.background = cfg.color;
-  btn.style.color = "#fff";
-}
-
+  // 🎨 APPLY COLOR FROM SEANCE (cash)
+  if (cfg && cfg.color) {
+    btn.style.background = cfg.color;
+    btn.style.color = "#fff";
+  }
 
   applyStatusClass(btn, getEffectiveStatus(key));
 
@@ -831,18 +830,58 @@ if (cfg && cfg.color) {
     btn.disabled = true;
   }
 
-  btn.addEventListener("click", ()=>{
+  btn.addEventListener("click", async ()=>{
+
     const st = getEffectiveStatus(key);
     if (st === "sold" || st === "blocked" || !saleAllowed) return;
 
+    // повторный клик — снимаем только выбор из корзины
+    // временный hold пока не удаляем
     if (btn.classList.contains("seat--selected")){
       btn.classList.remove("seat--selected");
       selected.delete(key);
-    } else {
+      updateSummary();
+      return;
+    }
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({
+          seance_id: SEANCE_ID,
+          show_slug: showSlug || "cash",
+          seats: [key],
+          status: "hold",
+          amount: Number(finalPrice || 0),
+          order_id: `cash-hold-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("CASH HOLD ERROR:", data);
+        return;
+      }
+
+      // чтобы касса сразу тоже видела hold
+      takenSeatsBooking.add(key);
+
+      // оставляем место в корзине для продажи
       btn.classList.add("seat--selected");
       selected.set(key, { price: finalPrice });
+      updateSummary();
+
+    } catch(e){
+      console.error("cash booking error", e);
     }
-    updateSummary();
   });
 
   seatButtons.set(key, btn);
