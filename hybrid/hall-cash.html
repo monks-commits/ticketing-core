@@ -874,13 +874,26 @@ function makeSeatElement(key,label,extraClass,price,meta){
 
     const st = getEffectiveStatus(key);
 
-    // главное: hold тоже запрещает клик
+    // проданные и 15-минутный hold не трогаем
     if (st === "sold" || st === "hold" || st === "blocked" || !saleAllowed) return;
 
-    // повторный клик по своему выбранному месту = снять только выбор из корзины
-    if (btn.classList.contains("seat--selected")){
-      btn.classList.remove("seat--selected");
+    // 🟠 долгий reserve: выбираем только для снятия
+    if (st === "reserved") {
+      if (selected.has(key)) {
+        selected.delete(key);
+        btn.classList.remove("seat--selected");
+      } else {
+        selected.set(key, { price: finalPrice, reservedRemove: true });
+        btn.classList.add("seat--selected");
+      }
+      updateSummary();
+      return;
+    }
+
+    // обычное свободное место: повторный клик снимает только выбор
+    if (selected.has(key)){
       selected.delete(key);
+      btn.classList.remove("seat--selected");
       updateSummary();
       return;
     }
@@ -912,9 +925,6 @@ function makeSeatElement(key,label,extraClass,price,meta){
         return;
       }
 
-      // сразу показываем в кассе как hold
-
-      
       takenSeatsBooking.add(key);
       selected.set(key, { price: finalPrice });
 
@@ -930,7 +940,6 @@ function makeSeatElement(key,label,extraClass,price,meta){
   seatButtons.set(key, btn);
   return btn;
 }
-
     
     function clearSelection(){
       for (const k of selected.keys()){
