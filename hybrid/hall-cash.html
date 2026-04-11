@@ -1614,53 +1614,86 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
         headers: {
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
+        },
+        cache: "no-store"
       }
     );
 
     const rows = await res.json();
 
-    for (const key of keys) {
-      for (const row of rows || []) {
-        if (row.status !== "hold" && row.status !== "reserved") continue;
+    for (const row of rows || []) {
+      if (row.status !== "hold" && row.status !== "reserved") continue;
 
-        const seats = Array.isArray(row.seats)
-          ? row.seats.map(s => String(s).trim())
-          : [];
+      const seats = Array.isArray(row.seats)
+        ? row.seats.map(s => String(s).trim())
+        : [];
 
-        if (!seats.includes(key)) continue;
+      const matched = seats.filter(s => keys.includes(s));
+      if (!matched.length) continue;
 
-        await fetch(
+      const seatsLeft = seats.filter(s => !keys.includes(s));
+
+      let resp;
+
+      if (!seatsLeft.length) {
+        resp = await fetch(
           `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
           {
             method: "DELETE",
             headers: {
               apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              Prefer: "return=representation"
             }
+          }
+        );
+      } else {
+        resp = await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
+          {
+            method: "PATCH",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify({
+              seats: seatsLeft
+            })
           }
         );
       }
 
-      delete CASH_PATCH[key];
-      takenSeatsBooking.delete(key);
-      if (typeof reservedSeatsOnline !== "undefined") {
-        reservedSeatsOnline.delete(key);
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.warn("btn-clear DB error:", row.id, resp.status, txt);
+        alert(`Не вдалося зняти резерв. booking id=${row.id}, HTTP ${resp.status}`);
+        return;
       }
     }
 
+    for (const k of keys){
+      delete CASH_PATCH[k];
+      takenSeatsBooking.delete(k);
+      if (typeof reservedSeatsOnline !== "undefined") {
+        reservedSeatsOnline.delete(k);
+      }
+    }
+
+    saveCashPatch(CASH_PATCH);
+
+    await loadBookingSeatsOnline();
+    await loadTakenSeatsOnline();
+
+    clearSelection();
+    reapplyAllStatuses();
+    updateSummary();
+
   } catch(e){
     console.warn("clear bookings error", e);
+    alert("Помилка при знятті резерву. Дивись console.");
   }
-
-  saveCashPatch(CASH_PATCH);
-
-  await loadBookingSeatsOnline();
-  await loadTakenSeatsOnline();
-
-  clearSelection();
-  reapplyAllStatuses();
-  updateSummary();
 });
     
     document.getElementById("btn-reserve")?.addEventListener("click", ()=> applyStatusToSelectedLocal("reserved"));
