@@ -857,6 +857,10 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.className = "seat" + (finalClass ? " " + finalClass : "");
   btn.dataset.key = key;
   btn.dataset.price = String(finalPrice);
+btn.dataset.baseBg = (cfg && cfg.color) ? cfg.color : "";
+btn.dataset.baseColor = (cfg && cfg.color) ? "#fff" : "";
+
+  
 
   if (cfg && cfg.color) {
     btn.style.background = cfg.color;
