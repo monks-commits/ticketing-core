@@ -1001,7 +1001,7 @@ function makeSeatElement(key,label,extraClass,price,meta){
         source: "hall-cash",
         type: "basket:update",
         payload: {
-          seats: Array.from(selected.keys()),
+          seats: Array.from(selected.keys()), 
           total
         }
       },
