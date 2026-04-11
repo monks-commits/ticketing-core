@@ -773,7 +773,7 @@ btn.addEventListener("click", async () => {
 
   try {
 
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, { 
       method: "POST",
       headers: {
         apikey: SUPABASE_ANON_KEY,
