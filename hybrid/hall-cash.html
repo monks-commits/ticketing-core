@@ -932,6 +932,7 @@ btn.dataset.baseColor = (cfg && cfg.color) ? "#fff" : "";
   const btnSell = document.getElementById("btn-sell");
   const btnRes  = document.getElementById("btn-reserve");
   const btnClear = document.getElementById("btn-clear");
+  if (btnClear) btnClear.disabled = false;   
 
   const entries = Array.from(selected.entries());
   const keys = entries.map(([k]) => k);
