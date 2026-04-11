@@ -870,14 +870,14 @@ function makeSeatElement(key,label,extraClass,price,meta){
     btn.disabled = true;
   }
 
-  btn.addEventListener("click", async ()=>{
+  btn.addEventListener("click", ()=>{
 
     const st = getEffectiveStatus(key);
 
-    // проданные и 15-минутный hold не трогаем
+    // проданные и чужой временный hold не трогаем
     if (st === "sold" || st === "hold" || st === "blocked" || !saleAllowed) return;
 
-    // 🟠 долгий reserve: выбираем только для снятия
+    // оранжевый reserve: выбираем только для снятия
     if (st === "reserved") {
       if (selected.has(key)) {
         selected.delete(key);
@@ -890,51 +890,17 @@ function makeSeatElement(key,label,extraClass,price,meta){
       return;
     }
 
-    // обычное свободное место: повторный клик снимает только выбор
-    if (selected.has(key)){
+    // обычное свободное место в кассе:
+    // просто выбор в корзину, БЕЗ hold в bookings
+    if (selected.has(key)) {
       selected.delete(key);
       btn.classList.remove("seat--selected");
-      updateSummary();
-      return;
-    }
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify({
-          seance_id: SEANCE_ID,
-          show_slug: showSlug || "cash",
-          seats: [key],
-          status: "hold",
-          amount: Number(finalPrice || 0),
-          order_id: `cash-hold-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
-          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error("CASH HOLD ERROR:", data);
-        return;
-      }
-
-      takenSeatsBooking.add(key);
+    } else {
       selected.set(key, { price: finalPrice });
-
-      btn.classList.remove("seat--selected");
-      applyStatusClass(btn, "hold");
-      updateSummary();
-
-    } catch(e){
-      console.error("cash booking error", e);
+      btn.classList.add("seat--selected");
     }
+
+    updateSummary();
   });
 
   seatButtons.set(key, btn);
