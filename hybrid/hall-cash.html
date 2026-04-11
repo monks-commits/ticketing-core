@@ -1273,8 +1273,16 @@ async function applyStatusToSelectedLocal(status){
 
 async function sellAndPrintOffline(){
 
-  const keys = Array.from(selected.keys());
+  const entries = Array.from(selected.entries());
+  const keys = entries.map(([k]) => k);
+
   if (!keys.length) return;
+
+  // ❌ нельзя продавать места, выбранные для снятия резерва
+  if (entries.some(([, v]) => v?.reservedRemove === true)) {
+    alert("Спочатку зніміть резерв кнопкою «Очистити - скасувати вибір - зняти резерв».");
+    return;
+  }
 
   if (!SEANCE_ID){
     alert("Немає seance_id");
@@ -1283,7 +1291,6 @@ async function sellAndPrintOffline(){
 
   const safeShowSlug = showSlug || "test";
 
-  // --- цены ---
   const prices = {};
   let total = 0;
 
@@ -1293,7 +1300,6 @@ async function sellAndPrintOffline(){
     total += price;
   }
 
-  // --- операция ---
   const op_id = genOpId();
 
   const op = {
@@ -1307,7 +1313,6 @@ async function sellAndPrintOffline(){
     sold_at: new Date().toISOString()
   };
 
-  // --- очередь ---
   const queue = loadQueue();
   queue.push({
     op_id,
@@ -1315,17 +1320,14 @@ async function sellAndPrintOffline(){
   });
   saveQueue(queue);
 
-  // --- локальная блокировка ---
   for (const k of keys){
     if (takenSeatsOnline?.has(k)) continue;
     CASH_PATCH[k] = { status: "sold", ts: Date.now(), op_id };
   }
   saveCashPatch(CASH_PATCH);
 
-  // --- заказ ---
   const order_id = `CASH-${SEANCE_ID}-${op_id}`;
 
-  // 🔥 ВАЖНО: tickets существует ДО печати
   const tickets = keys.map(k => ({
     op_id,
     order_id,
@@ -1335,7 +1337,6 @@ async function sellAndPrintOffline(){
     price: prices[k] || 0
   }));
 
-  // --- лог ---
   pushCashLog({
     ts: Date.now(),
     type: "sale",
@@ -1344,7 +1345,6 @@ async function sellAndPrintOffline(){
     tickets
   });
 
-  // --- UI ---
   if (typeof reapplyAllStatuses === "function"){
     reapplyAllStatuses();
   }
@@ -1352,7 +1352,6 @@ async function sellAndPrintOffline(){
     clearSelection();
   }
 
-  // --- печать ---
   try{
     if (typeof openPrintWindowOffline === "function"){
       await openPrintWindowOffline(tickets, {
@@ -1363,7 +1362,6 @@ async function sellAndPrintOffline(){
     console.warn("print error", e);
   }
 
-  // --- SYNC ---
   try{
     if (navigator.onLine){
       const q = loadQueue();
