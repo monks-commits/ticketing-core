@@ -1605,7 +1605,7 @@ seatsRow.appendChild(
 
 document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
 
-  const keys = Array.from(selected.keys());
+  const keys = Array.from(selected.keys()).map(k => String(k).trim());
 
   if (!keys.length){
     clearSelection();
@@ -1630,10 +1630,15 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
         ? row.seats.map(s => String(s).trim())
         : [];
 
-      const onlySelected = seats.filter(s => !keys.includes(s));
+      const hasSelected = seats.some(s => keys.includes(s));
+      if (!hasSelected) continue;
 
-      // если вся запись состояла только из выбранных мест → удалить
-      if (!onlySelected.length) {
+      const seatsLeft = seats.filter(s => !keys.includes(s));
+
+      // удаляем только hold/reserved
+      if (row.status !== "hold" && row.status !== "reserved") continue;
+
+      if (seatsLeft.length === 0) {
         await fetch(
           `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
           {
@@ -1645,7 +1650,6 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
           }
         );
       } else {
-        // если в записи были и другие места → обновляем массив seats
         await fetch(
           `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
           {
@@ -1656,7 +1660,7 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              seats: onlySelected
+              seats: seatsLeft
             })
           }
         );
@@ -1670,13 +1674,18 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
   for (const k of keys){
     delete CASH_PATCH[k];
     takenSeatsBooking.delete(k);
+    if (typeof reservedSeatsOnline !== "undefined") {
+      reservedSeatsOnline.delete(k);
+    }
   }
 
   saveCashPatch(CASH_PATCH);
-
   clearSelection();
 
-  await loadBookingSeatsOnline();
+  if (typeof loadBookingSeatsOnline === "function") {
+    await loadBookingSeatsOnline();
+  }
+
   reapplyAllStatuses();
 });
     
