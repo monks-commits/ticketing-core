@@ -1601,7 +1601,6 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
 
   const keys = Array.from(selected.keys()).map(k => String(k).trim());
 
-  // просто снять синие выделения
   if (!keys.length){
     clearSelection();
     return;
@@ -1620,20 +1619,16 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
 
     const rows = await res.json();
 
-    for (const row of rows || []) {
-      if (row.status !== "hold" && row.status !== "reserved") continue;
+    for (const key of keys) {
+      for (const row of rows || []) {
+        if (row.status !== "hold" && row.status !== "reserved") continue;
 
-      const seats = Array.isArray(row.seats)
-        ? row.seats.map(s => String(s).trim())
-        : [];
+        const seats = Array.isArray(row.seats)
+          ? row.seats.map(s => String(s).trim())
+          : [];
 
-      const matched = seats.filter(s => keys.includes(s));
-      if (!matched.length) continue;
+        if (!seats.includes(key)) continue;
 
-      const seatsLeft = seats.filter(s => !keys.includes(s));
-
-      // если мест больше не осталось — удалить строку
-      if (!seatsLeft.length) {
         await fetch(
           `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
           {
@@ -1644,33 +1639,27 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
             }
           }
         );
-      } else {
-        await fetch(
-          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
-          {
-            method: "PATCH",
-            headers: {
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              seats: seatsLeft
-            })
-          }
-        );
+      }
+
+      delete CASH_PATCH[key];
+      takenSeatsBooking.delete(key);
+      if (typeof reservedSeatsOnline !== "undefined") {
+        reservedSeatsOnline.delete(key);
       }
     }
-
-    // 🔥 ПОЛНАЯ ПЕРЕЗАГРУЗКА booking-статусов
-    await loadBookingSeatsOnline();
 
   } catch(e){
     console.warn("clear bookings error", e);
   }
 
+  saveCashPatch(CASH_PATCH);
+
+  await loadBookingSeatsOnline();
+  await loadTakenSeatsOnline();
+
   clearSelection();
   reapplyAllStatuses();
+  updateSummary();
 });
 
     
