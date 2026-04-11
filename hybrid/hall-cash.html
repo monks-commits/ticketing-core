@@ -956,45 +956,44 @@ function makeSeatElement(key,label,extraClass,price,meta){
       }
     }
 
-    function updateSummary(){
+   function updateSummary(){
   const placesEl = document.getElementById("summary-places");
   const amountEl = document.getElementById("summary-amount");
   const btnSell = document.getElementById("btn-sell");
   const btnRes  = document.getElementById("btn-reserve");
   const btnClear = document.getElementById("btn-clear");
 
-  const keys = Array.from(selected.keys());
+  const entries = Array.from(selected.entries());
+  const keys = entries.map(([k]) => k);
 
   if (!keys.length){
-    if(placesEl) placesEl.textContent = "Обрані місця: немає";
-    if(amountEl) amountEl.textContent = "Сума: 0 грн";
-    if(btnSell) btnSell.disabled = true;
-    if(btnRes)  btnRes.disabled  = true;
-    if(btnClear) btnClear.disabled = false;
+    if (placesEl) placesEl.textContent = "Обрані місця: немає";
+    if (amountEl) amountEl.textContent = "Сума: 0 грн";
+    if (btnSell) btnSell.disabled = true;
+    if (btnRes) btnRes.disabled = true;
+    if (btnClear) btnClear.disabled = false;
     return;
   }
 
-  const selectedItems = Array.from(selected.entries());
-  const removeMode = selectedItems.some(([, v]) => v?.reservedRemove === true);
-
+  const removeMode = entries.some(([, v]) => v?.reservedRemove === true);
   const placesStr = keys.map(seatKeyToHuman).join("; ");
 
   if (removeMode) {
-    if(placesEl) placesEl.textContent = "До зняття резерву: " + placesStr;
-    if(amountEl) amountEl.textContent = "Сума: 0 грн";
-    if(btnSell) btnSell.disabled = true;
-    if(btnRes)  btnRes.disabled  = true;
-    if(btnClear) btnClear.disabled = false;
+    if (placesEl) placesEl.textContent = "До зняття резерву: " + placesStr;
+    if (amountEl) amountEl.textContent = "Сума: 0 грн";
+    if (btnSell) btnSell.disabled = true;
+    if (btnRes) btnRes.disabled = true;
+    if (btnClear) btnClear.disabled = false;
     return;
   }
 
-  const total = selectedItems.reduce((s, [,x]) => s + (x.price || 0), 0);
+  const total = entries.reduce((s, [,x]) => s + (x.price || 0), 0);
 
-  if(placesEl) placesEl.textContent = "Обрані місця: " + placesStr;
-  if(amountEl) amountEl.textContent = "Сума: " + total + " грн";
-  if(btnSell) btnSell.disabled = false;
-  if(btnRes)  btnRes.disabled  = false;
-  if(btnClear) btnClear.disabled = false;
+  if (placesEl) placesEl.textContent = "Обрані місця: " + placesStr;
+  if (amountEl) amountEl.textContent = "Сума: " + total + " грн";
+  if (btnSell) btnSell.disabled = false;
+  if (btnRes) btnRes.disabled = false;
+  if (btnClear) btnClear.disabled = false;
 
   if (window.parent && EMBED) {
     window.parent.postMessage(
