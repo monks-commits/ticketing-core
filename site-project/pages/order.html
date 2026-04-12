@@ -310,6 +310,11 @@ document.getElementById("btnBackHall")?.addEventListener("click", ()=>{
   if (seance) u.searchParams.set("seance", seance);
   if (title) u.searchParams.set("title", title);
 
+  if (seats.length) {
+    u.searchParams.set("seats", seats.join(","));
+    u.searchParams.set("prices", JSON.stringify(prices));
+  }
+
   location.href = u.toString();
 });
     
