@@ -192,7 +192,17 @@ async function loadTakenSeats(){
 const showSlug  = (qs.get("show")   || "").trim();
 const showTitle = (qs.get("title")  || "").trim() || showSlug || "Вистава";
 const SEANCE_ID = (qs.get("seance") || "").trim(); // ← ВАЖНО
+const returnSeats = (qs.get("seats") || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
 
+let returnPrices = {};
+try {
+  returnPrices = JSON.parse(qs.get("prices") || "{}");
+} catch(e) {
+  returnPrices = {};
+}
 
     document.getElementById("summary-show").textContent = "Вистава: " + (showTitle || "—");
 
