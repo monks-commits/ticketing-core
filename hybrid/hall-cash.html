@@ -1639,16 +1639,16 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
 
       // 2. удаляем строку по id
       const del = await fetch(
-        `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
-        {
-          method: "DELETE",
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            Prefer: "return=representation"
-          }
-        }
-      );
+  `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&seats=cs.%5B%22${encodeURIComponent(key)}%22%5D`,
+  {
+    method: "DELETE",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      Prefer: "return=representation"
+    }
+  }
+);
 
       if (!del.ok) {
         const txt = await del.text();
