@@ -866,6 +866,26 @@ if (takenSeats.has(key) || reservedSeats.has(key)) {
 
 updateSummary();
 
+// восстановить корзину после возврата из order.html
+if (returnSeats.length) {
+  for (const key of returnSeats) {
+    const btn = document.querySelector(`.seat[data-key="${key}"]`);
+    if (!btn) continue;
+
+    const price = Number(returnPrices[key] || btn.dataset.price || 0);
+
+    selected.set(key, {
+      meta: null,
+      price
+    });
+
+    btn.classList.add("seat--selected");
+  }
+
+  updateSummary();
+}
+     
+
 // 🔥 первичная загрузка занятых мест ПОСЛЕ рендера
 await loadTakenSeats();
 
