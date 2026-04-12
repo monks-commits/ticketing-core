@@ -1608,60 +1608,33 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
   }
 
   try {
-    for (const key of keys) {
-
-      // 1. ищем booking именно для этого места
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/bookings` +
-        `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-        `&status=in.(hold,reserved)` +
-        `&select=id,seats,status`,
-        {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-          },
-          cache: "no-store"
-        }
-      );
-
-      const rows = await res.json();
-
-      const row = (rows || []).find(r => {
-        const seats = Array.isArray(r.seats) ? r.seats.map(s => String(s).trim()) : [];
-        return seats.length === 1 && seats[0] === key;
-      });
-
-      if (!row) {
-        console.warn("btn-clear: booking row not found for", key);
-        continue;
+    const resp = await fetch(
+      `https://${PROJECT_REF}.functions.supabase.co/clear-booking-seat`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          seance_id: SEANCE_ID,
+          seats: keys
+        })
       }
+    );
 
-      // 2. удаляем строку по id
-      const del = await fetch(
-  `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&seats=cs.%5B%22${encodeURIComponent(key)}%22%5D`,
-  {
-    method: "DELETE",
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      Prefer: "return=representation"
+    const data = await resp.json();
+
+    if (!resp.ok || !data?.ok) {
+      console.warn("btn-clear function error", data);
+      alert("Не вдалося зняти резерв.");
+      return;
     }
-  }
-);
 
-      if (!del.ok) {
-        const txt = await del.text();
-        console.warn("btn-clear delete error", row.id, del.status, txt);
-        alert(`Не вдалося зняти резерв. booking id=${row.id}, HTTP ${del.status}`);
-        return;
-      }
-
-      delete CASH_PATCH[key];
-      takenSeatsBooking.delete(key);
-
+    for (const k of keys){
+      delete CASH_PATCH[k];
+      takenSeatsBooking.delete(k);
       if (typeof reservedSeatsOnline !== "undefined") {
-        reservedSeatsOnline.delete(key);
+        reservedSeatsOnline.delete(k);
       }
     }
 
@@ -1676,7 +1649,7 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
 
   } catch(e){
     console.warn("clear bookings error", e);
-    alert("Помилка при знятті резерву. Дивись console.");
+    alert("Помилка при знятті резерву.");
   }
 });
     document.getElementById("btn-reserve")?.addEventListener("click", ()=> applyStatusToSelectedLocal("reserved"));
