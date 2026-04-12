@@ -1,67 +1,323 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Замовлення квитків</title>
-  <link rel="stylesheet" href="../../demo/styles.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Підтвердження вибору</title>
+
+  <style>
+    body{
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:#f3f4f6;
+      color:#111827;
+    }
+
+    .wrap{
+      max-width:760px;
+      margin:40px auto;
+      padding:24px;
+      background:#fff;
+      border-radius:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    h1{
+      margin:0 0 24px;
+      font-size:28px;
+    }
+
+    .meta{
+      margin-bottom:18px;
+      font-size:16px;
+      color:#374151;
+    }
+
+    .seat-list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin:18px 0 24px;
+    }
+
+    .seat-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding:14px 16px;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      background:#f9fafb;
+    }
+
+    .seat-left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .seat-title{
+      font-weight:700;
+      font-size:16px;
+    }
+
+    .seat-price{
+      color:#374151;
+      font-size:14px;
+    }
+
+    .btn-remove{
+      width:36px;
+      height:36px;
+      border:none;
+      border-radius:999px;
+      background:#ef4444;
+      color:#fff;
+      font-size:22px;
+      line-height:1;
+      cursor:pointer;
+      flex:0 0 36px;
+    }
+
+    .btn-remove:hover{
+      opacity:.9;
+    }
+
+    .total{
+      font-size:20px;
+      font-weight:700;
+      margin:22px 0;
+    }
+
+    .actions{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .btn-pay,
+    .btn-clear{
+      border:none;
+      border-radius:14px;
+      padding:16px 18px;
+      font-size:18px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn-pay{
+      background:#22c55e;
+      color:#fff;
+    }
+
+    .btn-pay:disabled{
+      background:#9ca3af;
+      cursor:not-allowed;
+    }
+
+    .btn-clear{
+      background:#e5e7eb;
+      color:#111827;
+    }
+
+    .muted{
+      color:#6b7280;
+      font-size:14px;
+    }
+
+    .empty{
+      padding:18px;
+      border:1px dashed #d1d5db;
+      border-radius:14px;
+      color:#6b7280;
+      text-align:center;
+    }
+  </style>
 </head>
-
 <body>
-  <h1>Підтвердження вибору</h1>
+  <div class="wrap">
+    <h1>Підтвердження вибору</h1>
 
-  <div style="max-width:500px; display:grid; gap:12px;">
+    <div class="meta" id="eventTitle">Вистава: —</div>
+    <div class="meta" id="seanceInfo">Seance: —</div>
 
-    <div>
-      <div>Обрані місця:</div>
-      <div id="seats" style="font-weight:700;"></div>
+    <div id="seatList" class="seat-list"></div>
+
+    <div class="total" id="totalBox">Сума: 0 грн</div>
+
+    <div class="actions">
+      <button id="btnPay" class="btn-pay" disabled>Перейти до оплати</button>
+      <button id="btnClearAll" class="btn-clear">Очистити кошик</button>
     </div>
 
-    <div>
-      <div>Сума:</div>
-      <div id="amount" style="font-weight:700;"></div>
-    </div>
-
-    <button id="goPay" disabled>
-      Перейти до оплати
-    </button>
-
+    <p class="muted" style="margin-top:16px;">
+      Видалення місця зі списку одразу знімає його бронювання.
+    </p>
   </div>
 
   <script>
-    const p = new URLSearchParams(location.search);
+    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+    const PROJECT_REF = "fhusjlkneckbvnrdhbil";
 
-    const seatsRaw = p.get("seats") || "";
-    const amount = p.get("amount") || "0";
-    const seance = p.get("seance") || "";
-    const title = p.get("title") || "";
+    const qs = new URLSearchParams(location.search);
+    const title = (qs.get("title") || "Вистава").trim();
+    const seance = (qs.get("seance") || "").trim();
+    const showSlug = (qs.get("show") || "").trim();
 
-    const seats = seatsRaw
-      ? seatsRaw.split(",").map(s => s.trim()).filter(Boolean)
-      : [];
+    let seats = (qs.get("seats") || "")
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
 
-    document.getElementById("seats").textContent =
-      seats.length ? seats.join(", ") : "—";
+    let prices = {};
+    try {
+      prices = JSON.parse(decodeURIComponent(qs.get("prices") || "{}"));
+    } catch(e){
+      prices = {};
+    }
 
-    document.getElementById("amount").textContent =
-      Number(amount).toFixed(2) + " грн";
+    function seatKeyToHuman(k){
+      const m = String(k).match(/^([PAB])(\d+)-M(\d+)$/i);
+      if (!m) return k;
+      const prefix = m[1].toUpperCase();
+      const row = Number(m[2]);
+      const seat = Number(m[3]);
 
-    const btn = document.getElementById("goPay");
-    btn.disabled = !seats.length;
+      if (prefix === "P") return `Партер, ряд ${row}, місце ${seat}`;
+      if (prefix === "A") return row === 0 ? `Ложа А, місце ${seat}` : `Амфітеатр, ряд ${row}, місце ${seat}`;
+      if (prefix === "B") return row === 0 ? `Ложа Б, місце ${seat}` : `Балкон, ряд ${row}, місце ${seat}`;
+      return k;
+    }
 
-    btn.onclick = () => {
-      const url = new URL("./checkout.html", location.href);
+    function calcTotal(){
+      return seats.reduce((sum, key) => sum + Number(prices[key] || 0), 0);
+    }
 
-      url.searchParams.set("seats", seatsRaw);
-      url.searchParams.set("amount", amount);
-      url.searchParams.set("seance", seance);
+    function rebuildUrl(){
+      const params = new URLSearchParams();
 
-      if (title) {
-        url.searchParams.set("title", title);
+      if (showSlug) params.set("show", showSlug);
+      if (title) params.set("title", title);
+      if (seance) params.set("seance", seance);
+      if (seats.length) params.set("seats", seats.join(","));
+      params.set("prices", JSON.stringify(prices));
+      params.set("amount", String(calcTotal()));
+
+      history.replaceState(null, "", `order.html?${params.toString()}`);
+    }
+
+    async function clearSeatBooking(seatKey){
+      const resp = await fetch(
+        `https://${PROJECT_REF}.functions.supabase.co/clear-booking-seat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            seance_id: seance,
+            seats: [seatKey]
+          })
+        }
+      );
+
+      const data = await resp.json().catch(() => ({}));
+
+      if (!resp.ok || !data?.ok) {
+        throw new Error(data?.error || "Не вдалося зняти бронювання");
+      }
+    }
+
+    function render(){
+      document.getElementById("eventTitle").textContent = `Вистава: ${title || "—"}`;
+      document.getElementById("seanceInfo").textContent = `Seance: ${seance || "—"}`;
+
+      const seatList = document.getElementById("seatList");
+      const totalBox = document.getElementById("totalBox");
+      const btnPay = document.getElementById("btnPay");
+
+      if (!seats.length){
+        seatList.innerHTML = `<div class="empty">Кошик порожній</div>`;
+        totalBox.textContent = "Сума: 0 грн";
+        btnPay.disabled = true;
+        rebuildUrl();
+        return;
       }
 
-      location.href = url.toString();
-    };
+      seatList.innerHTML = seats.map(key => `
+        <div class="seat-item">
+          <div class="seat-left">
+            <div class="seat-title">${seatKeyToHuman(key)}</div>
+            <div class="seat-price">Ціна: ${Number(prices[key] || 0)} грн</div>
+          </div>
+          <button class="btn-remove" data-seat="${key}" title="Видалити">−</button>
+        </div>
+      `).join("");
+
+      totalBox.textContent = `Сума: ${calcTotal()} грн`;
+      btnPay.disabled = seats.length === 0;
+
+      seatList.querySelectorAll(".btn-remove").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const seatKey = btn.dataset.seat;
+          if (!seatKey) return;
+
+          btn.disabled = true;
+
+          try {
+            await clearSeatBooking(seatKey);
+
+            seats = seats.filter(s => s !== seatKey);
+            delete prices[seatKey];
+
+            render();
+
+          } catch(e){
+            alert("Не вдалося зняти місце з броні.");
+            btn.disabled = false;
+          }
+        });
+      });
+
+      rebuildUrl();
+    }
+
+    document.getElementById("btnClearAll").addEventListener("click", async () => {
+      if (!seats.length) return;
+
+      const copy = [...seats];
+
+      try {
+        for (const seatKey of copy){
+          await clearSeatBooking(seatKey);
+          delete prices[seatKey];
+        }
+
+        seats = [];
+        render();
+
+      } catch(e){
+        alert("Не вдалося очистити кошик.");
+      }
+    });
+
+    document.getElementById("btnPay").addEventListener("click", () => {
+      if (!seats.length) return;
+
+      const params = new URLSearchParams();
+      if (showSlug) params.set("show", showSlug);
+      if (title) params.set("title", title);
+      if (seance) params.set("seance", seance);
+      params.set("seats", seats.join(","));
+      params.set("prices", JSON.stringify(prices));
+      params.set("amount", String(calcTotal()));
+
+      location.href = `checkout.html?${params.toString()}`;
+    });
+
+    render();
   </script>
 </body>
 </html>
