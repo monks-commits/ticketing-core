@@ -1626,7 +1626,7 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
 
     if (!resp.ok || !data?.ok) {
       console.warn("btn-clear function error", data);
-      alert("Не вдалося зняти резерв.");
+      alert("Помилка при знятті резерву.");
       return;
     }
 
