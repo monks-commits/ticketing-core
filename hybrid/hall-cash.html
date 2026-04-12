@@ -1628,10 +1628,17 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
         ? row.seats.map(s => String(s).trim())
         : [];
 
-      const matched = seats.filter(s => keys.includes(s));
-      if (!matched.length) continue;
+      const normalizedKeys = keys.map(x => String(x).trim().toUpperCase());
 
-      const seatsLeft = seats.filter(s => !keys.includes(s));
+const matched = seats.filter(
+  s => normalizedKeys.includes(String(s).trim().toUpperCase())
+);
+
+if (!matched.length) continue;
+
+const seatsLeft = seats.filter(
+  s => !normalizedKeys.includes(String(s).trim().toUpperCase())
+);
 
       let resp;
 
