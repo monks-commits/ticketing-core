@@ -304,6 +304,16 @@
       }
     });
 
+document.getElementById("btnBackHall")?.addEventListener("click", ()=>{
+  const u = new URL("./hall.html", location.href);
+
+  if (seance) u.searchParams.set("seance", seance);
+  if (show) u.searchParams.set("show", show);
+  if (title) u.searchParams.set("title", title);
+
+  location.href = u.toString();
+});
+    
     document.getElementById("btnPay").addEventListener("click", () => {
       if (!seats.length) return;
 
