@@ -727,20 +727,28 @@ function makeSeatElement(key,label,extraClass,price,meta){
     }
 
     document.getElementById("go-order").addEventListener("click", ()=>{
-  const keys = Array.from(selected.keys());
-  if (!keys.length) return;
+  const entries = Array.from(selected.entries());
+  if (!entries.length) return;
 
-  const total = Array.from(selected.values())
-    .reduce((sum,x)=> sum + (x.price||0), 0);
+  const keys = entries.map(([k]) => k);
 
-  const seatsCsv = keys.join(",");
+  const prices = {};
+  let total = 0;
+
+  for (const [key, val] of entries) {
+    const p = Number(val.price || 0);
+    prices[key] = p;
+    total += p;
+  }
 
   const u = new URL("./order.html", location.href);
+
   u.searchParams.set("show", showSlug);
   u.searchParams.set("title", showTitle);
-  u.searchParams.set("seats", seatsCsv);
+  u.searchParams.set("seance", SEANCE_ID);
+  u.searchParams.set("seats", keys.join(","));
+  u.searchParams.set("prices", JSON.stringify(prices));
   u.searchParams.set("amount", String(total));
-  u.searchParams.set("seance", SEANCE_ID); // ← ВОТ ЭТО КРИТИЧНО
 
   location.href = u.toString();
 });
