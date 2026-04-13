@@ -776,7 +776,6 @@ function makeSeatElement(key,label,extraClass,price,meta){
   // 🔴 ДОБАВИТЬ ЭТО
   SEANCE_CONFIG = await loadSeanceConfig();
 
-const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
 const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
   cache: "no-store"
 });
