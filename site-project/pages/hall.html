@@ -378,7 +378,7 @@ async function loadSeanceConfig() {
     const url =
       `${SUPABASE_URL}/rest/v1/seances_pricing` +
       `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-      `&select=pricing,seat_overrides,hall`;
+      `&select=pricing,seat_overrides`;
 
     const res = await fetch(url, {
       headers: {
@@ -393,13 +393,12 @@ async function loadSeanceConfig() {
       if (rows && rows.length) {
         return {
           pricing: rows[0].pricing || {},
-          seat_overrides: rows[0].seat_overrides || {},
-          hall: rows[0].hall || "academy"
+          seat_overrides: rows[0].seat_overrides || {}
         };
       }
     }
   } catch (e) {
-    console.warn("loadSeanceConfig supabase error", e);
+    // молча падаем дальше
   }
 
   // 2️⃣ fallback на локальный файл
@@ -409,15 +408,8 @@ async function loadSeanceConfig() {
     });
 
     if (!res.ok) return null;
-
-    const localCfg = await res.json();
-    return {
-      pricing: localCfg?.pricing || {},
-      seat_overrides: localCfg?.seat_overrides || {},
-      hall: localCfg?.hall || "academy"
-    };
-  } catch (e) {
-    console.warn("loadSeanceConfig local fallback error", e);
+    return await res.json();
+  } catch {
     return null;
   }
 }
@@ -773,96 +765,160 @@ function makeSeatElement(key,label,extraClass,price,meta){
 
    (async ()=>{
 
-  // 1️⃣ конфиг сеанса из Supa
+  // 🔴 ДОБАВИТЬ ЭТО
   SEANCE_CONFIG = await loadSeanceConfig();
 
-  // 2️⃣ выбираем файл схемы
-  const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
+const res = await fetch("../../data/hall/academy.json");
+     
+const HALL = await res.json();
 
-  // 3️⃣ грузим JSON схемы
-  const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
-    cache: "no-store"
-  });
+renderHallFromJson(HALL);
 
-  if (!hallRes.ok) {
-    throw new Error(`Hall JSON not found: ${hallFile}.json (${hallRes.status})`);
+// ===== ПЕРВАЯ ЗАГРУЗКА =====
+await loadTakenSeats();
+await loadBookingSeats();
+
+// 🔥 ВЕШАЕМ КЛИКИ ОДИН РАЗ
+document.querySelectorAll(".seat").forEach(btn => {
+  const key = btn.dataset?.key;
+  if (!key) return;
+
+  // клик = создание hold
+
+btn.addEventListener("click", async () => {
+
+  if (takenSeats.has(key)) return;
+
+  try {
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, { 
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({
+        seance_id: SEANCE_ID,
+        show_slug: showSlug || "demo", // 🔥 ОБЯЗАТЕЛЬНО
+        seats: [key],
+        status: "hold",
+        amount: 0,
+        order_id: "hold-temp",
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("❌ HOLD ERROR:", data);
+      return;
+    }
+
+    console.log("✅ HOLD OK:", data);
+
+    // мгновенно блокируем
+    takenSeats.add(key);
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+
+  } catch (e) {
+    console.error("booking insert error", e);
   }
 
-  const HALL = await hallRes.json();
+});
 
-  // 4️⃣ рендер по типу зала
-  if (HALL?.type === "shevchenko_full") {
-    renderShevchenkoFull(HALL);
-  } else {
-    renderHallFromJson(HALL);
+  
+    
+  // применяем занятые
+  if (takenSeats.has(key)) {
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
   }
+});
 
-  // ===== ПЕРВАЯ ЗАГРУЗКА =====
+// ===== АВТООБНОВЛЕНИЕ =====
+setInterval(async () => {
+
   await loadTakenSeats();
   await loadBookingSeats();
 
-  // 🔥 ВЕШАЕМ КЛИКИ ОДИН РАЗ
   document.querySelectorAll(".seat").forEach(btn => {
     const key = btn.dataset?.key;
     if (!key) return;
 
-    btn.addEventListener("click", async () => {
-      if (takenSeats.has(key)) return;
+    btn.classList.remove("seat--taken", "seat--hold");
 
-      const price = Number(btn.dataset.price || 0);
+if (takenSeats.has(key) || reservedSeats.has(key)) {
+  btn.classList.add("seat--taken");
+  btn.disabled = true;
+} else if (holdSeats.has(key)) {
+  btn.classList.add("seat--hold");
+  btn.disabled = true;
+} else {
+  btn.disabled = false;
+}
+  });
 
-      if (selected.has(key)) {
-        selected.delete(key);
-        btn.classList.remove("seat--selected");
-      } else {
-        selected.set(key, {
-          meta: null,
-          price
-        });
-        btn.classList.add("seat--selected");
-      }
+}, 3000);
 
-      updateSummary();
+updateSummary();
+
+// восстановить корзину после возврата из order.html
+if (returnSeats.length) {
+  for (const key of returnSeats) {
+    const btn = document.querySelector(`.seat[data-key="${key}"]`);
+    if (!btn) continue;
+
+    const price = Number(returnPrices[key] || btn.dataset.price || 0);
+
+    selected.set(key, {
+      meta: null,
+      price
     });
 
-    // первичная окраска занятых
-    if (takenSeats.has(key) || reservedSeats.has(key)) {
-      btn.classList.add("seat--taken");
-      btn.disabled = true;
-    }
+    btn.classList.add("seat--selected");
+  }
 
-    if (holdSeats.has(key)) {
-      btn.classList.add("seat--hold");
+  updateSummary();
+}
+     
+
+// 🔥 первичная загрузка занятых мест ПОСЛЕ рендера
+await loadTakenSeats();
+
+// 🔥 сразу применяем к кнопкам
+document.querySelectorAll(".seat").forEach(btn => {
+  const key = btn.dataset?.key;
+  if (!key) return;
+
+  if (takenSeats.has(key)) {
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+  }
+});
+
+// 🔁 автообновление каждые 3 сек
+setInterval(async () => {
+
+  await loadTakenSeats();
+await loadBookingSeats();
+  
+  document.querySelectorAll(".seat").forEach(btn => {
+    const key = btn.dataset?.key;
+    if (!key) return;
+
+    if (takenSeats.has(key)) {
+      btn.classList.add("seat--taken");
       btn.disabled = true;
     }
   });
 
-  // 🔁 автообновление блокировок
-  setInterval(async () => {
-    await loadTakenSeats();
-    await loadBookingSeats();
+}, 3000);
 
-    document.querySelectorAll(".seat").forEach(btn => {
-      const key = btn.dataset?.key;
-      if (!key) return;
-
-      btn.classList.remove("seat--taken", "seat--hold");
-
-      if (takenSeats.has(key) || reservedSeats.has(key)) {
-        btn.classList.add("seat--taken");
-        btn.disabled = true;
-      } else if (holdSeats.has(key)) {
-        btn.classList.add("seat--hold");
-        btn.disabled = true;
-      } else {
-        btn.disabled = false;
-      }
-    });
-  }, 3000);
-
-  updateSummary();
-
-})();
+  })();   
   </script>
 </body>
 </html>
