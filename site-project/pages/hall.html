@@ -524,7 +524,8 @@ function makeSeatElement(key, label, extraClass = ""){
     }
 
     function renderHallSections(hallData){
-      const root = document.getElementById("hall");
+      const root = document.getElementById("parter-block");
+if (!root) return;
       root.innerHTML = "";
 
       const sections = Array.isArray(hallData.sections) ? hallData.sections : [];
