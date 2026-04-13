@@ -3,62 +3,573 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Схема залу</title>
-
-  <link rel="stylesheet" href="../styles.css" />
+  <title>Hall Engine Preview</title>
 
   <style>
-    .layout {
-      display: flex;
-      gap: 24px;
-      align-items: flex-start;
+    body{
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:#f3f4f6;
+      color:#111827;
     }
 
-    .left {
-      flex: 1;
-      display: flex;
-      justify-content: center;
+    .page{
+      max-width:1400px;
+      margin:0 auto;
+      padding:20px;
     }
 
-    .right {
-      width: 300px;
+    .topbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
     }
 
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 16px;
-      border: 1px solid #e5e7eb;
+    .title{
+      font-size:28px;
+      font-weight:700;
+      margin:0;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+
+    .controls input,
+    .controls button{
+      padding:10px 12px;
+      font-size:14px;
+      border-radius:10px;
+      border:1px solid #d1d5db;
+    }
+
+    .controls button{
+      cursor:pointer;
+      background:#111827;
+      color:#fff;
+      border:none;
+    }
+
+    .layout{
+      display:flex;
+      gap:20px;
+      align-items:flex-start;
+    }
+
+    .left{
+      flex:1;
+      min-width:0;
+    }
+
+    .right{
+      width:320px;
+      flex:0 0 320px;
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 4px 14px rgba(0,0,0,.06);
+    }
+
+    .hall-scroll{
+      background:#e5e7eb;
+      border-radius:16px;
+      padding:16px;
+      overflow:auto;
+    }
+
+    .hall-inner{
+      width:max-content;
+      margin:0 auto;
+    }
+
+    .hall-section{
+      margin-bottom:28px;
+    }
+
+    .hall-section-title{
+      text-align:center;
+      font-size:14px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#6b7280;
+      margin:6px 0 10px;
+    }
+
+    .row-line{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:4px;
+    }
+
+    .row-label{
+      width:22px;
+      flex:0 0 22px;
+      text-align:right;
+      font-size:11px;
+      color:#6b7280;
+    }
+
+    .seats-row{
+      display:flex;
+      gap:4px;
+      flex-wrap:nowrap;
+      align-items:center;
+    }
+
+    .seat{
+      width:24px;
+      height:24px;
+      border-radius:6px;
+      border:1px solid #d1d5db;
+      background:#fff;
+      font-size:11px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-sizing:border-box;
+    }
+
+    .seat--empty{
+      visibility:hidden;
+      pointer-events:none;
+      border:none;
+      background:transparent;
+    }
+
+    .seat--gap-right{
+      margin-right:16px;
+    }
+
+    .amphi-gap{
+      width:24px;
+      flex:0 0 24px;
+    }
+
+    .parter-wrap{
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      gap:24px;
+    }
+
+    .hall-lodge{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:4px;
+    }
+
+    .hall-lodge-label{
+      font-size:11px;
+      color:#6b7280;
+      margin-bottom:4px;
+    }
+
+    .hall-lodge-seats{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    pre{
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-size:12px;
+      line-height:1.4;
+    }
+
+    .muted{
+      color:#6b7280;
+      font-size:13px;
+    }
+
+    @media (max-width: 980px){
+      .layout{
+        flex-direction:column;
+      }
+      .right{
+        width:auto;
+        flex:1 1 auto;
+      }
     }
   </style>
 </head>
-
 <body>
+  <div class="page">
+    <div class="topbar">
+      <h1 class="title">Hall Engine Preview</h1>
 
-  <div class="layout">
-
-    <!-- ЗАЛ -->
-    <div class="left">
-      <div id="hall"></div>
-    </div>
-
-    <!-- САЙДБАР -->
-    <div class="right">
-      <div class="card">
-        <h2>Ваше замовлення</h2>
-        <p id="count">Місць: 0</p>
-        <p id="amount">Сума: 0 грн</p>
-        <button id="buyBtn" disabled>Оформити</button>
+      <div class="controls">
+        <input id="jsonPath" value="../../data/hall/shevchenko-v2.json" style="width:360px;" />
+        <button id="loadBtn">Завантажити JSON</button>
       </div>
     </div>
 
+    <div class="layout">
+      <div class="left">
+        <div class="hall-scroll">
+          <div class="hall-inner" id="hall"></div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <h2 style="margin-top:0;">Інфо</h2>
+          <p id="hallMeta" class="muted">JSON ще не завантажено.</p>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <h2 style="margin-top:0;">JSON preview</h2>
+          <pre id="jsonPreview">—</pre>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script type="module">
-    import { initHall } from "../integrations/site.js";
+  <script>
+    function seatKey(meta){
+      const row = meta.row ?? 0;
+      const seat = meta.seat ?? 0;
 
-    initHall("hall");
+      if (meta.zone === "Партер") return `P${row}-M${seat}`;
+      if (String(meta.zone).startsWith("Амфітеатр")) return `A${row}-M${seat}`;
+      if (meta.zone === "Балкон") return `B${row}-M${seat}`;
+      if (meta.zone === "Ложа А") return `A0-M${seat}`;
+      if (meta.zone === "Ложа Б") return `B0-M${seat}`;
+
+      return `P${row}-M${seat}`;
+    }
+
+    function makeSeatElement(key, label, extraClass = ""){
+      const btn = document.createElement("div");
+      btn.className = "seat" + (extraClass ? " " + extraClass : "");
+      btn.textContent = label;
+      btn.dataset.key = key;
+      return btn;
+    }
+
+    function makeSectionTitle(text){
+      const el = document.createElement("div");
+      el.className = "hall-section-title";
+      el.textContent = text;
+      return el;
+    }
+
+    function renderRowsSection(section){
+      const wrap = document.createElement("section");
+      wrap.className = "hall-section";
+
+      wrap.appendChild(makeSectionTitle(section.title || section.id || "Section"));
+
+      const rows = Array.isArray(section.rows) ? section.rows : [];
+
+      rows.forEach(r => {
+        const rowLine = document.createElement("div");
+        rowLine.className = "row-line";
+
+        const lab = document.createElement("div");
+        lab.className = "row-label";
+        lab.textContent = r.row;
+        rowLine.appendChild(lab);
+
+        const seatsRow = document.createElement("div");
+        seatsRow.className = "seats-row";
+
+        const offset = Number(r.offset || 0);
+        for (let i = 0; i < offset; i++) {
+          const spacer = document.createElement("div");
+          spacer.className = "seat seat--empty";
+          seatsRow.appendChild(spacer);
+        }
+
+        const seats = Number(r.seats || 0);
+        const aisles = Array.isArray(r.aisles) ? r.aisles : [];
+
+        for (let s = 1; s <= seats; s++) {
+          const meta = { zone: section.zone || "Партер", row: r.row, seat: s };
+          const cls = aisles.includes(s) ? "seat--gap-right" : "";
+          seatsRow.appendChild(makeSeatElement(seatKey(meta), s, cls));
+        }
+
+        rowLine.appendChild(seatsRow);
+        wrap.appendChild(rowLine);
+
+        if (r.gapAfter) {
+          const gap = document.createElement("div");
+          gap.style.height = "32px";
+          wrap.appendChild(gap);
+        }
+      });
+
+      return wrap;
+    }
+
+    function renderLodgesVertical(section){
+      const wrap = document.createElement("section");
+      wrap.className = "hall-section";
+
+      const lodge = document.createElement("div");
+      lodge.className = "hall-lodge";
+
+      const label = document.createElement("div");
+      label.className = "hall-lodge-label";
+      label.textContent = section.title || section.id || "Ложа";
+
+      const seatsCol = document.createElement("div");
+      seatsCol.className = "hall-lodge-seats";
+
+      const count = Number(section.seat_count || 0);
+      const row = Number(section.row || 0);
+      const zone = section.zone || "Ложа А";
+
+      for (let i = 1; i <= count; i++) {
+        const meta = { zone, row, seat: i, index: i };
+        seatsCol.appendChild(makeSeatElement(seatKey(meta), i));
+      }
+
+      lodge.appendChild(label);
+      lodge.appendChild(seatsCol);
+      wrap.appendChild(lodge);
+
+      return wrap;
+    }
+
+    function renderSplitRows(section){
+      const wrap = document.createElement("section");
+      wrap.className = "hall-section";
+
+      wrap.appendChild(makeSectionTitle(section.title || section.id || "Section"));
+
+      const rows = Array.isArray(section.rows) ? section.rows : [];
+
+      rows.forEach(r => {
+        const rowLine = document.createElement("div");
+        rowLine.className = "row-line";
+
+        const lab = document.createElement("div");
+        lab.className = "row-label";
+        lab.textContent = r.row;
+        rowLine.appendChild(lab);
+
+        const left = document.createElement("div");
+        left.className = "seats-row";
+
+        const gap = document.createElement("div");
+        gap.className = "amphi-gap";
+
+        const right = document.createElement("div");
+        right.className = "seats-row";
+
+        if (r.left) {
+          const start = Number(r.left.start || 1);
+          const count = Number(r.left.count || 0);
+
+          for (let i = 0; i < count; i++) {
+            const seatNum = start + i;
+            const meta = { zone: section.zone || "Амфітеатр", row: r.row, seat: seatNum };
+            left.appendChild(makeSeatElement(seatKey(meta), seatNum));
+          }
+        }
+
+        if (r.right) {
+          const start = Number(r.right.start || 1);
+          const count = Number(r.right.count || 0);
+
+          for (let i = 0; i < count; i++) {
+            const seatNum = start + i;
+            const meta = { zone: section.zone || "Амфітеатр", row: r.row, seat: seatNum };
+            right.appendChild(makeSeatElement(seatKey(meta), seatNum));
+          }
+        }
+
+        rowLine.appendChild(left);
+        rowLine.appendChild(gap);
+        rowLine.appendChild(right);
+        wrap.appendChild(rowLine);
+      });
+
+      return wrap;
+    }
+
+    function renderCustomRows(section){
+      const wrap = document.createElement("section");
+      wrap.className = "hall-section";
+
+      wrap.appendChild(makeSectionTitle(section.title || section.id || "Section"));
+
+      const rows = Array.isArray(section.rows) ? section.rows : [];
+
+      rows.forEach(r => {
+        const rowLine = document.createElement("div");
+        rowLine.className = "row-line";
+
+        const lab = document.createElement("div");
+        lab.className = "row-label";
+        lab.textContent = r.row;
+        rowLine.appendChild(lab);
+
+        const seatsRow = document.createElement("div");
+        seatsRow.className = "seats-row";
+
+        const layout = Array.isArray(r.layout) ? r.layout : [];
+
+        layout.forEach(item => {
+          if (item.kind === "seat_range") {
+            const start = Number(item.start || 1);
+            const count = Number(item.count || 0);
+
+            for (let i = 0; i < count; i++) {
+              const seatNum = start + i;
+              const meta = { zone: section.zone || "Балкон", row: r.row, seat: seatNum };
+              seatsRow.appendChild(makeSeatElement(seatKey(meta), seatNum));
+            }
+          }
+
+          if (item.kind === "gap") {
+            const count = Number(item.count || 1);
+            for (let i = 0; i < count; i++) {
+              const gap = document.createElement("div");
+              gap.className = "amphi-gap";
+              seatsRow.appendChild(gap);
+            }
+          }
+
+          if (item.kind === "empty") {
+            const count = Number(item.count || 1);
+            for (let i = 0; i < count; i++) {
+              const empty = document.createElement("div");
+              empty.className = "seat seat--empty";
+              seatsRow.appendChild(empty);
+            }
+          }
+        });
+
+        rowLine.appendChild(seatsRow);
+        wrap.appendChild(rowLine);
+      });
+
+      return wrap;
+    }
+
+    function renderHallSections(hallData){
+      const root = document.getElementById("hall");
+      root.innerHTML = "";
+
+      const sections = Array.isArray(hallData.sections) ? hallData.sections : [];
+
+      const parter = sections.find(s => s.id === "parter");
+      const lodgeA = sections.find(s => s.id === "lodge_a");
+      const lodgeB = sections.find(s => s.id === "lodge_b");
+
+      if (parter) {
+        const section = document.createElement("section");
+        section.className = "hall-section";
+
+        section.appendChild(makeSectionTitle(parter.title || "Партер"));
+
+        if (lodgeA || lodgeB) {
+          const parterWrap = document.createElement("div");
+          parterWrap.className = "parter-wrap";
+
+          if (lodgeA) {
+            parterWrap.appendChild(renderLodgesVertical(lodgeA));
+          }
+
+          const parterRowsWrap = document.createElement("div");
+          const rowsOnlySection = renderRowsSection({
+            title: "",
+            zone: parter.zone,
+            rows: parter.rows
+          });
+
+          Array.from(rowsOnlySection.children).forEach(ch => {
+            if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+              parterRowsWrap.appendChild(ch);
+            }
+          });
+
+          parterWrap.appendChild(parterRowsWrap);
+
+          if (lodgeB) {
+            parterWrap.appendChild(renderLodgesVertical(lodgeB));
+          }
+
+          section.appendChild(parterWrap);
+        } else {
+          const rowsRendered = renderRowsSection(parter);
+          Array.from(rowsRendered.children).forEach(ch => {
+            if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+              section.appendChild(ch);
+            }
+          });
+        }
+
+        root.appendChild(section);
+      }
+
+      sections.forEach(section => {
+        if (["parter", "lodge_a", "lodge_b"].includes(section.id)) return;
+
+        if (section.type === "rows") {
+          root.appendChild(renderRowsSection(section));
+        }
+
+        if (section.type === "split_rows") {
+          root.appendChild(renderSplitRows(section));
+        }
+
+        if (section.type === "custom_rows") {
+          root.appendChild(renderCustomRows(section));
+        }
+      });
+    }
+
+    async function loadHallJson(path){
+      const res = await fetch(path, { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error(`Не вдалося завантажити JSON: ${res.status}`);
+      }
+      return await res.json();
+    }
+
+    async function boot(){
+      const input = document.getElementById("jsonPath");
+      const meta = document.getElementById("hallMeta");
+      const preview = document.getElementById("jsonPreview");
+
+      try {
+        const data = await loadHallJson(input.value.trim());
+
+        renderHallSections(data);
+
+        meta.textContent =
+          `hall_id: ${data.hall_id || "—"} | version: ${data.version || "—"} | sections: ${Array.isArray(data.sections) ? data.sections.length : 0}`;
+
+        preview.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        document.getElementById("hall").innerHTML =
+          `<div style="padding:20px;background:#fff;border-radius:12px;border:1px solid #fecaca;color:#991b1b;">
+            ${e.message}
+          </div>`;
+        meta.textContent = "Помилка завантаження.";
+        preview.textContent = String(e.message || e);
+      }
+    }
+
+    document.getElementById("loadBtn").addEventListener("click", boot);
+    boot();
   </script>
-
 </body>
 </html>
