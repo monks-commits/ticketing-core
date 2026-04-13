@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "hall_id": "shevchenko",
+  "title": "Театр ім. Т. Г. Шевченка",
+  "sections": [
+    {
+      "id": "parter",
+      "type": "rows",
+      "title": "Партер",
+      "zone": "Партер",
+      "rows": [
+        { "row": 1, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 2, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 3, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 4, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 5, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 6, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 7, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 8, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 9, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 10, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 11, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 12, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 13, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 14, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 15, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 16, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 17, "seats": 20, "offset": 0, "aisles": [10] },
+        { "row": 18, "seats": 20, "offset": 0, "aisles": [10] }
+      ]
+    },
+    {
+      "id": "lodge_a",
+      "type": "lodges_vertical",
+      "title": "Ложа А",
+      "zone": "Ложа А",
+      "seat_count": 18,
+      "row": 0
+    },
+    {
+      "id": "lodge_b",
+      "type": "lodges_vertical",
+      "title": "Ложа Б",
+      "zone": "Ложа Б",
+      "seat_count": 18,
+      "row": 0
+    },
+    {
+      "id": "amphi",
+      "type": "split_rows",
+      "title": "Амфітеатр",
+      "zone": "Амфітеатр",
+      "rows": [
+        {
+          "row": 19,
+          "left": { "start": 1, "count": 11 },
+          "right": { "start": 12, "count": 11 }
+        },
+        {
+          "row": 20,
+          "left": { "start": 1, "count": 11 },
+          "right": { "start": 12, "count": 11 }
+        },
+        {
+          "row": 21,
+          "left": { "start": 1, "count": 11 },
+          "right": { "start": 12, "count": 11 }
+        },
+        {
+          "row": 22,
+          "left": { "start": 1, "count": 11 },
+          "right": null
+        },
+        {
+          "row": 23,
+          "left": { "start": 1, "count": 11 },
+          "right": null
+        }
+      ]
+    },
+    {
+      "id": "balcony",
+      "type": "custom_rows",
+      "title": "Балкон",
+      "zone": "Балкон",
+      "rows": [
+        {
+          "row": 1,
+          "layout": [
+            { "kind": "seat_range", "start": 1, "count": 14 },
+            { "kind": "gap", "count": 1 },
+            { "kind": "seat_range", "start": 15, "count": 14 }
+          ]
+        },
+        {
+          "row": 2,
+          "layout": [
+            { "kind": "seat_range", "start": 1, "count": 14 },
+            { "kind": "gap", "count": 1 },
+            { "kind": "seat_range", "start": 15, "count": 14 }
+          ]
+        },
+        {
+          "row": 3,
+          "layout": [
+            { "kind": "seat_range", "start": 1, "count": 14 },
+            { "kind": "gap", "count": 1 },
+            { "kind": "seat_range", "start": 15, "count": 14 }
+          ]
+        },
+        {
+          "row": 4,
+          "layout": [
+            { "kind": "seat_range", "start": 1, "count": 14 },
+            { "kind": "gap", "count": 1 },
+            { "kind": "seat_range", "start": 15, "count": 14 }
+          ]
+        },
+        {
+          "row": 5,
+          "layout": [
+            { "kind": "seat_range", "start": 1, "count": 14 },
+            { "kind": "gap", "count": 1 },
+            { "kind": "seat_range", "start": 15, "count": 14 }
+          ]
+        },
+        {
+          "row": 6,
+          "layout": [
+            { "kind": "seat_range", "start": 1, "count": 10 },
+            { "kind": "empty", "count": 8 },
+            { "kind": "seat_range", "start": 11, "count": 10 }
+          ]
+        }
+      ]
+    }
+  ]
+}
