@@ -1450,6 +1450,318 @@ if (r.gapAfter) {
     
   });
 }
+
+function makeSectionTitle(text){
+  const el = document.createElement("div");
+  el.className = "hall-section-title";
+  el.textContent = text;
+  return el;
+}
+
+function renderRowsSection(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const seatsRow = document.createElement("div");
+    seatsRow.className = "seats-row";
+
+    const offset = Number(r.offset || 0);
+    for (let i = 0; i < offset; i++) {
+      const spacer = document.createElement("div");
+      spacer.className = "seat seat--empty";
+      seatsRow.appendChild(spacer);
+    }
+
+    const seats = Number(r.seats || 0);
+    const aisles = Array.isArray(r.aisles) ? r.aisles : [];
+
+    for (let s = 1; s <= seats; s++) {
+      const meta = {
+        zone: section.zone || "Партер",
+        row: Number(r.row || 0),
+        seat: s
+      };
+
+      const cls = aisles.includes(s) ? "seat--gap-right" : "";
+
+      seatsRow.appendChild(
+        makeSeatElement(seatKey(meta), s, cls, 0, meta)
+      );
+    }
+
+    rowLine.appendChild(seatsRow);
+    wrap.appendChild(rowLine);
+
+    if (r.gapAfter) {
+      const gap = document.createElement("div");
+      gap.style.height = "32px";
+      wrap.appendChild(gap);
+    }
+  });
+
+  return wrap;
+}
+
+function renderLodgesVertical(section){
+  const lodge = document.createElement("div");
+  lodge.className = "hall-lodge";
+
+  const label = document.createElement("div");
+  label.className = "hall-lodge-label";
+  label.textContent = section.title || "Ложа";
+
+  const seatsCol = document.createElement("div");
+  seatsCol.className = "hall-lodge-seats";
+
+  const count = Number(section.seat_count || 0);
+  const row = Number(section.row || 0);
+  const zone = section.zone || "Ложа А";
+
+  for (let i = 1; i <= count; i++) {
+    const meta = {
+      zone,
+      row,
+      seat: i,
+      index: i
+    };
+
+    seatsCol.appendChild(
+      makeSeatElement(seatKey(meta), i, "", 0, meta)
+    );
+  }
+
+  lodge.appendChild(label);
+  lodge.appendChild(seatsCol);
+  return lodge;
+}
+
+function renderSplitRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const left = document.createElement("div");
+    left.className = "seats-row";
+
+    const gap = document.createElement("div");
+    gap.className = "amphi-gap";
+
+    const right = document.createElement("div");
+    right.className = "seats-row";
+
+    if (r.left) {
+      const start = Number(r.left.start || 1);
+      const count = Number(r.left.count || 0);
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = start + i;
+        const meta = {
+          zone: section.zone || "Амфітеатр",
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        left.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+    }
+
+    if (r.right) {
+      const start = Number(r.right.start || 1);
+      const count = Number(r.right.count || 0);
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = start + i;
+        const meta = {
+          zone: section.zone || "Амфітеатр",
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        right.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+    }
+
+    rowLine.appendChild(left);
+    rowLine.appendChild(gap);
+    rowLine.appendChild(right);
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
+}
+
+function renderCustomRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const seatsRow = document.createElement("div");
+    seatsRow.className = "seats-row";
+
+    const layout = Array.isArray(r.layout) ? r.layout : [];
+
+    layout.forEach(item => {
+      if (item.kind === "seat_range") {
+        const start = Number(item.start || 1);
+        const count = Number(item.count || 0);
+
+        for (let i = 0; i < count; i++) {
+          const seatNum = start + i;
+          const meta = {
+            zone: section.zone || "Балкон",
+            row: Number(r.row || 0),
+            seat: seatNum
+          };
+
+          seatsRow.appendChild(
+            makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+          );
+        }
+      }
+
+      if (item.kind === "gap") {
+        const count = Number(item.count || 1);
+        for (let i = 0; i < count; i++) {
+          const gap = document.createElement("div");
+          gap.className = "amphi-gap";
+          seatsRow.appendChild(gap);
+        }
+      }
+
+      if (item.kind === "empty") {
+        const count = Number(item.count || 1);
+        for (let i = 0; i < count; i++) {
+          const empty = document.createElement("div");
+          empty.className = "seat seat--empty";
+          seatsRow.appendChild(empty);
+        }
+      }
+    });
+
+    rowLine.appendChild(seatsRow);
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
+}
+
+function renderHallSections(hallData){
+  const root = document.getElementById("parter-block");
+  if (!root) return;
+
+  root.innerHTML = "";
+
+  const sections = Array.isArray(hallData.sections) ? hallData.sections : [];
+
+  const parter = sections.find(s => s.id === "parter");
+  const lodgeA = sections.find(s => s.id === "lodge_a");
+  const lodgeB = sections.find(s => s.id === "lodge_b");
+
+  if (parter) {
+    const section = document.createElement("section");
+    section.className = "hall-section";
+
+    section.appendChild(makeSectionTitle(parter.title || "Партер"));
+
+    if (lodgeA || lodgeB) {
+      const parterWrap = document.createElement("div");
+      parterWrap.className = "parter-wrap";
+
+      if (lodgeA) {
+        parterWrap.appendChild(renderLodgesVertical(lodgeA));
+      }
+
+      const parterRowsWrap = document.createElement("div");
+      const rowsOnlySection = renderRowsSection({
+        title: "",
+        zone: parter.zone,
+        rows: parter.rows
+      });
+
+      Array.from(rowsOnlySection.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          parterRowsWrap.appendChild(ch);
+        }
+      });
+
+      parterWrap.appendChild(parterRowsWrap);
+
+      if (lodgeB) {
+        parterWrap.appendChild(renderLodgesVertical(lodgeB));
+      }
+
+      section.appendChild(parterWrap);
+    } else {
+      const rowsRendered = renderRowsSection(parter);
+      Array.from(rowsRendered.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          section.appendChild(ch);
+        }
+      });
+    }
+
+    root.appendChild(section);
+  }
+
+  sections.forEach(section => {
+    if (["parter", "lodge_a", "lodge_b"].includes(section.id)) return;
+
+    if (section.type === "rows") {
+      root.appendChild(renderRowsSection(section));
+    }
+
+    if (section.type === "split_rows") {
+      root.appendChild(renderSplitRows(section));
+    }
+
+    if (section.type === "custom_rows") {
+      root.appendChild(renderCustomRows(section));
+    }
+  });
+}
     
     function renderLodges(){
       const a = document.getElementById("lodge-a-seats");
