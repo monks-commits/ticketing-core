@@ -1,0 +1,67 @@
+{
+  "type": "shevchenko_full",
+  "parter": {
+    "title": "Партер",
+    "rows": [
+      { "row": 1,  "seats": 20, "aisle_after": 10 },
+      { "row": 2,  "seats": 20, "aisle_after": 10 },
+      { "row": 3,  "seats": 20, "aisle_after": 10 },
+      { "row": 4,  "seats": 20, "aisle_after": 10 },
+      { "row": 5,  "seats": 20, "aisle_after": 10 },
+      { "row": 6,  "seats": 20, "aisle_after": 10 },
+      { "row": 7,  "seats": 20, "aisle_after": 10 },
+      { "row": 8,  "seats": 20, "aisle_after": 10 },
+      { "row": 9,  "seats": 20, "aisle_after": 10 },
+      { "row": 10, "seats": 20, "aisle_after": 10 },
+      { "row": 11, "seats": 20, "aisle_after": 10 },
+      { "row": 12, "seats": 20, "aisle_after": 10 },
+      { "row": 13, "seats": 20, "aisle_after": 10 },
+      { "row": 14, "seats": 20, "aisle_after": 10 },
+      { "row": 15, "seats": 20, "aisle_after": 10 },
+      { "row": 16, "seats": 20, "aisle_after": 10 },
+      { "row": 17, "seats": 20, "aisle_after": 10 },
+      { "row": 18, "seats": 20, "aisle_after": 10 }
+    ]
+  },
+  "lodges": {
+    "left": {
+      "title": "Ложа А",
+      "seats": 18
+    },
+    "right": {
+      "title": "Ложа Б",
+      "seats": 18
+    }
+  },
+  "amphi": {
+    "title": "Амфітеатр",
+    "left_rows": [
+      { "row": 19, "seats": 11 },
+      { "row": 20, "seats": 11 },
+      { "row": 21, "seats": 11 },
+      { "row": 22, "seats": 11 },
+      { "row": 23, "seats": 11 }
+    ],
+    "right_rows": [
+      { "row": 19, "seats": 11, "seat_start": 12 },
+      { "row": 20, "seats": 11, "seat_start": 12 },
+      { "row": 21, "seats": 11, "seat_start": 12 }
+    ]
+  },
+  "balcony": {
+    "title": "Балкон",
+    "rows_1_5": [
+      { "row": 1, "seats": 28, "aisle_after": 14 },
+      { "row": 2, "seats": 28, "aisle_after": 14 },
+      { "row": 3, "seats": 28, "aisle_after": 14 },
+      { "row": 4, "seats": 28, "aisle_after": 14 },
+      { "row": 5, "seats": 28, "aisle_after": 14 }
+    ],
+    "row_6": {
+      "row": 6,
+      "left_seats": 10,
+      "right_seats": 10,
+      "right_seat_start": 11
+    }
+  }
+}
