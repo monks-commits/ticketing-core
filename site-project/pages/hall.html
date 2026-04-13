@@ -774,7 +774,11 @@ const res = await fetch(`../../data/hall/${hallFile}.json`, {
 });
 const HALL = await res.json();
 
-renderHallFromJson(HALL);
+if (HALL?.type === "shevchenko_full") {
+  renderShevchenkoFull(HALL);
+} else {
+  renderHallFromJson(HALL);
+}
 
 // ===== ПЕРВАЯ ЗАГРУЗКА =====
 await loadTakenSeats();
