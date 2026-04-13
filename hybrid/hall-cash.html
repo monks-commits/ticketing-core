@@ -1896,8 +1896,11 @@ function applyStatusFromBackoffice(status, seats){
   await loadShowMeta();
 SEANCE_CONFIG = await loadSeanceConfig();
 CASH_PATCH = loadCashPatch();
-// await loadTakenSeatsOnline();
-const res = await fetch("./data/hall/academy.json");
+
+const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
+const res = await fetch(`../data/hall/${hallFile}.json`, {
+  cache: "no-store"
+});
 const RAW_HALL = await res.json();
 
 renderHallFromJson(RAW_HALL);
