@@ -69,6 +69,11 @@ small{color:#6b7280}
   <div class="row">
     <label>Seance ID</label>
     <input id="seanceId" placeholder="koncert-2026-02-10-19-00" style="flex:1">
+    <label>Майданчик</label>
+<select id="venueSelect">
+  <option value="academy">Академія Руху</option>
+  <option value="shevchenko-v2">Театр Шевченка</option>
+</select>
     <button onclick="loadSeance()">Завантажити</button>
     <button class="new-btn" onclick="createNewSeance()">➕ Новий сеанс</button>
   </div>
@@ -238,9 +243,11 @@ publish.onclick = async () => {
   const seance = seanceId.value.trim();
   if (!seance) return alert("Вкажи Seance ID");
 
-  try {
+  const hall = venueSelect.value;
+  const venueId = hall === "academy" ? "academy" : "shevchenko";
 
-    // 1️⃣ Добавляем / обновляем запись в таблице seances
+  try {
+    // 1️⃣ seances
     const seanceRes = await fetch(
       `${SUPABASE_URL}/rest/v1/seances`,
       {
@@ -267,7 +274,7 @@ publish.onclick = async () => {
       return;
     }
 
-    // 2️⃣ Публикуем pricing через Edge Function
+    // 2️⃣ pricing + hall + venue
     const pricingRes = await fetch(SUPABASE_FUNCTION_URL, {
       method: "POST",
       headers: {
@@ -276,7 +283,9 @@ publish.onclick = async () => {
       body: JSON.stringify({
         seance_id: seance,
         pricing: data.pricing,
-        seat_overrides: data.seat_overrides
+        seat_overrides: data.seat_overrides,
+        hall: hall,
+        venue_id: venueId
       })
     });
 
@@ -286,7 +295,7 @@ publish.onclick = async () => {
       return;
     }
 
-    alert("✅ Сеанс створено та опубліковано");
+    alert(`✅ Сеанс створено для ${hall}`);
 
   } catch (err) {
     alert("❌ Помилка: " + err.message);
