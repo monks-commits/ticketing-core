@@ -1893,19 +1893,19 @@ function applyStatusFromBackoffice(status, seats){
 
   // === ИНИЦИАЛИЗАЦИЯ ===
 
-  await loadShowMeta();
-SEANCE_CONFIG = await loadSeanceConfig(); 
+await loadSeancesForCash();
+await loadShowMeta();
+SEANCE_CONFIG = await loadSeanceConfig();
 CASH_PATCH = loadCashPatch();
 
 const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
-const res = await fetch(`../data/hall/${hallFile}.json`, {
+const hallRes = await fetch(`../data/hall/${hallFile}.json`, {
   cache: "no-store"
 });
-const RAW_HALL = await res.json();
+const RAW_HALL = await hallRes.json();
 
 renderHallFromJson(RAW_HALL);
 
-  
 // 🔥 первая загрузка статусов
 await loadTakenSeatsOnline();
 await loadBookingSeatsOnline();
@@ -1917,16 +1917,12 @@ renderCashLog();
 
 // 🔁 автообновление
 setInterval(async () => {
-
   await loadTakenSeatsOnline();
   await loadBookingSeatsOnline();
-
   reapplyAllStatuses();
-
 }, 3000);
 
 })();
-
   </script>
 </body>
 </html>
