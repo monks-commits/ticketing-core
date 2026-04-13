@@ -312,13 +312,7 @@ function renderHallFromJson(HALL_RAW) {
 }
 
 
-function makeSeatElement(key, label, extraClass = ""){
-      const btn = document.createElement("div");
-      btn.className = "seat" + (extraClass ? " " + extraClass : "");
-      btn.textContent = label;
-      btn.dataset.key = key;
-      return btn;
-    }
+
 
     function makeSectionTitle(text){
       const el = document.createElement("div");
