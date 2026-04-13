@@ -2183,13 +2183,20 @@ function applyStatusFromBackoffice(status, seats){
 
 await loadSeancesForCash();
 await loadShowMeta();
+
 SEANCE_CONFIG = await loadSeanceConfig();
 CASH_PATCH = loadCashPatch();
 
 const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
+
 const hallRes = await fetch(`../data/hall/${hallFile}.json`, {
   cache: "no-store"
 });
+
+if (!hallRes.ok) {
+  throw new Error(`Hall JSON not found: ${hallFile}.json`);
+}
+
 const RAW_HALL = await hallRes.json();
 
 if (Array.isArray(RAW_HALL?.sections)) {
