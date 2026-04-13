@@ -2216,7 +2216,11 @@ const hallRes = await fetch(`../data/hall/${hallFile}.json`, {
 });
 const RAW_HALL = await hallRes.json();
 
-renderHallFromJson(RAW_HALL);
+if (Array.isArray(RAW_HALL?.sections)) {
+  renderHallSections(RAW_HALL);
+} else {
+  renderHallFromJson(RAW_HALL);
+}
 
 // 🔥 первая загрузка статусов
 await loadTakenSeatsOnline();
