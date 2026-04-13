@@ -849,7 +849,7 @@ function makeSeatElement(key,label,extraClass,price,meta){
   // 🔁 возврат из order/checkout
   if (returnSeats.length) {
     for (const key of returnSeats) {
-      const btn = document.querySelector(`.seat[data-key="${key}"]`);
+      const btn = document.querySelector(`.seat[data-key="${key}"]`); 
       if (!btn) continue;
 
       const price = Number(returnPrices[key] || btn.dataset.price || 0);
