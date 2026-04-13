@@ -1894,7 +1894,7 @@ function applyStatusFromBackoffice(status, seats){
   // === ИНИЦИАЛИЗАЦИЯ ===
 
   await loadShowMeta();
-SEANCE_CONFIG = await loadSeanceConfig();
+SEANCE_CONFIG = await loadSeanceConfig(); 
 CASH_PATCH = loadCashPatch();
 
 const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
