@@ -443,78 +443,54 @@ async function loadBookingSeatsOnline(){
 async function loadSeanceConfig() {
   if (!SEANCE_ID) return null;
 
-  // 1️⃣ пробуем Supabase
   try {
     const url =
       `${SUPABASE_URL}/rest/v1/seances_pricing` +
       `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
-      `&select=pricing,seat_overrides`;
+      `&select=pricing,seat_overrides,hall`;
 
     const res = await fetch(url, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
       },
       cache: "no-store"
     });
 
     if (res.ok) {
       const rows = await res.json();
-      if (rows && rows.length) {
+
+      if (Array.isArray(rows) && rows.length) {
         return {
           pricing: rows[0].pricing || {},
-          seat_overrides: rows[0].seat_overrides || {}
+          seat_overrides: rows[0].seat_overrides || {},
+          hall: rows[0].hall || "academy"
         };
       }
     }
   } catch (e) {
-    // молча падаем дальше
+    console.warn("cash loadSeanceConfig supabase error", e);
   }
 
-  // 2️⃣ fallback на локальный файл
   try {
     const res = await fetch(`../data/seances/${SEANCE_ID}.json`, {
       cache: "no-store"
     });
 
     if (!res.ok) return null;
-    return await res.json();
-  } catch {
+
+    const localCfg = await res.json();
+
+    return {
+      pricing: localCfg?.pricing || {},
+      seat_overrides: localCfg?.seat_overrides || {},
+      hall: localCfg?.hall || "academy"
+    };
+  } catch (e) {
+    console.warn("cash loadSeanceConfig local error", e);
     return null;
   }
 }
-
-
-    
-   const parterRows = Array.from({ length: 18 }, (_, i) => ({
-  row: i + 1,
-  seats: 20,
-  zone: "Партер",
-  price: 0,
-  className: ""
-}));
-
-
-
-    const amphiLeftRows  = [
-      {row:19,seats:11},{row:20,seats:11},{row:21,seats:11},{row:22,seats:11},{row:23,seats:11},
-    ].map(r=>({...r, zone:"Амфітеатр (ліва)", price:0, className:"seat--amphi"}));
-
-    const amphiRightRows = [
-      {row:19,seats:11},{row:20,seats:11},{row:21,seats:11},
-    ].map(r=>({...r, zone:"Амфітеатр (права)", price:0, className:"seat--amphi"}));
-
-    const balconyRows15 = [1,2,3,4,5].map(n=>( { row:n, zone:"Балкон", price:0, className:"seat--balcony" } ));
-    const balconyRow6 = { row:6, zone:"Балкон", price:0, className:"seat--balcony" };
-
-   const lodgeSeats = Array.from({ length: 18 }, (_, i) => ({
-  index: i + 1,
-  price: 0,
-  zone: "Ложа",
-  className: ""
-}));
-
-
 
     function seatKey(meta){
       const row = meta.row ?? 0;
