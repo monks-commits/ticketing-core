@@ -1100,15 +1100,16 @@ function makeSeatElement(key,label,extraClass,price,meta){
 
   const HALL = await hallRes.json();
 
-  if (Array.isArray(HALL?.sections)) {
-    renderHallSections(HALL);
-  } else {
-    renderHallFromJson(HALL);
-  }
+// ===== СНАЧАЛА СТАТУСЫ =====
+await loadTakenSeats();
+await loadBookingSeats();
 
-  // ===== ПЕРВАЯ ЗАГРУЗКА =====
-  await loadTakenSeats();
-  await loadBookingSeats();
+// ===== ПОТОМ РЕНДЕР =====
+if (Array.isArray(HALL?.sections)) {
+  renderHallSections(HALL);
+} else {
+  renderHallFromJson(HALL);
+}
 
   // 🔥 ВЕШАЕМ КЛИКИ ОДИН РАЗ
   document.querySelectorAll(".seat").forEach(btn => {
