@@ -68,15 +68,42 @@ small{color:#6b7280}
 <div class="card">
   <div class="row">
     <label>Seance ID</label>
-    <input id="seanceId" placeholder="koncert-2026-02-10-19-00" style="flex:1">
+    <input id="seanceId" placeholder="akakiy-2026-05-10-18-00" style="flex:1">
+
     <label>Майданчик</label>
-<select id="venueSelect">
-  <option value="academy">Академія Руху</option>
-  <option value="shevchenko-v2">Театр Шевченка</option>
-</select>
+    <select id="venueSelect">
+      <option value="academy">Академія Руху</option>
+      <option value="shevchenko-v2">Театр Шевченка</option>
+    </select>
+
     <button onclick="loadSeance()">Завантажити</button>
     <button class="new-btn" onclick="createNewSeance()">➕ Новий сеанс</button>
   </div>
+</div>
+
+<!-- Seance meta -->
+<div class="card">
+  <h3>🧾 Дані сеансу</h3>
+
+  <div class="row">
+    <label>Назва вистави</label>
+    <input id="showName" placeholder="Акакій" style="flex:1">
+
+    <label>Дата</label>
+    <input id="showDate" type="date">
+
+    <label>Час</label>
+    <input id="showTime" type="time">
+  </div>
+
+  <div class="row">
+    <label>Poster URL</label>
+    <input id="posterUrl" placeholder="https://...png" style="flex:1">
+  </div>
+
+  <small>
+    Назва вистави — для глядача. Seance ID — технічний ключ. Poster URL — пряме посилання на афішу PNG зі Storage.
+  </small>
 </div>
 
 <!-- Rules -->
@@ -137,7 +164,7 @@ small{color:#6b7280}
 <div class="card">
   <h3>📄 seance.json</h3>
   <textarea id="output"></textarea>
-  <button onclick="copy()">📋 Скопіювати</button>
+  <button onclick="copyJson()">📋 Скопіювати</button>
 </div>
 
 <button id="publish">🚀 Опублікувати</button>
@@ -155,37 +182,66 @@ const data = {
   seat_overrides: {}
 };
 
-function createNewSeance(){
-  const show = prompt("Назва show:", "koncert");
-  if(!show) return;
+const seanceId = document.getElementById("seanceId");
+const venueSelect = document.getElementById("venueSelect");
+const showName = document.getElementById("showName");
+const showDate = document.getElementById("showDate");
+const showTime = document.getElementById("showTime");
+const posterUrl = document.getElementById("posterUrl");
+const zone = document.getElementById("zone");
+const fromRow = document.getElementById("fromRow");
+const toRow = document.getElementById("toRow");
+const price = document.getElementById("price");
+const color = document.getElementById("color");
+const sale = document.getElementById("sale");
+const seatKey = document.getElementById("seatKey");
+const seatPrice = document.getElementById("seatPrice");
+const seatColor = document.getElementById("seatColor");
+const seatSale = document.getElementById("seatSale");
+const output = document.getElementById("output");
+const rulesList = document.getElementById("rulesList");
+const publish = document.getElementById("publish");
 
-  const date = prompt("Дата YYYY-MM-DD:", "2026-02-15");
+function createNewSeance(){
+  const showSlug = prompt("Назва show для Seance ID (латиниця):", "akakiy");
+  if(!showSlug) return;
+
+  const date = prompt("Дата YYYY-MM-DD:", "2026-05-10");
   if(!date) return;
 
   const time = prompt("Час HH-MM:", "18-00");
   if(!time) return;
 
-  const id = `${show}-${date}-${time}`;
-
+  const id = `${showSlug}-${date}-${time}`;
   seanceId.value = id;
+
+  if (!showName.value.trim()) {
+    showName.value = showSlug;
+  }
+  if (!showDate.value) {
+    showDate.value = date;
+  }
+  if (!showTime.value) {
+    showTime.value = time.replace("-", ":");
+  }
 
   data.pricing = {};
   data.seat_overrides = {};
   render();
 
   alert(
-    "Створено новий сеанс:\n\n" +
+    "Створено новий seance_id:\n\n" +
     id +
-    "\n\nПісля налаштування натисніть 'Опублікувати'."
+    "\n\nТепер заповніть назву вистави, дату, час, poster URL і натисніть «Опублікувати»."
   );
 }
 
 function addRule(){
   const z = zone.value;
   const from = Number(fromRow.value);
-  const to   = Number(toRow.value);
-  const p    = Number(price.value);
-  const c    = color.value;
+  const to = Number(toRow.value);
+  const p = Number(price.value);
+  const c = color.value;
   const saleAllowed = sale.checked;
 
   if (!z || !from || !to || !p) {
@@ -220,6 +276,11 @@ function addSeatOverride(){
 function render(){
   output.value = JSON.stringify({
     seance_id: seanceId.value.trim(),
+    venue: venueSelect.value,
+    show: showName.value.trim(),
+    date: showDate.value || null,
+    time: showTime.value || null,
+    poster_url: posterUrl.value.trim() || null,
     pricing: data.pricing,
     seat_overrides: data.seat_overrides
   }, null, 2);
@@ -233,7 +294,7 @@ function render(){
   `).join("") || "<small>Поки що правил немає</small>";
 }
 
-function copy(){
+function copyJson(){
   output.select();
   document.execCommand("copy");
   alert("Скопійовано");
@@ -243,11 +304,19 @@ publish.onclick = async () => {
   const seance = seanceId.value.trim();
   if (!seance) return alert("Вкажи Seance ID");
 
+  const show = showName.value.trim();
+  const date = showDate.value || null;
+  const time = showTime.value || null;
+  const poster_url = posterUrl.value.trim() || null;
+
+  if (!show) return alert("Вкажи назву вистави");
+  if (!date) return alert("Вкажи дату");
+  if (!time) return alert("Вкажи час");
+
   const hall = venueSelect.value;
   const venueId = hall === "academy" ? "academy" : "shevchenko";
 
   try {
-    // 1️⃣ seances
     const seanceRes = await fetch(
       `${SUPABASE_URL}/rest/v1/seances`,
       {
@@ -259,13 +328,15 @@ publish.onclick = async () => {
           Prefer: "resolution=merge-duplicates"
         },
         body: JSON.stringify({
-  id: seance,
-  venue_id: venueId,
-  show: "test",
-  date: null,
-  time: null,
-  active: true
-})
+          id: seance,
+          venue_id: venueId,
+          show: show,
+          date: date,
+          time: time,
+          poster_url: poster_url,
+          active: true,
+          status: "active"
+        })
       }
     );
 
@@ -275,7 +346,6 @@ publish.onclick = async () => {
       return;
     }
 
-    // 2️⃣ pricing + hall + venue
     const pricingRes = await fetch(SUPABASE_FUNCTION_URL, {
       method: "POST",
       headers: {
@@ -297,29 +367,76 @@ publish.onclick = async () => {
     }
 
     alert(`✅ Сеанс створено для ${hall}`);
-
   } catch (err) {
     alert("❌ Помилка: " + err.message);
   }
 };
 
-
 async function loadSeance(){
   const seance = seanceId.value.trim();
   if(!seance) return;
 
+  const seanceRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=show,date,time,poster_url,venue_id`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
+  );
+
+  const seanceRows = await seanceRes.json();
+  const seanceRow = Array.isArray(seanceRows) && seanceRows.length ? seanceRows[0] : null;
+
+  if (seanceRow) {
+    showName.value = seanceRow.show || "";
+    showDate.value = seanceRow.date || "";
+    showTime.value = seanceRow.time || "";
+    posterUrl.value = seanceRow.poster_url || "";
+
+    if (seanceRow.venue_id === "academy") {
+      venueSelect.value = "academy";
+    } else if (seanceRow.venue_id === "shevchenko") {
+      venueSelect.value = "shevchenko-v2";
+    }
+  }
+
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seance)}&select=pricing,seat_overrides`,
-    { headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}` } }
+    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seance)}&select=pricing,seat_overrides,hall,venue_id`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
   );
 
   const rows = await res.json();
-  if(!rows.length) return alert("Не знайдено");
+  if(!rows.length){
+    data.pricing = {};
+    data.seat_overrides = {};
+    render();
+    return;
+  }
 
   data.pricing = rows[0].pricing || {};
   data.seat_overrides = rows[0].seat_overrides || {};
+
+  if (rows[0].hall) {
+    venueSelect.value = rows[0].hall;
+  }
+
   render();
 }
+
+["showName","showDate","showTime","posterUrl","venueSelect","seanceId"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("input", render);
+  if (el) el.addEventListener("change", render);
+});
+
+render();
 </script>
 </body>
 </html>
