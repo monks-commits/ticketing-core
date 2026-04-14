@@ -259,12 +259,13 @@ publish.onclick = async () => {
           Prefer: "resolution=merge-duplicates"
         },
         body: JSON.stringify({
-          id: seance,
-          show: "test",
-          date: null,
-          time: null,
-          active: true
-        })
+  id: seance,
+  venue_id: venueId,
+  show: "test",
+  date: null,
+  time: null,
+  active: true
+})
       }
     );
 
