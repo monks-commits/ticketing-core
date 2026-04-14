@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Дякуємо за оплату</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div id="site-header"></div>
+  <script type="module" src="../scripts/include.js"></script>
+
+  <main class="main">
+    <section class="section">
+      <div class="container">
+        <div class="card" style="max-width:720px;">
+          <h1>Дякуємо за оплату!</h1>
+
+          <p id="msg">
+            Ми отримали ваше замовлення. Якщо квиток не прийшов на email — перевірте «Спам» або напишіть нам.
+          </p>
+
+          <p><b>Номер замовлення:</b> <span id="order">—</span></p>
+          <p><b>Сума:</b> <span id="amount">—</span></p>
+
+          <a id="returnLink" href="index.html" class="button-primary" style="margin-top:16px;display:inline-block;">
+            Повернутися на сайт
+          </a>
+
+          <details style="margin-top:14px;">
+            <summary>Технічна довідка</summary>
+            <pre id="debug" style="white-space:pre-wrap;"></pre>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script>
+    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+    const orderEl = document.getElementById("order");
+    const amountEl = document.getElementById("amount");
+    const debugEl = document.getElementById("debug");
+    const msgEl = document.getElementById("msg");
+    const returnLinkEl = document.getElementById("returnLink");
+
+    const qs = new URLSearchParams(location.search);
+
+    function supaHeaders() {
+      return {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      };
+    }
+
+    function getReturnHrefByVenue(venueId) {
+      if (venueId === "academy") return "./index-academy.html";
+      if (venueId === "shevchenko") return "./index-shevchenko.html";
+      return "./index.html";
+    }
+
+    async function fetchJson(url) {
+      const r = await fetch(url, { headers: supaHeaders() });
+      const text = await r.text();
+
+      return {
+        ok: r.ok,
+        status: r.status,
+        text,
+        json: (() => {
+          try {
+            return JSON.parse(text || "null");
+          } catch {
+            return null;
+          }
+        })()
+      };
+    }
+
+    async function resolveVenueIdFromOrder(orderRow) {
+      // 1. venue из URL
+      const venueFromQs = (qs.get("venue") || "").trim();
+      if (venueFromQs) return venueFromQs;
+
+      // 2. venue_id прямо в заказе
+      if (orderRow && orderRow.venue_id) return orderRow.venue_id;
+
+      // 3. через seance_id -> seances.venue_id
+      if (orderRow && orderRow.seance_id) {
+        const seanceUrl =
+          `${SUPABASE_URL}/rest/v1/seances` +
+          `?id=eq.${encodeURIComponent(orderRow.seance_id)}` +
+          `&select=venue_id,show` +
+          `&limit=1`;
+
+        const seanceRes = await fetchJson(seanceUrl);
+
+        debugEl.textContent +=
+          `\n\nGET ${seanceUrl}\nstatus=${seanceRes.status}\nresponse:\n${seanceRes.text}`;
+
+        const rows = Array.isArray(seanceRes.json) ? seanceRes.json : [];
+        if (rows.length && rows[0].venue_id) {
+          return rows[0].venue_id;
+        }
+      }
+
+      return "";
+    }
+
+    async function loadLastPaid() {
+      const orderIdFromQs = (qs.get("order_id") || "").trim();
+
+      let url =
+        `${SUPABASE_URL}/rest/v1/orders` +
+        `?select=*` +
+        `&status=eq.paid` +
+        `&order=updated_at.desc` +
+        `&limit=1`;
+
+      if (orderIdFromQs) {
+        url =
+          `${SUPABASE_URL}/rest/v1/orders` +
+          `?select=*` +
+          `&order_id=eq.${encodeURIComponent(orderIdFromQs)}` +
+          `&limit=1`;
+      }
+
+      const orderRes = await fetchJson(url);
+
+      debugEl.textContent =
+        `GET ${url}\nstatus=${orderRes.status}\nresponse:\n${orderRes.text}`;
+
+      if (!orderRes.ok) {
+        msgEl.textContent = "Оплату отримано, але дані замовлення не завантажились. Оновіть сторінку або зверніться до підтримки.";
+        return;
+      }
+
+      const rows = Array.isArray(orderRes.json) ? orderRes.json : [];
+      if (!rows.length) {
+        msgEl.textContent = "Оплату отримано. Дані замовлення ще обробляються. Оновіть сторінку через 10–20 секунд.";
+        return;
+      }
+
+      const o = rows[0];
+
+      orderEl.textContent = o.order_id || "—";
+      amountEl.textContent = `${Number(o.amount || 0).toFixed(2)} ${o.currency || "UAH"}`;
+
+      const venueId = await resolveVenueIdFromOrder(o);
+      const returnHref = getReturnHrefByVenue(venueId);
+      returnLinkEl.href = returnHref;
+
+      debugEl.textContent += `\n\nresolved venue_id: ${venueId || "(empty)"}`;
+      debugEl.textContent += `\nreturn href: ${returnHref}`;
+    }
+
+    loadLastPaid().catch((e) => {
+      debugEl.textContent += "\n\nerror:\n" + String(e);
+      msgEl.textContent = "Сталася помилка при завантаженні даних. Оновіть сторінку.";
+    });
+  </script>
+</body>
+</html>
