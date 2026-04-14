@@ -1100,47 +1100,21 @@ function makeSeatElement(key,label,extraClass,price,meta){
 
   const HALL = await hallRes.json();
 
-// ===== СНАЧАЛА СТАТУСЫ =====
-await loadTakenSeats();
-await loadBookingSeats();
+  // ===== СНАЧАЛА ЗАГРУЖАЕМ СТАТУСЫ =====
+  await loadTakenSeats();
+  await loadBookingSeats();
 
-// ===== ПОТОМ РЕНДЕР =====
-if (Array.isArray(HALL?.sections)) {
-  renderHallSections(HALL);
-} else {
-  renderHallFromJson(HALL);
-}
-
-  
-
-  // 🔁 АВТООБНОВЛЕНИЕ
-  setInterval(async () => {
-    await loadTakenSeats();
-    await loadBookingSeats();
-
-    document.querySelectorAll(".seat").forEach(btn => {
-      const key = btn.dataset?.key;
-      if (!key) return;
-
-      btn.classList.remove("seat--taken", "seat--hold");
-
-      if (takenSeats.has(key) || reservedSeats.has(key)) {
-        btn.classList.add("seat--taken");
-        btn.disabled = true;
-      } else if (holdSeats.has(key)) {
-        btn.classList.add("seat--hold");
-        btn.disabled = true;
-      } else {
-        btn.disabled = false;
-      }
-    });
-
-  }, 3000);
+  // ===== ПОТОМ РЕНДЕРИМ =====
+  if (Array.isArray(HALL?.sections)) {
+    renderHallSections(HALL);
+  } else {
+    renderHallFromJson(HALL);
+  }
 
   // 🔁 возврат из order/checkout
   if (returnSeats.length) {
     for (const key of returnSeats) {
-      const btn = document.querySelector(`.seat[data-key="${key}"]`); 
+      const btn = document.querySelector(`.seat[data-key="${key}"]`);
       if (!btn) continue;
 
       const price = Number(returnPrices[key] || btn.dataset.price || 0);
@@ -1155,6 +1129,33 @@ if (Array.isArray(HALL?.sections)) {
   }
 
   updateSummary();
+
+  // ===== АВТООБНОВЛЕНИЕ =====
+  setInterval(async () => {
+    await loadTakenSeats();
+    await loadBookingSeats();
+
+    document.querySelectorAll(".seat").forEach(btn => {
+      const key = btn.dataset?.key;
+      if (!key) return;
+
+      btn.classList.remove("seat--taken", "seat--hold", "seat--reserved");
+
+      if (takenSeats.has(key)) {
+        btn.classList.add("seat--taken");
+        btn.disabled = true;
+      } else if (reservedSeats.has(key)) {
+        btn.classList.add("seat--reserved");
+        btn.disabled = true;
+      } else if (holdSeats.has(key)) {
+        btn.classList.add("seat--hold");
+        btn.disabled = true;
+      } else {
+        btn.disabled = btn.classList.contains("seat--no-sale");
+      }
+    });
+
+  }, 3000);
 
 })();
   </script>
