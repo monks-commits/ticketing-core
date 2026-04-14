@@ -848,7 +848,7 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
   return btn;
 }
-
+const selected = new Map(); // key -> { meta, price }
     async function onSeatClick(btn, key, meta, price){
   if (!SEANCE_ID) return;
 
