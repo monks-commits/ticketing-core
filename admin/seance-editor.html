@@ -188,7 +188,7 @@ const data = {
   pricing: {},
   seat_overrides: {}
 };
-
+const showStatus = document.getElementById("showStatus");
 const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
 const showName = document.getElementById("showName");
@@ -315,6 +315,7 @@ publish.onclick = async () => {
   const date = showDate.value || null;
   const time = showTime.value || null;
   const poster_url = posterUrl.value.trim() || null;
+  const status = showStatus.value;
 
   if (!show) return alert("Вкажи назву вистави");
   if (!date) return alert("Вкажи дату");
@@ -324,61 +325,37 @@ publish.onclick = async () => {
   const venueId = hall === "academy" ? "academy" : "shevchenko";
 
   try {
-    const seanceRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          Prefer: "resolution=merge-duplicates"
-        },
-        body: JSON.stringify({
-          id: seance,
-          venue_id: venueId,
-          show: show,
-          date: date,
-          time: time,
-          poster_url: poster_url,
-          active: true,
-          status: "active"
-        })
-      }
-    );
-
-    if (!seanceRes.ok) {
-      const text = await seanceRes.text();
-      alert("❌ Помилка запису в seances:\n" + text);
-      return;
-    }
-
-    const pricingRes = await fetch(SUPABASE_FUNCTION_URL, {
+    const res = await fetch(SUPABASE_FUNCTION_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         seance_id: seance,
-        pricing: data.pricing,
-        seat_overrides: data.seat_overrides,
+        venue_id: venueId,
         hall: hall,
-        venue_id: venueId
+        show: show,
+        date: date,
+        time: time,
+        poster_url: poster_url,
+        status: status,
+        pricing: data.pricing,
+        seat_overrides: data.seat_overrides
       })
     });
 
-    if (!pricingRes.ok) {
-      const text = await pricingRes.text();
-      alert("❌ Помилка pricing:\n" + text);
+    const text = await res.text();
+
+    if (!res.ok) {
+      alert("❌ Помилка збереження:\n" + text);
       return;
     }
 
-    alert(`✅ Сеанс створено для ${hall}`);
+    alert("✅ Сеанс створено / оновлено");
   } catch (err) {
     alert("❌ Помилка: " + err.message);
   }
 };
-
 async function loadSeance(){
   const seance = seanceId.value.trim();
   if(!seance) return;
