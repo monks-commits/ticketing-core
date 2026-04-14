@@ -414,7 +414,7 @@ async function loadSeance(){
   render();
 }
 
-["showName","showDate","showTime","posterUrl","venueSelect","seanceId"].forEach(id => {
+["showName","showDate","showTime","posterUrl","venueSelect","seanceId","showStatus"].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener("input", render);
   if (el) el.addEventListener("change", render);
