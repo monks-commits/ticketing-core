@@ -1111,20 +1111,7 @@ if (Array.isArray(HALL?.sections)) {
   renderHallFromJson(HALL);
 }
 
-  // 🔥 ВЕШАЕМ КЛИКИ ОДИН РАЗ
-  document.querySelectorAll(".seat").forEach(btn => {
-  const key = btn.dataset?.key;
-  if (!key) return;
-
-  // только стартовые статусы, БЕЗ второго клика
-  if (takenSeats.has(key) || reservedSeats.has(key)) {
-    btn.classList.add("seat--taken");
-    btn.disabled = true;
-  } else if (holdSeats.has(key)) {
-    btn.classList.add("seat--hold");
-    btn.disabled = true;
-  }
-});
+  
 
   // 🔁 АВТООБНОВЛЕНИЕ
   setInterval(async () => {
