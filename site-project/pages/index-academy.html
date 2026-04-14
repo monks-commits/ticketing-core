@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Квитки онлайн — Академія Руху</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#081421;
+  color:#fff;
+}
+
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:24px;
+}
+
+h1{
+  margin-bottom:20px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:24px;
+}
+
+.card{
+  background:#0d2238;
+  border-radius:10px;
+  overflow:hidden;
+  transition:.2s;
+}
+
+.card:hover{
+  transform:scale(1.03);
+}
+
+.poster{
+  width:100%;
+  aspect-ratio:2/3;
+  object-fit:cover;
+}
+
+.card-body{
+  padding:12px;
+}
+
+.title{
+  font-weight:600;
+  margin-bottom:6px;
+}
+
+.date{
+  color:#ccc;
+  font-size:14px;
+}
+
+.btn{
+  display:block;
+  margin-top:10px;
+  width:100%;
+  padding:10px;
+  background:#d4af37;
+  border-radius:6px;
+  text-align:center;
+  text-decoration:none;
+  color:#000;
+  font-weight:600;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Квитки онлайн — Академія Руху</h1>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+async function loadSeances(){
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,poster_url,venue_id,active,status&venue_id=eq.academy&order=date.asc`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
+  );
+
+  const data = await res.json();
+
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  const visible = Array.isArray(data)
+    ? data.filter(s => s.active !== false && s.status !== "archived")
+    : [];
+
+  if (!visible.length) {
+    grid.innerHTML = `<div style="color:#ccc;">Поки що немає активних сеансів.</div>`;
+    return;
+  }
+
+  visible.forEach(s => {
+    const img = s.poster_url || "images/default.jpg";
+
+    const el = document.createElement("div");
+    el.className = "card";
+
+    el.innerHTML = `
+      <img src="${img}" class="poster" onerror="this.src='images/default.jpg'">
+      <div class="card-body">
+        <div class="title">${s.show || "Вистава"}</div>
+        <div class="date">${formatDate(s.date, s.time)}</div>
+        <a class="btn" href="hall.html?seance=${encodeURIComponent(s.id)}">
+          Купити квитки
+        </a>
+      </div>
+    `;
+
+    grid.appendChild(el);
+  });
+}
+
+function formatDate(date, time){
+  if(!date) return "Дата уточнюється";
+
+  const d = new Date(date);
+  const day = d.getDate().toString().padStart(2,"0");
+  const month = (d.getMonth()+1).toString().padStart(2,"0");
+
+  return `${day}.${month} ${time || ""}`.trim();
+}
+
+loadSeances();
+</script>
+
+</body>
+</html>
