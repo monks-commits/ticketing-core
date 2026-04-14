@@ -797,7 +797,6 @@ function applySeanceConfig(meta) {
   return null;
 }
     
-
 function makeSeatElement(key,label,extraClass,price,meta){
   let finalPrice = price;
   let finalClass = extraClass;
@@ -815,7 +814,7 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.type = "button";
   btn.textContent = label;
   btn.className = "seat" + (finalClass ? " " + finalClass : "");
-  btn.dataset.price = finalPrice;
+  btn.dataset.price = String(finalPrice || 0);
 
   if (cfg && cfg.color) {
     btn.style.background = cfg.color;
@@ -828,13 +827,13 @@ function makeSeatElement(key,label,extraClass,price,meta){
     btn.disabled = true;
   }
 
-  // reserved = тоже серый на сайте
+  // reserved = тоже серый
   if (reservedSeats.has(key)){
     btn.classList.add("seat--taken");
     btn.disabled = true;
   }
 
-  // hold = красный, сильнее серого
+  // hold = красный
   if (holdSeats.has(key)){
     btn.classList.remove("seat--taken");
     btn.classList.add("seat--hold");
@@ -849,19 +848,105 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
   return btn;
 }
-    
-    const selected = new Map(); // key -> { meta, price }
 
-    function onSeatClick(btn, key, meta, price){
-      if (btn.classList.contains("seat--selected")){
-        btn.classList.remove("seat--selected");
-        selected.delete(key);
-      } else {
-        btn.classList.add("seat--selected");
-        selected.set(key, { meta, price });
+    async function onSeatClick(btn, key, meta, price){
+  if (!SEANCE_ID) return;
+
+  // уже продано / резерв / чужой hold
+  if (takenSeats.has(key) || reservedSeats.has(key)) return;
+
+  // если это уже наше выбранное место — снимаем локально и из bookings
+  if (selected.has(key)) {
+    try {
+      const findRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&select=id,seats`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+
+      const rows = await findRes.json();
+
+      const myHold = Array.isArray(rows)
+        ? rows.find(r => Array.isArray(r.seats) && r.seats.includes(key))
+        : null;
+
+      if (myHold?.id) {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(myHold.id)}`,
+          {
+            method: "PATCH",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              status: "cancelled"
+            })
+          }
+        );
       }
-      updateSummary();
+    } catch (e) {
+      console.warn("cancel hold error", e);
     }
+
+    selected.delete(key);
+    holdSeats.delete(key);
+
+    btn.classList.remove("seat--selected", "seat--hold");
+    btn.disabled = false;
+
+    updateSummary();
+    return;
+  }
+
+  // если место уже в hold у кого-то — не трогаем
+  if (holdSeats.has(key)) return;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({
+        seance_id: SEANCE_ID,
+        show_slug: showSlug || "demo",
+        seats: [key],
+        status: "hold",
+        amount: Number(price || 0),
+        order_id: `hold-${Date.now()}`,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("hold create error", data);
+      return;
+    }
+
+    holdSeats.add(key);
+
+    btn.classList.add("seat--hold", "seat--selected");
+    btn.disabled = false;
+
+    selected.set(key, { meta, price });
+
+    updateSummary();
+
+  } catch (e) {
+    console.error("booking insert error", e);
+  }
+}
 
     function updateSummary(){
       const placesEl = document.getElementById("summary-places");
