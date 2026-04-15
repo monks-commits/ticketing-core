@@ -897,10 +897,37 @@ btn.dataset.baseColor = (cfg && cfg.color) ? "#fff" : "";
     }
 
     function reapplyAllStatuses(){
-      for (const [k, b] of seatButtons.entries()){
-        applyStatusClass(b, getEffectiveStatus(k));
+  for (const [k, b] of seatButtons.entries()){
+
+    const isSelected = selected.has(k);
+
+    // снимаем только серверные статусы
+    b.classList.remove(
+      "seat--sold",
+      "seat--reserved",
+      "seat--blocked",
+      "seat--hold"
+    );
+
+    applyStatusClass(b, getEffectiveStatus(k));
+
+    // 🔥 возвращаем локальное выделение кассира
+    if (isSelected) {
+      b.classList.add("seat--selected");
+
+      // если это hold/reserved текущего кассира —
+      // не блокируем кнопку, чтобы можно было снять выбор
+      if (
+        b.classList.contains("seat--hold") ||
+        b.classList.contains("seat--reserved")
+      ) {
+        b.disabled = false;
       }
+    } else {
+      b.classList.remove("seat--selected");
     }
+  }
+}
 
    function updateSummary(){
   const placesEl = document.getElementById("summary-places");
