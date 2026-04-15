@@ -1217,30 +1217,51 @@ const selected = new Map(); // key -> { meta, price }
 
   // ===== АВТООБНОВЛЕНИЕ =====
   setInterval(async () => {
-    await loadTakenSeats();
-    await loadBookingSeats();
+  await loadTakenSeats();
+  await loadBookingSeats();
 
-    document.querySelectorAll(".seat").forEach(btn => {
-      const key = btn.dataset?.key;
-      if (!key) return;
+  document.querySelectorAll(".seat").forEach(btn => {
+    const key = btn.dataset?.key;
+    if (!key) return;
 
-      btn.classList.remove("seat--taken", "seat--hold", "seat--reserved");
+    // 🔥 не трогаем локально выбранные пользователем места
+    const isSelected = selected.has(key);
 
-      if (takenSeats.has(key)) {
-        btn.classList.add("seat--taken");
-        btn.disabled = true;
-      } else if (reservedSeats.has(key)) {
-        btn.classList.add("seat--reserved");
-        btn.disabled = true;
-      } else if (holdSeats.has(key)) {
-        btn.classList.add("seat--hold");
-        btn.disabled = true;
-      } else {
-        btn.disabled = btn.classList.contains("seat--no-sale");
-      }
-    });
+    btn.classList.remove("seat--taken", "seat--hold", "seat--reserved");
 
-  }, 3000);
+    // ✅ продано
+    if (takenSeats.has(key)) {
+      btn.classList.add("seat--taken");
+      btn.disabled = true;
+      return;
+    }
+
+    // ✅ долгий резерв кассы
+    if (reservedSeats.has(key)) {
+      btn.classList.add("seat--reserved");
+      btn.disabled = true;
+      return;
+    }
+
+    // ✅ временный hold
+    if (holdSeats.has(key)) {
+      btn.classList.add("seat--hold");
+
+      // 🔥 если это место выбрал текущий пользователь — не блокируем клик
+      btn.disabled = !isSelected;
+      return;
+    }
+
+    // ✅ свободное
+    btn.disabled = btn.classList.contains("seat--no-sale");
+
+    // 🔥 возвращаем синюю обводку своему выбору
+    if (isSelected) {
+      btn.classList.add("seat--selected");
+    }
+  });
+
+}, 3000);
 
 })();
   </script>
