@@ -821,21 +821,15 @@ function makeSeatElement(key,label,extraClass,price,meta){
     btn.style.color = "#fff";
   }
 
-  // sold = серый
-  if (takenSeats.has(key)){
+  // ✅ правильный приоритет статусов:
+  // sold > reserved > hold
+  if (takenSeats.has(key)) {
     btn.classList.add("seat--taken");
     btn.disabled = true;
-  }
-
-  // reserved = тоже серый
-  if (reservedSeats.has(key)){
-    btn.classList.add("seat--taken");
+  } else if (reservedSeats.has(key)) {
+    btn.classList.add("seat--reserved");
     btn.disabled = true;
-  }
-
-  // hold = красный
-  if (holdSeats.has(key)){
-    btn.classList.remove("seat--taken");
+  } else if (holdSeats.has(key)) {
     btn.classList.add("seat--hold");
     btn.disabled = true;
   }
@@ -848,7 +842,11 @@ function makeSeatElement(key,label,extraClass,price,meta){
   btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
   return btn;
 }
-const selected = new Map(); // key -> { meta, price }
+    
+    const selected = new Map(); // key -> { meta, price }
+
+
+    
     async function onSeatClick(btn, key, meta, price){
   if (!SEANCE_ID) return;
 
