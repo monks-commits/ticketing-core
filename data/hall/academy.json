@@ -6,7 +6,7 @@
     {
       "row": 1,
       "seats": 11,
-      "offset": 7,
+      "offset": 6,
       "aisles": [],
       "zones": [
         { "from": 1, "to": 11, "price": 5 }
