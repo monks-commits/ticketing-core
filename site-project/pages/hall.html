@@ -977,6 +977,14 @@
 
   const rows = Array.isArray(section.rows) ? section.rows : [];
 
+  // ✅ вычисляем максимальную ширину правой части,
+  // чтобы короткие ряды 22/23 не центрировались заново
+  let maxRightCount = 0;
+  for (const r of rows) {
+    const count = Number(r?.right?.count || 0);
+    if (count > maxRightCount) maxRightCount = count;
+  }
+
   rows.forEach(r => {
     const rowLine = document.createElement("div");
     rowLine.className = "row-line";
@@ -1009,15 +1017,15 @@
 
     rowLine.appendChild(left);
 
-    // ✅ gap и правая часть добавляем только если right реально есть
+    // ✅ gap оставляем всегда, чтобы геометрия ряда была одинаковой
+    const gap = document.createElement("div");
+    gap.className = "amphi-gap";
+    rowLine.appendChild(gap);
+
+    const right = document.createElement("div");
+    right.className = "seats-row";
+
     if (r.right) {
-      const gap = document.createElement("div");
-      gap.className = "amphi-gap";
-      rowLine.appendChild(gap);
-
-      const right = document.createElement("div");
-      right.className = "seats-row";
-
       const start = Number(r.right.start || 1);
       const count = Number(r.right.count || 0);
 
@@ -1033,16 +1041,21 @@
           makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
         );
       }
-
-      rowLine.appendChild(right);
+    } else {
+      // ✅ для 22 и 23 рядов создаём невидимую правую часть той же ширины
+      for (let i = 0; i < maxRightCount; i++) {
+        const empty = document.createElement("div");
+        empty.className = "seat seat--empty";
+        right.appendChild(empty);
+      }
     }
 
+    rowLine.appendChild(right);
     wrap.appendChild(rowLine);
   });
 
   return wrap;
 }
-
     function renderCustomRows(section){
       const wrap = document.createElement("section");
       wrap.className = "hall-section";
