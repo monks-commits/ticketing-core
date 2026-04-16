@@ -969,76 +969,79 @@
       return lodge;
     }
 
-    function renderSplitRows(section){
-      const wrap = document.createElement("section");
-      wrap.className = "hall-section";
+   function renderSplitRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
 
-      wrap.appendChild(makeSectionTitle(section.title || "Section"));
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
 
-      const rows = Array.isArray(section.rows) ? section.rows : [];
+  const rows = Array.isArray(section.rows) ? section.rows : [];
 
-      rows.forEach(r => {
-        const rowLine = document.createElement("div");
-        rowLine.className = "row-line";
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
 
-        const lab = document.createElement("div");
-        lab.className = "row-label";
-        lab.textContent = r.row;
-        rowLine.appendChild(lab);
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
 
-        const left = document.createElement("div");
-        left.className = "seats-row";
+    const left = document.createElement("div");
+    left.className = "seats-row";
 
-        const gap = document.createElement("div");
-        gap.className = "amphi-gap";
+    if (r.left) {
+      const start = Number(r.left.start || 1);
+      const count = Number(r.left.count || 0);
 
-        const right = document.createElement("div");
-        right.className = "seats-row";
+      for (let i = 0; i < count; i++) {
+        const seatNum = start + i;
+        const meta = {
+          zone: section.zone || "Амфітеатр",
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
 
-        if (r.left) {
-          const start = Number(r.left.start || 1);
-          const count = Number(r.left.count || 0);
-
-          for (let i = 0; i < count; i++) {
-            const seatNum = start + i;
-            const meta = {
-              zone: section.zone || "Амфітеатр",
-              row: Number(r.row || 0),
-              seat: seatNum
-            };
-
-            left.appendChild(
-              makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
-            );
-          }
-        }
-
-        if (r.right) {
-          const start = Number(r.right.start || 1);
-          const count = Number(r.right.count || 0);
-
-          for (let i = 0; i < count; i++) {
-            const seatNum = start + i;
-            const meta = {
-              zone: section.zone || "Амфітеатр",
-              row: Number(r.row || 0),
-              seat: seatNum
-            };
-
-            right.appendChild(
-              makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
-            );
-          }
-        }
-
-        rowLine.appendChild(left);
-        rowLine.appendChild(gap);
-        rowLine.appendChild(right);
-        wrap.appendChild(rowLine);
-      });
-
-      return wrap;
+        left.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
     }
+
+    rowLine.appendChild(left);
+
+    // ✅ gap и правая часть добавляем только если right реально есть
+    if (r.right) {
+      const gap = document.createElement("div");
+      gap.className = "amphi-gap";
+      rowLine.appendChild(gap);
+
+      const right = document.createElement("div");
+      right.className = "seats-row";
+
+      const start = Number(r.right.start || 1);
+      const count = Number(r.right.count || 0);
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = start + i;
+        const meta = {
+          zone: section.zone || "Амфітеатр",
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        right.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+
+      rowLine.appendChild(right);
+    }
+
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
+}
 
     function renderCustomRows(section){
       const wrap = document.createElement("section");
@@ -1182,20 +1185,20 @@
       });
     }
 
-    function renderSimpleRows(hallData) {
-      const root = document.getElementById("hall-root");
-      if (!root) return;
+   function renderSimpleRows(hallData) {
+  const root = document.getElementById("hall-root");
+  if (!root) return;
 
-      root.innerHTML = "";
+  root.innerHTML = "";
 
-      const section = {
-        title: hallData?.name || hallData?.title || "Партер",
-        zone: "Партер",
-        rows: Array.isArray(hallData?.rows) ? hallData.rows : []
-      };
+  const section = {
+    title: "",
+    zone: "Партер",
+    rows: Array.isArray(hallData?.rows) ? hallData.rows : []
+  };
 
-      root.appendChild(renderRowsSection(section));
-    }
+  root.appendChild(renderRowsSection(section));
+}
 
     // ===== Selection / holds =====
     async function onSeatClick(btn, key, meta, price){
