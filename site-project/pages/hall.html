@@ -486,22 +486,23 @@
   .hall-hero{
     padding:10px 12px;
     border-radius:14px;
+    margin-bottom:10px;
   }
 
   .hall-title{
     font-size:18px;
     line-height:1.1;
-    margin-bottom:6px;
+    margin-bottom:0;
   }
 
+  /* ✅ убираем лишний текст как у Karabas */
   .hall-eyebrow{
     font-size:10px;
     margin-bottom:6px;
   }
 
   .hall-subtitle{
-    font-size:12px;
-    line-height:1.3;
+    display:none;
   }
 
   .hall-badges{
@@ -513,25 +514,29 @@
   }
 
   .hall-shell-head{
-    padding:10px 12px;
+    padding:10px 12px 8px;
+    border-bottom:none;
   }
 
-  .hall-shell-title{
-    font-size:16px;
-  }
-
+  /* ✅ убираем дублирующий заголовок блока */
+  .hall-shell-title,
   .hall-shell-meta{
-    font-size:12px;
+    display:none;
   }
 
   .hall-legend{
     font-size:11px;
     gap:6px 10px;
+    justify-content:flex-start;
   }
 
+  /* ✅ возвращаем горизонтальное движение */
   .hall-scroll{
     padding:8px 6px 12px;
-    overflow:hidden !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    touch-action: pan-x pan-y;
   }
 
   .hall-inner{
@@ -633,6 +638,7 @@
   }
 }
 
+    
 @media (max-width:420px){
   :root{
     --hall-min-width:460px;
