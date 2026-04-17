@@ -1558,6 +1558,9 @@ function applyMobileHallScale() {
 
   if (!viewport || !scaleWrap) return;
 
+  const hallInner = scaleWrap.querySelector(".hall-inner");
+  if (!hallInner) return;
+
   // desktop / tablet — без масштабирования
   if (window.innerWidth > 640) {
     scaleWrap.style.transform = "scale(1)";
@@ -1565,24 +1568,32 @@ function applyMobileHallScale() {
     return;
   }
 
-  const hallInner = scaleWrap.querySelector(".hall-inner");
-  if (!hallInner) return;
-
   // сброс перед измерением
   scaleWrap.style.transform = "scale(1)";
   viewport.style.height = "";
 
-  const viewportWidth = viewport.clientWidth;
+  const rect = viewport.getBoundingClientRect();
   const contentWidth = hallInner.scrollWidth;
   const contentHeight = hallInner.scrollHeight;
 
-  if (!viewportWidth || !contentWidth || !contentHeight) return;
+  if (!contentWidth || !contentHeight) return;
 
-  // подгоняем всю схему под ширину телефона
-  let scale = viewportWidth / contentWidth;
+  const availableWidth = viewport.clientWidth;
 
-  scale = Math.min(scale, 1);
-  scale = Math.max(scale, 0.42);
+  // сколько реально осталось места по высоте до низа экрана
+  const availableHeight = Math.max(
+    window.innerHeight - rect.top - 12,
+    220
+  );
+
+  const scaleByWidth = availableWidth / contentWidth;
+  const scaleByHeight = availableHeight / contentHeight;
+
+  // ✅ теперь подгоняем и по ширине, и по высоте
+  let scale = Math.min(scaleByWidth, scaleByHeight, 1);
+
+  // даём схеме сжаться сильнее, чем раньше
+  scale = Math.max(scale, 0.20);
 
   scaleWrap.style.transform = `scale(${scale})`;
   viewport.style.height = `${contentHeight * scale}px`;
