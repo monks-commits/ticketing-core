@@ -1551,7 +1551,9 @@
       } else {
         renderSimpleRows(HALL);
       }
+setTimeout(applyMobileHallScale, 0);
 
+      
 function applyMobileHallScale() {
   const viewport = document.getElementById("mobile-hall-viewport");
   const scaleWrap = document.getElementById("mobile-hall-scale");
@@ -1685,6 +1687,9 @@ function applyMobileHallScale() {
 
       }, 3000);
     })();
+    window.addEventListener("resize", () => {
+  setTimeout(applyMobileHallScale, 0);
+});
   </script>
 </body>
 </html>
