@@ -1552,6 +1552,42 @@
         renderSimpleRows(HALL);
       }
 
+function applyMobileHallScale() {
+  const viewport = document.getElementById("mobile-hall-viewport");
+  const scaleWrap = document.getElementById("mobile-hall-scale");
+
+  if (!viewport || !scaleWrap) return;
+
+  // desktop / tablet — без масштабирования
+  if (window.innerWidth > 640) {
+    scaleWrap.style.transform = "scale(1)";
+    viewport.style.height = "";
+    return;
+  }
+
+  const hallInner = scaleWrap.querySelector(".hall-inner");
+  if (!hallInner) return;
+
+  // сброс перед измерением
+  scaleWrap.style.transform = "scale(1)";
+  viewport.style.height = "";
+
+  const viewportWidth = viewport.clientWidth;
+  const contentWidth = hallInner.scrollWidth;
+  const contentHeight = hallInner.scrollHeight;
+
+  if (!viewportWidth || !contentWidth || !contentHeight) return;
+
+  // подгоняем всю схему под ширину телефона
+  let scale = viewportWidth / contentWidth;
+
+  scale = Math.min(scale, 1);
+  scale = Math.max(scale, 0.42);
+
+  scaleWrap.style.transform = `scale(${scale})`;
+  viewport.style.height = `${contentHeight * scale}px`;
+}
+      
       if (returnSeats.length) {
         for (const key of returnSeats) {
           const btn = document.querySelector(`.seat[data-key="${key}"]`);
