@@ -382,4 +382,25 @@ img {
   .price-legend-mobile{
     display:block;
   }
+.price-legend-mobile {
+  position: fixed;
+  left: 0;
+  top: 120px;
+  z-index: 50;
+}
+
+.price-legend-mobile__stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-legend-mobile__item {
+  width: 56px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #fff;
+  font-size: 14px;
 }
