@@ -1558,6 +1558,9 @@
       } else {
         renderSimpleRows(HALL);
       }
+renderPriceLegendMobile();
+
+      
 setTimeout(applyMobileHallScale, 0);
 
       
@@ -1745,8 +1748,11 @@ function renderPriceLegendMobile() {
 
       }, 3000);
     })();
-    window.addEventListener("resize", () => {
-  setTimeout(applyMobileHallScale, 0);
+   window.addEventListener("resize", () => {
+  setTimeout(() => {
+    applyMobileHallScale();
+    renderPriceLegendMobile();
+  }, 0);
 });
   </script>
 </body>
