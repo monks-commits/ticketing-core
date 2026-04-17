@@ -351,4 +351,35 @@ img {
     font-size:15px;
     border-radius:12px;
   }
+.price-legend-mobile{
+  display:none;
+}
 
+.price-legend-mobile__stack{
+  position:fixed;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:60;
+  border-radius:12px 0 0 12px;
+  overflow:hidden;
+  box-shadow:0 8px 22px rgba(17,24,39,.16);
+}
+
+.price-legend-mobile__item{
+  width:54px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:700;
+  font-size:20px;
+  line-height:1;
+}
+
+@media (max-width:640px){
+  .price-legend-mobile{
+    display:block;
+  }
+}
