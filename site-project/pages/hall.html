@@ -1612,6 +1612,52 @@ function applyMobileHallScale() {
     }
   });
 }
+
+
+function renderPriceLegendMobile() {
+  const box = document.getElementById("priceLegendMobile");
+  if (!box) return;
+
+  if (window.innerWidth > 640) {
+    box.innerHTML = "";
+    return;
+  }
+
+  const byPrice = new Map();
+
+  const addCfg = (cfg) => {
+    if (!cfg || cfg.price == null || !cfg.color) return;
+
+    const price = Number(cfg.price);
+    const color = String(cfg.color).trim();
+
+    if (!Number.isFinite(price) || !color) return;
+
+    if (!byPrice.has(price)) {
+      byPrice.set(price, color);
+    }
+  };
+
+  Object.values(SEANCE_CONFIG?.pricing || {}).forEach(addCfg);
+  Object.values(SEANCE_CONFIG?.seat_overrides || {}).forEach(addCfg);
+
+  const items = [...byPrice.entries()].sort((a, b) => a[0] - b[0]);
+
+  if (!items.length) {
+    box.innerHTML = "";
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="price-legend-mobile__stack">
+      ${items.map(([price, color]) => `
+        <div class="price-legend-mobile__item" style="background:${color}">
+          ${price}
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
       
       if (returnSeats.length) {
         for (const key of returnSeats) {
