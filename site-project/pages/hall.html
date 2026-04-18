@@ -767,12 +767,10 @@
     }
   }
 </style>
-
-  
-  <div id="seat-tooltip" class="seat-tooltip" hidden></div>
-  
+ 
 </head>
 <body>
+   <div id="seat-tooltip" class="seat-tooltip" hidden></div>
   <div id="site-header"></div>
 
   <main class="main hall-page">
@@ -1805,6 +1803,101 @@ async function loadSeanceMeta() {
       location.href = u.toString();
     });
 
+function renderPriceLegendMobile() {
+  const box = document.getElementById("priceLegendMobile");
+  if (!box) return;
+
+  if (window.innerWidth > 640) {
+    box.innerHTML = "";
+    return;
+  }
+
+  const byPrice = new Map();
+
+  const addCfg = (cfg) => {
+    if (!cfg || cfg.price == null || !cfg.color) return;
+
+    const price = Number(cfg.price);
+    const color = String(cfg.color).trim();
+
+    if (!Number.isFinite(price) || !color) return;
+
+    if (!byPrice.has(price)) {
+      byPrice.set(price, color);
+    }
+  };
+
+  Object.values(SEANCE_CONFIG?.pricing || {}).forEach(addCfg);
+  Object.values(SEANCE_CONFIG?.seat_overrides || {}).forEach(addCfg);
+
+  const items = [...byPrice.entries()].sort((a, b) => a[0] - b[0]);
+
+  if (!items.length) {
+    box.innerHTML = "";
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="price-legend-mobile__stack">
+      ${items.map(([price, color]) => `
+        <div class="price-legend-mobile__item" style="background:${color}">
+          ${price}
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function applyMobileHallScale() {
+  const viewport = document.getElementById("mobile-hall-viewport");
+  const scaleWrap = document.getElementById("mobile-hall-scale");
+  const hallScroll = document.querySelector(".hall-scroll");
+
+  if (!viewport || !scaleWrap || !hallScroll) return;
+
+  const hallInner = scaleWrap.querySelector(".hall-inner");
+  if (!hallInner) return;
+
+  if (window.innerWidth > 640) {
+    scaleWrap.style.transform = "scale(1)";
+    viewport.style.height = "";
+    viewport.style.width = "";
+    hallScroll.scrollLeft = 0;
+    return;
+  }
+
+  scaleWrap.style.transform = "scale(1)";
+  viewport.style.height = "";
+  viewport.style.width = "";
+
+  const rect = hallScroll.getBoundingClientRect();
+  const contentWidth = hallInner.scrollWidth;
+  const contentHeight = hallInner.scrollHeight;
+
+  if (!contentWidth || !contentHeight) return;
+
+  const availableWidth = hallScroll.clientWidth;
+  const availableHeight = Math.max(window.innerHeight - rect.top - 140, 220);
+
+  const scaleByWidth = availableWidth / contentWidth;
+  const scaleByHeight = availableHeight / contentHeight;
+
+  let scale = Math.min(scaleByWidth, scaleByHeight, 1);
+  scale = Math.max(scale, 0.20);
+
+  scaleWrap.style.transform = `scale(${scale})`;
+  viewport.style.width = `${contentWidth * scale}px`;
+  viewport.style.height = `${contentHeight * scale}px`;
+
+  requestAnimationFrame(() => {
+    const maxScroll = hallScroll.scrollWidth - hallScroll.clientWidth;
+    if (maxScroll > 0) {
+      hallScroll.scrollLeft = Math.round(maxScroll / 2);
+    }
+  });
+}
+
+    
     // ===== Boot =====
     (async ()=>{
       SEANCE_CONFIG = await loadSeanceConfig();
@@ -1832,55 +1925,10 @@ async function loadSeanceMeta() {
         renderSimpleRows(HALL);
       }
 renderPriceLegendMobile();
-
-      
 setTimeout(applyMobileHallScale, 0);
 
       
-function renderPriceLegendMobile() {
-  const box = document.getElementById("priceLegendMobile");
-  if (!box) return;
 
-  if (window.innerWidth > 640) {
-    box.innerHTML = "";
-    return;
-  }
-
-  const byPrice = new Map();
-
-  const addCfg = (cfg) => {
-    if (!cfg || cfg.price == null || !cfg.color) return;
-
-    const price = Number(cfg.price);
-    const color = String(cfg.color).trim();
-
-    if (!Number.isFinite(price) || !color) return;
-
-    if (!byPrice.has(price)) {
-      byPrice.set(price, color); 
-    }
-  };
-
-  Object.values(SEANCE_CONFIG?.pricing || {}).forEach(addCfg);
-  Object.values(SEANCE_CONFIG?.seat_overrides || {}).forEach(addCfg);
-
-  const items = [...byPrice.entries()].sort((a, b) => a[0] - b[0]);
-
-  if (!items.length) {
-    box.innerHTML = "";
-    return;
-  }
-
-  box.innerHTML = `
-    <div class="price-legend-mobile__stack">
-      ${items.map(([price, color]) => `
-        <div class="price-legend-mobile__item" style="background:${color}">
-          ${price}
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
       
       if (returnSeats.length) {
         for (const key of returnSeats) {
