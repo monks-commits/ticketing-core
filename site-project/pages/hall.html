@@ -1319,101 +1319,100 @@ async function loadSeanceMeta() {
   }
 }
 
-    
-    // ===== Universal hall renderer =====
-    function renderRowsSection(section){
-      const wrap = document.createElement("section");
-      wrap.className = "hall-section";
+// ===== Universal hall renderer =====
+function renderRowsSection(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
 
-      if (section.title) {
-        wrap.appendChild(makeSectionTitle(section.title));
-      }
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
 
-      const rows = Array.isArray(section.rows) ? section.rows : [];
+  const rows = Array.isArray(section.rows) ? section.rows : [];
 
-      rows.forEach(r => {
-        const rowLine = document.createElement("div");
-        rowLine.className = "row-line";
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
 
-        const lab = document.createElement("div");
-        lab.className = "row-label";
-        lab.textContent = r.row;
-        rowLine.appendChild(lab);
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
 
-        const seatsRow = document.createElement("div");
-        seatsRow.className = "seats-row";
+    const seatsRow = document.createElement("div");
+    seatsRow.className = "seats-row";
 
-        const offset = Number(r.offset || 0);
-        for (let i = 0; i < offset; i++) {
-          const spacer = document.createElement("div");
-          spacer.className = "seat seat--empty";
-          seatsRow.appendChild(spacer);
-        }
-
-        const seats = Number(r.seats || 0);
-        const aisles = Array.isArray(r.aisles) ? r.aisles : [];
-
-        for (let s = 1; s <= seats; s++) {
-          const meta = {
-            zone: section.zone || "Партер",
-            row: Number(r.row || 0),
-            seat: s
-          };
-
-          const cls = aisles.includes(s) ? "seat--gap-right" : "";
-
-          seatsRow.appendChild(
-            makeSeatElement(seatKey(meta), s, cls, 0, meta)
-          );
-        }
-
-        rowLine.appendChild(seatsRow);
-        wrap.appendChild(rowLine);
-
-        if (r.gapAfter) {
-          const gap = document.createElement("div");
-          gap.style.height = "34px";
-          wrap.appendChild(gap);
-        }
-      });
-
-      return wrap;
+    const offset = Number(r.offset || 0);
+    for (let i = 0; i < offset; i++) {
+      const spacer = document.createElement("div");
+      spacer.className = "seat seat--empty";
+      seatsRow.appendChild(spacer);
     }
 
-    function renderLodgesVertical(section){
-      const lodge = document.createElement("div");
-      lodge.className = "hall-lodge";
+    const seats = Number(r.seats || 0);
+    const aisles = Array.isArray(r.aisles) ? r.aisles : [];
 
-      const label = document.createElement("div");
-      label.className = "hall-lodge-label";
-      label.textContent = section.title || "Ложа";
+    for (let s = 1; s <= seats; s++) {
+      const meta = {
+        zone: section.zone || "Партер",
+        row: Number(r.row || 0),
+        seat: s
+      };
 
-      const seatsCol = document.createElement("div");
-      seatsCol.className = "hall-lodge-seats";
+      const cls = aisles.includes(s) ? "seat--gap-right" : "";
 
-      const count = Number(section.seat_count || 0);
-      const row = Number(section.row || 0);
-      const zone = section.zone || "Ложа А";
-
-      for (let i = 1; i <= count; i++) {
-        const meta = {
-          zone,
-          row,
-          seat: i,
-          index: i
-        };
-
-        seatsCol.appendChild(
-          makeSeatElement(seatKey(meta), i, "", 0, meta)
-        );
-      }
-
-      lodge.appendChild(label);
-      lodge.appendChild(seatsCol);
-      return lodge;
+      seatsRow.appendChild(
+        makeSeatElement(seatKey(meta), s, cls, 0, meta)
+      );
     }
 
-   function renderSplitRows(section){
+    rowLine.appendChild(seatsRow);
+    wrap.appendChild(rowLine);
+
+    if (r.gapAfter) {
+      const gap = document.createElement("div");
+      gap.style.height = "34px";
+      wrap.appendChild(gap);
+    }
+  });
+
+  return wrap;
+}
+
+function renderLodgesVertical(section){
+  const lodge = document.createElement("div");
+  lodge.className = "hall-lodge";
+
+  const label = document.createElement("div");
+  label.className = "hall-lodge-label";
+  label.textContent = section.title || "Ложа";
+
+  const seatsCol = document.createElement("div");
+  seatsCol.className = "hall-lodge-seats";
+
+  const count = Number(section.seat_count || 0);
+  const row = Number(section.row || 0);
+  const zone = section.zone || "Ложа А";
+
+  for (let i = 1; i <= count; i++) {
+    const meta = {
+      zone,
+      row,
+      seat: i,
+      index: i
+    };
+
+    seatsCol.appendChild(
+      makeSeatElement(seatKey(meta), i, "", 0, meta)
+    );
+  }
+
+  lodge.appendChild(label);
+  lodge.appendChild(seatsCol);
+  return lodge;
+}
+
+function renderSplitRows(section){
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
 
@@ -1421,8 +1420,6 @@ async function loadSeanceMeta() {
 
   const rows = Array.isArray(section.rows) ? section.rows : [];
 
-  // ✅ вычисляем максимальную ширину правой части,
-  // чтобы короткие ряды 22/23 не центрировались заново
   let maxRightCount = 0;
   for (const r of rows) {
     const count = Number(r?.right?.count || 0);
@@ -1461,7 +1458,6 @@ async function loadSeanceMeta() {
 
     rowLine.appendChild(left);
 
-    // ✅ gap оставляем всегда, чтобы геометрия ряда была одинаковой
     const gap = document.createElement("div");
     gap.className = "amphi-gap";
     rowLine.appendChild(gap);
@@ -1486,7 +1482,6 @@ async function loadSeanceMeta() {
         );
       }
     } else {
-      // ✅ для 22 и 23 рядов создаём невидимую правую часть той же ширины
       for (let i = 0; i < maxRightCount; i++) {
         const empty = document.createElement("div");
         empty.className = "seat seat--empty";
@@ -1500,308 +1495,172 @@ async function loadSeanceMeta() {
 
   return wrap;
 }
-    function renderCustomRows(section){
-      const wrap = document.createElement("section");
-      wrap.className = "hall-section";
 
-      wrap.appendChild(makeSectionTitle(section.title || "Section"));
+function renderCustomRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
 
-      const rows = Array.isArray(section.rows) ? section.rows : [];
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
 
-      rows.forEach(r => {
-        const rowLine = document.createElement("div");
-        rowLine.className = "row-line";
+  const rows = Array.isArray(section.rows) ? section.rows : [];
 
-        const lab = document.createElement("div");
-        lab.className = "row-label";
-        lab.textContent = r.row;
-        rowLine.appendChild(lab);
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
 
-        const seatsRow = document.createElement("div");
-        seatsRow.className = "seats-row";
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
 
-        const layout = Array.isArray(r.layout) ? r.layout : [];
+    const seatsRow = document.createElement("div");
+    seatsRow.className = "seats-row";
 
-        layout.forEach(item => {
-          if (item.kind === "seat_range") {
-            const start = Number(item.start || 1);
-            const count = Number(item.count || 0);
+    const layout = Array.isArray(r.layout) ? r.layout : [];
 
-            for (let i = 0; i < count; i++) {
-              const seatNum = start + i;
-              const meta = {
-                zone: section.zone || "Балкон",
-                row: Number(r.row || 0),
-                seat: seatNum
-              };
+    layout.forEach(item => {
+      if (item.kind === "seat_range") {
+        const start = Number(item.start || 1);
+        const count = Number(item.count || 0);
 
-              seatsRow.appendChild(
-                makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
-              );
-            }
-          }
+        for (let i = 0; i < count; i++) {
+          const seatNum = start + i;
+          const meta = {
+            zone: section.zone || "Балкон",
+            row: Number(r.row || 0),
+            seat: seatNum
+          };
 
-          if (item.kind === "gap") {
-            const count = Number(item.count || 1);
-            for (let i = 0; i < count; i++) {
-              const gap = document.createElement("div");
-              gap.className = "amphi-gap";
-              seatsRow.appendChild(gap);
-            }
-          }
-
-          if (item.kind === "empty") {
-            const count = Number(item.count || 1);
-            for (let i = 0; i < count; i++) {
-              const empty = document.createElement("div");
-              empty.className = "seat seat--empty";
-              seatsRow.appendChild(empty);
-            }
-          }
-        });
-
-        rowLine.appendChild(seatsRow);
-        wrap.appendChild(rowLine);
-      });
-
-      return wrap;
-    }
-
-    function renderHallSections(hallData){
-      const root = document.getElementById("hall-root");
-      if (!root) return;
-
-      root.innerHTML = "";
-
-      const sections = Array.isArray(hallData.sections) ? hallData.sections : [];
-
-      const parter = sections.find(s => s.id === "parter");
-      const lodgeA = sections.find(s => s.id === "lodge_a");
-      const lodgeB = sections.find(s => s.id === "lodge_b");
-
-      if (parter) {
-        const section = document.createElement("section");
-        section.className = "hall-section";
-
-        section.appendChild(makeSectionTitle(parter.title || "Партер"));
-
-        if (lodgeA || lodgeB) {
-          const parterWrap = document.createElement("div");
-          parterWrap.className = "parter-wrap";
-
-          if (lodgeA) {
-            parterWrap.appendChild(renderLodgesVertical(lodgeA));
-          }
-
-          const parterRowsWrap = document.createElement("div");
-          const rowsOnlySection = renderRowsSection({
-            title: "",
-            zone: parter.zone,
-            rows: parter.rows
-          });
-
-          Array.from(rowsOnlySection.children).forEach(ch => {
-            if (!ch.classList || !ch.classList.contains("hall-section-title")) {
-              parterRowsWrap.appendChild(ch);
-            }
-          });
-
-          parterWrap.appendChild(parterRowsWrap);
-
-          if (lodgeB) {
-            parterWrap.appendChild(renderLodgesVertical(lodgeB));
-          }
-
-          section.appendChild(parterWrap);
-        } else {
-          const rowsRendered = renderRowsSection(parter);
-          Array.from(rowsRendered.children).forEach(ch => {
-            if (!ch.classList || !ch.classList.contains("hall-section-title")) {
-              section.appendChild(ch);
-            }
-          });
+          seatsRow.appendChild(
+            makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+          );
         }
-
-        root.appendChild(section);
       }
 
-      sections.forEach(section => {
-        if (["parter", "lodge_a", "lodge_b"].includes(section.id)) return;
-
-        if (section.type === "rows") {
-          root.appendChild(renderRowsSection(section));
+      if (item.kind === "gap") {
+        const count = Number(item.count || 1);
+        for (let i = 0; i < count; i++) {
+          const gap = document.createElement("div");
+          gap.className = "amphi-gap";
+          seatsRow.appendChild(gap);
         }
+      }
 
-        if (section.type === "split_rows") {
-          root.appendChild(renderSplitRows(section));
+      if (item.kind === "empty") {
+        const count = Number(item.count || 1);
+        for (let i = 0; i < count; i++) {
+          const empty = document.createElement("div");
+          empty.className = "seat seat--empty";
+          seatsRow.appendChild(empty);
         }
+      }
+    });
 
-        if (section.type === "custom_rows") {
-          root.appendChild(renderCustomRows(section));
-        }
-      });
-    }
+    rowLine.appendChild(seatsRow);
+    wrap.appendChild(rowLine);
+  });
 
-   function renderSimpleRows(hallData) {
+  return wrap;
+}
+
+function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
 
   root.innerHTML = "";
 
+  const sections = Array.isArray(hallData.sections) ? hallData.sections : [];
+
+  const parter = sections.find(s => s.id === "parter");
+  const lodgeA = sections.find(s => s.id === "lodge_a");
+  const lodgeB = sections.find(s => s.id === "lodge_b");
+
+  if (parter) {
+    const section = document.createElement("section");
+    section.className = "hall-section";
+
+    section.appendChild(makeSectionTitle(parter.title || "Партер"));
+
+    if (lodgeA || lodgeB) {
+      const parterWrap = document.createElement("div");
+      parterWrap.className = "parter-wrap";
+
+      if (lodgeA) {
+        parterWrap.appendChild(renderLodgesVertical(lodgeA));
+      }
+
+      const parterRowsWrap = document.createElement("div");
+      const rowsOnlySection = renderRowsSection({
+        title: "",
+        zone: parter.zone,
+        rows: parter.rows
+      });
+
+      Array.from(rowsOnlySection.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          parterRowsWrap.appendChild(ch);
+        }
+      });
+
+      parterWrap.appendChild(parterRowsWrap);
+
+      if (lodgeB) {
+        parterWrap.appendChild(renderLodgesVertical(lodgeB));
+      }
+
+      section.appendChild(parterWrap);
+    } else {
+      const rowsRendered = renderRowsSection(parter);
+      Array.from(rowsRendered.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          section.appendChild(ch);
+        }
+      });
+    }
+
+    root.appendChild(section);
+  }
+
+  sections.forEach(section => {
+    if (["parter", "lodge_a", "lodge_b"].includes(section.id)) return;
+
+    if (section.type === "rows") {
+      root.appendChild(renderRowsSection(section));
+    }
+
+    if (section.type === "split_rows") {
+      root.appendChild(renderSplitRows(section));
+    }
+
+    if (section.type === "custom_rows") {
+      root.appendChild(renderCustomRows(section));
+    }
+  });
+}
+
+function renderSimpleRows(hallData) {
+  const root = document.getElementById("hall-root");
+  if (!root) return;
+
+  root.innerHTML = "";
+
+  const rows = Array.isArray(hallData?.rows) ? hallData.rows.map(r => ({ ...r })) : [];
+
+  if (hallData?.name && String(hallData.name).toLowerCase().includes("академ")) {
+    const row1 = rows.find(r => Number(r.row) === 1);
+    if (row1) {
+      row1.offset = 6;
+    }
+  }
+
   const section = {
     title: "",
     zone: "Партер",
-    rows: Array.isArray(hallData?.rows) ? hallData.rows : []
+    rows
   };
 
   root.appendChild(renderRowsSection(section));
 }
-
-    // ===== Selection / holds =====
-    async function onSeatClick(btn, key, meta, price){
-      if (!SEANCE_ID) return;
-
-      if (takenSeats.has(key) || reservedSeats.has(key)) return;
-
-      if (selected.has(key)) {
-        try {
-          const findRes = await fetch(
-            `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&select=id,seats`,
-            {
-              headers: {
-                apikey: SUPABASE_ANON_KEY,
-                Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-              }
-            }
-          );
-
-          const rows = await findRes.json();
-
-          const myHold = Array.isArray(rows)
-            ? rows.find(r => Array.isArray(r.seats) && r.seats.includes(key))
-            : null;
-
-          if (myHold?.id) {
-            await fetch(
-              `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(myHold.id)}`,
-              {
-                method: "PATCH",
-                headers: {
-                  apikey: SUPABASE_ANON_KEY,
-                  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  status: "cancelled"
-                })
-              }
-            );
-          }
-        } catch (e) {
-          console.warn("cancel hold error", e);
-        }
-
-        selected.delete(key);
-        holdSeats.delete(key);
-
-        btn.classList.remove("seat--selected", "seat--hold");
-        btn.disabled = false;
-
-        updateSummary();
-        return;
-      }
-
-      if (holdSeats.has(key)) return;
-
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            "Content-Type": "application/json",
-            Prefer: "return=representation"
-          },
-          body: JSON.stringify({
-            seance_id: SEANCE_ID,
-            show_slug: showSlug || "demo",
-            seats: [key],
-            status: "hold",
-            amount: Number(price || 0),
-            order_id: `hold-${Date.now()}`,
-            expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-          })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          console.error("hold create error", data);
-          return;
-        }
-
-        holdSeats.add(key);
-
-        btn.classList.add("seat--hold", "seat--selected");
-        btn.disabled = false;
-
-        selected.set(key, { meta, price });
-
-        updateSummary();
-
-      } catch (e) {
-        console.error("booking insert error", e);
-      }
-    }
-
-    function updateSummary(){
-      const placesEl = document.getElementById("summary-places");
-      const amountEl = document.getElementById("summary-amount");
-      const btn      = document.getElementById("go-order");
-
-      const keys = Array.from(selected.keys());
-      if (!keys.length){
-        placesEl.textContent = "Обрані місця: немає";
-        amountEl.textContent = "Сума: 0 грн";
-        btn.disabled = true;
-        return;
-      }
-
-      const placesStr = keys.map(seatKeyToHuman).join("; ");
-      const total = Array.from(selected.values()).reduce((sum,x)=> sum + (x.price||0), 0);
-
-      placesEl.textContent = "Обрані місця: " + placesStr;
-      amountEl.textContent = "Сума: " + total + " грн";
-      btn.disabled = false;
-    }
-
-    // ===== Go to order =====
-    document.getElementById("go-order").addEventListener("click", ()=>{
-      const entries = Array.from(selected.entries());
-      if (!entries.length) return;
-
-      const keys = entries.map(([k]) => k);
-
-      const prices = {};
-      let total = 0;
-
-      for (const [key, val] of entries) {
-        const p = Number(val.price || 0);
-        prices[key] = p;
-        total += p;
-      }
-
-      const u = new URL("./order.html", location.href);
-
-      u.searchParams.set("show", showSlug);
-      u.searchParams.set("title", showTitle);
-      u.searchParams.set("seance", SEANCE_ID);
-      u.searchParams.set("seats", keys.join(","));
-      u.searchParams.set("prices", JSON.stringify(prices));
-      u.searchParams.set("amount", String(total));
-
-      location.href = u.toString();
-    });
 
 function renderPriceLegendMobile() {
   const box = document.getElementById("priceLegendMobile");
@@ -1897,125 +1756,271 @@ function applyMobileHallScale() {
   });
 }
 
-    
-    // ===== Boot =====
-    (async ()=>{
-      SEANCE_CONFIG = await loadSeanceConfig();
+// ===== Selection / holds =====
+async function onSeatClick(btn, key, meta, price){
+  if (!SEANCE_ID) return;
 
-      const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
+  if (takenSeats.has(key) || reservedSeats.has(key)) return;
 
-      const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
-        cache: "no-store"
+  if (selected.has(key)) {
+    try {
+      const findRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&select=id,seats`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+
+      const rows = await findRes.json();
+
+      const myHold = Array.isArray(rows)
+        ? rows.find(r => Array.isArray(r.seats) && r.seats.includes(key))
+        : null;
+
+      if (myHold?.id) {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(myHold.id)}`,
+          {
+            method: "PATCH",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              status: "cancelled"
+            })
+          }
+        );
+      }
+    } catch (e) {
+      console.warn("cancel hold error", e);
+    }
+
+    selected.delete(key);
+    holdSeats.delete(key);
+
+    btn.classList.remove("seat--selected", "seat--hold");
+    btn.disabled = false;
+
+    updateSummary();
+    return;
+  }
+
+  if (holdSeats.has(key)) return;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({
+        seance_id: SEANCE_ID,
+        show_slug: showSlug || "demo",
+        seats: [key],
+        status: "hold",
+        amount: Number(price || 0),
+        order_id: `hold-${Date.now()}`,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("hold create error", data);
+      return;
+    }
+
+    holdSeats.add(key);
+
+    btn.classList.add("seat--hold", "seat--selected");
+    btn.disabled = false;
+
+    selected.set(key, { meta, price });
+
+    updateSummary();
+
+  } catch (e) {
+    console.error("booking insert error", e);
+  }
+}
+
+function updateSummary(){
+  const placesEl = document.getElementById("summary-places");
+  const amountEl = document.getElementById("summary-amount");
+  const btn = document.getElementById("go-order");
+
+  const keys = Array.from(selected.keys());
+  if (!keys.length){
+    placesEl.textContent = "Обрані місця: немає";
+    amountEl.textContent = "Сума: 0 грн";
+    btn.disabled = true;
+    return;
+  }
+
+  const placesStr = keys.map(seatKeyToHuman).join("; ");
+  const total = Array.from(selected.values()).reduce((sum,x)=> sum + (x.price||0), 0);
+
+  placesEl.textContent = "Обрані місця: " + placesStr;
+  amountEl.textContent = "Сума: " + total + " грн";
+  btn.disabled = false;
+}
+
+// ===== Go to order =====
+document.getElementById("go-order").addEventListener("click", ()=>{
+  const entries = Array.from(selected.entries());
+  if (!entries.length) return;
+
+  const keys = entries.map(([k]) => k);
+
+  const prices = {};
+  let total = 0;
+
+  for (const [key, val] of entries) {
+    const p = Number(val.price || 0);
+    prices[key] = p;
+    total += p;
+  }
+
+  const u = new URL("./order.html", location.href);
+
+  u.searchParams.set("show", showSlug);
+  u.searchParams.set("title", showTitle);
+  u.searchParams.set("seance", SEANCE_ID);
+  u.searchParams.set("seats", keys.join(","));
+  u.searchParams.set("prices", JSON.stringify(prices));
+  u.searchParams.set("amount", String(total));
+
+  location.href = u.toString();
+});
+
+// ===== Boot =====
+(async ()=>{
+  SEANCE_CONFIG = await loadSeanceConfig();
+  const SEANCE_META = await loadSeanceMeta();
+
+  const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
+
+  const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
+    cache: "no-store"
+  });
+
+  if (!hallRes.ok) {
+    throw new Error(`Hall JSON not found: ${hallFile}.json`);
+  }
+
+  const HALL = await hallRes.json();
+
+  setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
+
+  await loadTakenSeats();
+  await loadBookingSeats();
+
+  if (Array.isArray(HALL?.sections)) {
+    renderHallSections(HALL);
+  } else {
+    renderSimpleRows(HALL);
+  }
+
+  renderPriceLegendMobile();
+  setTimeout(applyMobileHallScale, 0);
+
+  if (returnSeats.length) {
+    for (const key of returnSeats) {
+      const btn = document.querySelector(`.seat[data-key="${key}"]`);
+      if (!btn) continue;
+
+      if (takenSeats.has(key) || reservedSeats.has(key) || holdSeats.has(key)) {
+        btn.classList.remove("seat--selected");
+        continue;
+      }
+
+      const price = Number(returnPrices[key] || btn.dataset.price || 0);
+
+      selected.set(key, {
+        meta: null,
+        price
       });
 
-      if (!hallRes.ok) {
-        throw new Error(`Hall JSON not found: ${hallFile}.json`);
+      btn.classList.add("seat--selected");
+    }
+  }
+
+  updateSummary();
+
+  setInterval(async () => {
+    await loadTakenSeats();
+    await loadBookingSeats();
+
+    let summaryChanged = false;
+
+    document.querySelectorAll(".seat").forEach(btn => {
+      const key = btn.dataset?.key;
+      if (!key) return;
+
+      const isSelected = selected.has(key);
+
+      btn.classList.remove("seat--taken", "seat--hold", "seat--reserved");
+
+      if (takenSeats.has(key)) {
+        if (isSelected) {
+          selected.delete(key);
+          btn.classList.remove("seat--selected");
+          summaryChanged = true;
+        }
+
+        btn.classList.add("seat--taken");
+        btn.disabled = true;
+        return;
       }
 
-      const HALL = await hallRes.json();
+      if (reservedSeats.has(key)) {
+        if (isSelected) {
+          selected.delete(key);
+          btn.classList.remove("seat--selected");
+          summaryChanged = true;
+        }
 
-      setHeroInfo(HALL?.title || HALL?.name || "Схема залу");
-
-      await loadTakenSeats();
-      await loadBookingSeats();
-
-      if (Array.isArray(HALL?.sections)) {
-        renderHallSections(HALL);
-      } else {
-        renderSimpleRows(HALL);
+        btn.classList.add("seat--reserved");
+        btn.disabled = true;
+        return;
       }
-renderPriceLegendMobile();
-setTimeout(applyMobileHallScale, 0);
 
-      
+      if (holdSeats.has(key)) {
+        btn.classList.add("seat--hold");
 
-      
-      if (returnSeats.length) {
-        for (const key of returnSeats) {
-          const btn = document.querySelector(`.seat[data-key="${key}"]`);
-          if (!btn) continue;
-
-          if (takenSeats.has(key) || reservedSeats.has(key) || holdSeats.has(key)) {
-            btn.classList.remove("seat--selected");
-            continue;
-          }
-
-          const price = Number(returnPrices[key] || btn.dataset.price || 0);
-
-          selected.set(key, {
-            meta: null,
-            price
-          });
-
+        if (isSelected) {
           btn.classList.add("seat--selected");
+          btn.disabled = false;
+        } else {
+          btn.disabled = true;
         }
+        return;
       }
 
+      btn.disabled = btn.classList.contains("seat--no-sale");
+
+      if (isSelected) {
+        btn.classList.add("seat--selected");
+      }
+    });
+
+    if (summaryChanged) {
       updateSummary();
+    }
 
-      setInterval(async () => {
-        await loadTakenSeats();
-        await loadBookingSeats();
+  }, 3000);
+})();
 
-        let summaryChanged = false;
-
-        document.querySelectorAll(".seat").forEach(btn => {
-          const key = btn.dataset?.key;
-          if (!key) return;
-
-          const isSelected = selected.has(key);
-
-          btn.classList.remove("seat--taken", "seat--hold", "seat--reserved");
-
-          if (takenSeats.has(key)) {
-            if (isSelected) {
-              selected.delete(key);
-              btn.classList.remove("seat--selected");
-              summaryChanged = true;
-            }
-
-            btn.classList.add("seat--taken");
-            btn.disabled = true;
-            return;
-          }
-
-          if (reservedSeats.has(key)) {
-            if (isSelected) {
-              selected.delete(key);
-              btn.classList.remove("seat--selected");
-              summaryChanged = true;
-            }
-
-            btn.classList.add("seat--reserved");
-            btn.disabled = true;
-            return;
-          }
-
-          if (holdSeats.has(key)) {
-            btn.classList.add("seat--hold");
-
-            if (isSelected) {
-              btn.classList.add("seat--selected");
-              btn.disabled = false;
-            } else {
-              btn.disabled = true;
-            }
-            return;
-          }
-
-          btn.disabled = btn.classList.contains("seat--no-sale");
-
-          if (isSelected) {
-            btn.classList.add("seat--selected");
-          }
-        });
-
-        if (summaryChanged) {
-          updateSummary();
-        }
-
-      }, 3000);
-    })();
+    
    window.addEventListener("resize", () => {
   setTimeout(() => {
     applyMobileHallScale();
