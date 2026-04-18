@@ -275,7 +275,7 @@ img {
   will-change: transform;
 }
 
-@media (max-width: 640px){
+@media (max-width: 640px){ 
   .hall-hero{
     padding:10px 12px;
   }
