@@ -926,6 +926,113 @@
       return null;
     }
 
+
+let activeTooltipSeat = null;
+let hideTooltipTimer = null;
+
+function zoneToHuman(zone){
+  if (zone === "Партер") return "Партер";
+  if (zone === "Балкон") return "Балкон";
+  if (zone === "Ложа А") return "Ложа А";
+  if (zone === "Ложа Б") return "Ложа Б";
+  if (String(zone).startsWith("Амфітеатр")) return "Амфітеатр";
+  return zone || "Сектор";
+}
+
+function formatPrice(value){
+  return `${Number(value || 0).toFixed(2)} грн`;
+}
+
+function getSeatTooltipHtml(meta, price){
+  const zone = zoneToHuman(meta?.zone);
+  const row = Number(meta?.row || 0);
+  const seat = Number(meta?.seat || 0);
+
+  return `
+    <div class="seat-tooltip__title">Додати в кошик</div>
+    <p class="seat-tooltip__line">${zone}, ряд: ${row}, місце: ${seat}</p>
+    <p class="seat-tooltip__line">Ціна: ${formatPrice(price)}</p>
+  `;
+}
+
+function showSeatTooltip(btn, meta, price){
+  const tip = document.getElementById("seat-tooltip");
+  if (!tip || !btn) return;
+
+  if (hideTooltipTimer) {
+    clearTimeout(hideTooltipTimer);
+    hideTooltipTimer = null;
+  }
+
+  tip.innerHTML = getSeatTooltipHtml(meta, price);
+  tip.hidden = false;
+
+  const rect = btn.getBoundingClientRect();
+
+  // сначала временно показываем для измерения
+  tip.style.left = "-9999px";
+  tip.style.top = "-9999px";
+
+  requestAnimationFrame(() => {
+    const tipRect = tip.getBoundingClientRect();
+    const gap = 10;
+
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    let top = rect.top - tipRect.height - gap;
+
+    if (left < 8) left = 8;
+    if (left + tipRect.width > window.innerWidth - 8) {
+      left = window.innerWidth - tipRect.width - 8;
+    }
+
+    if (top < 8) {
+      top = rect.bottom + gap;
+    }
+
+    if (top + tipRect.height > window.innerHeight - 8) {
+      top = Math.max(8, window.innerHeight - tipRect.height - 8);
+    }
+
+    tip.style.left = `${left}px`;
+    tip.style.top = `${top}px`;
+  });
+
+  activeTooltipSeat = btn;
+}
+
+function hideSeatTooltip(force = false){
+  const tip = document.getElementById("seat-tooltip");
+  if (!tip) return;
+
+  if (force) {
+    tip.hidden = true;
+    activeTooltipSeat = null;
+    if (hideTooltipTimer) {
+      clearTimeout(hideTooltipTimer);
+      hideTooltipTimer = null;
+    }
+    return;
+  }
+
+  if (hideTooltipTimer) clearTimeout(hideTooltipTimer);
+
+  hideTooltipTimer = setTimeout(() => {
+    tip.hidden = true;
+    activeTooltipSeat = null;
+    hideTooltipTimer = null;
+  }, 120);
+}
+
+function showSeatTooltipTemporarily(btn, meta, price, ms = 1400){
+  showSeatTooltip(btn, meta, price);
+
+  if (hideTooltipTimer) clearTimeout(hideTooltipTimer);
+
+  hideTooltipTimer = setTimeout(() => {
+    hideSeatTooltip(true);
+  }, ms);
+}
+    
     function makeSeatElement(key, label, extraClass, price, meta){
   let finalPrice = price;
   let finalClass = extraClass || "";
