@@ -1837,59 +1837,6 @@ renderPriceLegendMobile();
 setTimeout(applyMobileHallScale, 0);
 
       
-function applyMobileHallScale() {
-  const viewport = document.getElementById("mobile-hall-viewport");
-  const scaleWrap = document.getElementById("mobile-hall-scale");
-  const hallScroll = document.querySelector(".hall-scroll");
-
-  if (!viewport || !scaleWrap || !hallScroll) return;
-
-  const hallInner = scaleWrap.querySelector(".hall-inner");
-  if (!hallInner) return;
-
-  // desktop / tablet — без масштабирования
-  if (window.innerWidth > 640) {
-    scaleWrap.style.transform = "scale(1)";
-    viewport.style.height = "";
-    viewport.style.width = "";
-    hallScroll.scrollLeft = 0;
-    return;
-  }
-
-  // сброс перед измерением
-  scaleWrap.style.transform = "scale(1)";
-  viewport.style.height = "";
-  viewport.style.width = "";
-
-  const rect = hallScroll.getBoundingClientRect();
-  const contentWidth = hallInner.scrollWidth;
-  const contentHeight = hallInner.scrollHeight;
-
-  if (!contentWidth || !contentHeight) return;
-
-  const availableWidth = hallScroll.clientWidth;
-  const availableHeight = Math.max(window.innerHeight - rect.top - 140, 220);
-
-  const scaleByWidth = availableWidth / contentWidth;
-  const scaleByHeight = availableHeight / contentHeight;
-
-  let scale = Math.min(scaleByWidth, scaleByHeight, 1);
-  scale = Math.max(scale, 0.20);
-
-  scaleWrap.style.transform = `scale(${scale})`;
-  viewport.style.width = `${contentWidth * scale}px`;
-  viewport.style.height = `${contentHeight * scale}px`;
-
-  // стартовое центрирование схемы
-  requestAnimationFrame(() => {
-    const maxScroll = hallScroll.scrollWidth - hallScroll.clientWidth;
-    if (maxScroll > 0) {
-      hallScroll.scrollLeft = Math.round(maxScroll / 2);
-    }
-  });
-}
-
-
 function renderPriceLegendMobile() {
   const box = document.getElementById("priceLegendMobile");
   if (!box) return;
@@ -1910,7 +1857,7 @@ function renderPriceLegendMobile() {
     if (!Number.isFinite(price) || !color) return;
 
     if (!byPrice.has(price)) {
-      byPrice.set(price, color);
+      byPrice.set(price, color); 
     }
   };
 
