@@ -1914,6 +1914,21 @@ function renderPriceLegendMobile() {
     renderPriceLegendMobile();
   }, 0);
 });
+
+   window.addEventListener("scroll", () => hideSeatTooltip(true), true);
+window.addEventListener("resize", () => hideSeatTooltip(true));
+document.addEventListener("click", (e) => {
+  const tip = document.getElementById("seat-tooltip");
+  if (!tip) return;
+
+  const target = e.target;
+  if (!(target instanceof Element)) return;
+
+  if (!target.classList.contains("seat")) {
+    hideSeatTooltip(true);
+  }
+}); 
+    
   </script>
 </body>
 </html>
