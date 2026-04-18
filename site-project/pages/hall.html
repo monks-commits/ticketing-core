@@ -904,16 +904,42 @@
     const selected = new Map(); // key -> { meta, price }
 
     // ===== UI helpers =====
-    function setHeroInfo(hallTitleText = "Схема залу") {
-      const showText = showTitle || "—";
-      const seanceText = SEANCE_ID || "—";
+    function setHeroInfo(hallTitleText = "Схема залу", seanceMeta = null) {
+  const showText =
+    (seanceMeta?.show || seanceMeta?.title || showTitle || "Вистава").trim();
 
-      document.getElementById("summary-show").textContent = "Вистава: " + showText;
-      document.getElementById("hero-show-badge").textContent = "Вистава: " + showText;
-      document.getElementById("hero-seance-badge").textContent = "Сеанс: " + seanceText;
-      document.getElementById("hall-title").textContent = hallTitleText || "Схема залу";
-      document.getElementById("hall-meta").textContent = "Оберіть місця на схемі нижче.";
-    }
+  const dateText = (seanceMeta?.date || "").trim();
+  const timeText = (seanceMeta?.time || "").trim();
+
+  const eyebrowEl = document.querySelector(".hall-eyebrow");
+  const titleEl = document.querySelector(".hall-title");
+  const subtitleEl = document.getElementById("hero-subtitle");
+
+  if (eyebrowEl) eyebrowEl.textContent = "Ваш Адмін • Онлайн продаж";
+  if (titleEl) titleEl.textContent = showText;
+
+  if (subtitleEl) {
+    subtitleEl.textContent =
+      [dateText, timeText].filter(Boolean).join(" • ") ||
+      "Оберіть місця та перейдіть до оформлення замовлення.";
+  }
+
+  const heroShowBadge = document.getElementById("hero-show-badge");
+  const heroSeanceBadge = document.getElementById("hero-seance-badge");
+  const hallTitleEl = document.getElementById("hall-title");
+  const hallMetaEl = document.getElementById("hall-meta");
+  const summaryShowEl = document.getElementById("summary-show");
+
+  if (heroShowBadge) heroShowBadge.textContent = "Вистава: " + showText;
+  if (heroSeanceBadge) {
+    heroSeanceBadge.textContent =
+      [dateText, timeText].filter(Boolean).join(" • ") || ("Сеанс: " + (SEANCE_ID || "—"));
+  }
+
+  if (hallTitleEl) hallTitleEl.textContent = hallTitleText || "Схема залу";
+  if (hallMetaEl) hallMetaEl.textContent = "Оберіть місця на схемі нижче.";
+  if (summaryShowEl) summaryShowEl.textContent = "Вистава: " + showText;
+}
 
     function makeSectionTitle(text){
       const el = document.createElement("div");
