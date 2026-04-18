@@ -46,6 +46,7 @@ textarea{
   gap:10px;
   margin-bottom:6px;
   font-size:14px;
+  flex-wrap:wrap;
 }
 small{color:#6b7280}
 .new-btn{
@@ -55,6 +56,15 @@ small{color:#6b7280}
   border-radius:8px;
   font-weight:700;
 }
+.list-box{
+  max-height:240px;
+  overflow:auto;
+  border:1px solid #e5e7eb;
+  border-radius:8px;
+  padding:10px;
+  background:#fafafa;
+}
+.muted{color:#6b7280}
 </style>
 </head>
 
@@ -62,7 +72,7 @@ small{color:#6b7280}
 <div class="wrap">
 
 <h1>🎛️ Редактор seance.json</h1>
-<span class="badge">Ціни + кольори + окремі місця (один сеанс)</span>
+<span class="badge">Ціни + кольори + ложі + сегменти рядів (один сеанс)</span>
 
 <!-- Seance -->
 <div class="card">
@@ -136,7 +146,82 @@ small{color:#6b7280}
     <button onclick="addRule()">Додати</button>
   </div>
 
-  <small>Можна додавати скільки завгодно правил — всі працюють одночасно</small>
+  <small>Для суцільних рядів. Наприклад: P1-3, P4-8.</small>
+</div>
+
+<!-- Seat segments -->
+<div class="card">
+  <h3>🎨 Діапазон місць у рядах</h3>
+
+  <div class="row">
+    <label>Зона</label>
+    <select id="segZone">
+      <option value="P">Партер</option>
+      <option value="A">Амфітеатр</option>
+      <option value="B">Балкон</option>
+    </select>
+
+    <label>Ряди</label>
+    <input id="segFromRow" type="number" placeholder="від">
+    <input id="segToRow" type="number" placeholder="до">
+
+    <label>Місця</label>
+    <input id="segFromSeat" type="number" placeholder="від">
+    <input id="segToSeat" type="number" placeholder="до">
+
+    <label>Ціна</label>
+    <input id="segPrice" type="number" placeholder="200">
+
+    <label>Колір</label>
+    <input id="segColor" type="color" value="#06b6d4">
+
+    <label>
+      <input type="checkbox" id="segSale" checked>
+      Продається
+    </label>
+
+    <button onclick="addSeatSegment()">Додати</button>
+  </div>
+
+  <small>
+    Для випадків типу: ряд 7, місця 1–6 одна ціна/колір, 7–17 інша, 18–23 третя.
+    Записується в <b>seat_overrides</b> автоматично.
+  </small>
+</div>
+
+<!-- Lodges -->
+<div class="card">
+  <h3>🎭 Ложі</h3>
+
+  <div class="row">
+    <label>Ложа</label>
+    <select id="lodgeZone">
+      <option value="A0">Ложа А</option>
+      <option value="B0">Ложа Б</option>
+    </select>
+
+    <label>Місця</label>
+    <input id="lodgeFromSeat" type="number" placeholder="від">
+    <input id="lodgeToSeat" type="number" placeholder="до">
+
+    <label>Ціна</label>
+    <input id="lodgePrice" type="number" placeholder="100">
+
+    <label>Колір</label>
+    <input id="lodgeColor" type="color" value="#42f0e4">
+
+    <label>
+      <input type="checkbox" id="lodgeSale" checked>
+      Продається
+    </label>
+
+    <button onclick="addLodgeRange()">Додати</button>
+  </div>
+
+  <small>
+    Ложа А = <b>A0-M1...A0-M18</b>, Ложа Б = <b>B0-M1...B0-M18</b>.
+    Також записується в <b>seat_overrides</b>.
+  </small>
 </div>
 
 <!-- Rules list -->
@@ -149,7 +234,7 @@ small{color:#6b7280}
 <div class="card">
   <h3>🎯 Окреме місце</h3>
   <div class="row">
-    <input id="seatKey" placeholder="P3-M5">
+    <input id="seatKey" placeholder="P3-M5 / A0-M1 / B0-M7">
     <input id="seatPrice" type="number" placeholder="ціна">
     <input id="seatColor" type="color" value="#ef4444">
     <label>
@@ -160,12 +245,19 @@ small{color:#6b7280}
   </div>
 </div>
 
+<!-- Seat overrides list -->
+<div class="card">
+  <h3>🪑 Seat overrides</h3>
+  <div id="seatOverridesList" class="list-box"></div>
+</div>
+
 <!-- JSON -->
 <div class="card">
   <h3>📄 seance.json</h3>
   <textarea id="output"></textarea>
   <button onclick="copyJson()">📋 Скопіювати</button>
 </div>
+
 <div class="card">
   <h3>🎟️ Статус сеансу</h3>
   <select id="showStatus">
@@ -174,6 +266,7 @@ small{color:#6b7280}
     <option value="sold_out">Продано</option>
   </select>
 </div>
+
 <button id="publish">🚀 Опублікувати</button>
 
 </div>
@@ -188,6 +281,7 @@ const data = {
   pricing: {},
   seat_overrides: {}
 };
+
 const showStatus = document.getElementById("showStatus");
 const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
@@ -195,18 +289,38 @@ const showName = document.getElementById("showName");
 const showDate = document.getElementById("showDate");
 const showTime = document.getElementById("showTime");
 const posterUrl = document.getElementById("posterUrl");
+
 const zone = document.getElementById("zone");
 const fromRow = document.getElementById("fromRow");
 const toRow = document.getElementById("toRow");
 const price = document.getElementById("price");
 const color = document.getElementById("color");
 const sale = document.getElementById("sale");
+
+const segZone = document.getElementById("segZone");
+const segFromRow = document.getElementById("segFromRow");
+const segToRow = document.getElementById("segToRow");
+const segFromSeat = document.getElementById("segFromSeat");
+const segToSeat = document.getElementById("segToSeat");
+const segPrice = document.getElementById("segPrice");
+const segColor = document.getElementById("segColor");
+const segSale = document.getElementById("segSale");
+
+const lodgeZone = document.getElementById("lodgeZone");
+const lodgeFromSeat = document.getElementById("lodgeFromSeat");
+const lodgeToSeat = document.getElementById("lodgeToSeat");
+const lodgePrice = document.getElementById("lodgePrice");
+const lodgeColor = document.getElementById("lodgeColor");
+const lodgeSale = document.getElementById("lodgeSale");
+
 const seatKey = document.getElementById("seatKey");
 const seatPrice = document.getElementById("seatPrice");
 const seatColor = document.getElementById("seatColor");
 const seatSale = document.getElementById("seatSale");
+
 const output = document.getElementById("output");
 const rulesList = document.getElementById("rulesList");
+const seatOverridesList = document.getElementById("seatOverridesList");
 const publish = document.getElementById("publish");
 
 function createNewSeance(){
@@ -267,14 +381,88 @@ function addRule(){
   render();
 }
 
+function addSeatSegment(){
+  const z = segZone.value;
+  const rowFrom = Number(segFromRow.value);
+  const rowTo = Number(segToRow.value);
+  const seatFrom = Number(segFromSeat.value);
+  const seatTo = Number(segToSeat.value);
+  const p = Number(segPrice.value);
+  const c = segColor.value;
+  const saleAllowed = segSale.checked;
+
+  if (!z || !rowFrom || !rowTo || !seatFrom || !seatTo || !p) {
+    alert("Вкажи зону, ряди, місця і ціну");
+    return;
+  }
+
+  if (rowTo < rowFrom) {
+    alert("Кінець рядів не може бути менше початку");
+    return;
+  }
+
+  if (seatTo < seatFrom) {
+    alert("Кінець місць не може бути менше початку");
+    return;
+  }
+
+  for (let row = rowFrom; row <= rowTo; row++) {
+    for (let seat = seatFrom; seat <= seatTo; seat++) {
+      const key = `${z}${row}-M${seat}`;
+      data.seat_overrides[key] = {
+        price: p,
+        color: c,
+        sale: saleAllowed
+      };
+    }
+  }
+
+  render();
+}
+
+function addLodgeRange(){
+  const lodge = lodgeZone.value; // A0 / B0
+  const from = Number(lodgeFromSeat.value);
+  const to = Number(lodgeToSeat.value);
+  const p = Number(lodgePrice.value);
+  const c = lodgeColor.value;
+  const saleAllowed = lodgeSale.checked;
+
+  if (!lodge || !from || !to || !p) {
+    alert("Вкажи ложу, місця і ціну");
+    return;
+  }
+
+  if (to < from) {
+    alert("Кінець місць не може бути менше початку");
+    return;
+  }
+
+  for (let seat = from; seat <= to; seat++) {
+    const key = `${lodge}-M${seat}`;
+    data.seat_overrides[key] = {
+      price: p,
+      color: c,
+      sale: saleAllowed
+    };
+  }
+
+  render();
+}
+
 function addSeatOverride(){
   const key = seatKey.value.trim();
-  if(!key) return;
+  if(!key) return alert("Вкажи ключ місця");
 
   const obj = {};
-  if(seatPrice.value) obj.price = Number(seatPrice.value);
-  obj.color = seatColor.value;
-  if(seatSale.checked) obj.sale = false;
+
+  if (seatPrice.value) obj.price = Number(seatPrice.value);
+  if (seatColor.value) obj.color = seatColor.value;
+  if (seatSale.checked) {
+    obj.sale = false;
+  } else {
+    obj.sale = true;
+  }
 
   data.seat_overrides[key] = obj;
   render();
@@ -292,13 +480,31 @@ function render(){
     seat_overrides: data.seat_overrides
   }, null, 2);
 
-  rulesList.innerHTML = Object.entries(data.pricing).map(([k,r])=>`
-    <div class="rule-row">
-      <b>${k}</b>
-      <span>${r.price} грн</span>
-      <span>${r.sale === false ? "❌" : "✔"}</span>
-    </div>
-  `).join("") || "<small>Поки що правил немає</small>";
+  rulesList.innerHTML =
+    Object.entries(data.pricing).map(([k,r])=>`
+      <div class="rule-row">
+        <b>${k}</b>
+        <span>${r.price} грн</span>
+        <span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${r.color};border:1px solid #d1d5db"></span>
+        <span>${r.sale === false ? "❌" : "✔"}</span>
+      </div>
+    `).join("")
+    || "<small>Поки що правил немає</small>";
+
+  const overrideEntries = Object.entries(data.seat_overrides);
+  seatOverridesList.innerHTML =
+    overrideEntries.length
+      ? overrideEntries
+          .sort((a, b) => a[0].localeCompare(b[0], "uk"))
+          .map(([k, r]) => `
+            <div class="rule-row">
+              <b>${k}</b>
+              <span>${r.price ?? "—"} грн</span>
+              <span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${r.color || "#fff"};border:1px solid #d1d5db"></span>
+              <span>${r.sale === false ? "❌" : "✔"}</span>
+            </div>
+          `).join("")
+      : `<span class="muted">Поки що seat_overrides немає</span>`;
 }
 
 function copyJson(){
@@ -356,6 +562,7 @@ publish.onclick = async () => {
     alert("❌ Помилка: " + err.message);
   }
 };
+
 async function loadSeance(){
   const seance = seanceId.value.trim();
   if(!seance) return;
