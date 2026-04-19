@@ -1354,11 +1354,19 @@ function renderRowsSection(section){
     seatsRow.className = "seats-row";
 
     const offset = Number(r.offset || 0);
-    for (let i = 0; i < offset; i++) {
-      const spacer = document.createElement("div");
-      spacer.className = "seat seat--empty";
-      seatsRow.appendChild(spacer);
-    }
+for (let i = 0; i < offset; i++) {
+  const spacer = document.createElement("div");
+  spacer.className = "seat seat--empty";
+  seatsRow.appendChild(spacer);
+}
+
+// спец-поправка для 1 ряда Академии:
+// добавляем ширину прохода между 6 и 7 местом второго ряда
+if (r._academyLeadGap) {
+  const gap = document.createElement("div");
+  gap.className = "amphi-gap";
+  seatsRow.appendChild(gap);
+}
 
     const seats = Number(r.seats || 0);
     const aisles = Array.isArray(r.aisles) ? r.aisles : [];
@@ -1659,10 +1667,15 @@ function renderSimpleRows(hallData) {
     ? hallData.rows.map(r => ({ ...r }))
     : [];
 
-  if (hallData?.name && String(hallData.name).toLowerCase().includes("академ")) {
+  const isAcademy =
+    hallData?.name && String(hallData.name).toLowerCase().includes("академ");
+
+  if (isAcademy) {
     const row1 = rows.find(r => Number(r.row) === 1);
+
     if (row1) {
       row1.offset = 6;
+      row1._academyLeadGap = true;
     }
   }
 
