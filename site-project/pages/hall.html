@@ -1297,7 +1297,7 @@ async function loadSeanceMeta() {
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(SEANCE_ID)}&select=id,show,title,date,time,venue_id`,
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(SEANCE_ID)}&select=*`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -1307,18 +1307,29 @@ async function loadSeanceMeta() {
       }
     );
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn("loadSeanceMeta HTTP", res.status);
+      return null;
+    }
 
     const rows = await res.json();
+    console.log("SEANCE_META rows =", rows);
+
     if (!Array.isArray(rows) || !rows.length) return null;
 
-    return rows[0];
+    const row = rows[0];
+
+    return {
+      show: row.show || row.title || row.name || "",
+      date: row.date || "",
+      time: row.time || "",
+      venue_id: row.venue_id || ""
+    };
   } catch (e) {
     console.warn("loadSeanceMeta error", e);
     return null;
   }
 }
-
 // ===== Universal hall renderer =====
 function renderRowsSection(section){
   const wrap = document.createElement("section");
