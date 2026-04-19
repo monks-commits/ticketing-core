@@ -2,80 +2,452 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Бронювання</title>
+<title>Бронювання — VA Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{font-family:Arial;padding:20px}
-select,button{padding:6px;margin:6px 0}
+:root{
+  --bg:#061a3a;
+  --card:#1d2d47;
+  --card-2:#223552;
+  --text:#ffffff;
+  --muted:#b8c4d6;
+  --line:rgba(255,255,255,.10);
+
+  --primary:#4c86f7;
+  --primary-hover:#3f78e6;
+
+  --success:#2ecc71;
+  --success-hover:#28b864;
+
+  --field:#10233f;
+  --field-border:rgba(255,255,255,.12);
+
+  --shadow:0 18px 40px rgba(0,0,0,.22);
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:14px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.page-wrap{
+  width:min(1180px, calc(100% - 48px));
+  margin:0 auto;
+  padding:48px 0 56px;
+}
+
+.topbar{
+  margin-bottom:28px;
+}
+
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  background:#fff;
+  color:#111827;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+}
+
+.hero{
+  margin-bottom:28px;
+}
+
+.hero h1{
+  margin:0 0 10px;
+  font-size:52px;
+  line-height:1.05;
+  font-weight:800;
+}
+
+.hero p{
+  margin:0;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.45;
+  max-width:760px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius-xl);
+  padding:28px 24px;
+  box-shadow:var(--shadow);
+}
+
+.card h2{
+  margin:0 0 10px;
+  font-size:24px;
+}
+
+.card p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.45;
+}
+
+.row{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  align-items:end;
+  margin-top:22px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:220px;
+}
+
+.field--grow{
+  flex:1 1 420px;
+}
+
+.field label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+select{
+  width:100%;
+  border:1px solid var(--field-border);
+  background:var(--field);
+  color:#fff;
+  border-radius:14px;
+  padding:12px;
+  outline:none;
+  font:inherit;
+}
+
+select:focus{
+  border-color:rgba(76,134,247,.6);
+  box-shadow:0 0 0 3px rgba(76,134,247,.16);
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:22px;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:140px;
+  min-height:46px;
+  padding:0 18px;
+  border:none;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.15s ease;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+
+.btn-primary:hover{
+  background:var(--primary-hover);
+}
+
+.result{
+  margin-top:26px;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:22px;
+  min-height:160px;
+}
+
+.result-empty{
+  color:var(--muted);
+}
+
+.table-wrap{
+  overflow:auto;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.08);
+}
 
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:20px;
+  min-width:860px;
 }
 
 th,td{
-  border:1px solid #ccc;
-  padding:8px;
+  padding:12px 14px;
+  text-align:left;
   font-size:14px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  vertical-align:top;
 }
 
 th{
-  background:#f3f4f6;
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  font-weight:700;
+}
+
+td{
+  color:#e6edf7;
+}
+
+tbody tr:hover{
+  background:rgba(255,255,255,.03);
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  line-height:1;
+  white-space:nowrap;
+}
+
+.badge-hold{
+  background:#7f1d1d;
+  color:#fff;
+}
+
+.badge-reserved{
+  background:#92400e;
+  color:#fff;
+}
+
+.badge-converted{
+  background:#14532d;
+  color:#fff;
+}
+
+.badge-cancelled{
+  background:#374151;
+  color:#fff;
+}
+
+.badge-default{
+  background:#334155;
+  color:#fff;
+}
+
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.metric{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  padding:18px;
+}
+
+.metric-label{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+.metric-value{
+  font-size:28px;
+  font-weight:800;
+  word-break:break-word;
+}
+
+@media print{
+  body{
+    background:#fff;
+    color:#000;
+  }
+
+  .topbar,
+  .actions{
+    display:none;
+  }
+
+  .card,
+  .result,
+  .metric{
+    background:#fff !important;
+    color:#000 !important;
+    box-shadow:none !important;
+    border:1px solid #ddd !important;
+  }
+
+  select{
+    color:#000;
+    background:#fff;
+    border:1px solid #ccc;
+  }
+
+  th,td{
+    color:#000 !important;
+    border-color:#ddd !important;
+  }
+
+  th{
+    background:#f3f4f6 !important;
+  }
+}
+
+@media (max-width:768px){
+  .page-wrap{
+    width:min(100% - 24px, 1180px);
+    padding:24px 0 32px;
+  }
+
+  .hero h1{
+    font-size:38px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .card{
+    padding:20px 16px;
+  }
+
+  .field,
+  .field--grow{
+    min-width:100%;
+    flex:1 1 100%;
+  }
+
+  .btn{
+    width:100%;
+  }
+
+  .summary-grid{
+    grid-template-columns:1fr;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<h2>Бронювання по сеансу</h2>
+<div class="page-wrap">
 
-<button onclick="history.back()">← Назад</button>
+  <div class="topbar">
+    <a class="back-btn" href="./index.html">← Назад</a>
+  </div>
 
-<br><br>
+  <section class="hero">
+    <h1>🗂️ Бронювання</h1>
+    <p>Перегляд бронювань по окремому сеансу: клієнт, місця, сума, статус і час створення.</p>
+  </section>
 
-Сеанс:
-<select id="seance"></select>
+  <section class="card">
+    <h2>Параметри звіту</h2>
+    <p>Оберіть сеанс зі списку та покажіть усі бронювання по ньому.</p>
 
-<button onclick="run()">Показати</button>
+    <div class="row">
+      <div class="field field--grow">
+        <label for="seance">Сеанс</label>
+        <select id="seance">
+          <option value="">Завантаження…</option>
+        </select>
+      </div>
+    </div>
 
-<hr>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="run()">Показати</button>
+      <button class="btn btn-primary" onclick="window.print()">Друк</button>
+    </div>
 
-<div id="out"></div>
+    <div id="out" class="result">
+      <div class="result-empty">Звіт ще не сформовано.</div>
+    </div>
+  </section>
+
+</div>
 
 <script>
-
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 async function loadSeances(){
-
   const sel = document.getElementById("seance");
-
   sel.innerHTML = `<option value="">Оберіть сеанс...</option>`;
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id&archived=eq.false`,
-    {
-      headers:{
-        apikey: SUPABASE_KEY,
-        Authorization: "Bearer " + SUPABASE_KEY
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?select=id&archived=eq.false`,
+      {
+        headers:{
+          apikey: SUPABASE_KEY,
+          Authorization: "Bearer " + SUPABASE_KEY
+        }
       }
+    );
+
+    if (!res.ok) {
+      console.error(await res.text());
+      sel.innerHTML = `<option value="">Помилка завантаження</option>`;
+      return;
     }
-  );
 
-  const rows = await res.json();
+    const rows = await res.json();
 
-  rows.forEach(s=>{
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = s.id;
-    sel.appendChild(opt);
-  });
+    rows.forEach(s=>{
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.id;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.error(e);
+    sel.innerHTML = `<option value="">Помилка завантаження</option>`;
+  }
+}
+
+function statusBadge(status){
+  const s = String(status || "").toLowerCase();
+
+  if (s === "hold") return `<span class="badge badge-hold">hold</span>`;
+  if (s === "reserved") return `<span class="badge badge-reserved">reserved</span>`;
+  if (s === "converted") return `<span class="badge badge-converted">converted</span>`;
+  if (s === "cancelled") return `<span class="badge badge-cancelled">cancelled</span>`;
+
+  return `<span class="badge badge-default">${status || "—"}</span>`;
 }
 
 async function run(){
-
   const seance = document.getElementById("seance").value;
 
   if (!seance){
@@ -83,60 +455,106 @@ async function run(){
     return;
   }
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/bookings?select=buyer_name,buyer_email,seats,amount,status,created_at&seance_id=eq.${encodeURIComponent(seance)}`,
-    {
-      headers:{
-        apikey: SUPABASE_KEY,
-        Authorization: "Bearer " + SUPABASE_KEY
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/bookings?select=buyer_name,buyer_email,seats,amount,status,created_at&seance_id=eq.${encodeURIComponent(seance)}`,
+      {
+        headers:{
+          apikey: SUPABASE_KEY,
+          Authorization: "Bearer " + SUPABASE_KEY
+        }
       }
+    );
+
+    if (!res.ok) {
+      console.error(await res.text());
+      alert("Помилка запиту");
+      return;
     }
-  );
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!data.length){
-    document.getElementById("out").innerHTML = "Немає бронювань";
-    return;
-  }
+    if (!data.length){
+      document.getElementById("out").innerHTML = `
+        <div class="result-empty">Немає бронювань для цього сеансу.</div>
+      `;
+      return;
+    }
 
-  let html = `
-    <table>
-      <tr>
-        <th>Час</th>
-        <th>Клієнт</th>
-        <th>Email</th>
-        <th>Місця</th>
-        <th>Сума</th>
-        <th>Статус</th>
-      </tr>
-  `;
+    const totalBookings = data.length;
+    const totalAmount = data.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+    const totalSeats = data.reduce((sum, b) => sum + (Array.isArray(b.seats) ? b.seats.length : 0), 0);
 
-  data.forEach(b => {
+    let html = `
+      <div class="summary-grid">
+        <div class="metric">
+          <div class="metric-label">Сеанс</div>
+          <div class="metric-value">${seance}</div>
+        </div>
 
-    const seats = Array.isArray(b.seats)
-      ? b.seats.join(", ")
-      : "";
+        <div class="metric">
+          <div class="metric-label">Кількість бронювань</div>
+          <div class="metric-value">${totalBookings}</div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-label">Сума по бронях</div>
+          <div class="metric-value">${totalAmount} грн</div>
+        </div>
+      </div>
+
+      <div class="summary-grid" style="grid-template-columns:1fr;">
+        <div class="metric">
+          <div class="metric-label">Загальна кількість місць у бронях</div>
+          <div class="metric-value">${totalSeats}</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Час</th>
+              <th>Клієнт</th>
+              <th>Email</th>
+              <th>Місця</th>
+              <th>Сума</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    data.forEach(b => {
+      const seats = Array.isArray(b.seats) ? b.seats.join(", ") : "";
+
+      html += `
+        <tr>
+          <td>${(b.created_at || "").replace("T"," ").slice(0,16)}</td>
+          <td>${b.buyer_name || ""}</td>
+          <td>${b.buyer_email || ""}</td>
+          <td>${seats}</td>
+          <td>${b.amount || 0}</td>
+          <td>${statusBadge(b.status)}</td>
+        </tr>
+      `;
+    });
 
     html += `
-      <tr>
-        <td>${(b.created_at || "").replace("T"," ").slice(0,16)}</td>
-        <td>${b.buyer_name || ""}</td>
-        <td>${b.buyer_email || ""}</td>
-        <td>${seats}</td>
-        <td>${b.amount || 0}</td>
-        <td>${b.status || ""}</td>
-      </tr>
+          </tbody>
+        </table>
+      </div>
     `;
-  });
 
-  html += "</table>";
+    document.getElementById("out").innerHTML = html;
 
-  document.getElementById("out").innerHTML = html;
+  } catch (e) {
+    console.error(e);
+    alert("Помилка звіту");
+  }
 }
 
 loadSeances();
-
 </script>
 
 </body>
