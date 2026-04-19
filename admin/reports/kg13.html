@@ -2,34 +2,341 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>КГ-13</title>
+<title>КГ-13 — Щоденний звіт касира</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#061a3a;
+  --card:#1d2d47;
+  --card-2:#223552;
+  --text:#ffffff;
+  --muted:#b8c4d6;
+  --line:rgba(255,255,255,.10);
+
+  --primary:#4c86f7;
+  --primary-hover:#3f78e6;
+
+  --success:#2ecc71;
+  --success-hover:#28b864;
+
+  --neutral:#50627d;
+  --neutral-hover:#44556d;
+
+  --field:#10233f;
+  --field-border:rgba(255,255,255,.12);
+
+  --shadow:0 18px 40px rgba(0,0,0,.22);
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:14px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.page-wrap{
+  width:min(1100px, calc(100% - 48px));
+  margin:0 auto;
+  padding:48px 0 56px;
+}
+
+.topbar{
+  margin-bottom:28px;
+}
+
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  background:#fff;
+  color:#111827;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+}
+
+.hero{
+  margin-bottom:28px;
+}
+
+.hero h1{
+  margin:0 0 10px;
+  font-size:52px;
+  line-height:1.05;
+  font-weight:800;
+}
+
+.hero p{
+  margin:0;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.45;
+  max-width:760px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius-xl);
+  padding:28px 24px;
+  box-shadow:var(--shadow);
+}
+
+.card h2{
+  margin:0 0 10px;
+  font-size:24px;
+}
+
+.card p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.45;
+}
+
+.row{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  align-items:end;
+  margin-top:22px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:180px;
+}
+
+.field--grow{
+  flex:1 1 280px;
+}
+
+.field label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+input{
+  width:100%;
+  border:1px solid var(--field-border);
+  background:var(--field);
+  color:#fff;
+  border-radius:14px;
+  padding:12px;
+  outline:none;
+  font:inherit;
+}
+
+input:focus{
+  border-color:rgba(76,134,247,.6);
+  box-shadow:0 0 0 3px rgba(76,134,247,.16);
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:22px;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:140px;
+  min-height:46px;
+  padding:0 18px;
+  border:none;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.15s ease;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+
+.btn-primary:hover{
+  background:var(--primary-hover);
+}
+
+.btn-success{
+  background:var(--success);
+  color:#08111f;
+}
+
+.btn-success:hover{
+  background:var(--success-hover);
+}
+
+.result{
+  margin-top:26px;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:22px;
+  min-height:160px;
+}
+
+.result-empty{
+  color:var(--muted);
+}
+
+.result-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:16px;
+}
+
+.metric{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  padding:18px;
+}
+
+.metric-label{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+.metric-value{
+  font-size:28px;
+  font-weight:800;
+}
+
+@media print{
+  body{
+    background:#fff;
+    color:#000;
+  }
+
+  .topbar,
+  .actions{
+    display:none;
+  }
+
+  .card,
+  .result,
+  .metric{
+    background:#fff !important;
+    color:#000 !important;
+    box-shadow:none !important;
+    border:1px solid #ddd !important;
+  }
+
+  input{
+    color:#000;
+    background:#fff;
+    border:1px solid #ccc;
+  }
+}
+
+@media (max-width:768px){
+  .page-wrap{
+    width:min(100% - 24px, 1100px);
+    padding:24px 0 32px;
+  }
+
+  .hero h1{
+    font-size:38px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .card{
+    padding:20px 16px;
+  }
+
+  .field,
+  .field--grow{
+    min-width:100%;
+    flex:1 1 100%;
+  }
+
+  .btn{
+    width:100%;
+  }
+
+  .result-grid{
+    grid-template-columns:1fr;
+  }
+}
+</style>
 </head>
 
-<body style="font-family:Arial;padding:20px;">
+<body>
 
-<h2>КГ-13 (щоденний звіт касира)</h2>
+<div class="page-wrap">
 
-<button onclick="history.back()">← Назад</button>
+  <div class="topbar">
+    <a class="back-btn" href="./index.html">← Назад</a>
+  </div>
 
-Дата:
-<input type="date" id="day">
+  <section class="hero">
+    <h1>📘 КГ-13</h1>
+    <p>Щоденний звіт касира по проданих квитках за обрану дату.</p>
+  </section>
 
-Касир:
-<input type="text" id="cashier" value="cash">
+  <section class="card">
+    <h2>Параметри звіту</h2>
+    <p>Оберіть дату та сформуйте звіт по продажах за день.</p>
 
-<button onclick="run()">Сформувати</button>
-<button onclick="window.print()">Друк</button>
+    <div class="row">
+      <div class="field">
+        <label for="day">Дата</label>
+        <input type="date" id="day">
+      </div>
 
-<hr>
+      <div class="field field--grow">
+        <label for="cashier">Касир</label>
+        <input type="text" id="cashier" value="cash">
+      </div>
+    </div>
 
-<div id="out"></div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="run()">Сформувати</button>
+      <button class="btn btn-success" onclick="window.print()">Друк</button>
+    </div>
+
+    <div id="out" class="result">
+      <div class="result-empty">
+        Звіт ще не сформовано.
+      </div>
+    </div>
+  </section>
+
+</div>
 
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 async function run() {
-
   const day = document.getElementById("day").value;
 
   if (!day) {
@@ -38,13 +345,12 @@ async function run() {
   }
 
   try {
-
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/tickets?select=price,created_at`,
       {
         headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": "Bearer " + SUPABASE_KEY
+          apikey: SUPABASE_KEY,
+          Authorization: "Bearer " + SUPABASE_KEY
         }
       }
     );
@@ -62,7 +368,6 @@ async function run() {
     let sum = 0;
 
     for (const t of data) {
-
       if (!t.created_at) continue;
 
       const d = t.created_at.slice(0, 10);
@@ -74,9 +379,22 @@ async function run() {
     }
 
     document.getElementById("out").innerHTML = `
-      <p><b>Дата:</b> ${day}</p>
-      <p><b>Кількість:</b> ${count}</p>
-      <p><b>Сума:</b> ${sum} грн</p>
+      <div class="result-grid">
+        <div class="metric">
+          <div class="metric-label">Дата</div>
+          <div class="metric-value">${day}</div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-label">Кількість квитків</div>
+          <div class="metric-value">${count}</div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-label">Загальна сума</div>
+          <div class="metric-value">${sum} грн</div>
+        </div>
+      </div>
     `;
 
   } catch (e) {
