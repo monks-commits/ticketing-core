@@ -1655,7 +1655,9 @@ function renderSimpleRows(hallData) {
 
   root.innerHTML = "";
 
-  const rows = Array.isArray(hallData?.rows) ? hallData.rows.map(r => ({ ...r })) : [];
+  const rows = Array.isArray(hallData?.rows)
+    ? hallData.rows.map(r => ({ ...r }))
+    : [];
 
   if (hallData?.name && String(hallData.name).toLowerCase().includes("академ")) {
     const row1 = rows.find(r => Number(r.row) === 1);
