@@ -6,60 +6,192 @@
   <title>Підтвердження вибору</title>
 
   <style>
-    body{
+    :root{
+      --bg:#eef2f7;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --accent:#2563eb;
+      --accent-hover:#1d4ed8;
+      --success:#16a34a;
+      --success-hover:#15803d;
+      --danger:#ef4444;
+      --danger-hover:#dc2626;
+      --soft:#f8fafc;
+      --shadow:0 14px 34px rgba(15,23,42,.10);
+      --radius-xl:24px;
+      --radius-lg:18px;
+      --radius-md:14px;
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
       margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--text);
       font-family:Arial,sans-serif;
-      background:#f3f4f6;
-      color:#111827;
     }
 
-    .wrap{
-      max-width:760px;
-      margin:40px auto;
-      padding:24px;
-      background:#fff;
-      border-radius:16px;
-      box-shadow:0 10px 30px rgba(0,0,0,.08);
+    .page{
+      width:min(1080px, calc(100% - 32px));
+      margin:28px auto 40px;
     }
 
-    h1{
-      margin:0 0 24px;
-      font-size:28px;
+    .hero{
+      background:linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color:#fff;
+      border-radius:var(--radius-xl);
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
     }
 
-    .meta{
-      margin-bottom:18px;
+    .hero-grid{
+      display:grid;
+      grid-template-columns:260px 1fr;
+      gap:0;
+      min-height:260px;
+    }
+
+    .poster{
+      background:#dbe4f0 center/cover no-repeat;
+      min-height:260px;
+      position:relative;
+    }
+
+    .poster::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(to top, rgba(15,23,42,.18), rgba(15,23,42,0));
+    }
+
+    .poster-fallback{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100%;
+      color:rgba(255,255,255,.9);
+      font-size:18px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      text-align:center;
+      padding:20px;
+    }
+
+    .hero-body{
+      padding:28px 28px 24px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:18px;
+    }
+
+    .eyebrow{
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      opacity:.82;
+      margin-bottom:8px;
+    }
+
+    .hero-title{
+      margin:0 0 10px;
+      font-size:38px;
+      line-height:1.08;
+      font-weight:800;
+    }
+
+    .hero-subtitle{
+      margin:0;
       font-size:16px;
-      color:#374151;
+      line-height:1.5;
+      color:rgba(255,255,255,.86);
+    }
+
+    .hero-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      min-height:36px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.12);
+      font-size:14px;
+      color:#fff;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 340px;
+      gap:20px;
+      align-items:start;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head{
+      padding:22px 22px 0;
+    }
+
+    .card-title{
+      margin:0 0 8px;
+      font-size:28px;
+      line-height:1.15;
+      font-weight:800;
+    }
+
+    .card-note{
+      margin:0;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:15px;
     }
 
     .seat-list{
       display:flex;
       flex-direction:column;
-      gap:10px;
-      margin:18px 0 24px;
+      gap:12px;
+      padding:20px 22px 22px;
     }
 
     .seat-item{
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      gap:12px;
-      padding:14px 16px;
-      border:1px solid #e5e7eb;
-      border-radius:14px;
-      background:#f9fafb;
+      justify-content:space-between;
+      gap:14px;
+      padding:16px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--soft);
     }
 
     .seat-left{
       display:flex;
       flex-direction:column;
-      gap:4px;
+      gap:6px;
+      min-width:0;
     }
 
     .seat-title{
       font-weight:700;
-      font-size:16px;
+      font-size:17px;
+      line-height:1.3;
     }
 
     .seat-price{
@@ -68,53 +200,112 @@
     }
 
     .btn-remove{
-      width:36px;
-      height:36px;
+      width:40px;
+      height:40px;
       border:none;
       border-radius:999px;
-      background:#ef4444;
+      background:var(--danger);
       color:#fff;
       font-size:22px;
       line-height:1;
       cursor:pointer;
-      flex:0 0 36px;
+      flex:0 0 40px;
+      transition:.15s ease;
     }
 
     .btn-remove:hover{
-      opacity:.9;
+      background:var(--danger-hover);
+      transform:translateY(-1px);
     }
 
-    .total{
-      font-size:20px;
-      font-weight:700;
-      margin:22px 0;
+    .empty{
+      padding:24px 18px;
+      border:1px dashed #cbd5e1;
+      border-radius:18px;
+      color:var(--muted);
+      text-align:center;
+      background:#fafafa;
+      font-size:15px;
+    }
+
+    .summary{
+      position:sticky;
+      top:18px;
+      padding:22px;
+    }
+
+    .summary-title{
+      margin:0 0 12px;
+      font-size:24px;
+      font-weight:800;
+    }
+
+    .summary-meta{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 0;
+      border-bottom:1px solid var(--line);
+      font-size:15px;
+    }
+
+    .summary-meta:last-of-type{
+      border-bottom:none;
+    }
+
+    .summary-total{
+      margin:18px 0 0;
+      padding:18px;
+      border-radius:18px;
+      background:#eff6ff;
+      border:1px solid #bfdbfe;
+    }
+
+    .summary-total-label{
+      color:#1e40af;
+      font-size:14px;
+      margin-bottom:8px;
+    }
+
+    .summary-total-value{
+      font-size:34px;
+      line-height:1.1;
+      font-weight:800;
+      color:#0f172a;
     }
 
     .actions{
       display:flex;
       flex-direction:column;
       gap:12px;
-      margin-top:18px;
+      margin-top:20px;
     }
 
     .btn-pay,
     .btn-clear{
       border:none;
-      border-radius:14px;
+      border-radius:16px;
       padding:16px 18px;
-      font-size:18px;
+      font-size:17px;
       font-weight:700;
       cursor:pointer;
+      transition:.15s ease;
     }
 
     .btn-pay{
-      background:#22c55e;
+      background:var(--success);
       color:#fff;
+    }
+
+    .btn-pay:hover{
+      background:var(--success-hover);
+      transform:translateY(-1px);
     }
 
     .btn-pay:disabled{
       background:#9ca3af;
       cursor:not-allowed;
+      transform:none;
     }
 
     .btn-clear{
@@ -122,44 +313,185 @@
       color:#111827;
     }
 
-    .muted{
-      color:#6b7280;
-      font-size:14px;
+    .btn-clear:hover{
+      background:#d1d5db;
+      transform:translateY(-1px);
     }
 
-    .empty{
-      padding:18px;
-      border:1px dashed #d1d5db;
-      border-radius:14px;
-      color:#6b7280;
-      text-align:center;
+    .trust{
+      margin-top:18px;
+      padding-top:18px;
+      border-top:1px solid var(--line);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .trust-item{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+    }
+
+    .trust-dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#22c55e;
+      margin-top:6px;
+      flex:0 0 8px;
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+      margin:18px 22px 0;
+    }
+
+    @media (max-width:960px){
+      .layout{
+        grid-template-columns:1fr;
+      }
+
+      .summary{
+        position:static;
+      }
+    }
+
+    @media (max-width:760px){
+      .page{
+        width:min(100% - 16px, 1080px);
+        margin:12px auto 24px;
+      }
+
+      .hero-grid{
+        grid-template-columns:1fr;
+      }
+
+      .poster{
+        min-height:220px;
+      }
+
+      .hero-body{
+        padding:18px 16px 16px;
+      }
+
+      .hero-title{
+        font-size:28px;
+      }
+
+      .hero-subtitle{
+        font-size:15px;
+      }
+
+      .card-head{
+        padding:18px 16px 0;
+      }
+
+      .seat-list{
+        padding:16px;
+      }
+
+      .seat-item{
+        padding:14px;
+      }
+
+      .summary{
+        padding:18px 16px;
+      }
+
+      .summary-total-value{
+        font-size:30px;
+      }
+
+      .btn-pay,
+      .btn-clear{
+        font-size:16px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Підтвердження вибору</h1>
+  <div class="page">
 
-    <div class="meta" id="eventTitle">Вистава: —</div>
-    <div class="meta" id="seanceInfo">Seance: —</div>
+    <section class="hero">
+      <div class="hero-grid">
+        <div id="posterBox" class="poster">
+          <div id="posterFallback" class="poster-fallback">Афіша</div>
+        </div>
 
-    <div id="seatList" class="seat-list"></div>
+        <div class="hero-body">
+          <div>
+            <div class="eyebrow">Ваш Адмін • Підтвердження замовлення</div>
+            <h1 id="eventTitle" class="hero-title">Вистава</h1>
+            <p id="heroSubtitle" class="hero-subtitle">Оберіть місця та перейдіть до оплати.</p>
+          </div>
 
-    <div class="total" id="totalBox">Сума: 0 грн</div>
+          <div class="hero-badges">
+            <div id="venueBadge" class="hero-badge">Майданчик: —</div>
+            <div id="seanceInfo" class="hero-badge">Seance: —</div>
+            <div id="countBadge" class="hero-badge">Місць: 0</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <div class="actions">
-  <button id="btnPay" class="btn-pay" disabled>Перейти до оплати</button>
-  <button id="btnBackHall" class="btn-clear">← Повернутись до вибору місць</button>
-  <button id="btnClearAll" class="btn-clear">Очистити кошик</button>
-</div>
+    <div class="layout">
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title">Ваші місця</h2>
+          <p class="card-note">Перевірте вибір перед оплатою. Видалення місця зі списку одразу знімає його бронювання.</p>
+        </div>
 
-    <p class="muted" style="margin-top:16px;">
-      Видалення місця зі списку одразу знімає його бронювання.
-    </p>
+        <div id="seatList" class="seat-list"></div>
+      </section>
+
+      <aside class="card summary">
+        <h2 class="summary-title">Замовлення</h2>
+
+        <div class="summary-meta">
+          <span>Квитків</span>
+          <strong id="summaryCount">0</strong>
+        </div>
+
+        <div class="summary-meta">
+          <span>Майданчик</span>
+          <strong id="summaryVenue">—</strong>
+        </div>
+
+        <div class="summary-meta">
+          <span>Дата / час</span>
+          <strong id="summaryDateTime">—</strong>
+        </div>
+
+        <div class="summary-total">
+          <div class="summary-total-label">До сплати</div>
+          <div class="summary-total-value" id="totalBox">0 грн</div>
+        </div>
+
+        <div class="actions">
+          <button id="btnPay" class="btn-pay" disabled>Перейти до безпечної оплати</button>
+          <button id="btnBackHall" class="btn-clear">← Повернутись до вибору місць</button>
+          <button id="btnClearAll" class="btn-clear">Очистити кошик</button>
+        </div>
+
+        <div class="trust">
+          <div class="trust-item"><span class="trust-dot"></span><span>Після оплати квиток буде сформовано автоматично.</span></div>
+          <div class="trust-item"><span class="trust-dot"></span><span>QR-код використовується для контролю входу.</span></div>
+          <div class="trust-item"><span class="trust-dot"></span><span>Покупка оформлюється в офіційному контурі квиткової системи.</span></div>
+        </div>
+      </aside>
+    </div>
+
   </div>
 
   <script>
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
     const PROJECT_REF = "fhusjlkneckbvnrdhbil";
 
     const qs = new URLSearchParams(location.search);
@@ -177,6 +509,20 @@
       prices = JSON.parse(decodeURIComponent(qs.get("prices") || "{}"));
     } catch(e){
       prices = {};
+    }
+
+    let seanceMeta = {
+      show: title || "Вистава",
+      date: "",
+      time: "",
+      poster_url: "",
+      venue_id: ""
+    };
+
+    function venueToHuman(v){
+      if (v === "academy") return "Академія Руху";
+      if (v === "shevchenko" || v === "shevchenko-v2") return "Театр Шевченка";
+      return "—";
     }
 
     function seatKeyToHuman(k){
@@ -231,19 +577,87 @@
       }
     }
 
+    async function loadSeanceMeta(){
+      if (!seance) return;
+
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=*`,
+          {
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+            },
+            cache: "no-store"
+          }
+        );
+
+        if (!res.ok) return;
+
+        const rows = await res.json();
+        if (!Array.isArray(rows) || !rows.length) return;
+
+        const row = rows[0];
+        seanceMeta = {
+          show: row.show || row.title || title || "Вистава",
+          date: row.date || "",
+          time: row.time || "",
+          poster_url: row.poster_url || "",
+          venue_id: row.venue_id || ""
+        };
+      } catch(e){
+        console.warn("loadSeanceMeta error", e);
+      }
+    }
+
+    function renderHero(){
+      const eventTitleEl = document.getElementById("eventTitle");
+      const heroSubtitleEl = document.getElementById("heroSubtitle");
+      const seanceInfoEl = document.getElementById("seanceInfo");
+      const venueBadgeEl = document.getElementById("venueBadge");
+      const countBadgeEl = document.getElementById("countBadge");
+      const summaryVenueEl = document.getElementById("summaryVenue");
+      const summaryDateTimeEl = document.getElementById("summaryDateTime");
+
+      const showText = seanceMeta.show || title || "Вистава";
+      const dateTimeText = [seanceMeta.date, seanceMeta.time].filter(Boolean).join(" • ") || "Дата і час уточнюються";
+      const venueText = venueToHuman(seanceMeta.venue_id);
+
+      eventTitleEl.textContent = showText;
+      heroSubtitleEl.textContent = dateTimeText;
+      seanceInfoEl.textContent = `Seance: ${seance || "—"}`;
+      venueBadgeEl.textContent = `Майданчик: ${venueText}`;
+      countBadgeEl.textContent = `Місць: ${seats.length}`;
+      summaryVenueEl.textContent = venueText;
+      summaryDateTimeEl.textContent = dateTimeText;
+
+      const posterBox = document.getElementById("posterBox");
+      const posterFallback = document.getElementById("posterFallback");
+
+      if (seanceMeta.poster_url) {
+        posterBox.style.backgroundImage = `url("${seanceMeta.poster_url}")`;
+        posterFallback.style.display = "none";
+      } else {
+        posterBox.style.backgroundImage = "";
+        posterFallback.style.display = "flex";
+      }
+    }
+
     function render(){
-      document.getElementById("eventTitle").textContent = `Вистава: ${title || "—"}`;
-      document.getElementById("seanceInfo").textContent = `Seance: ${seance || "—"}`;
+      renderHero();
 
       const seatList = document.getElementById("seatList");
       const totalBox = document.getElementById("totalBox");
       const btnPay = document.getElementById("btnPay");
+      const summaryCount = document.getElementById("summaryCount");
 
       if (!seats.length){
         seatList.innerHTML = `<div class="empty">Кошик порожній</div>`;
-        totalBox.textContent = "Сума: 0 грн";
+        totalBox.textContent = "0 грн";
+        summaryCount.textContent = "0";
         btnPay.disabled = true;
         rebuildUrl();
+        renderHero();
         return;
       }
 
@@ -257,7 +671,8 @@
         </div>
       `).join("");
 
-      totalBox.textContent = `Сума: ${calcTotal()} грн`;
+      totalBox.textContent = `${calcTotal()} грн`;
+      summaryCount.textContent = String(seats.length);
       btnPay.disabled = seats.length === 0;
 
       seatList.querySelectorAll(".btn-remove").forEach(btn => {
@@ -283,6 +698,7 @@
       });
 
       rebuildUrl();
+      renderHero();
     }
 
     document.getElementById("btnClearAll").addEventListener("click", async () => {
@@ -304,20 +720,20 @@
       }
     });
 
-document.getElementById("btnBackHall")?.addEventListener("click", ()=>{
-  const u = new URL("./hall.html", location.href);
+    document.getElementById("btnBackHall")?.addEventListener("click", ()=>{
+      const u = new URL("./hall.html", location.href);
 
-  if (seance) u.searchParams.set("seance", seance);
-  if (title) u.searchParams.set("title", title);
+      if (seance) u.searchParams.set("seance", seance);
+      if (title) u.searchParams.set("title", title);
 
-  if (seats.length) {
-    u.searchParams.set("seats", seats.join(","));
-    u.searchParams.set("prices", JSON.stringify(prices));
-  }
+      if (seats.length) {
+        u.searchParams.set("seats", seats.join(","));
+        u.searchParams.set("prices", JSON.stringify(prices));
+      }
 
-  location.href = u.toString();
-});
-    
+      location.href = u.toString();
+    });
+
     document.getElementById("btnPay").addEventListener("click", () => {
       if (!seats.length) return;
 
@@ -332,7 +748,10 @@ document.getElementById("btnBackHall")?.addEventListener("click", ()=>{
       location.href = `checkout.html?${params.toString()}`;
     });
 
-    render();
+    (async function boot(){
+      await loadSeanceMeta();
+      render();
+    })();
   </script>
 </body>
 </html>
