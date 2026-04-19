@@ -2,632 +2,605 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Редактор сеансу — ціни та зони</title>
+<title>Редактор сеансу — VA Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{
-  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
-  background:#f3f4f6;
+:root{
+  --bg:#061a3a;
+  --card:#1d2d47;
+  --card-2:#223552;
+  --card-3:#16253d;
+  --text:#ffffff;
+  --muted:#b8c4d6;
+  --line:rgba(255,255,255,.10);
+
+  --primary:#4c86f7;
+  --primary-hover:#3f78e6;
+
+  --success:#2ecc71;
+  --success-hover:#28b864;
+
+  --neutral:#50627d;
+  --neutral-hover:#44556d;
+
+  --danger:#f44336;
+  --danger-hover:#df392d;
+
+  --shadow:0 18px 40px rgba(0,0,0,.22);
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:14px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
   margin:0;
-  padding:20px;
+  padding:0;
+  min-height:100%;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
-.wrap{max-width:980px;margin:auto;}
-h1{margin-bottom:6px}
-.card{
-  background:#fff;
+
+body{
+  min-height:100vh;
+}
+
+.page-wrap{
+  width:min(1180px, calc(100% - 48px));
+  margin:0 auto;
+  padding:48px 0 56px;
+}
+
+.topbar{
+  margin-bottom:28px;
+}
+
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 18px;
+  border:none;
   border-radius:12px;
-  padding:16px;
+  background:#fff;
+  color:#111827;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+}
+
+.back-btn:hover{
+  transform:translateY(-1px);
+}
+
+.hero{
+  margin-bottom:28px;
+}
+
+.hero h1{
+  margin:0 0 10px;
+  font-size:52px;
+  line-height:1.05;
+  font-weight:800;
+}
+
+.hero p{
+  margin:0;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.45;
+  max-width:820px;
+}
+
+.hero-badge{
+  display:inline-flex;
+  align-items:center;
+  margin-top:14px;
+  font-size:13px;
+  line-height:1;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  color:#fff;
+}
+
+.editor-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 360px;
+  gap:22px;
+  align-items:start;
+}
+
+.editor-main{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.editor-side{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius-xl);
+  padding:22px 20px;
+  box-shadow:var(--shadow);
+}
+
+.card h2,
+.card h3{
+  margin:0 0 14px;
+  font-size:24px;
+  line-height:1.15;
+}
+
+.card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
   margin-bottom:16px;
-  box-shadow:0 4px 14px rgba(0,0,0,.08);
 }
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
-label{font-size:14px}
-input,select,button,textarea{
-  padding:8px 10px;
+
+.card-head h2,
+.card-head h3{
+  margin:0;
+}
+
+.card-note{
+  margin:10px 0 0;
+  color:var(--muted);
   font-size:14px;
+  line-height:1.45;
 }
-button{cursor:pointer}
+
+.row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+  align-items:end;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:120px;
+  flex:1 1 180px;
+}
+
+.field--sm{
+  flex:0 1 120px;
+  min-width:100px;
+}
+
+.field--md{
+  flex:1 1 180px;
+  min-width:160px;
+}
+
+.field--lg{
+  flex:1 1 280px;
+  min-width:220px;
+}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+  font-weight:700;
+}
+
+input,select,button,textarea{
+  font:inherit;
+}
+
+input,
+select,
 textarea{
   width:100%;
-  height:260px;
-  font-family:monospace;
+  border:none;
+  outline:none;
+  border-radius:14px;
+  background:var(--card-3);
+  color:var(--text);
+  padding:12px 14px;
+  border:1px solid rgba(255,255,255,.08);
 }
+
+input::placeholder,
+textarea::placeholder{
+  color:#8ea0b8;
+}
+
+input[type="color"]{
+  padding:6px;
+  min-height:48px;
+  cursor:pointer;
+}
+
+textarea{
+  min-height:320px;
+  resize:vertical;
+  font-family:Consolas, Monaco, monospace;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.check{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:48px;
+  padding:0 2px;
+  color:var(--text);
+  font-size:14px;
+}
+
+.check input{
+  width:auto;
+  margin:0;
+  accent-color:var(--primary);
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:140px;
+  height:48px;
+  padding:0 18px;
+  border:none;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  text-decoration:none;
+  transition:.15s ease;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+
+.btn-primary:hover{
+  background:var(--primary-hover);
+}
+
+.btn-success{
+  background:var(--success);
+  color:#fff;
+}
+
+.btn-success:hover{
+  background:var(--success-hover);
+}
+
+.btn-neutral{
+  background:var(--neutral);
+  color:#fff;
+}
+
+.btn-neutral:hover{
+  background:var(--neutral-hover);
+}
+
+.btn-full{
+  width:100%;
+}
+
 .badge{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
   font-size:12px;
-  padding:2px 8px;
-  border-radius:6px;
-  background:#e5e7eb;
-  display:inline-block;
+  line-height:1;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  color:#fff;
 }
+
+.rule-list,
+.list-box{
+  max-height:320px;
+  overflow:auto;
+  border-radius:16px;
+  background:var(--card-3);
+  border:1px solid rgba(255,255,255,.08);
+  padding:12px;
+}
+
 .rule-row{
   display:flex;
   align-items:center;
   gap:10px;
-  margin-bottom:6px;
+  margin-bottom:8px;
   font-size:14px;
   flex-wrap:wrap;
+  padding:8px 10px;
+  border-radius:12px;
+  background:rgba(255,255,255,.04);
 }
-small{color:#6b7280}
-.new-btn{
-  background:#16a34a;
-  color:#fff;
-  border:none;
-  border-radius:8px;
-  font-weight:700;
+
+.rule-row:last-child{
+  margin-bottom:0;
 }
-.list-box{
-  max-height:240px;
-  overflow:auto;
-  border:1px solid #e5e7eb;
-  border-radius:8px;
-  padding:10px;
-  background:#fafafa;
+
+.rule-dot{
+  display:inline-block;
+  width:16px;
+  height:16px;
+  border-radius:4px;
+  border:1px solid rgba(255,255,255,.22);
 }
-.muted{color:#6b7280}
+
+.muted{
+  color:var(--muted);
+}
+
+.publish-box{
+  position:sticky;
+  top:18px;
+}
+
+.publish-meta{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.help{
+  font-size:13px;
+  line-height:1.45;
+  color:var(--muted);
+}
+
+@media (max-width:1100px){
+  .editor-grid{
+    grid-template-columns:1fr;
+  }
+
+  .publish-box{
+    position:static;
+  }
+}
+
+@media (max-width:720px){
+  .page-wrap{
+    width:min(100% - 24px, 1180px);
+    padding:24px 0 32px;
+  }
+
+  .hero h1{
+    font-size:38px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .card{
+    padding:18px 16px;
+    border-radius:20px;
+  }
+
+  .card h2,
+  .card h3{
+    font-size:20px;
+  }
+
+  .row{
+    gap:10px;
+    margin-bottom:10px;
+  }
+
+  .field,
+  .field--sm,
+  .field--md,
+  .field--lg{
+    min-width:100%;
+    flex:1 1 100%;
+  }
+
+  .btn{
+    width:100%;
+  }
+}
 </style>
 </head>
 
 <body>
-<div class="wrap">
+<div class="page-wrap">
 
-<h1>🎛️ Редактор seance.json</h1>
-<span class="badge">Ціни + кольори + ложі + сегменти рядів (один сеанс)</span>
-
-<!-- Seance -->
-<div class="card">
-  <div class="row">
-    <label>Seance ID</label>
-    <input id="seanceId" placeholder="akakiy-2026-05-10-18-00" style="flex:1">
-
-    <label>Майданчик</label>
-    <select id="venueSelect">
-      <option value="academy">Академія Руху</option>
-      <option value="shevchenko-v2">Театр Шевченка</option>
-    </select>
-
-    <button onclick="loadSeance()">Завантажити</button>
-    <button class="new-btn" onclick="createNewSeance()">➕ Новий сеанс</button>
-  </div>
-</div>
-
-<!-- Seance meta -->
-<div class="card">
-  <h3>🧾 Дані сеансу</h3>
-
-  <div class="row">
-    <label>Назва вистави</label>
-    <input id="showName" placeholder="Акакій" style="flex:1">
-
-    <label>Дата</label>
-    <input id="showDate" type="date">
-
-    <label>Час</label>
-    <input id="showTime" type="time">
+  <div class="topbar">
+    <a class="back-btn" href="./panel.html">← Назад</a>
   </div>
 
-  <div class="row">
-    <label>Poster URL</label>
-    <input id="posterUrl" placeholder="https://...png" style="flex:1">
-  </div>
-
-  <small>
-    Назва вистави — для глядача. Seance ID — технічний ключ. Poster URL — пряме посилання на афішу PNG зі Storage.
-  </small>
-</div>
-
-<!-- Rules -->
-<div class="card">
-  <h3>➕ Правило по рядах</h3>
-
-  <div class="row">
-    <label>Зона</label>
-    <select id="zone">
-      <option value="P">Партер</option>
-      <option value="A">Амфітеатр</option>
-      <option value="B">Балкон</option>
-    </select>
-
-    <label>Ряди</label>
-    <input id="fromRow" type="number" placeholder="від">
-    <input id="toRow" type="number" placeholder="до">
-
-    <label>Ціна</label>
-    <input id="price" type="number" placeholder="200">
-
-    <label>Колір</label>
-    <input id="color" type="color" value="#9333ea">
-
-    <label>
-      <input type="checkbox" id="sale" checked>
-      Продається
-    </label>
-
-    <button onclick="addRule()">Додати</button>
-  </div>
-
-  <small>Для суцільних рядів. Наприклад: P1-3, P4-8.</small>
-</div>
-
-<!-- Seat segments -->
-<div class="card">
-  <h3>🎨 Діапазон місць у рядах</h3>
-
-  <div class="row">
-    <label>Зона</label>
-    <select id="segZone">
-      <option value="P">Партер</option>
-      <option value="A">Амфітеатр</option>
-      <option value="B">Балкон</option>
-    </select>
-
-    <label>Ряди</label>
-    <input id="segFromRow" type="number" placeholder="від">
-    <input id="segToRow" type="number" placeholder="до">
-
-    <label>Місця</label>
-    <input id="segFromSeat" type="number" placeholder="від">
-    <input id="segToSeat" type="number" placeholder="до">
-
-    <label>Ціна</label>
-    <input id="segPrice" type="number" placeholder="200">
-
-    <label>Колір</label>
-    <input id="segColor" type="color" value="#06b6d4">
-
-    <label>
-      <input type="checkbox" id="segSale" checked>
-      Продається
-    </label>
-
-    <button onclick="addSeatSegment()">Додати</button>
-  </div>
-
-  <small>
-    Для випадків типу: ряд 7, місця 1–6 одна ціна/колір, 7–17 інша, 18–23 третя.
-    Записується в <b>seat_overrides</b> автоматично.
-  </small>
-</div>
-
-<!-- Lodges -->
-<div class="card">
-  <h3>🎭 Ложі</h3>
-
-  <div class="row">
-    <label>Ложа</label>
-    <select id="lodgeZone">
-      <option value="A0">Ложа А</option>
-      <option value="B0">Ложа Б</option>
-    </select>
-
-    <label>Місця</label>
-    <input id="lodgeFromSeat" type="number" placeholder="від">
-    <input id="lodgeToSeat" type="number" placeholder="до">
-
-    <label>Ціна</label>
-    <input id="lodgePrice" type="number" placeholder="100">
-
-    <label>Колір</label>
-    <input id="lodgeColor" type="color" value="#42f0e4">
-
-    <label>
-      <input type="checkbox" id="lodgeSale" checked>
-      Продається
-    </label>
-
-    <button onclick="addLodgeRange()">Додати</button>
-  </div>
-
-  <small>
-    Ложа А = <b>A0-M1...A0-M18</b>, Ложа Б = <b>B0-M1...B0-M18</b>.
-    Також записується в <b>seat_overrides</b>.
-  </small>
-</div>
-
-<!-- Rules list -->
-<div class="card">
-  <h3>📋 Правила цього сеансу</h3>
-  <div id="rulesList"></div>
-</div>
-
-<!-- Seat override -->
-<div class="card">
-  <h3>🎯 Окреме місце</h3>
-  <div class="row">
-    <input id="seatKey" placeholder="P3-M5 / A0-M1 / B0-M7">
-    <input id="seatPrice" type="number" placeholder="ціна">
-    <input id="seatColor" type="color" value="#ef4444">
-    <label>
-      <input type="checkbox" id="seatSale">
-      Заборонити продаж
-    </label>
-    <button onclick="addSeatOverride()">Додати</button>
-  </div>
-</div>
-
-<!-- Seat overrides list -->
-<div class="card">
-  <h3>🪑 Seat overrides</h3>
-  <div id="seatOverridesList" class="list-box"></div>
-</div>
-
-<!-- JSON -->
-<div class="card">
-  <h3>📄 seance.json</h3>
-  <textarea id="output"></textarea>
-  <button onclick="copyJson()">📋 Скопіювати</button>
-</div>
-
-<div class="card">
-  <h3>🎟️ Статус сеансу</h3>
-  <select id="showStatus">
-    <option value="active">Активний</option>
-    <option value="cancelled">Скасовано</option>
-    <option value="sold_out">Продано</option>
-  </select>
-</div>
-
-<button id="publish">🚀 Опублікувати</button>
-
-</div>
-
-<script>
-const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-const SUPABASE_FUNCTION_URL =
-  "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/save-seance";
-
-const data = {
-  pricing: {},
-  seat_overrides: {}
-};
-
-const showStatus = document.getElementById("showStatus");
-const seanceId = document.getElementById("seanceId");
-const venueSelect = document.getElementById("venueSelect");
-const showName = document.getElementById("showName");
-const showDate = document.getElementById("showDate");
-const showTime = document.getElementById("showTime");
-const posterUrl = document.getElementById("posterUrl");
-
-const zone = document.getElementById("zone");
-const fromRow = document.getElementById("fromRow");
-const toRow = document.getElementById("toRow");
-const price = document.getElementById("price");
-const color = document.getElementById("color");
-const sale = document.getElementById("sale");
-
-const segZone = document.getElementById("segZone");
-const segFromRow = document.getElementById("segFromRow");
-const segToRow = document.getElementById("segToRow");
-const segFromSeat = document.getElementById("segFromSeat");
-const segToSeat = document.getElementById("segToSeat");
-const segPrice = document.getElementById("segPrice");
-const segColor = document.getElementById("segColor");
-const segSale = document.getElementById("segSale");
-
-const lodgeZone = document.getElementById("lodgeZone");
-const lodgeFromSeat = document.getElementById("lodgeFromSeat");
-const lodgeToSeat = document.getElementById("lodgeToSeat");
-const lodgePrice = document.getElementById("lodgePrice");
-const lodgeColor = document.getElementById("lodgeColor");
-const lodgeSale = document.getElementById("lodgeSale");
-
-const seatKey = document.getElementById("seatKey");
-const seatPrice = document.getElementById("seatPrice");
-const seatColor = document.getElementById("seatColor");
-const seatSale = document.getElementById("seatSale");
-
-const output = document.getElementById("output");
-const rulesList = document.getElementById("rulesList");
-const seatOverridesList = document.getElementById("seatOverridesList");
-const publish = document.getElementById("publish");
-
-function createNewSeance(){
-  const showSlug = prompt("Назва show для Seance ID (латиниця):", "akakiy");
-  if(!showSlug) return;
-
-  const date = prompt("Дата YYYY-MM-DD:", "2026-05-10");
-  if(!date) return;
-
-  const time = prompt("Час HH-MM:", "18-00");
-  if(!time) return;
-
-  const id = `${showSlug}-${date}-${time}`;
-  seanceId.value = id;
-
-  if (!showName.value.trim()) {
-    showName.value = showSlug;
-  }
-  if (!showDate.value) {
-    showDate.value = date;
-  }
-  if (!showTime.value) {
-    showTime.value = time.replace("-", ":");
-  }
-
-  data.pricing = {};
-  data.seat_overrides = {};
-  render();
-
-  alert(
-    "Створено новий seance_id:\n\n" +
-    id +
-    "\n\nТепер заповніть назву вистави, дату, час, poster URL і натисніть «Опублікувати»."
-  );
-}
-
-function addRule(){
-  const z = zone.value;
-  const from = Number(fromRow.value);
-  const to = Number(toRow.value);
-  const p = Number(price.value);
-  const c = color.value;
-  const saleAllowed = sale.checked;
-
-  if (!z || !from || !to || !p) {
-    alert("Вкажи зону, ряди і ціну");
-    return;
-  }
-
-  const key = `${z}${from}-${to}`;
-
-  data.pricing[key] = {
-    price: p,
-    color: c,
-    sale: saleAllowed
-  };
-
-  render();
-}
-
-function addSeatSegment(){
-  const z = segZone.value;
-  const rowFrom = Number(segFromRow.value);
-  const rowTo = Number(segToRow.value);
-  const seatFrom = Number(segFromSeat.value);
-  const seatTo = Number(segToSeat.value);
-  const p = Number(segPrice.value);
-  const c = segColor.value;
-  const saleAllowed = segSale.checked;
-
-  if (!z || !rowFrom || !rowTo || !seatFrom || !seatTo || !p) {
-    alert("Вкажи зону, ряди, місця і ціну");
-    return;
-  }
-
-  if (rowTo < rowFrom) {
-    alert("Кінець рядів не може бути менше початку");
-    return;
-  }
-
-  if (seatTo < seatFrom) {
-    alert("Кінець місць не може бути менше початку");
-    return;
-  }
-
-  for (let row = rowFrom; row <= rowTo; row++) {
-    for (let seat = seatFrom; seat <= seatTo; seat++) {
-      const key = `${z}${row}-M${seat}`;
-      data.seat_overrides[key] = {
-        price: p,
-        color: c,
-        sale: saleAllowed
-      };
-    }
-  }
-
-  render();
-}
-
-function addLodgeRange(){
-  const lodge = lodgeZone.value; // A0 / B0
-  const from = Number(lodgeFromSeat.value);
-  const to = Number(lodgeToSeat.value);
-  const p = Number(lodgePrice.value);
-  const c = lodgeColor.value;
-  const saleAllowed = lodgeSale.checked;
-
-  if (!lodge || !from || !to || !p) {
-    alert("Вкажи ложу, місця і ціну");
-    return;
-  }
-
-  if (to < from) {
-    alert("Кінець місць не може бути менше початку");
-    return;
-  }
-
-  for (let seat = from; seat <= to; seat++) {
-    const key = `${lodge}-M${seat}`;
-    data.seat_overrides[key] = {
-      price: p,
-      color: c,
-      sale: saleAllowed
-    };
-  }
-
-  render();
-}
-
-function addSeatOverride(){
-  const key = seatKey.value.trim();
-  if(!key) return alert("Вкажи ключ місця");
-
-  const obj = {};
-
-  if (seatPrice.value) obj.price = Number(seatPrice.value);
-  if (seatColor.value) obj.color = seatColor.value;
-  if (seatSale.checked) {
-    obj.sale = false;
-  } else {
-    obj.sale = true;
-  }
-
-  data.seat_overrides[key] = obj;
-  render();
-}
-
-function render(){
-  output.value = JSON.stringify({
-    seance_id: seanceId.value.trim(),
-    venue: venueSelect.value,
-    show: showName.value.trim(),
-    date: showDate.value || null,
-    time: showTime.value || null,
-    poster_url: posterUrl.value.trim() || null,
-    pricing: data.pricing,
-    seat_overrides: data.seat_overrides
-  }, null, 2);
-
-  rulesList.innerHTML =
-    Object.entries(data.pricing).map(([k,r])=>`
-      <div class="rule-row">
-        <b>${k}</b>
-        <span>${r.price} грн</span>
-        <span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${r.color};border:1px solid #d1d5db"></span>
-        <span>${r.sale === false ? "❌" : "✔"}</span>
-      </div>
-    `).join("")
-    || "<small>Поки що правил немає</small>";
-
-  const overrideEntries = Object.entries(data.seat_overrides);
-  seatOverridesList.innerHTML =
-    overrideEntries.length
-      ? overrideEntries
-          .sort((a, b) => a[0].localeCompare(b[0], "uk"))
-          .map(([k, r]) => `
-            <div class="rule-row">
-              <b>${k}</b>
-              <span>${r.price ?? "—"} грн</span>
-              <span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${r.color || "#fff"};border:1px solid #d1d5db"></span>
-              <span>${r.sale === false ? "❌" : "✔"}</span>
-            </div>
-          `).join("")
-      : `<span class="muted">Поки що seat_overrides немає</span>`;
-}
-
-function copyJson(){
-  output.select();
-  document.execCommand("copy");
-  alert("Скопійовано");
-}
-
-publish.onclick = async () => {
-  const seance = seanceId.value.trim();
-  if (!seance) return alert("Вкажи Seance ID");
-
-  const show = showName.value.trim();
-  const date = showDate.value || null;
-  const time = showTime.value || null;
-  const poster_url = posterUrl.value.trim() || null;
-  const status = showStatus.value;
-
-  if (!show) return alert("Вкажи назву вистави");
-  if (!date) return alert("Вкажи дату");
-  if (!time) return alert("Вкажи час");
-
-  const hall = venueSelect.value;
-  const venueId = hall === "academy" ? "academy" : "shevchenko";
-
-  try {
-    const res = await fetch(SUPABASE_FUNCTION_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        seance_id: seance,
-        venue_id: venueId,
-        hall: hall,
-        show: show,
-        date: date,
-        time: time,
-        poster_url: poster_url,
-        status: status,
-        pricing: data.pricing,
-        seat_overrides: data.seat_overrides
-      })
-    });
-
-    const text = await res.text();
-
-    if (!res.ok) {
-      alert("❌ Помилка збереження:\n" + text);
-      return;
-    }
-
-    alert("✅ Сеанс створено / оновлено");
-  } catch (err) {
-    alert("❌ Помилка: " + err.message);
-  }
-};
-
-async function loadSeance(){
-  const seance = seanceId.value.trim();
-  if(!seance) return;
-
-  const seanceRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=show,date,time,poster_url,venue_id`,
-    {
-      headers:{
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    }
-  );
-
-  const seanceRows = await seanceRes.json();
-  const seanceRow = Array.isArray(seanceRows) && seanceRows.length ? seanceRows[0] : null;
-
-  if (seanceRow) {
-    showName.value = seanceRow.show || "";
-    showDate.value = seanceRow.date || "";
-    showTime.value = seanceRow.time || "";
-    posterUrl.value = seanceRow.poster_url || "";
-
-    if (seanceRow.venue_id === "academy") {
-      venueSelect.value = "academy";
-    } else if (seanceRow.venue_id === "shevchenko") {
-      venueSelect.value = "shevchenko-v2";
-    }
-  }
-
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seance)}&select=pricing,seat_overrides,hall,venue_id`,
-    {
-      headers:{
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    }
-  );
-
-  const rows = await res.json();
-  if(!rows.length){
-    data.pricing = {};
-    data.seat_overrides = {};
-    render();
-    return;
-  }
-
-  data.pricing = rows[0].pricing || {};
-  data.seat_overrides = rows[0].seat_overrides || {};
-
-  if (rows[0].hall) {
-    venueSelect.value = rows[0].hall;
-  }
-
-  render();
-}
-
-["showName","showDate","showTime","posterUrl","venueSelect","seanceId","showStatus"].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener("input", render);
-  if (el) el.addEventListener("change", render);
-});
-
-render();
-</script>
-</body>
-</html>
+  <section class="hero">
+    <h1>🎛️ Редактор сеансу</h1>
+    <p>Налаштування вартості, кольорів, лож, сегментів рядів та окремих місць для одного сеансу. Усі зміни зберігаються в робочому контурі системи.</p>
+    <span class="hero-badge">VA Admin • Ціни + кольори + ложі + seat overrides</span>
+  </section>
+
+  <div class="editor-grid">
+    <div class="editor-main">
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Сеанс</h2>
+            <p class="card-note">Вибір сеансу, майданчика та базових параметрів.</p>
+          </div>
+          <span class="badge">основне</span>
+        </div>
+
+        <div class="row">
+          <div class="field field--lg">
+            <label for="seanceId">Seance ID</label>
+            <input id="seanceId" placeholder="akakiy-2026-05-10-18-00">
+          </div>
+
+          <div class="field field--md">
+            <label for="venueSelect">Майданчик</label>
+            <select id="venueSelect">
+              <option value="academy">Академія Руху</option>
+              <option value="shevchenko-v2">Театр Шевченка</option>
+            </select>
+          </div>
+
+          <div class="field field--sm">
+            <button class="btn btn-primary" onclick="loadSeance()">Завантажити</button>
+          </div>
+
+          <div class="field field--sm">
+            <button class="btn btn-success" onclick="createNewSeance()">Новий сеанс</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Дані сеансу</h2>
+            <p class="card-note">Назва вистави, дата, час і афіша для глядача.</p>
+          </div>
+          <span class="badge">мета</span>
+        </div>
+
+        <div class="row">
+          <div class="field field--lg">
+            <label for="showName">Назва вистави</label>
+            <input id="showName" placeholder="Акакій">
+          </div>
+
+          <div class="field field--md">
+            <label for="showDate">Дата</label>
+            <input id="showDate" type="date">
+          </div>
+
+          <div class="field field--md">
+            <label for="showTime">Час</label>
+            <input id="showTime" type="time">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field field--lg">
+            <label for="posterUrl">Poster URL</label>
+            <input id="posterUrl" placeholder="https://...png">
+          </div>
+        </div>
+
+        <div class="help">
+          Назва вистави — для глядача. Seance ID — технічний ключ. Poster URL — пряме посилання на афішу PNG зі Storage.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Правило по рядах</h2>
+            <p class="card-note">Суцільне правило для діапазону рядів у зоні.</p>
+          </div>
+          <span class="badge">pricing</span>
+        </div>
+
+        <div class="row">
+          <div class="field field--md">
+            <label for="zone">Зона</label>
+            <select id="zone">
+              <option value="P">Партер</option>
+              <option value="A">Амфітеатр</option>
+              <option value="B">Балкон</option>
+            </select>
+          </div>
+
+          <div class="field field--sm">
+            <label for="fromRow">Ряди від</label>
+            <input id="fromRow" type="number" placeholder="від">
+          </div>
+
+          <div class="field field--sm">
+            <label for="toRow">Ряди до</label>
+            <input id="toRow" type="number" placeholder="до">
+          </div>
+
+          <div class="field field--sm">
+            <label for="price">Ціна</label>
+            <input id="price" type="number" placeholder="200">
+          </div>
+
+          <div class="field field--sm">
+            <label for="color">Колір</label>
+            <input id="color" type="color" value="#9333ea">
+          </div>
+
+          <div class="field field--md">
+            <label>&nbsp;</label>
+            <label class="check">
+              <input type="checkbox" id="sale" checked>
+              Продається
+            </label>
+          </div>
+
+          <div class="field field--sm">
+            <button class="btn btn-primary" onclick="addRule()">Додати</button>
+          </div>
+        </div>
+
+        <div class="help">Для суцільних рядів. Наприклад: P1-3, P4-8.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Діапазон місць у рядах</h2>
+            <p class="card-note">Для сегментів ряду: ліва частина, центр, права частина.</p>
+          </div>
+          <span class="badge">seat_overrides</span>
+        </div>
+
+        <div class="row">
+          <div class="field field--md">
+            <label for="segZone">Зона</label>
+            <select id="segZone">
+              <option value="P">Партер</option>
+              <option value="A">Амфітеатр</option>
+              <option value="B">Балкон</option>
+            </select>
+          </div>
+
+          <div class="field field--sm">
+            <label for="segFromRow">Ряди від</label>
+            <input id="segFromRow" type="number" placeholder="від">
+          </div>
+
+          <div class="field field--sm">
+            <label for="segToRow">Ряди до</label>
+            <input id="segToRow" type="number" placeholder="до">
+          </div>
+
+          <div class="field field--sm">
+            <label for="segFromSeat">Місця від</label>
+            <input id="segFromSeat" type="number" placeholder="від">
+          </div>
+
+          <div class="field field--sm">
+            <label for="segToSeat">Місця до</label>
+            <input id="segToSeat" type="
