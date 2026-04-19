@@ -4,164 +4,497 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Дякуємо за оплату</title>
-  <link rel="stylesheet" href="../styles.css" />
+
+  <style>
+    :root{
+      --bg:#eef2f7;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --success:#16a34a;
+      --accent:#2563eb;
+      --accent-hover:#1d4ed8;
+      --soft:#f8fafc;
+      --shadow:0 14px 34px rgba(15,23,42,.10);
+      --radius-xl:24px;
+      --radius-lg:18px;
+      --radius-md:14px;
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+      margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial,sans-serif;
+    }
+
+    .page{
+      width:min(920px, calc(100% - 32px));
+      margin:32px auto 48px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color:#fff;
+      border-radius:var(--radius-xl);
+      padding:28px 28px 24px;
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+
+    .eyebrow{
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      opacity:.82;
+      margin-bottom:8px;
+    }
+
+    .hero-title{
+      margin:0 0 10px;
+      font-size:42px;
+      line-height:1.08;
+      font-weight:800;
+    }
+
+    .hero-subtitle{
+      margin:0;
+      font-size:16px;
+      line-height:1.5;
+      color:rgba(255,255,255,.86);
+      max-width:760px;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-body{
+      padding:28px;
+    }
+
+    .success-box{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:18px;
+      border-radius:20px;
+      background:#ecfdf5;
+      border:1px solid #bbf7d0;
+      margin-bottom:22px;
+    }
+
+    .success-icon{
+      width:54px;
+      height:54px;
+      border-radius:999px;
+      background:var(--success);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      font-size:28px;
+      font-weight:700;
+      flex:0 0 54px;
+    }
+
+    .success-title{
+      font-size:22px;
+      font-weight:800;
+      margin-bottom:6px;
+    }
+
+    .success-text{
+      color:#166534;
+      line-height:1.45;
+      font-size:14px;
+    }
+
+    .info-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin-bottom:24px;
+    }
+
+    .info-card{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:var(--soft);
+    }
+
+    .info-label{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .info-value{
+      font-size:24px;
+      font-weight:800;
+      line-height:1.2;
+      word-break:break-word;
+    }
+
+    .message{
+      padding:18px;
+      border-radius:18px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      margin-bottom:22px;
+      line-height:1.6;
+      color:#374151;
+      font-size:15px;
+    }
+
+    .trust{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-bottom:24px;
+    }
+
+    .trust-item{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      color:#4b5563;
+      line-height:1.45;
+      font-size:14px;
+    }
+
+    .trust-dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#22c55e;
+      margin-top:6px;
+      flex:0 0 8px;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:52px;
+      padding:0 22px;
+      border:none;
+      border-radius:16px;
+      font-size:16px;
+      font-weight:700;
+      cursor:pointer;
+      text-decoration:none;
+      transition:.15s ease;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .btn-primary{
+      background:var(--accent);
+      color:#fff;
+    }
+
+    .btn-primary:hover{
+      background:var(--accent-hover);
+    }
+
+    .btn-light{
+      background:#e5e7eb;
+      color:#111827;
+    }
+
+    .btn-light:hover{
+      background:#d1d5db;
+    }
+
+    details{
+      margin-top:26px;
+      border-top:1px solid var(--line);
+      padding-top:20px;
+    }
+
+    summary{
+      cursor:pointer;
+      font-weight:700;
+      color:#374151;
+    }
+
+    pre{
+      margin-top:14px;
+      background:#111827;
+      color:#e5e7eb;
+      padding:16px;
+      border-radius:14px;
+      overflow:auto;
+      font-size:12px;
+      line-height:1.45;
+      white-space:pre-wrap;
+    }
+
+    @media (max-width:760px){
+      .page{
+        width:min(100% - 16px, 920px);
+        margin:14px auto 24px;
+      }
+
+      .hero{
+        padding:20px 16px 18px;
+      }
+
+      .hero-title{
+        font-size:30px;
+      }
+
+      .hero-subtitle{
+        font-size:15px;
+      }
+
+      .card-body{
+        padding:18px 16px;
+      }
+
+      .info-grid{
+        grid-template-columns:1fr;
+      }
+
+      .info-value{
+        font-size:22px;
+      }
+
+      .actions{
+        flex-direction:column;
+      }
+
+      .btn{
+        width:100%;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <div id="site-header"></div>
-  <script type="module" src="../scripts/include.js"></script>
 
-  <main class="main">
-    <section class="section">
-      <div class="container">
-        <div class="card" style="max-width:720px;">
-          <h1>Дякуємо за оплату!</h1>
+<div class="page">
 
-          <p id="msg">
-            Ми отримали ваше замовлення. Якщо квиток не прийшов на email — перевірте «Спам» або напишіть нам.
-          </p>
+  <section class="hero">
+    <div class="eyebrow">Ваш Адмін • Оплата завершена</div>
+    <h1 class="hero-title">Дякуємо за оплату!</h1>
+    <p class="hero-subtitle">
+      Ваше замовлення успішно оформлено. Квиток буде сформовано автоматично та надіслано на email.
+      Якщо лист не надійшов — перевірте папку «Спам».
+    </p>
+  </section>
 
-          <p><b>Номер замовлення:</b> <span id="order">—</span></p>
-          <p><b>Сума:</b> <span id="amount">—</span></p>
+  <section class="card">
+    <div class="card-body">
 
-          <a id="returnLink" href="index.html" class="button-primary" style="margin-top:16px;display:inline-block;">
-            Повернутися на сайт
-          </a>
-
-          <details style="margin-top:14px;">
-            <summary>Технічна довідка</summary>
-            <pre id="debug" style="white-space:pre-wrap;"></pre>
-          </details>
+      <div class="success-box">
+        <div class="success-icon">✓</div>
+        <div>
+          <div class="success-title">Оплату підтверджено</div>
+          <div class="success-text">
+            Замовлення успішно зафіксовано в системі. QR-код буде використано для контролю входу.
+          </div>
         </div>
       </div>
-    </section>
-  </main>
 
-  <div id="site-footer"></div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-label">Номер замовлення</div>
+          <div class="info-value" id="order">—</div>
+        </div>
 
-  <script>
-    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+        <div class="info-card">
+          <div class="info-label">Сума оплати</div>
+          <div class="info-value" id="amount">—</div>
+        </div>
+      </div>
 
-    const orderEl = document.getElementById("order");
-    const amountEl = document.getElementById("amount");
-    const debugEl = document.getElementById("debug");
-    const msgEl = document.getElementById("msg");
-    const returnLinkEl = document.getElementById("returnLink");
+      <div id="msg" class="message">
+        Ми отримали ваше замовлення. Якщо квиток не прийшов на email — перевірте «Спам» або зверніться до адміністратора майданчика.
+      </div>
 
-    const qs = new URLSearchParams(location.search);
+      <div class="trust">
+        <div class="trust-item">
+          <span class="trust-dot"></span>
+          <span>Електронний квиток має таку ж силу, як і друкований.</span>
+        </div>
 
-    function supaHeaders() {
-      return {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
-      };
-    }
+        <div class="trust-item">
+          <span class="trust-dot"></span>
+          <span>Для входу достатньо показати QR-код з телефону.</span>
+        </div>
 
-    function getReturnHrefByVenue(venueId) {
-      if (venueId === "academy") return "./index-academy.html";
-      if (venueId === "shevchenko") return "./index-shevchenko.html";
-      return "./index.html";
-    }
+        <div class="trust-item">
+          <span class="trust-dot"></span>
+          <span>У разі питань звертайтесь до каси або адміністрації майданчика.</span>
+        </div>
+      </div>
 
-    async function fetchJson(url) {
-      const r = await fetch(url, { headers: supaHeaders() });
-      const text = await r.text();
+      <div class="actions">
+        <a id="returnLink" href="./index.html" class="btn btn-primary">
+          Повернутися до афіші
+        </a>
 
-      return {
-        ok: r.ok,
-        status: r.status,
-        text,
-        json: (() => {
-          try {
-            return JSON.parse(text || "null");
-          } catch {
-            return null;
-          }
-        })()
-      };
-    }
+        <button class="btn btn-light" onclick="window.print()">
+          Друк сторінки
+        </button>
+      </div>
 
-    async function resolveVenueIdFromOrder(orderRow) {
-      // 1. venue из URL
-      const venueFromQs = (qs.get("venue") || "").trim();
-      if (venueFromQs) return venueFromQs;
+      <details>
+        <summary>Технічна довідка</summary>
+        <pre id="debug"></pre>
+      </details>
 
-      // 2. venue_id прямо в заказе
-      if (orderRow && orderRow.venue_id) return orderRow.venue_id;
+    </div>
+  </section>
 
-      // 3. через seance_id -> seances.venue_id
-      if (orderRow && orderRow.seance_id) {
-        const seanceUrl =
-          `${SUPABASE_URL}/rest/v1/seances` +
-          `?id=eq.${encodeURIComponent(orderRow.seance_id)}` +
-          `&select=venue_id,show` +
-          `&limit=1`;
+</div>
 
-        const seanceRes = await fetchJson(seanceUrl);
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-        debugEl.textContent +=
-          `\n\nGET ${seanceUrl}\nstatus=${seanceRes.status}\nresponse:\n${seanceRes.text}`;
+const orderEl = document.getElementById("order");
+const amountEl = document.getElementById("amount");
+const debugEl = document.getElementById("debug");
+const msgEl = document.getElementById("msg");
+const returnLinkEl = document.getElementById("returnLink");
 
-        const rows = Array.isArray(seanceRes.json) ? seanceRes.json : [];
-        if (rows.length && rows[0].venue_id) {
-          return rows[0].venue_id;
-        }
+const qs = new URLSearchParams(location.search);
+
+function supaHeaders() {
+  return {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: "Bearer " + SUPABASE_ANON_KEY,
+  };
+}
+
+function getReturnHrefByVenue(venueId) {
+  if (venueId === "academy") return "./index-academy.html";
+  if (venueId === "shevchenko") return "./index-shevchenko.html";
+  return "./index.html";
+}
+
+async function fetchJson(url) {
+  const r = await fetch(url, { headers: supaHeaders() });
+  const text = await r.text();
+
+  return {
+    ok: r.ok,
+    status: r.status,
+    text,
+    json: (() => {
+      try {
+        return JSON.parse(text || "null");
+      } catch {
+        return null;
       }
+    })()
+  };
+}
 
-      return "";
+async function resolveVenueIdFromOrder(orderRow) {
+  const venueFromQs = (qs.get("venue") || "").trim();
+  if (venueFromQs) return venueFromQs;
+
+  if (orderRow && orderRow.venue_id) return orderRow.venue_id;
+
+  if (orderRow && orderRow.seance_id) {
+    const seanceUrl =
+      `${SUPABASE_URL}/rest/v1/seances` +
+      `?id=eq.${encodeURIComponent(orderRow.seance_id)}` +
+      `&select=venue_id,show` +
+      `&limit=1`;
+
+    const seanceRes = await fetchJson(seanceUrl);
+
+    debugEl.textContent +=
+      `\n\nGET ${seanceUrl}\nstatus=${seanceRes.status}\nresponse:\n${seanceRes.text}`;
+
+    const rows = Array.isArray(seanceRes.json) ? seanceRes.json : [];
+    if (rows.length && rows[0].venue_id) {
+      return rows[0].venue_id;
     }
+  }
 
-    async function loadLastPaid() {
-      const orderIdFromQs = (qs.get("order_id") || "").trim();
+  return "";
+}
 
-      let url =
-        `${SUPABASE_URL}/rest/v1/orders` +
-        `?select=*` +
-        `&status=eq.paid` +
-        `&order=updated_at.desc` +
-        `&limit=1`;
+async function loadLastPaid() {
+  const orderIdFromQs = (qs.get("order_id") || "").trim();
 
-      if (orderIdFromQs) {
-        url =
-          `${SUPABASE_URL}/rest/v1/orders` +
-          `?select=*` +
-          `&order_id=eq.${encodeURIComponent(orderIdFromQs)}` +
-          `&limit=1`;
-      }
+  let url =
+    `${SUPABASE_URL}/rest/v1/orders` +
+    `?select=*` +
+    `&status=eq.paid` +
+    `&order=updated_at.desc` +
+    `&limit=1`;
 
-      const orderRes = await fetchJson(url);
+  if (orderIdFromQs) {
+    url =
+      `${SUPABASE_URL}/rest/v1/orders` +
+      `?select=*` +
+      `&order_id=eq.${encodeURIComponent(orderIdFromQs)}` +
+      `&limit=1`;
+  }
 
-      debugEl.textContent =
-        `GET ${url}\nstatus=${orderRes.status}\nresponse:\n${orderRes.text}`;
+  const orderRes = await fetchJson(url);
 
-      if (!orderRes.ok) {
-        msgEl.textContent = "Оплату отримано, але дані замовлення не завантажились. Оновіть сторінку або зверніться до підтримки.";
-        return;
-      }
+  debugEl.textContent =
+    `GET ${url}\nstatus=${orderRes.status}\nresponse:\n${orderRes.text}`;
 
-      const rows = Array.isArray(orderRes.json) ? orderRes.json : [];
-      if (!rows.length) {
-        msgEl.textContent = "Оплату отримано. Дані замовлення ще обробляються. Оновіть сторінку через 10–20 секунд.";
-        return;
-      }
+  if (!orderRes.ok) {
+    msgEl.textContent =
+      "Оплату отримано, але дані замовлення не завантажились. Оновіть сторінку або зверніться до підтримки.";
+    return;
+  }
 
-      const o = rows[0];
+  const rows = Array.isArray(orderRes.json) ? orderRes.json : [];
 
-      orderEl.textContent = o.order_id || "—";
-      amountEl.textContent = `${Number(o.amount || 0).toFixed(2)} ${o.currency || "UAH"}`;
+  if (!rows.length) {
+    msgEl.textContent =
+      "Оплату отримано. Дані замовлення ще обробляються. Оновіть сторінку через 10–20 секунд.";
+    return;
+  }
 
-      const venueId = await resolveVenueIdFromOrder(o);
-      const returnHref = getReturnHrefByVenue(venueId);
-      returnLinkEl.href = returnHref;
+  const o = rows[0];
 
-      debugEl.textContent += `\n\nresolved venue_id: ${venueId || "(empty)"}`;
-      debugEl.textContent += `\nreturn href: ${returnHref}`;
-    }
+  orderEl.textContent = o.order_id || "—";
+  amountEl.textContent =
+    `${Number(o.amount || 0).toFixed(2)} ${o.currency || "UAH"}`;
 
-    loadLastPaid().catch((e) => {
-      debugEl.textContent += "\n\nerror:\n" + String(e);
-      msgEl.textContent = "Сталася помилка при завантаженні даних. Оновіть сторінку.";
-    });
-  </script>
+  const venueId = await resolveVenueIdFromOrder(o);
+  const returnHref = getReturnHrefByVenue(venueId);
+
+  returnLinkEl.href = returnHref;
+
+  debugEl.textContent += `\n\nresolved venue_id: ${venueId || "(empty)"}`;
+  debugEl.textContent += `\nreturn href: ${returnHref}`;
+}
+
+loadLastPaid().catch((e) => {
+  debugEl.textContent += "\n\nerror:\n" + String(e);
+  msgEl.textContent =
+    "Сталася помилка при завантаженні даних. Оновіть сторінку.";
+});
+</script>
+
 </body>
 </html>
