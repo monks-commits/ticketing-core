@@ -4,31 +4,427 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Оплата</title>
-  <link rel="stylesheet" href="../../demo/styles.css" />
+
+  <style>
+    :root{
+      --bg:#eef2f7;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --accent:#2563eb;
+      --accent-hover:#1d4ed8;
+      --success:#16a34a;
+      --success-hover:#15803d;
+      --danger:#ef4444;
+      --soft:#f8fafc;
+      --shadow:0 14px 34px rgba(15,23,42,.10);
+      --radius-xl:24px;
+      --radius-lg:18px;
+      --radius-md:14px;
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+      margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial,sans-serif;
+    }
+
+    .page{
+      width:min(1080px, calc(100% - 32px));
+      margin:28px auto 40px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color:#fff;
+      border-radius:var(--radius-xl);
+      padding:24px 24px 22px;
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+
+    .eyebrow{
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      opacity:.82;
+      margin-bottom:8px;
+    }
+
+    .hero-title{
+      margin:0 0 10px;
+      font-size:38px;
+      line-height:1.08;
+      font-weight:800;
+    }
+
+    .hero-subtitle{
+      margin:0;
+      font-size:16px;
+      line-height:1.5;
+      color:rgba(255,255,255,.86);
+    }
+
+    .hero-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:18px;
+    }
+
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      min-height:36px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.12);
+      font-size:14px;
+      color:#fff;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 340px;
+      gap:20px;
+      align-items:start;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-body{
+      padding:22px;
+    }
+
+    .card-title{
+      margin:0 0 8px;
+      font-size:28px;
+      line-height:1.15;
+      font-weight:800;
+    }
+
+    .card-note{
+      margin:0 0 18px;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:15px;
+    }
+
+    .summary-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .summary-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:16px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--soft);
+    }
+
+    .summary-item-title{
+      font-weight:700;
+      font-size:16px;
+      line-height:1.35;
+    }
+
+    .summary-item-price{
+      font-size:15px;
+      color:#374151;
+      white-space:nowrap;
+      font-weight:700;
+    }
+
+    .field-list{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      margin-top:8px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .field label{
+      font-size:14px;
+      color:#374151;
+      font-weight:700;
+    }
+
+    .input{
+      width:100%;
+      border:1px solid #d1d5db;
+      background:#fff;
+      color:var(--text);
+      border-radius:16px;
+      padding:15px 16px;
+      font-size:16px;
+      outline:none;
+      transition:.15s ease;
+    }
+
+    .input:focus{
+      border-color:#93c5fd;
+      box-shadow:0 0 0 3px rgba(37,99,235,.14);
+    }
+
+    .summary{
+      position:sticky;
+      top:18px;
+      padding:22px;
+    }
+
+    .summary-title{
+      margin:0 0 12px;
+      font-size:24px;
+      font-weight:800;
+    }
+
+    .summary-meta{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 0;
+      border-bottom:1px solid var(--line);
+      font-size:15px;
+    }
+
+    .summary-meta:last-of-type{
+      border-bottom:none;
+    }
+
+    .summary-total{
+      margin:18px 0 0;
+      padding:18px;
+      border-radius:18px;
+      background:#eff6ff;
+      border:1px solid #bfdbfe;
+    }
+
+    .summary-total-label{
+      color:#1e40af;
+      font-size:14px;
+      margin-bottom:8px;
+    }
+
+    .summary-total-value{
+      font-size:34px;
+      line-height:1.1;
+      font-weight:800;
+      color:#0f172a;
+    }
+
+    .actions{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:20px;
+    }
+
+    .btn-pay,
+    .btn-back{
+      border:none;
+      border-radius:16px;
+      padding:16px 18px;
+      font-size:17px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+
+    .btn-pay{
+      background:var(--success);
+      color:#fff;
+    }
+
+    .btn-pay:hover{
+      background:var(--success-hover);
+      transform:translateY(-1px);
+    }
+
+    .btn-back{
+      background:#e5e7eb;
+      color:#111827;
+    }
+
+    .btn-back:hover{
+      background:#d1d5db;
+      transform:translateY(-1px);
+    }
+
+    .error{
+      margin-top:12px;
+      color:#b91c1c;
+      font-size:14px;
+      line-height:1.45;
+      min-height:20px;
+    }
+
+    .trust{
+      margin-top:18px;
+      padding-top:18px;
+      border-top:1px solid var(--line);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .trust-item{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+    }
+
+    .trust-dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#22c55e;
+      margin-top:6px;
+      flex:0 0 8px;
+    }
+
+    @media (max-width:960px){
+      .layout{
+        grid-template-columns:1fr;
+      }
+
+      .summary{
+        position:static;
+      }
+    }
+
+    @media (max-width:760px){
+      .page{
+        width:min(100% - 16px, 1080px);
+        margin:12px auto 24px;
+      }
+
+      .hero{
+        padding:18px 16px 16px;
+      }
+
+      .hero-title{
+        font-size:30px;
+      }
+
+      .hero-subtitle{
+        font-size:15px;
+      }
+
+      .card-body,
+      .summary{
+        padding:18px 16px;
+      }
+
+      .summary-total-value{
+        font-size:30px;
+      }
+
+      .btn-pay,
+      .btn-back{
+        font-size:16px;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <h1>Оплата</h1>
+  <div class="page">
 
-  <div style="max-width:600px; display:grid; gap:12px;">
+    <section class="hero">
+      <div class="eyebrow">Ваш Адмін • Безпечна оплата</div>
+      <h1 id="heroTitle" class="hero-title">Оплата замовлення</h1>
+      <p id="heroSubtitle" class="hero-subtitle">Перевірте дані покупця та перейдіть до оплати через LiqPay.</p>
 
-    <div>
-      <div>Місця:</div>
-      <div id="seats" style="font-weight:700;"></div>
+      <div class="hero-badges">
+        <div id="heroSeance" class="hero-badge">Seance: —</div>
+        <div id="heroCount" class="hero-badge">Місць: 0</div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <div class="card-body">
+          <h2 class="card-title">Дані покупця</h2>
+          <p class="card-note">Вкажіть контактні дані для оформлення замовлення. Після успішної оплати квиток буде сформовано автоматично.</p>
+
+          <div class="summary-list" id="seatSummary"></div>
+
+          <div class="field-list">
+            <div class="field">
+              <label for="name">Ім’я</label>
+              <input class="input" type="text" id="name" placeholder="Ваше ім’я" />
+            </div>
+
+            <div class="field">
+              <label for="email">Email</label>
+              <input class="input" type="email" id="email" placeholder="example@email.com" />
+            </div>
+
+            <div class="field">
+              <label for="phone">Телефон</label>
+              <input class="input" type="tel" id="phone" placeholder="+380..." />
+            </div>
+          </div>
+
+          <div id="err" class="error"></div>
+        </div>
+      </section>
+
+      <aside class="card summary">
+        <h2 class="summary-title">До оплати</h2>
+
+        <div class="summary-meta">
+          <span>Сеанс</span>
+          <strong id="summarySeance">—</strong>
+        </div>
+
+        <div class="summary-meta">
+          <span>Квитків</span>
+          <strong id="summaryCount">0</strong>
+        </div>
+
+        <div class="summary-total">
+          <div class="summary-total-label">Сума платежу</div>
+          <div class="summary-total-value" id="amount">0 грн</div>
+        </div>
+
+        <div class="actions">
+          <button id="payBtn" class="btn-pay">Оплатити через LiqPay</button>
+          <button id="btnBack" class="btn-back">← Повернутись до замовлення</button>
+        </div>
+
+        <div class="trust">
+          <div class="trust-item"><span class="trust-dot"></span><span>Оплата виконується через захищену сторінку LiqPay.</span></div>
+          <div class="trust-item"><span class="trust-dot"></span><span>Контактні дані потрібні для оформлення та відправки квитка.</span></div>
+          <div class="trust-item"><span class="trust-dot"></span><span>Після оплати ви отримаєте підтвердження та квиток із QR-кодом.</span></div>
+        </div>
+      </aside>
     </div>
-
-    <div>
-      <div>Сума:</div>
-      <div id="amount" style="font-weight:700;"></div>
-    </div>
-
-    <input type="text" id="name" placeholder="Ім’я" />
-    <input type="email" id="email" placeholder="Email" />
-    <input type="tel" id="phone" placeholder="Телефон" />
-
-    <button id="payBtn">Оплатити</button>
-
-    <div id="err" style="color:red;"></div>
 
   </div>
 
@@ -41,13 +437,31 @@
     const seatsRaw = p.get("seats") || "";
     const amount = Number(p.get("amount") || 0);
     const seance = p.get("seance") || "";
-    const title = p.get("title") || "";
+    const title = p.get("title") || "Вистава";
     const show = p.get("show") || "demo";
+
+    let prices = {};
+    try {
+      prices = JSON.parse(decodeURIComponent(p.get("prices") || "{}"));
+    } catch(e){
+      prices = {};
+    }
 
     const seats = seatsRaw.split(",").map(s => s.trim()).filter(Boolean);
 
-    document.getElementById("seats").textContent = seats.join(", ");
-    document.getElementById("amount").textContent = amount.toFixed(2) + " грн";
+    function seatKeyToHuman(k){
+      const m = String(k).match(/^([PAB])(\d+)-M(\d+)$/i);
+      if (!m) return k;
+
+      const prefix = m[1].toUpperCase();
+      const row = Number(m[2]);
+      const seat = Number(m[3]);
+
+      if (prefix === "P") return `Партер, ряд ${row}, місце ${seat}`;
+      if (prefix === "A") return row === 0 ? `Ложа А, місце ${seat}` : `Амфітеатр, ряд ${row}, місце ${seat}`;
+      if (prefix === "B") return row === 0 ? `Ложа Б, місце ${seat}` : `Балкон, ряд ${row}, місце ${seat}`;
+      return k;
+    }
 
     function newIdempotencyKey() {
       return "idem_" + crypto.randomUUID();
@@ -75,13 +489,58 @@
       form.submit();
     }
 
+    function renderPage(){
+      document.getElementById("heroTitle").textContent = title || "Оплата замовлення";
+      document.getElementById("heroSubtitle").textContent = "Перевірте дані покупця та перейдіть до оплати через LiqPay.";
+      document.getElementById("heroSeance").textContent = `Seance: ${seance || "—"}`;
+      document.getElementById("heroCount").textContent = `Місць: ${seats.length}`;
+
+      document.getElementById("summarySeance").textContent = seance || "—";
+      document.getElementById("summaryCount").textContent = String(seats.length);
+      document.getElementById("amount").textContent = amount.toFixed(2) + " грн";
+
+      const seatSummary = document.getElementById("seatSummary");
+
+      if (!seats.length) {
+        seatSummary.innerHTML = `
+          <div class="summary-item">
+            <div class="summary-item-title">Немає вибраних місць</div>
+            <div class="summary-item-price">0 грн</div>
+          </div>
+        `;
+        return;
+      }
+
+      seatSummary.innerHTML = seats.map(key => `
+        <div class="summary-item">
+          <div class="summary-item-title">${seatKeyToHuman(key)}</div>
+          <div class="summary-item-price">${Number(prices[key] || 0)} грн</div>
+        </div>
+      `).join("");
+    }
+
+    document.getElementById("btnBack").addEventListener("click", () => {
+      const params = new URLSearchParams();
+      if (show) params.set("show", show);
+      if (title) params.set("title", title);
+      if (seance) params.set("seance", seance);
+      if (seats.length) params.set("seats", seats.join(","));
+      params.set("prices", JSON.stringify(prices));
+      params.set("amount", String(amount));
+
+      location.href = `order.html?${params.toString()}`;
+    });
+
     document.getElementById("payBtn").onclick = async () => {
       const buyer_name = document.getElementById("name").value.trim();
       const buyer_email = document.getElementById("email").value.trim();
       const buyer_phone = document.getElementById("phone").value.trim();
+      const err = document.getElementById("err");
+
+      err.textContent = "";
 
       if (!buyer_name || !buyer_email || !buyer_phone) {
-        document.getElementById("err").textContent = "Заповніть всі поля";
+        err.textContent = "Заповніть всі поля";
         return;
       }
 
@@ -107,16 +566,18 @@
         const j = await r.json();
 
         if (!r.ok || !j.data) {
-          document.getElementById("err").textContent = j.error || "Помилка оплати";
+          err.textContent = j.error || "Помилка оплати";
           return;
         }
 
         submitToLiqPay(j.data, j.signature);
 
       } catch (e) {
-        document.getElementById("err").textContent = "Помилка мережі";
+        err.textContent = "Помилка мережі";
       }
     };
+
+    renderPage();
   </script>
 </body>
 </html>
