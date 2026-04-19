@@ -91,12 +91,38 @@ html,body{
   max-width:860px;
 }
 
-.toolbar{
+.toolbar,
+.section,
+.toggle-card{
   background:var(--card);
   border-radius:var(--radius-xl);
-  padding:20px;
+  padding:24px 20px;
   box-shadow:var(--shadow);
   margin-bottom:20px;
+}
+
+.toggle-card-head,
+.section-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+}
+
+.toggle-title,
+.section-title{
+  margin:0;
+  font-size:28px;
+  line-height:1.1;
+}
+
+.toggle-note,
+.section-note{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
 }
 
 .toolbar-grid{
@@ -137,67 +163,44 @@ select:focus{
   box-shadow:0 0 0 3px rgba(76,134,247,.16);
 }
 
-.section{
-  background:var(--card);
-  border-radius:var(--radius-xl);
-  padding:24px 20px;
-  box-shadow:var(--shadow);
-  margin-bottom:20px;
+.toggle-grid{
+  display:grid;
+  grid-template-columns:minmax(280px, 360px) 1fr;
+  gap:18px;
+  align-items:start;
 }
 
-.section-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:18px;
-  flex-wrap:wrap;
-}
-
-.section-title{
-  margin:0;
-  font-size:28px;
-  line-height:1.1;
-}
-
-.section-note{
-  color:var(--muted);
-  font-size:14px;
-}
-
-.list{
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-.row{
-  background:var(--card-2);
+.state-box{
   border:1px solid var(--line);
   border-radius:18px;
   padding:18px;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  gap:18px;
-  align-items:center;
+  background:rgba(255,255,255,.04);
 }
 
-.meta{
-  min-width:0;
+.state-box.ok{
+  background:rgba(46,204,113,.10);
+  border-color:rgba(46,204,113,.28);
 }
 
-.title{
+.state-box.off{
+  background:rgba(244,67,54,.10);
+  border-color:rgba(244,67,54,.28);
+}
+
+.state-box.unknown{
+  background:rgba(255,255,255,.04);
+}
+
+.state-title{
   font-size:22px;
   font-weight:800;
-  line-height:1.2;
   margin-bottom:8px;
 }
 
-.sub{
+.state-details{
   color:var(--muted);
-  font-size:14px;
   line-height:1.45;
-  word-break:break-word;
+  font-size:14px;
 }
 
 .badges{
@@ -231,10 +234,22 @@ select:focus{
   background:#475569;
 }
 
+.badge-on{
+  background:#14532d;
+}
+
+.badge-off{
+  background:#7f1d1d;
+}
+
+.toggle-actions,
 .actions{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
+}
+
+.actions{
   justify-content:flex-end;
 }
 
@@ -294,6 +309,58 @@ select:focus{
   background:var(--danger-hover);
 }
 
+.btn-link{
+  background:transparent;
+  border:1px solid var(--line);
+  color:#fff;
+}
+
+.btn-link:hover{
+  background:rgba(255,255,255,.06);
+}
+
+.small-note{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45;
+}
+
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.row{
+  background:var(--card-2);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  align-items:center;
+}
+
+.meta{
+  min-width:0;
+}
+
+.title{
+  font-size:22px;
+  font-weight:800;
+  line-height:1.2;
+  margin-bottom:8px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
+  word-break:break-word;
+}
+
 .empty{
   color:var(--muted);
   font-size:15px;
@@ -305,7 +372,8 @@ select:focus{
 }
 
 @media (max-width:980px){
-  .toolbar-grid{
+  .toolbar-grid,
+  .toggle-grid{
     grid-template-columns:1fr;
   }
 }
@@ -325,7 +393,8 @@ select:focus{
   }
 
   .toolbar,
-  .section{
+  .section,
+  .toggle-card{
     padding:20px 16px;
   }
 
@@ -339,6 +408,10 @@ select:focus{
 
   .btn{
     width:100%;
+  }
+
+  .toggle-actions{
+    flex-direction:column;
   }
 }
 </style>
@@ -354,7 +427,45 @@ select:focus{
 
   <section class="hero">
     <h1>🎭 Керування сеансами</h1>
-    <p>Робочий центр керування подіями: каса, редактор, звіти, архівування та відновлення сеансів.</p>
+    <p>Робочий центр керування подіями: каса, редактор, звіти, архівування та контроль глобального стану онлайн-продажів.</p>
+  </section>
+
+  <section class="toggle-card">
+    <div class="toggle-card-head">
+      <div>
+        <h2 class="toggle-title">🌐 Глобальний стан онлайн-продажів</h2>
+        <div class="toggle-note">Демонстраційний і контрольний блок для адміністрації. Аварійний сценарій для касира залишається на окремій сторінці <b>/toggle/</b>.</div>
+      </div>
+    </div>
+
+    <div class="toggle-grid">
+      <div id="toggleStateBox" class="state-box unknown">
+        <div class="state-title" id="toggleStateTitle">Статус: —</div>
+        <div class="state-details" id="toggleStateDetails">Натисніть «Оновити», щоб зчитати поточний стан.</div>
+        <div class="badges">
+          <span id="toggleBadge" class="badge">Онлайн: —</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="field">
+          <label for="toggleSecret">TOGGLE_SECRET</label>
+          <input id="toggleSecret" type="password" placeholder="Вставте secret для керування">
+        </div>
+
+        <div class="toggle-actions" style="margin-top:16px;">
+          <button class="btn btn-neutral" onclick="refreshToggle()">Оновити</button>
+          <button class="btn btn-success" onclick="setOnlineSales(true)">Увімкнути онлайн</button>
+          <button class="btn btn-danger" onclick="setOnlineSales(false)">Вимкнути онлайн</button>
+          <button class="btn btn-link" onclick="openTogglePage()">Відкрити /toggle/</button>
+          <button class="btn btn-link" onclick="clearToggleSecret()">Очистити secret</button>
+        </div>
+
+        <div class="small-note">
+          Поточний backend перемикає онлайн-продажі глобально для всієї системи, а не для окремого сеансу.
+        </div>
+      </div>
+    </div>
   </section>
 
   <section class="toolbar">
@@ -406,11 +517,15 @@ select:focus{
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
+const TOGGLE_ENDPOINT = "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/toggle-online-sales";
+const TOGGLE_LS_KEY = "va_toggle_secret_v1";
+
 let ALL_SEANCES = [];
 
 const searchInput = document.getElementById("searchInput");
 const venueFilter = document.getElementById("venueFilter");
 const statusFilter = document.getElementById("statusFilter");
+const toggleSecretInput = document.getElementById("toggleSecret");
 
 function escapeHtml(value){
   return String(value ?? "")
@@ -658,11 +773,120 @@ function openReports(){
   window.open(`./reports/index.html`, "_blank");
 }
 
+function openTogglePage(){
+  window.open(`../toggle/`, "_blank");
+}
+
+function getToggleSecret(){
+  const secret = (toggleSecretInput.value || "").trim();
+  if (!secret) {
+    throw new Error("Потрібен TOGGLE_SECRET");
+  }
+  localStorage.setItem(TOGGLE_LS_KEY, secret);
+  return secret;
+}
+
+function setToggleState(kind, title, details, enabled){
+  const box = document.getElementById("toggleStateBox");
+  const titleEl = document.getElementById("toggleStateTitle");
+  const detailsEl = document.getElementById("toggleStateDetails");
+  const badgeEl = document.getElementById("toggleBadge");
+
+  box.classList.remove("ok", "off", "unknown");
+  box.classList.add(kind);
+
+  titleEl.textContent = title || "Статус: —";
+  detailsEl.textContent = details || "—";
+
+  if (enabled === true) {
+    badgeEl.textContent = "Онлайн: УВІМК";
+    badgeEl.className = "badge badge-on";
+  } else if (enabled === false) {
+    badgeEl.textContent = "Онлайн: ВИМК";
+    badgeEl.className = "badge badge-off";
+  } else {
+    badgeEl.textContent = "Онлайн: —";
+    badgeEl.className = "badge";
+  }
+}
+
+async function toggleApi(method, body){
+  const secret = getToggleSecret();
+
+  const r = await fetch(TOGGLE_ENDPOINT, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "x-toggle-secret": secret
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const data = await r.json().catch(() => ({}));
+
+  if (r.status === 401) {
+    setToggleState("unknown", "Доступ заборонено", "Невірний TOGGLE_SECRET (401).", null);
+    return null;
+  }
+
+  if (!r.ok || data?.ok === false) {
+    setToggleState("unknown", "Помилка", data?.error ? String(data.error) : `HTTP ${r.status}`, null);
+    return null;
+  }
+
+  return data;
+}
+
+function renderToggle(settings){
+  const enabled = settings?.online_sales_enabled;
+  const at = settings?.updated_at ? `Оновлено: ${settings.updated_at}` : "Дані отримано.";
+
+  if (enabled === true) {
+    setToggleState("ok", "Статус: Онлайн УВІМКНЕНО", at, true);
+  } else if (enabled === false) {
+    setToggleState("off", "Статус: Онлайн ВИМКНЕНО", at, false);
+  } else {
+    setToggleState("unknown", "Статус: —", "Немає даних.", null);
+  }
+}
+
+async function refreshToggle(){
+  try {
+    setToggleState("unknown", "Статус: Зчитую…", "Зачекайте…", null);
+    const data = await toggleApi("GET");
+    if (data?.settings) renderToggle(data.settings);
+  } catch (e) {
+    setToggleState("unknown", "Статус: Помилка", String(e.message || e), null);
+  }
+}
+
+async function setOnlineSales(val){
+  try {
+    setToggleState("unknown", "Статус: Застосовую…", val ? "Увімкнення онлайн-продажів…" : "Вимкнення онлайн-продажів…", null);
+    const data = await toggleApi("POST", { online_sales_enabled: !!val });
+    if (data?.settings) renderToggle(data.settings);
+  } catch (e) {
+    setToggleState("unknown", "Статус: Помилка", String(e.message || e), null);
+  }
+}
+
+function clearToggleSecret(){
+  localStorage.removeItem(TOGGLE_LS_KEY);
+  toggleSecretInput.value = "";
+  setToggleState("unknown", "Статус: Secret очищено", "Вставте TOGGLE_SECRET знову при потребі.", null);
+}
+
 searchInput.addEventListener("input", renderLists);
 venueFilter.addEventListener("change", renderLists);
 statusFilter.addEventListener("change", renderLists);
 
-load();
+window.addEventListener("load", () => {
+  const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
+  if (saved) toggleSecretInput.value = saved;
+
+  load();
+  setToggleState("unknown", "Статус: —", "Натисніть «Оновити», щоб зчитати поточний стан.", null);
+});
 </script>
 
 </body>
