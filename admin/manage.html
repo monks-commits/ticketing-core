@@ -2,76 +2,316 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Керування сеансами</title>
+<title>Керування сеансами — VA Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{
+:root{
+  --bg:#061a3a;
+  --card:#1d2d47;
+  --card-2:#223552;
+  --text:#ffffff;
+  --muted:#b8c4d6;
+  --line:rgba(255,255,255,.10);
+
+  --primary:#4c86f7;
+  --primary-hover:#3f78e6;
+
+  --success:#2ecc71;
+  --success-hover:#28b864;
+
+  --neutral:#50627d;
+  --neutral-hover:#44556d;
+
+  --danger:#f44336;
+  --danger-hover:#df392d;
+
+  --shadow:0 18px 40px rgba(0,0,0,.22);
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:14px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
   margin:0;
-  font-family:sans-serif;
-  background:#0b1a2b;
-  color:#fff;
+  padding:0;
+  min-height:100%;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
 
-.container{
-  max-width:900px;
-  margin:40px auto;
+.page-wrap{
+  width:min(1240px, calc(100% - 48px));
+  margin:0 auto;
+  padding:48px 0 56px;
 }
 
-h1{
+.topbar{
+  margin-bottom:28px;
+}
+
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  background:#fff;
+  color:#111827;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+}
+
+.hero{
+  margin-bottom:28px;
+}
+
+.hero h1{
+  margin:0 0 10px;
+  font-size:56px;
+  line-height:1.05;
+  font-weight:800;
+}
+
+.hero p{
+  margin:0;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.45;
+  max-width:860px;
+}
+
+.section{
+  background:var(--card);
+  border-radius:var(--radius-xl);
+  padding:24px 20px;
+  box-shadow:var(--shadow);
   margin-bottom:20px;
 }
 
-.card{
-  background:#1c2b3f;
-  padding:20px;
-  border-radius:12px;
-  margin-bottom:30px;
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+}
+
+.section-title{
+  margin:0;
+  font-size:28px;
+  line-height:1.1;
+}
+
+.section-note{
+  color:var(--muted);
+  font-size:14px;
+}
+
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
 }
 
 .row{
-  display:flex;
-  justify-content:space-between;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
   align-items:center;
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.meta{
+  min-width:0;
+}
+
+.title{
+  font-size:22px;
+  font-weight:800;
+  line-height:1.2;
+  margin-bottom:8px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
+  word-break:break-word;
+}
+
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  line-height:1;
+  font-weight:700;
+  background:rgba(255,255,255,.10);
+  color:#fff;
+}
+
+.badge-venue{
+  background:#304866;
+}
+
+.badge-active{
+  background:#14532d;
+}
+
+.badge-archived{
+  background:#475569;
+}
+
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:flex-end;
 }
 
 .btn{
-  padding:6px 12px;
-  border-radius:8px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:120px;
+  min-height:42px;
+  padding:0 16px;
   border:none;
+  border-radius:14px;
+  font-size:14px;
+  font-weight:700;
   cursor:pointer;
-  margin-left:6px;
+  text-decoration:none;
+  transition:.15s ease;
 }
 
-.blue{background:#2d6cdf;color:#fff;}
-.red{background:#e53935;color:#fff;}
-.green{background:#2ecc71;color:#fff;}
-.back{
-  background:#fff;
-  color:#000;
-  margin-bottom:20px;
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+
+.btn-primary:hover{
+  background:var(--primary-hover);
+}
+
+.btn-success{
+  background:var(--success);
+  color:#08111f;
+}
+
+.btn-success:hover{
+  background:var(--success-hover);
+}
+
+.btn-neutral{
+  background:var(--neutral);
+  color:#fff;
+}
+
+.btn-neutral:hover{
+  background:var(--neutral-hover);
+}
+
+.btn-danger{
+  background:var(--danger);
+  color:#fff;
+}
+
+.btn-danger:hover{
+  background:var(--danger-hover);
+}
+
+.empty{
+  color:var(--muted);
+  font-size:15px;
+  padding:8px 2px;
+}
+
+@media (max-width:900px){
+  .page-wrap{
+    width:min(100% - 24px, 1240px);
+    padding:24px 0 32px;
+  }
+
+  .hero h1{
+    font-size:38px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .section{
+    padding:20px 16px;
+  }
+
+  .row{
+    grid-template-columns:1fr;
+  }
+
+  .actions{
+    justify-content:flex-start;
+  }
+
+  .btn{
+    width:100%;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="page-wrap">
 
-<button class="btn back" onclick="location.href='index.html'">← Назад</button>
+  <div class="topbar">
+    <a class="back-btn" href="./index.html">← Назад</a>
+  </div>
 
-<h1>🎭 Керування сеансами</h1>
+  <section class="hero">
+    <h1>🎭 Керування сеансами</h1>
+    <p>Робочий центр керування подіями: каса, редактор, звіти, архівування та відновлення сеансів.</p>
+  </section>
 
-<div class="card">
-  <h3>Активні</h3>
-  <div id="active"></div>
-</div>
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Активні</h2>
+      <div class="section-note">Сеанси, доступні для роботи зараз</div>
+    </div>
+    <div id="active" class="list"></div>
+  </section>
 
-<div class="card">
-  <h3>Архів</h3>
-  <div id="archived"></div>
-</div>
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Архів</h2>
+      <div class="section-note">Завершені або вручну архівовані сеанси</div>
+    </div>
+    <div id="archived" class="list"></div>
+  </section>
 
 </div>
 
@@ -79,8 +319,82 @@ h1{
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-async function load(){
+function escapeHtml(value){
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
+function venueToHuman(v){
+  if (v === "academy") return "Академія Руху";
+  if (v === "shevchenko") return "Театр Шевченка";
+  return v || "—";
+}
+
+function formatDateTime(s){
+  const parts = [];
+  if (s.date) parts.push(s.date);
+  if (s.time) parts.push(s.time);
+  return parts.join(" • ") || "Дата/час не вказані";
+}
+
+function detectShowTitle(s){
+  return s.show || s.title || s.name || "Без назви";
+}
+
+function makeSeanceCard(s, archivedMode = false){
+  const title = escapeHtml(detectShowTitle(s));
+  const id = escapeHtml(s.id || "");
+  const venue = escapeHtml(venueToHuman(s.venue_id));
+  const dt = escapeHtml(formatDateTime(s));
+
+  if (!archivedMode) {
+    return `
+      <div class="row">
+        <div class="meta">
+          <div class="title">${title}</div>
+          <div class="sub"><b>Seance ID:</b> ${id}</div>
+          <div class="sub">${dt}</div>
+
+          <div class="badges">
+            <span class="badge badge-venue">${venue}</span>
+            <span class="badge badge-active">Активний</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" onclick="openCash('${id}')">Каса</button>
+          <button class="btn btn-neutral" onclick="openEditor('${id}')">Редактор</button>
+          <button class="btn btn-neutral" onclick="openReports()">Звіти</button>
+          <button class="btn btn-danger" onclick="archiveSeance('${id}')">Архівувати</button>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="row">
+      <div class="meta">
+        <div class="title">${title}</div>
+        <div class="sub"><b>Seance ID:</b> ${id}</div>
+        <div class="sub">${dt}</div>
+
+        <div class="badges">
+          <span class="badge badge-venue">${venue}</span>
+          <span class="badge badge-archived">Архів</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-success" onclick="restoreSeance('${id}')">Відновити</button>
+      </div>
+    </div>
+  `;
+}
+
+async function load(){
   const res = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
     headers:{
       apikey: SUPABASE_ANON_KEY,
@@ -95,20 +409,14 @@ async function load(){
   const now = new Date();
   const toArchive = [];
 
-  // определяем прошедшие
   data.forEach(s => {
-
     if (s.archived === true) return;
 
     let dt;
 
-    // если есть date/time
     if (s.date && s.time) {
       dt = new Date(`${s.date}T${s.time}`);
-    }
-
-    // иначе парсим из id
-    else if (s.id) {
+    } else if (s.id) {
       const match = s.id.match(/(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/);
       if (match) {
         const [_, y, m, d, h, min] = match;
@@ -121,10 +429,8 @@ async function load(){
     if (dt < now) {
       toArchive.push(s.id);
     }
-
   });
 
-  // архивируем
   if (toArchive.length){
     await fetch(
       `${SUPABASE_URL}/rest/v1/seances?id=in.(${toArchive.join(",")})`,
@@ -135,7 +441,7 @@ async function load(){
           Authorization: "Bearer " + SUPABASE_ANON_KEY,
           "Content-Type":"application/json"
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           archived:true,
           active:false
         })
@@ -143,7 +449,6 @@ async function load(){
     );
   }
 
-  // перечитываем
   const res2 = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
     headers:{
       apikey: SUPABASE_ANON_KEY,
@@ -162,39 +467,23 @@ async function load(){
     else active.push(s);
   });
 
+  active.sort((a,b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.time || "").localeCompare(String(b.time || "")));
+  archived.sort((a,b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.time || "").localeCompare(String(a.time || "")));
+
   const activeDiv = document.getElementById("active");
   const archDiv = document.getElementById("archived");
 
-  activeDiv.innerHTML = "";
-  archDiv.innerHTML = "";
+  activeDiv.innerHTML = active.length
+    ? active.map(s => makeSeanceCard(s, false)).join("")
+    : `<div class="empty">Немає активних сеансів.</div>`;
 
-  active.forEach(s => {
-    activeDiv.innerHTML += `
-      <div class="row">
-        <div>${s.id}</div>
-        <div>
-          <button class="btn blue" onclick="openSeance('${s.id}')">Відкрити</button>
-          <button class="btn red" onclick="archive('${s.id}')">Архівувати</button>
-        </div>
-      </div>
-    `;
-  });
-
-  archived.forEach(s => {
-    archDiv.innerHTML += `
-      <div class="row">
-        <div>${s.id}</div>
-        <div>
-          <button class="btn green" onclick="restore('${s.id}')">Відновити</button>
-        </div>
-      </div>
-    `;
-  });
-
+  archDiv.innerHTML = archived.length
+    ? archived.map(s => makeSeanceCard(s, true)).join("")
+    : `<div class="empty">Архів порожній.</div>`;
 }
 
-async function archive(id){
-  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${id}`, {
+async function archiveSeance(id){
+  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`, {
     method:"PATCH",
     headers:{
       apikey: SUPABASE_ANON_KEY,
@@ -206,8 +495,8 @@ async function archive(id){
   load();
 }
 
-async function restore(id){
-  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${id}`, {
+async function restoreSeance(id){
+  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`, {
     method:"PATCH",
     headers:{
       apikey: SUPABASE_ANON_KEY,
@@ -215,15 +504,23 @@ async function restore(id){
       "Content-Type":"application/json"
     },
     body: JSON.stringify({
-  archived: false,
-  active: true
-})
+      archived:false,
+      active:true
+    })
   });
   load();
 }
 
-function openSeance(id){
-  window.open(`../hybrid/hall-cash.html?seance=${id}`);
+function openCash(id){
+  window.open(`../hybrid/hall-cash.html?seance=${encodeURIComponent(id)}`, "_blank");
+}
+
+function openEditor(id){
+  window.open(`./seance-editor.html?seance=${encodeURIComponent(id)}`, "_blank");
+}
+
+function openReports(){
+  window.open(`./reports/index.html`, "_blank");
 }
 
 load();
