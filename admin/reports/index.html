@@ -2,71 +2,252 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Звіти — білетний відділ</title>
+<title>Звіти — VA Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-
-
 <style>
+:root{
+  --bg:#061a3a;
+  --card:#1d2d47;
+  --card-2:#223552;
+  --text:#ffffff;
+  --muted:#b8c4d6;
+  --line:rgba(255,255,255,.10);
+
+  --primary:#4c86f7;
+  --primary-hover:#3f78e6;
+
+  --success:#2ecc71;
+  --success-hover:#28b864;
+
+  --neutral:#50627d;
+  --neutral-hover:#44556d;
+
+  --danger:#f44336;
+  --danger-hover:#df392d;
+
+  --shadow:0 18px 40px rgba(0,0,0,.22);
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:14px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+body{
+  min-height:100vh;
+}
+
 .page-wrap{
-  padding:20px;
-  max-width:1200px;
-  margin:auto;
+  width:min(1180px, calc(100% - 48px));
+  margin:0 auto;
+  padding:48px 0 56px;
 }
-.card{
+
+.topbar{
+  margin-bottom:28px;
+}
+
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
   background:#fff;
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:16px;
-  box-shadow:0 4px 14px rgba(0,0,0,.06);
+  color:#111827;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
 }
-h1{margin-bottom:10px}
-h3{margin:0 0 10px}
+
+.back-btn:hover{
+  transform:translateY(-1px);
+}
+
+.hero{
+  margin-bottom:28px;
+}
+
+.hero h1{
+  margin:0 0 10px;
+  font-size:58px;
+  line-height:1.05;
+  font-weight:800;
+}
+
+.hero p{
+  margin:0;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.45;
+  max-width:760px;
+}
+
+.section-card{
+  background:var(--card);
+  border-radius:var(--radius-xl);
+  padding:28px 24px;
+  box-shadow:var(--shadow);
+}
+
+.section-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:22px;
+}
+
+.section-head h2{
+  margin:0;
+  font-size:24px;
+  line-height:1.15;
+}
+
+.section-head p{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:15px;
+  line-height:1.45;
+}
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:16px;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:18px;
 }
 
 .report{
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:14px;
-  background:#f9fafb;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  padding:18px;
+  min-height:210px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
 }
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  font-size:12px;
+  line-height:1;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  margin-bottom:14px;
+}
+
 .report h4{
-  margin:0 0 6px;
-}
-.report p{
-  font-size:13px;
-  color:#6b7280;
   margin:0 0 10px;
+  font-size:20px;
+  line-height:1.2;
 }
-.report button{
-  padding:8px 12px;
-  border-radius:10px;
+
+.report p{
+  margin:0;
+  color:var(--muted);
+  font-size:15px;
+  line-height:1.45;
+}
+
+.report-actions{
+  margin-top:18px;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:132px;
+  height:46px;
+  padding:0 18px;
   border:none;
+  border-radius:14px;
+  font-size:16px;
   font-weight:700;
   cursor:pointer;
-  background:#111827;
+  text-decoration:none;
+  transition:.15s ease;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn-primary{
+  background:var(--primary);
   color:#fff;
 }
-.report button.secondary{
-  background:#e5e7eb;
-  color:#111827;
+
+.btn-primary:hover{
+  background:var(--primary-hover);
 }
-.badge{
-  display:inline-block;
-  font-size:12px;
-  padding:3px 8px;
-  border-radius:999px;
-  background:#e5e7eb;
-  margin-bottom:6px;
-}
+
 .note{
-  font-size:13px;
-  color:#6b7280;
+  margin-top:18px;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
+}
+
+@media (max-width:1024px){
+  .hero h1{
+    font-size:48px;
+  }
+
+  .grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width:720px){
+  .page-wrap{
+    width:min(100% - 24px, 1180px);
+    padding:24px 0 32px;
+  }
+
+  .hero h1{
+    font-size:38px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .section-card{
+    padding:20px 16px;
+    border-radius:20px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+
+  .report{
+    min-height:auto;
+  }
+
+  .btn{
+    width:100%;
+  }
 }
 </style>
 </head>
@@ -75,41 +256,68 @@ h3{margin:0 0 10px}
 
 <div id="admin-header"></div>
 
+<main class="page-wrap">
 
-  <main class="page-wrap">
-  <h1>📊 Звіти</h1>
+  <div class="topbar">
+    <a class="back-btn" href="../panel.html">← Назад</a>
+  </div>
 
-  <div class="card">
-    <h3>Каса</h3>
+  <section class="hero">
+    <h1>📊 Звіти</h1>
+    <p>Робочі звіти квиткового відділу, каси та бронювань. Оберіть потрібний розділ для перегляду або перевірки даних.</p>
+  </section>
+
+  <section class="section-card">
+    <div class="section-head">
+      <div>
+        <h2>Каса</h2>
+        <p>Оперативні звіти по щоденній роботі, окремих сеансах і бронюваннях.</p>
+      </div>
+    </div>
 
     <div class="grid">
 
-      <div class="report">
-        <span class="badge">звіт</span>
-        <h4>КГ-13 (щоденний)</h4>
-        <p>Звіт касира за день</p>
-        <button onclick="location.href='kg13.html'">Відкрити</button>
-      </div>
+      <article class="report">
+        <div>
+          <span class="badge">звіт</span>
+          <h4>КГ-13 (щоденний)</h4>
+          <p>Звіт касира за день.</p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-primary" onclick="location.href='kg13.html'">Відкрити</button>
+        </div>
+      </article>
 
-      <div class="report">
-        <span class="badge">звіт</span>
-        <h4>КГ-10 (по сеансу)</h4>
-        <p>Кількість і сума по сеансу</p>
-        <button onclick="location.href='kg10.html'">Відкрити</button>
-      </div>
-<div class="report">
-  <span class="badge">броні</span>
-  <h4>Бронювання</h4>
-  <p>Хто і які місця забронював</p>
-  <button onclick="location.href='bookings.html'">Відкрити</button>
-</div>
+      <article class="report">
+        <div>
+          <span class="badge">звіт</span>
+          <h4>КГ-10 (по сеансу)</h4>
+          <p>Кількість проданих квитків і сума по окремому сеансу.</p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-primary" onclick="location.href='kg10.html'">Відкрити</button>
+        </div>
+      </article>
+
+      <article class="report">
+        <div>
+          <span class="badge">броні</span>
+          <h4>Бронювання</h4>
+          <p>Перегляд активних бронювань і зарезервованих місць.</p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-primary" onclick="location.href='bookings.html'">Відкрити</button>
+        </div>
+      </article>
+
     </div>
-  </div>
+
+    <div class="note">
+      Усі звіти відкриваються в поточному робочому контурі адміністрування.
+    </div>
+  </section>
 
 </main>
-
-
-
 
 </body>
 </html>
