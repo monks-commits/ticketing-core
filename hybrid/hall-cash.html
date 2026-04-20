@@ -2018,6 +2018,17 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
     });
     window.addEventListener("offline", ()=> setNetPill());
 
+const topCashierStatusEl = document.getElementById("topCashierStatus");
+if (topCashierStatusEl) {
+  topCashierStatusEl.textContent = getCashierId();
+}
+
+const topQueueStatusEl = document.getElementById("topQueueStatus");
+if (topQueueStatusEl) {
+  const q = loadQueue();
+  topQueueStatusEl.textContent = q.length;
+}
+    
     // Settings modal
     const modalBack = document.getElementById("modalBack");
     function openModal(){
