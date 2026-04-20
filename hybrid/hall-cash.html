@@ -360,17 +360,40 @@
 
 </div>     
 
-<div class="cash-badge">
+<div class="cash-opbar">
 
-      
-      <div class="cash-badge">
-        <span class="pill dark">Режим: <b>каса</b></span>
-        <span class="pill" id="netPill">—</span>
-        <span class="pill" id="syncPill">SYNC: —</span>
-        <span class="pill" id="qPill">Черга: 0</span>
-        <span class="pill" id="onlineBlockPill">tickets: —</span>
-        <button id="btnSettings" class="btn btn-ghost" style="padding:8px 10px;border-radius:999px;">⚙ Налаштування</button>
-      </div>
+  <div class="cash-opbar-left">
+    <div class="cash-op-pill cash-op-pill--dark">
+      <span class="cash-op-label">Режим</span>
+      <span class="cash-op-value">каса</span>
+    </div>
+
+    <div id="netPillWrap" class="cash-op-pill">
+      <span class="cash-op-label">Мережа</span>
+      <span id="netPill" class="cash-op-value">—</span>
+    </div>
+
+    <div id="syncPillWrap" class="cash-op-pill">
+      <span class="cash-op-label">SYNC</span>
+      <span id="syncPill" class="cash-op-value">—</span>
+    </div>
+
+    <div id="qPillWrap" class="cash-op-pill">
+      <span class="cash-op-label">Черга</span>
+      <span id="qPill" class="cash-op-value">0</span>
+    </div>
+
+    <div id="onlineBlockPillWrap" class="cash-op-pill">
+      <span class="cash-op-label">Tickets</span>
+      <span id="onlineBlockPill" class="cash-op-value">—</span>
+    </div>
+  </div>
+
+  <div class="cash-opbar-right">
+    <button id="btnSettings" class="cash-settings-btn">⚙ Налаштування</button>
+  </div>
+
+</div>
 
       <div class="hall-layout">
         <div class="hall-left">
