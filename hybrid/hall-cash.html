@@ -705,24 +705,52 @@ async function loadSeanceConfig() {
     }
 
     function setNetPill(){
-      const el = document.getElementById("netPill");
-      if(!el) return;
-      const on = navigator.onLine;
-      el.className = "pill " + (on ? "ok" : "bad");
-      el.textContent = on ? "Online" : "Offline";
-    }
+  const el = document.getElementById("netPill");
+  const wrap = document.getElementById("netPillWrap");
+  if(!el) return;
+
+  const on = navigator.onLine;
+  el.textContent = on ? "Online" : "Offline";
+
+  if (!wrap) return;
+
+  if (on) {
+    wrap.style.background = "#dcfce7";
+    wrap.style.borderColor = "#86efac";
+  } else {
+    wrap.style.background = "#fee2e2";
+    wrap.style.borderColor = "#fca5a5";
+  }
+}
 
     function setSyncPill(text, kind){
-      const el = document.getElementById("syncPill");
-      if(!el) return;
-      el.className = "pill " + (kind || "");
-      el.textContent = text;
-    }
+  const el = document.getElementById("syncPill");
+  const wrap = document.getElementById("syncPillWrap");
+  if(!el) return;
+
+  el.textContent = String(text || "—");
+
+  if (!wrap) return;
+
+  wrap.style.background = "#ffffff";
+  wrap.style.borderColor = "#e5e7eb";
+
+  if (kind === "ok") {
+    wrap.style.background = "#dcfce7";
+    wrap.style.borderColor = "#86efac";
+  } else if (kind === "warn") {
+    wrap.style.background = "#fef3c7";
+    wrap.style.borderColor = "#fcd34d";
+  } else if (kind === "bad") {
+    wrap.style.background = "#fee2e2";
+    wrap.style.borderColor = "#fca5a5";
+  }
+}
 
     function setQp(n){
-      const el = document.getElementById("qPill");
-      if(el) el.textContent = `Черга: ${n}`;
-    }
+  const el = document.getElementById("qPill");
+  if(el) el.textContent = String(n);
+}
 
     function setTicketsPill(text, kind){
       const el = document.getElementById("onlineBlockPill");
