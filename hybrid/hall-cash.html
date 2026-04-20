@@ -258,60 +258,84 @@
         </div>  
 
         <aside class="hall-sidebar">
-          <div class="card hall-card">
-            <h2 class="hall-summary-title">Кошик (каса)</h2>
+          <div class="card hall-card cash-pos-card">
+  <div class="cash-pos-head">
+    <div class="cash-pos-title">Кошик (каса)</div>
+    <div class="cash-pos-subtitle">Робоча панель касира</div>
+  </div>
 
-            <p id="summary-show" class="hall-summary-meta">Вистава: —</p>
-            <p id="summary-seance" class="hall-summary-meta">Seance: —</p>
-            <p id="summary-places" class="hall-summary-meta">Обрані місця: немає</p>
-            <p id="summary-amount" class="hall-summary-meta">Сума: 0 грн</p>
+  <div class="cash-pos-summary">
+    <div class="cash-pos-row">
+      <span class="cash-pos-label">Вистава</span>
+      <span id="summary-show" class="cash-pos-value">Вистава: —</span>
+    </div>
 
-            <div class="cash-actions">
-              <button id="btn-sell" class="btn btn-sell" disabled>ПРОДАТИ (КАСА) + ДРУК</button>
-              <button id="btn-reserve" class="btn btn-reserve" disabled>ДО РЕЗЕРВУ</button>
-              <button id="btn-clear" class="btn btn-clear">ОЧИСТИТИ - СКАСУВАТИ ВИБІР - ЗНЯТИ РЕЗЕРВ</button>
-              <button id="btn-sync" class="btn btn-sync">SYNC (відправити чергу)</button>
-              <button id="btn-reprint" class="btn btn-ghost" disabled>Повторити друк останньої продажі</button>
-              <button id="btn-reset" class="btn btn-reset">Скинути локальні зміни для цього сеансу</button>
-            </div>
+    <div class="cash-pos-row">
+      <span class="cash-pos-label">Seance</span>
+      <span id="summary-seance" class="cash-pos-value">Seance: —</span>
+    </div>
 
-            <div class="k-sep"></div>
+    <div class="cash-pos-row">
+      <span class="cash-pos-label">Місця</span>
+      <span id="summary-places" class="cash-pos-value">Обрані місця: немає</span>
+    </div>
+  </div>
 
-            <div class="k-h3">Журнал каси (локально)</div>
-            <div class="k-mini">Зберігається на цьому ПК (localStorage). Для офіційного реєстру продажів істина — Supabase (tickets).</div>
+  <div class="cash-pos-total-box">
+    <div class="cash-pos-total-label">Сума до оформлення</div>
+    <div id="summary-amount" class="cash-pos-total-value">Сума: 0 грн</div>
+  </div>
 
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 8px;">
-              <button id="btnExportCashCsv" class="btn btn-ghost" style="padding:8px 10px;">Експорт CSV</button>
-              <button id="btnClearCashLog" class="btn btn-ghost" style="padding:8px 10px;">Очистити журнал</button>
-            </div>
+  <div class="cash-actions cash-actions-premium">
+    <button id="btn-sell" class="btn btn-sell" disabled>ПРОДАТИ (КАСА) + ДРУК</button>
+    <button id="btn-reserve" class="btn btn-reserve" disabled>ДО РЕЗЕРВУ</button>
+    <button id="btn-clear" class="btn btn-clear">ОЧИСТИТИ · СКАСУВАТИ ВИБІР · ЗНЯТИ РЕЗЕРВ</button>
+    <button id="btn-sync" class="btn btn-sync">SYNC (відправити чергу)</button>
+    <button id="btn-reprint" class="btn btn-ghost" disabled>Повторити друк останньої продажі</button>
+    <button id="btn-reset" class="btn btn-reset">Скинути локальні зміни для цього сеансу</button>
+  </div>
 
-            <div style="max-height:220px;overflow:auto;border:1px solid #e5e7eb;border-radius:12px;">
-              <table class="k-table" id="cashLogTable">
-                <thead>
-                  <tr>
-                    <th>Час</th>
-                    <th>Дія</th>
-                    <th>Місця</th>
-                    <th>Сума</th>
-                  </tr>
-                </thead>
-                <tbody id="cashLogBody">
-                  <tr><td class="muted" colspan="4">Поки що порожньо.</td></tr>
-                </tbody>
-              </table>
-            </div>
+  <div class="cash-side-sep"></div>
 
-            <div class="note">
-              <b>Офлайн:</b> “Продати” друкує квиток з QR (order/show/seat) і кладе операцію в чергу.
-              <br><b>Онлайн:</b> коли є інternet — натисніть <b>SYNC</b> (або він спрацює автоматично при появі звʼязку).
-              <br><b>Контроль:</b> сканер 100% прийме квиток після SYNC (бо тоді він зʼявиться в tickets).
-            </div>
+  <div class="cash-journal-head">
+    <div>
+      <div class="cash-journal-title">Журнал каси</div>
+      <div class="cash-journal-note">Локальний журнал цього ПК</div>
+    </div>
+  </div>
 
-            <div class="smallline">
-              Касир: <span class="pill" id="cashierIdPill">—</span>
-              • Останній SYNC: <span class="pill" id="lastSyncPill">—</span>
-            </div>
-          </div>
+  <div class="cash-journal-actions">
+    <button id="btnExportCashCsv" class="btn btn-ghost cash-mini-btn">Експорт CSV</button>
+    <button id="btnClearCashLog" class="btn btn-ghost cash-mini-btn">Очистити журнал</button>
+  </div>
+
+  <div class="cash-log-wrap">
+    <table class="k-table" id="cashLogTable">
+      <thead>
+        <tr>
+          <th>Час</th>
+          <th>Дія</th>
+          <th>Місця</th>
+          <th>Сума</th>
+        </tr>
+      </thead>
+      <tbody id="cashLogBody">
+        <tr><td class="muted" colspan="4">Поки що порожньо.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note cash-note">
+    <b>Офлайн:</b> продаж друкує квиток з QR і кладе операцію в чергу.
+    <br><b>Онлайн:</b> при появі інтернету натисніть <b>SYNC</b> або дочекайтесь автосинхронізації.
+    <br><b>Контроль:</b> після SYNC квиток гарантовано з’являється в tickets.
+  </div>
+
+  <div class="cash-bottom-line">
+    <span>Касир: <b id="cashierIdPill">—</b></span>
+    <span>Останній SYNC: <b id="lastSyncPill">—</b></span>
+  </div>
+</div>
         </aside>
       </div>
     </div>
