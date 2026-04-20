@@ -183,34 +183,44 @@
     <div class="container">
       <h1>Схема залу — каса</h1>
 
-<div style="
-  margin:16px 0 24px;
-  padding:14px 16px;
-  background:#111827;
-  color:#fff;
-  border-radius:14px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-">
+ <div class="cash-topbar">
 
-  <label style="font-weight:700;">Сеанс:</label>
+  <div class="cash-top-left">
+    <div class="cash-title-block">
+      <div class="cash-label">🎭 Поточний сеанс</div>
 
-  <select id="cashSeanceSelect"
-          style="
-            padding:6px 10px;
-            font-size:15px;
-            border-radius:8px;
-            border:none;
-            min-width:280px;
-          ">
-    <option value="">Завантаження…</option>
-  </select>
+      <select id="cashSeanceSelect" class="cash-seance-select">
+        <option value="">Завантаження…</option>
+      </select>
+    </div>
+  </div>
 
-</div>
+  <div class="cash-top-right">
 
+    <div class="cash-status-card">
+      <div class="status-title">🌐 Онлайн-продажі</div>
+      <div id="topOnlineStatus" class="status-value">
+        перевірка...
+      </div>
+    </div>
 
+    <div class="cash-status-card">
+      <div class="status-title">👤 Касир</div>
+      <div id="topCashierStatus" class="status-value">
+        —
+      </div>
+    </div>
 
+    <div class="cash-status-card">
+      <div class="status-title">🔄 Черга SYNC</div>
+      <div id="topQueueStatus" class="status-value">
+        0
+      </div>
+    </div>
+
+  </div>
+
+</div>     
 
 <div class="cash-badge">
 
