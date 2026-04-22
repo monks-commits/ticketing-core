@@ -37,14 +37,13 @@ function getSession(){
 const session = getSession();
 
 if (!session || session.role !== "admin" || session.venue !== "shevchenko") {
-  location.href = "index.html";
+  location.href = "./index.html";
 }
 
 function toCash(){
   window.open(
     "../../hybrid/hall-cash.html?venue=shevchenko",
-    "cashWindow",
-    "width=1280,height=900"
+    "_blank"
   );
 }
 
@@ -62,7 +61,7 @@ function toReports(){
 
 function logout(){
   localStorage.removeItem(SESSION_KEY);
-  location.href = "index.html";
+  location.href = "./index.html";
 }
 </script>
 
