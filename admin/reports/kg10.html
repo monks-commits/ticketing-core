@@ -70,14 +70,6 @@ html,body{
   margin-bottom:28px;
 }
 
-.hero-top{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:16px;
-  flex-wrap:wrap;
-}
-
 .hero h1{
   margin:0 0 10px;
   font-size:52px;
@@ -91,21 +83,6 @@ html,body{
   font-size:18px;
   line-height:1.45;
   max-width:760px;
-}
-
-.venue-chip{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  min-height:40px;
-  padding:10px 14px;
-  border-radius:999px;
-  background:rgba(255,255,255,.10);
-  border:1px solid var(--line);
-  font-size:14px;
-  font-weight:700;
-  color:#fff;
-  white-space:nowrap;
 }
 
 .card{
@@ -249,35 +226,6 @@ input:focus{
   word-break:break-word;
 }
 
-.meta{
-  margin-top:18px;
-  padding-top:18px;
-  border-top:1px solid var(--line);
-  display:grid;
-  grid-template-columns:repeat(2, minmax(0,1fr));
-  gap:14px;
-}
-
-.meta-item{
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:16px;
-  padding:16px;
-}
-
-.meta-label{
-  font-size:13px;
-  color:var(--muted);
-  margin-bottom:6px;
-}
-
-.meta-value{
-  font-size:16px;
-  font-weight:700;
-  line-height:1.4;
-  word-break:break-word;
-}
-
 @media print{
   body{
     background:#fff;
@@ -285,15 +233,13 @@ input:focus{
   }
 
   .topbar,
-  .actions,
-  .venue-chip{
+  .actions{
     display:none;
   }
 
   .card,
   .result,
-  .metric,
-  .meta-item{
+  .metric{
     background:#fff !important;
     color:#000 !important;
     box-shadow:none !important;
@@ -335,8 +281,7 @@ input:focus{
     width:100%;
   }
 
-  .result-grid,
-  .meta{
+  .result-grid{
     grid-template-columns:1fr;
   }
 }
@@ -348,17 +293,12 @@ input:focus{
 <div class="page-wrap">
 
   <div class="topbar">
-    <a id="backLink" class="back-btn" href="./index.html">← Назад</a>
+    <a class="back-btn" href="./index.html">← Назад</a>
   </div>
 
   <section class="hero">
-    <div class="hero-top">
-      <div>
-        <h1>📗 КГ-10</h1>
-        <p>Звіт по окремому сеансу: кількість проданих квитків і загальна сума.</p>
-      </div>
-      <div id="venueChip" class="venue-chip">Майданчик: поточний контур</div>
-    </div>
+    <h1>📗 КГ-10</h1>
+    <p>Звіт по окремому сеансу: кількість проданих квитків і загальна сума.</p>
   </section>
 
   <section class="card">
@@ -392,67 +332,13 @@ input:focus{
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-const params = new URLSearchParams(location.search);
-
-const venueCode =
-  params.get("venue") ||
-  params.get("venue_code") ||
-  params.get("site") ||
-  "";
-
-const venueLabel =
-  params.get("venue_label") ||
-  params.get("label") ||
-  (venueCode ? venueCode : "поточний контур");
-
-let seancesMap = new Map();
-
-function withCurrentContext(target){
-  const url = new URL(target, location.href);
-
-  if (venueCode) url.searchParams.set("venue", venueCode);
-  if (venueLabel) url.searchParams.set("venue_label", venueLabel);
-
-  return url.toString();
-}
-
-function escapeHtml(value){
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function isArchivedValue(value){
-  return value === true || value === 1 || value === "1" || value === "true";
-}
-
-function formatSeanceLabel(s){
-  const parts = [];
-
-  if (s.title) parts.push(s.title);
-
-  const dt = [s.date, s.time].filter(Boolean).join(" ");
-  if (dt) parts.push(dt);
-
-  parts.push(`#${s.id}`);
-
-  return parts.join(" — ");
-}
-
-function formatMoney(sum){
-  return new Intl.NumberFormat("uk-UA").format(sum) + " грн";
-}
-
 async function loadSeances() {
   const sel = document.getElementById("seance");
-  sel.innerHTML = `<option value="">Завантаження…</option>`;
+  sel.innerHTML = `<option value="">Оберіть сеанс...</option>`;
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?select=id,title,date,time,archived&order=date.asc.nullslast,time.asc.nullslast,created_at.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/seances?select=id,archived&archived=eq.false`,
       {
         headers:{
           apikey: SUPABASE_KEY,
@@ -468,31 +354,13 @@ async function loadSeances() {
     }
 
     const rows = await res.json();
-    const activeRows = Array.isArray(rows)
-      ? rows.filter(s => !isArchivedValue(s.archived))
-      : [];
 
-    seancesMap = new Map(activeRows.map(s => [String(s.id), s]));
-
-    sel.innerHTML = `<option value="">Оберіть сеанс...</option>`;
-
-    if (!activeRows.length) {
-      sel.innerHTML = `<option value="">Немає доступних сеансів</option>`;
-      return;
-    }
-
-    activeRows.forEach(s => {
+    rows.forEach(s => {
       const opt = document.createElement("option");
       opt.value = s.id;
-      opt.textContent = formatSeanceLabel(s);
+      opt.textContent = s.id;
       sel.appendChild(opt);
     });
-
-    const seanceFromUrl = params.get("seance_id") || params.get("seance");
-    if (seanceFromUrl && seancesMap.has(String(seanceFromUrl))) {
-      sel.value = String(seanceFromUrl);
-    }
-
   } catch (e) {
     console.error(e);
     sel.innerHTML = `<option value="">Помилка завантаження</option>`;
@@ -507,12 +375,9 @@ async function run() {
     return;
   }
 
-  const out = document.getElementById("out");
-  out.innerHTML = `<div class="result-empty">Формування звіту…</div>`;
-
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?select=price,seance_id,status&seance_id=eq.${encodeURIComponent(seance)}`,
+      `${SUPABASE_URL}/rest/v1/tickets?select=price,seance_id&seance_id=eq.${encodeURIComponent(seance)}`,
       {
         headers:{
           apikey: SUPABASE_KEY,
@@ -522,38 +387,24 @@ async function run() {
     );
 
     if (!res.ok) {
-      console.error(await res.text());
-      out.innerHTML = `<div class="result-empty">Помилка запиту до таблиці tickets.</div>`;
+      alert("Помилка запиту");
       return;
     }
 
     const data = await res.json();
 
-    const filtered = Array.isArray(data)
-      ? data.filter(t => {
-          const st = String(t.status || "").toLowerCase().trim();
-          if (!st) return true;
-          if (st === "cancelled") return false;
-          if (st === "canceled") return false;
-          if (st === "refunded") return false;
-          if (st === "void") return false;
-          return true;
-        })
-      : [];
+    let count = data.length;
+    let sum = 0;
 
-    const count = filtered.length;
-    const sum = filtered.reduce((acc, t) => acc + Number(t.price || 0), 0);
+    data.forEach(t => {
+      sum += Number(t.price || 0);
+    });
 
-    const meta = seancesMap.get(String(seance)) || {};
-    const seanceTitle = meta.title || "—";
-    const seanceDate = meta.date || "—";
-    const seanceTime = meta.time || "—";
-
-    out.innerHTML = `
+    document.getElementById("out").innerHTML = `
       <div class="result-grid">
         <div class="metric">
-          <div class="metric-label">Сеанс ID</div>
-          <div class="metric-value">${escapeHtml(seance)}</div>
+          <div class="metric-label">Сеанс</div>
+          <div class="metric-value">${seance}</div>
         </div>
 
         <div class="metric">
@@ -563,51 +414,18 @@ async function run() {
 
         <div class="metric">
           <div class="metric-label">Загальна сума</div>
-          <div class="metric-value">${escapeHtml(formatMoney(sum))}</div>
-        </div>
-      </div>
-
-      <div class="meta">
-        <div class="meta-item">
-          <div class="meta-label">Назва</div>
-          <div class="meta-value">${escapeHtml(seanceTitle)}</div>
-        </div>
-
-        <div class="meta-item">
-          <div class="meta-label">Майданчик</div>
-          <div class="meta-value">${escapeHtml(venueLabel)}</div>
-        </div>
-
-        <div class="meta-item">
-          <div class="meta-label">Дата</div>
-          <div class="meta-value">${escapeHtml(seanceDate)}</div>
-        </div>
-
-        <div class="meta-item">
-          <div class="meta-label">Час</div>
-          <div class="meta-value">${escapeHtml(seanceTime)}</div>
+          <div class="metric-value">${sum} грн</div>
         </div>
       </div>
     `;
+
   } catch(e) {
     console.error(e);
-    out.innerHTML = `<div class="result-empty">Помилка формування звіту.</div>`;
+    alert("Помилка");
   }
 }
 
-(function initPage(){
-  const chip = document.getElementById("venueChip");
-  if (chip) {
-    chip.textContent = `Майданчик: ${venueLabel}`;
-  }
-
-  const back = document.getElementById("backLink");
-  if (back) {
-    back.href = withCurrentContext("./index.html");
-  }
-
-  loadSeances();
-})();
+loadSeances();
 </script>
 
 </body>
