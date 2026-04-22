@@ -81,6 +81,14 @@ body{
   margin-bottom:28px;
 }
 
+.hero-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
 .hero h1{
   margin:0 0 10px;
   font-size:58px;
@@ -94,6 +102,21 @@ body{
   font-size:18px;
   line-height:1.45;
   max-width:760px;
+}
+
+.venue-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:40px;
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  border:1px solid var(--line);
+  font-size:14px;
+  font-weight:700;
+  color:#fff;
+  white-space:nowrap;
 }
 
 .section-card{
@@ -259,12 +282,17 @@ body{
 <main class="page-wrap">
 
   <div class="topbar">
-    <a class="back-btn" href="../panel.html">← Назад</a>
+    <a id="backLink" class="back-btn" href="../panel.html">← Назад</a>
   </div>
 
   <section class="hero">
-    <h1>📊 Звіти</h1>
-    <p>Робочі звіти квиткового відділу, каси та бронювань. Оберіть потрібний розділ для перегляду або перевірки даних.</p>
+    <div class="hero-top">
+      <div>
+        <h1>📊 Звіти</h1>
+        <p>Робочі звіти квиткового відділу, каси та бронювань. Оберіть потрібний розділ для перегляду або перевірки даних.</p>
+      </div>
+      <div id="venueChip" class="venue-chip">Майданчик: поточний контур</div>
+    </div>
   </section>
 
   <section class="section-card">
@@ -284,7 +312,7 @@ body{
           <p>Звіт касира за день.</p>
         </div>
         <div class="report-actions">
-          <button class="btn btn-primary" onclick="location.href='kg13.html'">Відкрити</button>
+          <button class="btn btn-primary" onclick="openReport('kg13.html')">Відкрити</button>
         </div>
       </article>
 
@@ -295,7 +323,7 @@ body{
           <p>Кількість проданих квитків і сума по окремому сеансу.</p>
         </div>
         <div class="report-actions">
-          <button class="btn btn-primary" onclick="location.href='kg10.html'">Відкрити</button>
+          <button class="btn btn-primary" onclick="openReport('kg10.html')">Відкрити</button>
         </div>
       </article>
 
@@ -306,18 +334,58 @@ body{
           <p>Перегляд активних бронювань і зарезервованих місць.</p>
         </div>
         <div class="report-actions">
-          <button class="btn btn-primary" onclick="location.href='bookings.html'">Відкрити</button>
+          <button class="btn btn-primary" onclick="openReport('bookings.html')">Відкрити</button>
         </div>
       </article>
 
     </div>
 
     <div class="note">
-      Усі звіти відкриваються в поточному робочому контурі адміністрування.
+      Усі звіти відкриваються в поточному робочому контурі адміністрування. Параметри майданчика передаються далі через URL.
     </div>
   </section>
 
 </main>
+
+<script>
+const params = new URLSearchParams(location.search);
+
+const venueCode =
+  params.get("venue") ||
+  params.get("venue_code") ||
+  params.get("site") ||
+  "";
+
+const venueLabel =
+  params.get("venue_label") ||
+  params.get("label") ||
+  (venueCode ? venueCode : "поточний контур");
+
+function withCurrentContext(target){
+  const url = new URL(target, location.href);
+
+  if (venueCode) url.searchParams.set("venue", venueCode);
+  if (venueLabel) url.searchParams.set("venue_label", venueLabel);
+
+  return url.toString();
+}
+
+function openReport(file){
+  location.href = withCurrentContext(file);
+}
+
+(function init(){
+  const chip = document.getElementById("venueChip");
+  if (chip) {
+    chip.textContent = `Майданчик: ${venueLabel}`;
+  }
+
+  const back = document.getElementById("backLink");
+  if (back) {
+    back.href = withCurrentContext("../panel.html");
+  }
+})();
+</script>
 
 </body>
 </html>
