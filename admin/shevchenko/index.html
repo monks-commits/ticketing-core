@@ -144,7 +144,7 @@ const USERS = {
     password: "shev_admin_2026",
     role: "admin",
     venue: "shevchenko",
-    redirect: "panel.html"
+    redirect: "./panel.html"
   },
   cash_shev: {
     password: "shev_cash_2026",
@@ -184,6 +184,7 @@ function doLogin(){
   }
 
   const user = USERS[login];
+
   if (!user || user.password !== password){
     err.textContent = "Невірний логін або пароль";
     return;
@@ -194,12 +195,19 @@ function doLogin(){
 }
 
 document.getElementById("btnLogin").addEventListener("click", doLogin);
-document.getElementById("password").addEventListener("keydown", (e)=>{ if (e.key === "Enter") doLogin(); });
-document.getElementById("login").addEventListener("keydown", (e)=>{ if (e.key === "Enter") doLogin(); });
 
+document.getElementById("login").addEventListener("keydown", (e)=>{
+  if (e.key === "Enter") doLogin();
+});
+
+document.getElementById("password").addEventListener("keydown", (e)=>{
+  if (e.key === "Enter") doLogin();
+});
+
+/* Автовход только для уже авторизованного Шевченко */
 const session = getSession();
 if (session?.venue === "shevchenko" && session?.role === "admin") {
-  location.href = "panel.html";
+  location.href = "./panel.html";
 }
 if (session?.venue === "shevchenko" && session?.role === "cashier") {
   location.href = "../../hybrid/hall-cash.html?venue=shevchenko";
