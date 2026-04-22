@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Адмін</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../styles/styles.css">
 </head>
 
@@ -11,7 +12,7 @@
 <div class="admin-center">
   <div class="admin-card">
 
-    <div class="admin-title">🎛 Адмін</div>
+    <div class="admin-title">🎛 Адміністрація</div>
 
     <button class="admin-btn admin-btn-blue" onclick="toCash()">Події / Каса</button>
     <button class="admin-btn admin-btn-green" onclick="toEditor()">Редактор сеансів</button>
@@ -23,15 +24,27 @@
 </div>
 
 <script>
-if (localStorage.getItem("role") !== "admin") {
-  location.href = "../index.html";
+const SESSION_KEY = "va_session_v1";
+
+function getSession(){
+  try{
+    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+  }catch(e){
+    return null;
+  }
+}
+
+const session = getSession();
+
+if (!session || session.role !== "admin") {
+  location.href = "index.html";
 }
 
 function toCash(){
   window.open(
     "../hybrid/hall-cash.html",
     "cashWindow",
-    "width=1200,height=800"
+    "width=1280,height=900"
   );
 }
 
@@ -48,8 +61,8 @@ function toReports(){
 }
 
 function logout(){
-  localStorage.removeItem("role");
-  location.href = "../index.html";
+  localStorage.removeItem(SESSION_KEY);
+  location.href = "index.html";
 }
 </script>
 
