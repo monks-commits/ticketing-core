@@ -422,7 +422,7 @@ select:focus{
 <div class="page-wrap">
 
   <div class="topbar">
-    <a class="back-btn" href="./shevchenko/panel.html">← Назад</a>
+    <a class="back-btn" href="./index.html">← Назад</a>
   </div>
 
   <section class="hero">
@@ -457,6 +457,7 @@ select:focus{
           <button class="btn btn-neutral" onclick="refreshToggle()">Оновити</button>
           <button class="btn btn-success" onclick="setOnlineSales(true)">Увімкнути онлайн</button>
           <button class="btn btn-danger" onclick="setOnlineSales(false)">Вимкнути онлайн</button>
+          
         </div>
 
         <div class="small-note">
@@ -476,6 +477,8 @@ select:focus{
       <div class="field">
         <label for="venueFilter">Майданчик</label>
         <select id="venueFilter">
+          <option value="all">Усі майданчики</option>
+          <option value="academy">Академія Руху</option>
           <option value="shevchenko">Театр Шевченка</option>
         </select>
       </div>
@@ -510,27 +513,6 @@ select:focus{
 </div>
 
 <script>
-const SESSION_KEY = "va_session_v1";
-
-function getSession(){
-  try{
-    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-  }catch(e){
-    return null;
-  }
-}
-
-const session = getSession();
-if (!session || session.role !== "admin") {
-  location.href = "./index.html";
-}
-
-const SESSION_VENUE = session?.venue || "";
-if (SESSION_VENUE && SESSION_VENUE !== "shevchenko") {
-  alert("Немає доступу до цього майданчика");
-  location.href = "./index.html";
-}
-
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
@@ -635,10 +617,6 @@ function matchesFilters(s){
   const seanceVenue = normalizeVenue(s.venue_id);
   const isArchived = s.archived === true;
 
-  if (SESSION_VENUE && seanceVenue !== SESSION_VENUE) {
-    return false;
-  }
-
   if (query && !show.includes(query) && !id.includes(query)) {
     return false;
   }
@@ -702,7 +680,6 @@ async function load(){
   const toArchive = [];
 
   data.forEach(s => {
-    if (normalizeVenue(s.venue_id) !== "shevchenko") return;
     if (s.archived === true) return;
 
     let dt;
@@ -750,11 +727,7 @@ async function load(){
     cache: "no-store"
   });
 
-  const all = await res2.json();
-  ALL_SEANCES = Array.isArray(all)
-    ? all.filter(s => normalizeVenue(s.venue_id) === "shevchenko")
-    : [];
-
+  ALL_SEANCES = await res2.json();
   renderLists();
 }
 
@@ -788,15 +761,15 @@ async function restoreSeance(id){
 }
 
 function openCash(id){
-  window.open(`../hybrid/hall-cash.html?venue=shevchenko&seance=${encodeURIComponent(id)}`, "_blank");
+  window.open(`../hybrid/hall-cash.html?seance=${encodeURIComponent(id)}`, "_blank");
 }
 
 function openEditor(id){
-  window.open(`./seance-editor.html?venue=shevchenko&seance=${encodeURIComponent(id)}`, "_blank");
+  window.open(`./seance-editor.html?seance=${encodeURIComponent(id)}`, "_blank");
 }
 
 function openReports(){
-  window.open(`./reports/index.html?venue=shevchenko`, "_blank");
+  window.open(`./reports/index.html`, "_blank");
 }
 
 function openTogglePage(){
@@ -896,6 +869,12 @@ async function setOnlineSales(val){
   }
 }
 
+function clearToggleSecret(){
+  localStorage.removeItem(TOGGLE_LS_KEY);
+  toggleSecretInput.value = "";
+  setToggleState("unknown", "Статус: Secret очищено", "Вставте TOGGLE_SECRET знову при потребі.", null);
+}
+
 searchInput.addEventListener("input", renderLists);
 venueFilter.addEventListener("change", renderLists);
 statusFilter.addEventListener("change", renderLists);
@@ -903,9 +882,6 @@ statusFilter.addEventListener("change", renderLists);
 window.addEventListener("load", () => {
   const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
   if (saved) toggleSecretInput.value = saved;
-
-  venueFilter.value = "shevchenko";
-  venueFilter.disabled = true;
 
   load();
   setToggleState("unknown", "Статус: —", "Натисніть «Оновити», щоб зчитати поточний стан.", null);
