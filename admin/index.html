@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Вхід</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../styles/styles.css">
 </head>
 
@@ -44,14 +45,26 @@
 </div>
 
 <script>
+const SESSION_KEY = "va_session_v1";
+
 function admin(){
-  localStorage.setItem("role","admin");
-  location.href="panel.html";
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    user: "admin",
+    role: "admin",
+    venue: "all",
+    login_at: new Date().toISOString()
+  }));
+  location.href = "panel.html";
 }
 
 function cash(){
-  localStorage.setItem("role","cashier");
-  location.href="../hybrid/hall-cash.html";
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    user: "cashier",
+    role: "cashier",
+    venue: "all",
+    login_at: new Date().toISOString()
+  }));
+  location.href = "../hybrid/hall-cash.html";
 }
 </script>
 
