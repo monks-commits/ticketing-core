@@ -2,56 +2,215 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Вхід</title>
-<link rel="stylesheet" href="../styles/styles.css">
+<title>Вхід — Театр Шевченка</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles/styles.css">
+
+<style>
+  .login-wrap{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#0f172a;
+    padding:20px;
+  }
+
+  .login-card{
+    width:100%;
+    max-width:400px;
+    text-align:center;
+    background:#1e293b;
+    color:white;
+    border-radius:22px;
+    padding:36px 28px;
+    box-shadow:0 18px 40px rgba(0,0,0,.28);
+  }
+
+  .login-badge{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.10);
+    font-size:12px;
+    margin-bottom:14px;
+  }
+
+  .login-title{
+    margin:0 0 8px;
+    font-size:30px;
+    font-weight:800;
+  }
+
+  .login-subtitle{
+    margin:0 0 22px;
+    color:#cbd5e1;
+    font-size:15px;
+    line-height:1.45;
+  }
+
+  .login-field{
+    text-align:left;
+    margin-bottom:14px;
+  }
+
+  .login-field label{
+    display:block;
+    margin-bottom:6px;
+    color:#cbd5e1;
+    font-size:13px;
+  }
+
+  .login-field input{
+    width:100%;
+    height:48px;
+    border:none;
+    border-radius:12px;
+    padding:0 14px;
+    font-size:15px;
+    background:#fff;
+    color:#111827;
+    outline:none;
+  }
+
+  .login-btn{
+    width:100%;
+    height:52px;
+    border:none;
+    border-radius:14px;
+    background:#3b82f6;
+    color:#fff;
+    font-size:17px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:6px;
+  }
+
+  .login-btn:hover{
+    background:#2563eb;
+  }
+
+  .login-error{
+    min-height:22px;
+    margin-top:12px;
+    color:#fca5a5;
+    font-size:14px;
+    font-weight:600;
+  }
+
+  .login-note{
+    margin-top:16px;
+    font-size:13px;
+    color:#94a3b8;
+    line-height:1.45;
+  }
+</style>
 </head>
 
 <body>
 
-<div style="
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  background:#0f172a;
-">
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-badge">Театр Шевченка</div>
+    <h1 class="login-title">Ваш Адмін</h1>
+    <p class="login-subtitle">
+      Вхід у систему продажів театру
+    </p>
 
-  <div class="card" style="
-    width:320px;
-    text-align:center;
-    background:#1e293b;
-    color:white;
-    border-radius:20px;
-    padding:40px;
-  ">
+    <div class="login-field">
+      <label for="login">Логін</label>
+      <input id="login" autocomplete="username" placeholder="admin_shev або cash_shev">
+    </div>
 
-    <h2 style="margin-bottom:20px;">Оберіть режим</h2>
+    <div class="login-field">
+      <label for="password">Пароль</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="Введіть пароль">
+    </div>
 
-    <button class="btn" style="
-      width:100%;
-      height:50px;
-      margin-bottom:10px;
-      background:#3b82f6;
-    " onclick="admin()">Адмін</button>
+    <button class="login-btn" id="btnLogin">Увійти</button>
+    <div class="login-error" id="loginError"></div>
 
-    <button class="btn" style="
-      width:100%;
-      height:50px;
-      background:#22c55e;
-    " onclick="cash()">Касир</button>
-
+    <div class="login-note">
+      Кожен користувач бачить лише свій рівень доступу.
+    </div>
   </div>
 </div>
 
 <script>
-function admin(){
-  localStorage.setItem("role","admin");
-  location.href="panel.html";
+const SESSION_KEY = "va_session_v1";
+
+const USERS = {
+  admin_shev: {
+    password: "shev_admin_2026",
+    role: "admin",
+    venue: "shevchenko",
+    redirect: "./panel.html"
+  },
+  cash_shev: {
+    password: "shev_cash_2026",
+    role: "cashier",
+    venue: "shevchenko",
+    redirect: "../../hybrid/hall-cash.html?venue=shevchenko"
+  }
+};
+
+function saveSession(user, role, venue){
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    user,
+    role,
+    venue,
+    login_at: new Date().toISOString()
+  }));
 }
 
-function cash(){
-  localStorage.setItem("role","cashier");
-  location.href="../hybrid/hall-cash.html";
+function getSession(){
+  try{
+    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+  }catch(e){
+    return null;
+  }
+}
+
+function doLogin(){
+  const login = document.getElementById("login").value.trim();
+  const password = document.getElementById("password").value;
+  const err = document.getElementById("loginError");
+
+  err.textContent = "";
+
+  if (!login || !password){
+    err.textContent = "Введіть логін і пароль";
+    return;
+  }
+
+  const user = USERS[login];
+
+  if (!user || user.password !== password){
+    err.textContent = "Невірний логін або пароль";
+    return;
+  }
+
+  saveSession(login, user.role, user.venue);
+  location.href = user.redirect;
+}
+
+document.getElementById("btnLogin").addEventListener("click", doLogin);
+
+document.getElementById("login").addEventListener("keydown", (e)=>{
+  if (e.key === "Enter") doLogin();
+});
+
+document.getElementById("password").addEventListener("keydown", (e)=>{
+  if (e.key === "Enter") doLogin();
+});
+
+/* Автовход только для уже авторизованного Шевченко */
+const session = getSession();
+if (session?.venue === "shevchenko" && session?.role === "admin") {
+  location.href = "./panel.html";
+}
+if (session?.venue === "shevchenko" && session?.role === "cashier") {
+  location.href = "../../hybrid/hall-cash.html?venue=shevchenko";
 }
 </script>
 
