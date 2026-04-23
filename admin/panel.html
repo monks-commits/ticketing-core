@@ -2,9 +2,9 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Адмін — Театр Шевченка</title>
-<meta name="viewport" content="width=device-width, initial-scale=1"> 
-<link rel="stylesheet" href="../../styles/styles.css">
+<title>Адмін</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../styles/styles.css">
 </head>
 
 <body>
@@ -12,7 +12,7 @@
 <div class="admin-center">
   <div class="admin-card">
 
-    <div class="admin-title">🎭 Театр Шевченка</div>
+    <div class="admin-title">🎛 Адміністрація</div>
 
     <button class="admin-btn admin-btn-blue" onclick="toCash()">Події / Каса</button>
     <button class="admin-btn admin-btn-green" onclick="toEditor()">Редактор сеансів</button>
@@ -36,29 +36,33 @@ function getSession(){
 
 const session = getSession();
 
-if (!session || session.role !== "admin" || session.venue !== "shevchenko") {
-  location.href = "./index.html";
+if (!session || session.role !== "admin") {
+  location.href = "index.html";
 }
 
 function toCash(){
-  window.open("../../hybrid/hall-cash.html?venue=shevchenko", "_blank");
+  window.open(
+    "../hybrid/hall-cash.html",
+    "cashWindow",
+    "width=1280,height=900"
+  );
 }
 
 function toEditor(){
-  location.href = "../../admin/seance-editor.html?venue=shevchenko";
+  location.href = "seance-editor.html";
 }
 
 function toManage(){
-  location.href = "../../admin/manage.html?venue=shevchenko";
+  location.href = "manage.html";
 }
 
 function toReports(){
-  location.href = "../../admin/reports/index.html?venue=shevchenko";
+  location.href = "reports/index.html";
 }
 
 function logout(){
   localStorage.removeItem(SESSION_KEY);
-  location.href = "./index.html";
+  location.href = "index.html";
 }
 </script>
 
