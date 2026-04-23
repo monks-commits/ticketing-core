@@ -354,7 +354,7 @@ textarea{
 <div class="page-wrap">
 
   <div class="topbar">
-   <a class="back-btn" href="./shevchenko/panel.html">← Назад</a>
+    <a class="back-btn" href="./panel.html">← Назад</a>
   </div>
 
   <section class="hero">
@@ -667,29 +667,6 @@ textarea{
 </div>
 
 <script>
-
-const SESSION_KEY = "va_session_v1";
-
-function getSession(){
-  try{
-    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-  }catch(e){
-    return null;
-  }
-}
-
-const session = getSession();
-const pageVenue = new URLSearchParams(location.search).get("venue") || "";
-
-if (!session || session.role !== "admin") {
-  location.href = "./index.html";
-}
-
-if (pageVenue && session.venue && pageVenue !== session.venue) {
-  alert("Немає доступу до цього майданчика");
-  history.back();
-}
-  
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 const SUPABASE_FUNCTION_URL =
@@ -703,13 +680,6 @@ const data = {
 const showStatus = document.getElementById("showStatus");
 const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
-if (session?.venue === "shevchenko") {
-  venueSelect.value = "shevchenko-v2";
-}
-if (session?.venue === "academy") {
-  venueSelect.value = "academy";
-}
-  
 const showName = document.getElementById("showName");
 const showDate = document.getElementById("showDate");
 const showTime = document.getElementById("showTime");
