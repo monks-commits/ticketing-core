@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Вхід — Театр Шевченка</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1"> 
 <link rel="stylesheet" href="../../styles/styles.css">
 
 <style>
@@ -163,14 +163,6 @@ function saveSession(user, role, venue){
   }));
 }
 
-function getSession(){
-  try{
-    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-  }catch(e){
-    return null;
-  }
-}
-
 function doLogin(){
   const login = document.getElementById("login").value.trim();
   const password = document.getElementById("password").value;
@@ -203,15 +195,6 @@ document.getElementById("login").addEventListener("keydown", (e)=>{
 document.getElementById("password").addEventListener("keydown", (e)=>{
   if (e.key === "Enter") doLogin();
 });
-
-/* Автовход только для уже авторизованного Шевченко */
-const session = getSession();
-if (session?.venue === "shevchenko" && session?.role === "admin") {
-  location.href = "./panel.html";
-}
-if (session?.venue === "shevchenko" && session?.role === "cashier") {
-  location.href = "../../hybrid/hall-cash.html?venue=shevchenko";
-}
 </script>
 
 </body>
