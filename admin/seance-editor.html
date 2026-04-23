@@ -718,6 +718,321 @@ const rulesList = document.getElementById("rulesList");
 const seatOverridesList = document.getElementById("seatOverridesList");
 const publish = document.getElementById("publish");
 
+function ensurePreviewUi() {
+  let previewSection = document.getElementById("previewSection");
+  if (previewSection) return;
+
+  const cards = Array.from(document.querySelectorAll(".stack.sticky .card"));
+  const jsonCard = cards.find(card => card.querySelector("#output"));
+  if (!jsonCard || !jsonCard.parentNode) return;
+
+  previewSection = document.createElement("section");
+  previewSection.className = "card";
+  previewSection.id = "previewSection";
+  previewSection.innerHTML = `
+    <h3>👁 Попередній перегляд схеми</h3>
+    <div id="previewInfo" class="note">Схема ще не завантажена</div>
+
+    <div id="previewWrap" style="
+      margin-top:12px;
+      background:rgba(0,0,0,.10);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      padding:12px;
+      overflow:auto;
+      min-height:220px;
+    ">
+      <div id="previewStage" style="
+        min-width:max-content;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        align-items:center;
+      "></div>
+    </div>
+  `;
+
+  jsonCard.parentNode.insertBefore(previewSection, jsonCard);
+}
+
+ensurePreviewUi();
+
+const previewStage = document.getElementById("previewStage");
+const previewInfo = document.getElementById("previewInfo");
+
+function normalizeHallNameForPreview(v){
+  if (v === "academy") return "academy";
+  if (v === "shevchenko-v2" || v === "shevchenko") return "shevchenko-v2";
+  return v || "academy";
+}
+
+function previewSeatState(key){
+  const override = data.seat_overrides[key] || null;
+
+  if (override) {
+    return {
+      price: override.price ?? null,
+      color: override.color || null,
+      sale: override.sale !== false
+    };
+  }
+
+  const m = String(key).match(/^([PAB])(\d+)-M(\d+)$/);
+  if (!m) {
+    return { price:null, color:null, sale:true };
+  }
+
+  const zoneCode = m[1];
+  const row = Number(m[2]);
+
+  for (const [ruleKey, rule] of Object.entries(data.pricing)) {
+    const mm = String(ruleKey).match(/^([PAB])(\d+)-(\d+)$/);
+    if (!mm) continue;
+
+    const rz = mm[1];
+    const from = Number(mm[2]);
+    const to = Number(mm[3]);
+
+    if (rz === zoneCode && row >= from && row <= to) {
+      return {
+        price: rule.price ?? null,
+        color: rule.color || null,
+        sale: rule.sale !== false
+      };
+    }
+  }
+
+  return { price:null, color:null, sale:true };
+}
+
+function makePreviewSeatEl(key, num){
+  const state = previewSeatState(key);
+  const el = document.createElement("div");
+  el.style.width = "22px";
+  el.style.height = "22px";
+  el.style.borderRadius = "6px";
+  el.style.border = "1px solid rgba(255,255,255,.14)";
+  el.style.display = "flex";
+  el.style.alignItems = "center";
+  el.style.justifyContent = "center";
+  el.style.fontSize = "9px";
+  el.style.fontWeight = "700";
+  el.style.color = "#fff";
+  el.style.flex = "0 0 22px";
+  el.textContent = String(num);
+
+  if (state.color) {
+    el.style.background = state.color;
+  } else {
+    el.style.background = "#374151";
+  }
+
+  if (state.sale === false) {
+    el.style.opacity = ".55";
+    el.style.background = "#4b5563";
+  }
+
+  const priceText = state.price != null ? `${state.price} грн` : "без ціни";
+  const saleText = state.sale === false ? "заборонено" : "продається";
+  el.title = `${key} • ${priceText} • ${saleText}`;
+
+  return el;
+}
+
+function makeSpacer(width){
+  const el = document.createElement("div");
+  el.style.width = `${width}px`;
+  el.style.height = "22px";
+  el.style.flex = `0 0 ${width}px`;
+  el.style.opacity = "0";
+  return el;
+}
+
+function makeGap(width = 10){
+  const el = document.createElement("div");
+  el.style.width = `${width}px`;
+  el.style.height = "22px";
+  el.style.flex = `0 0 ${width}px`;
+  return el;
+}
+
+function renderRowsPreview(sectionTitle, rows, zoneCode){
+  const zone = document.createElement("div");
+  zone.style.width = "100%";
+  zone.style.display = "flex";
+  zone.style.flexDirection = "column";
+  zone.style.gap = "8px";
+  zone.style.alignItems = "flex-start";
+
+  const title = document.createElement("div");
+  title.style.fontSize = "14px";
+  title.style.fontWeight = "700";
+  title.style.color = "#b8c4d6";
+  title.textContent = sectionTitle;
+  zone.appendChild(title);
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.style.display = "flex";
+    rowLine.style.alignItems = "center";
+    rowLine.style.gap = "8px";
+    rowLine.style.flexWrap = "nowrap";
+
+    const lab = document.createElement("div");
+    lab.style.width = "36px";
+    lab.style.flex = "0 0 36px";
+    lab.style.fontSize = "12px";
+    lab.style.color = "#b8c4d6";
+    lab.style.textAlign = "right";
+    lab.textContent = r.row ?? "";
+    rowLine.appendChild(lab);
+
+    const seatsWrap = document.createElement("div");
+    seatsWrap.style.display = "flex";
+    seatsWrap.style.alignItems = "center";
+    seatsWrap.style.gap = "4px";
+    seatsWrap.style.flexWrap = "nowrap";
+
+    const offset = Number(r.offset || 0);
+    for (let i = 0; i < offset; i++) {
+      seatsWrap.appendChild(makeSpacer(22));
+    }
+
+    if (r._academyLeadGap) {
+      seatsWrap.appendChild(makeGap(10));
+    }
+
+    const seats = Number(r.seats || 0);
+    const aisles = Array.isArray(r.aisles) ? r.aisles : [];
+
+    for (let s = 1; s <= seats; s++) {
+      const key = `${zoneCode}${r.row}-M${s}`;
+      seatsWrap.appendChild(makePreviewSeatEl(key, s));
+
+      if (aisles.includes(s)) {
+        seatsWrap.appendChild(makeGap(10));
+      }
+    }
+
+    rowLine.appendChild(seatsWrap);
+    zone.appendChild(rowLine);
+  });
+
+  return zone;
+}
+
+function renderLodgePreview(titleText, prefix, count){
+  const zone = document.createElement("div");
+  zone.style.width = "100%";
+  zone.style.display = "flex";
+  zone.style.flexDirection = "column";
+  zone.style.gap = "8px";
+  zone.style.alignItems = "flex-start";
+
+  const title = document.createElement("div");
+  title.style.fontSize = "14px";
+  title.style.fontWeight = "700";
+  title.style.color = "#b8c4d6";
+  title.textContent = titleText;
+  zone.appendChild(title);
+
+  const rowLine = document.createElement("div");
+  rowLine.style.display = "flex";
+  rowLine.style.alignItems = "center";
+  rowLine.style.gap = "8px";
+
+  const lab = document.createElement("div");
+  lab.style.width = "36px";
+  lab.style.flex = "0 0 36px";
+  lab.style.fontSize = "12px";
+  lab.style.color = "#b8c4d6";
+  lab.style.textAlign = "right";
+  lab.textContent = "0";
+  rowLine.appendChild(lab);
+
+  const seatsWrap = document.createElement("div");
+  seatsWrap.style.display = "flex";
+  seatsWrap.style.alignItems = "center";
+  seatsWrap.style.gap = "4px";
+
+  for (let s = 1; s <= count; s++) {
+    const key = `${prefix}-M${s}`;
+    seatsWrap.appendChild(makePreviewSeatEl(key, s));
+  }
+
+  rowLine.appendChild(seatsWrap);
+  zone.appendChild(rowLine);
+
+  return zone;
+}
+
+async function renderPreview(){
+  if (!previewStage || !previewInfo) return;
+
+  previewStage.innerHTML = "";
+  previewInfo.textContent = "Завантаження схеми…";
+
+  const hallName = normalizeHallNameForPreview(venueSelect.value);
+
+  try {
+    const res = await fetch(`../data/hall/${hallName}.json`, { cache:"no-store" });
+    if (!res.ok) {
+      previewInfo.textContent = `Не вдалося завантажити схему: ${hallName}.json`;
+      return;
+    }
+
+    const hall = await res.json();
+
+    const stage = document.createElement("div");
+    stage.style.display = "inline-flex";
+    stage.style.alignItems = "center";
+    stage.style.justifyContent = "center";
+    stage.style.minWidth = "140px";
+    stage.style.padding = "8px 16px";
+    stage.style.borderRadius = "999px";
+    stage.style.background = "rgba(255,255,255,.08)";
+    stage.style.color = "#fff";
+    stage.style.fontWeight = "700";
+    stage.style.letterSpacing = ".04em";
+    stage.textContent = hall.title || hall.name || "Сцена";
+    previewStage.appendChild(stage);
+
+    if (Array.isArray(hall.sections) && hall.sections.length) {
+      hall.sections.forEach(sec => {
+        const secTitle = sec.title || sec.name || sec.zone || "Секція";
+        const rows = Array.isArray(sec.rows) ? sec.rows : [];
+
+        let zoneCode = "P";
+        if (/амф/i.test(secTitle)) zoneCode = "A";
+        else if (/балкон/i.test(secTitle)) zoneCode = "B";
+        else if (/партер/i.test(secTitle)) zoneCode = "P";
+
+        previewStage.appendChild(renderRowsPreview(secTitle, rows, zoneCode));
+      });
+    } else {
+      previewInfo.textContent = "У hall JSON немає sections для preview.";
+      return;
+    }
+
+    if (hallName === "shevchenko-v2") {
+      previewStage.appendChild(renderLodgePreview("Ложа А", "A0", 18));
+      previewStage.appendChild(renderLodgePreview("Ложа Б", "B0", 18));
+    }
+
+    const note = document.createElement("div");
+    note.style.fontSize = "12px";
+    note.style.color = "#b8c4d6";
+    note.style.marginTop = "8px";
+    note.textContent = "Preview показує поточні правила editor-а для цього сеансу або нового налаштування.";
+    previewStage.appendChild(note);
+
+    previewInfo.textContent =
+      `Схема: ${hallName} • Seance: ${seanceId.value.trim() || "новий сеанс"}`;
+  } catch (e) {
+    previewInfo.textContent = `Помилка preview: ${e.message || e}`;
+  }
+}
+
 function createNewSeance(){
   const showSlug = prompt("Назва show для Seance ID (латиниця):", "akakiy");
   if(!showSlug) return;
@@ -744,6 +1059,7 @@ function createNewSeance(){
   data.pricing = {};
   data.seat_overrides = {};
   render();
+  renderPreview();
 
   alert(
     "Створено новий seance_id:\n\n" +
@@ -774,6 +1090,7 @@ function addRule(){
   };
 
   render();
+  renderPreview();
 }
 
 function addSeatSegment(){
@@ -813,6 +1130,7 @@ function addSeatSegment(){
   }
 
   render();
+  renderPreview();
 }
 
 function addLodgeRange(){
@@ -843,6 +1161,7 @@ function addLodgeRange(){
   }
 
   render();
+  renderPreview();
 }
 
 function addSeatOverride(){
@@ -853,14 +1172,11 @@ function addSeatOverride(){
 
   if (seatPrice.value) obj.price = Number(seatPrice.value);
   if (seatColor.value) obj.color = seatColor.value;
-  if (seatSale.checked) {
-    obj.sale = false;
-  } else {
-    obj.sale = true;
-  }
+  obj.sale = !seatSale.checked;
 
   data.seat_overrides[key] = obj;
   render();
+  renderPreview();
 }
 
 function render(){
@@ -1003,6 +1319,7 @@ async function loadSeance(){
     data.pricing = {};
     data.seat_overrides = {};
     render();
+    renderPreview();
     return;
   }
 
@@ -1014,6 +1331,7 @@ async function loadSeance(){
   }
 
   render();
+  renderPreview();
 }
 
 ["showName","showDate","showTime","posterUrl","venueSelect","seanceId","showStatus"].forEach(id => {
@@ -1023,6 +1341,7 @@ async function loadSeance(){
 });
 
 render();
+renderPreview();
 </script>
 </body>
 </html>
