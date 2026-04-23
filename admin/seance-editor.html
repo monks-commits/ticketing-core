@@ -1105,13 +1105,13 @@ async function renderPreview(){
       amphiTitle.textContent = "Амфітеатр";
       amphiZone.appendChild(amphiTitle);
 
-      const amphiRows = {
-        19: 22,
-        20: 11,
-        21: 11,
-        22: 11,
-        23: 11
-      };
+     const amphiRows = {
+  19: { left: 11, right: 11 },
+  20: { left: 11, right: 11 },
+  21: { left: 11, right: 11 },
+  22: { left: 11, right: 0 },
+  23: { left: 11, right: 0 }
+};
 
       Object.entries(amphiRows).forEach(([rowStr, count]) => {
         const row = Number(rowStr);
