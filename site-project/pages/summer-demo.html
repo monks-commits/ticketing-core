@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>VA — демо для літніх майданчиків</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f4f1ea;
+  color:#222;
+}
+.wrap{
+  max-width:1200px;
+  margin:0 auto;
+  padding:24px;
+}
+h1{
+  margin:0 0 8px;
+  font-size:32px;
+}
+.sub{
+  margin-bottom:22px;
+  color:#666;
+}
+.tabs{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:22px;
+}
+.tabs button{
+  border:0;
+  padding:12px 18px;
+  border-radius:12px;
+  background:#222;
+  color:white;
+  cursor:pointer;
+  font-size:15px;
+}
+.tabs button.active{
+  background:#b8860b;
+}
+.demo{
+  display:grid;
+  grid-template-columns:1fr 320px;
+  gap:24px;
+}
+.hall{
+  background:white;
+  border-radius:18px;
+  padding:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+.scene{
+  text-align:center;
+  background:#333;
+  color:white;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:22px;
+  letter-spacing:2px;
+}
+.row{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin:10px 0;
+}
+.seat{
+  width:34px;
+  height:34px;
+  border-radius:8px;
+  border:0;
+  background:#ddd;
+  cursor:pointer;
+}
+.seat.vip{background:#e8c66a;}
+.seat.mid{background:#9fd3c7;}
+.seat.low{background:#c7d7f2;}
+.seat.selected{
+  outline:3px solid #222;
+}
+.tables{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+}
+.table-box{
+  background:#eee;
+  border-radius:16px;
+  padding:14px;
+  text-align:center;
+  cursor:pointer;
+}
+.table-box.vip{background:#e8c66a;}
+.table-box.selected{
+  outline:4px solid #222;
+}
+.chairs{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-top:10px;
+}
+.chair{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:white;
+}
+.free{
+  text-align:center;
+  padding:70px 20px;
+  border:3px dashed #999;
+  border-radius:20px;
+}
+.free button{
+  margin-top:20px;
+  padding:14px 24px;
+  border:0;
+  border-radius:12px;
+  background:#b8860b;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+.side{
+  background:white;
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+.total{
+  font-size:28px;
+  font-weight:bold;
+  margin:16px 0;
+}
+.note{
+  color:#666;
+  font-size:14px;
+  line-height:1.5;
+}
+@media(max-width:900px){
+  .demo{grid-template-columns:1fr;}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <h1>VA / Ваш Адмін</h1>
+  <div class="sub">Демо для літніх майданчиків: ряди, столи, вільний вхід</div>
+
+  <div class="tabs">
+    <button class="active" onclick="setMode('rows', this)">Ряди</button>
+    <button onclick="setMode('tables', this)">Столи</button>
+    <button onclick="setMode('free', this)">Вільний вхід</button>
+  </div>
+
+  <div class="demo">
+    <div class="hall">
+      <div class="scene">СЦЕНА</div>
+      <div id="hall"></div>
+    </div>
+
+    <div class="side">
+      <h2>Замовлення</h2>
+      <div id="selected">Нічого не вибрано</div>
+      <div class="total" id="total">0 грн</div>
+      <button style="width:100%;padding:14px;border:0;border-radius:12px;background:#222;color:white;font-size:16px;">
+        Оформити квиток
+      </button>
+      <p class="note">
+        Це демонстраційна сторінка для показу клієнтам.
+        Після зацікавлення схема швидко адаптується під конкретний майданчик.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+let selected = [];
+
+function money(){
+  return selected.reduce((s,x)=>s+x.price,0);
+}
+
+function update(){
+  const box = document.getElementById("selected");
+  const total = document.getElementById("total");
+
+  if(!selected.length){
+    box.textContent = "Нічого не вибрано";
+    total.textContent = "0 грн";
+    return;
+  }
+
+  box.innerHTML = selected.map(x => `${x.label} — ${x.price} грн`).join("<br>");
+  total.textContent = money() + " грн";
+}
+
+function clearSelection(){
+  selected = [];
+  update();
+}
+
+function toggle(label, price, el){
+  const i = selected.findIndex(x => x.label === label);
+
+  if(i >= 0){
+    selected.splice(i,1);
+    el.classList.remove("selected");
+  } else {
+    selected.push({label, price});
+    el.classList.add("selected");
+  }
+
+  update();
+}
+
+function renderRows(){
+  clearSelection();
+  const hall = document.getElementById("hall");
+  hall.innerHTML = "";
+
+  const rows = [
+    {row:1,seats:12,price:300,cls:"vip"},
+    {row:2,seats:12,price:300,cls:"vip"},
+    {row:3,seats:14,price:250,cls:"mid"},
+    {row:4,seats:14,price:250,cls:"mid"},
+    {row:5,seats:16,price:200,cls:"low"},
+    {row:6,seats:16,price:200,cls:"low"}
+  ];
+
+  rows.forEach(r=>{
+    const div = document.createElement("div");
+    div.className = "row";
+
+    for(let i=1;i<=r.seats;i++){
+      const btn = document.createElement("button");
+      btn.className = "seat " + r.cls;
+      btn.title = `Ряд ${r.row}, місце ${i}`;
+      btn.textContent = i;
+      btn.onclick = () => toggle(`Ряд ${r.row}, місце ${i}`, r.price, btn);
+      div.appendChild(btn);
+    }
+
+    hall.appendChild(div);
+  });
+}
+
+function renderTables(){
+  clearSelection();
+  const hall = document.getElementById("hall");
+  hall.innerHTML = `<div class="tables"></div>`;
+  const grid = hall.querySelector(".tables");
+
+  const tables = [
+    {id:"T1",seats:4,price:500,zone:"VIP"},
+    {id:"T2",seats:4,price:500,zone:"VIP"},
+    {id:"T3",seats:4,price:450},
+    {id:"T4",seats:4,price:450},
+    {id:"T5",seats:6,price:400},
+    {id:"T6",seats:6,price:400},
+    {id:"T7",seats:6,price:350},
+    {id:"T8",seats:6,price:350}
+  ];
+
+  tables.forEach(t=>{
+    const box = document.createElement("div");
+    box.className = "table-box " + (t.zone === "VIP" ? "vip" : "");
+    box.innerHTML = `
+      <b>Стіл ${t.id}</b><br>
+      ${t.seats} місць<br>
+      ${t.price} грн / місце
+      <div class="chairs">${Array.from({length:t.seats}).map(()=>"<span class='chair'></span>").join("")}</div>
+    `;
+    box.onclick = () => toggle(`Стіл ${t.id}`, t.price * t.seats, box);
+    grid.appendChild(box);
+  });
+}
+
+function renderFree(){
+  clearSelection();
+  const hall = document.getElementById("hall");
+  hall.innerHTML = `
+    <div class="free">
+      <h2>Вільний вхід</h2>
+      <p>Без вибору місця. Квиток на вхід.</p>
+      <p><b>150 грн</b></p>
+      <button id="freeBtn">Додати квиток</button>
+    </div>
+  `;
+
+  document.getElementById("freeBtn").onclick = function(){
+    toggle("Вхідний квиток", 150, this);
+  };
+}
+
+function setMode(mode, btn){
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+
+  if(mode === "rows") renderRows();
+  if(mode === "tables") renderTables();
+  if(mode === "free") renderFree();
+}
+
+renderRows();
+</script>
+</body>
+</html>
