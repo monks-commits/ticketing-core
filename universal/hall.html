@@ -1587,75 +1587,42 @@ function renderHallSections(hallData){
 
   root.innerHTML = "";
 
-  const sections = Array.isArray(hallData.sections) ? hallData.sections : [];
-
-  const parter = sections.find(s => s.id === "parter");
-  const lodgeA = sections.find(s => s.id === "lodge_a");
-  const lodgeB = sections.find(s => s.id === "lodge_b");
-
-  if (parter) {
-    const section = document.createElement("section");
-    section.className = "hall-section";
-
-    section.appendChild(makeSectionTitle(parter.title || "Партер"));
-
-    if (lodgeA || lodgeB) {
-      const parterWrap = document.createElement("div");
-      parterWrap.className = "parter-wrap";
-
-      if (lodgeA) {
-        parterWrap.appendChild(renderLodgesVertical(lodgeA));
-      }
-
-      const parterRowsWrap = document.createElement("div");
-      const rowsOnlySection = renderRowsSection({
-        title: "",
-        zone: parter.zone,
-        rows: parter.rows
-      });
-
-      Array.from(rowsOnlySection.children).forEach(ch => {
-        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
-          parterRowsWrap.appendChild(ch);
-        }
-      });
-
-      parterWrap.appendChild(parterRowsWrap);
-
-      if (lodgeB) {
-        parterWrap.appendChild(renderLodgesVertical(lodgeB));
-      }
-
-      section.appendChild(parterWrap);
-    } else {
-      const rowsRendered = renderRowsSection(parter);
-      Array.from(rowsRendered.children).forEach(ch => {
-        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
-          section.appendChild(ch);
-        }
-      });
-    }
-
-    root.appendChild(section);
-  }
+  const sections = Array.isArray(hallData?.sections) ? hallData.sections : [];
 
   sections.forEach(section => {
-    if (["parter", "lodge_a", "lodge_b"].includes(section.id)) return;
+    if (!section || !section.type) return;
 
     if (section.type === "rows") {
       root.appendChild(renderRowsSection(section));
+      return;
     }
 
     if (section.type === "split_rows") {
       root.appendChild(renderSplitRows(section));
+      return;
     }
 
     if (section.type === "custom_rows") {
       root.appendChild(renderCustomRows(section));
+      return;
     }
+
+    if (section.type === "lodges_vertical") {
+      const wrap = document.createElement("section");
+      wrap.className = "hall-section";
+
+      if (section.title) {
+        wrap.appendChild(makeSectionTitle(section.title));
+      }
+
+      wrap.appendChild(renderLodgesVertical(section));
+      root.appendChild(wrap);
+      return;
+    }
+
+    console.warn("Unknown hall section type:", section.type, section);
   });
 }
-
 function renderSimpleRows(hallData) {
   const root = document.getElementById("hall-root");
   if (!root) return;
