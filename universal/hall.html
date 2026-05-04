@@ -1633,17 +1633,7 @@ function renderSimpleRows(hallData) {
     ? hallData.rows.map(r => ({ ...r }))
     : [];
 
-  const isAcademy =
-    hallData?.name && String(hallData.name).toLowerCase().includes("академ");
-
-  if (isAcademy) {
-    const row1 = rows.find(r => Number(r.row) === 1);
-
-    if (row1) {
-      row1.offset = 6;
-      row1._academyLeadGap = true;
-    }
-  }
+  
 
   const section = {
     title: "",
