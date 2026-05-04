@@ -1612,6 +1612,53 @@ function renderCustomRows(section){
   return wrap;
 }
 
+function renderHorizontalGroup(group, sectionsMap){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  if (group.title) {
+    wrap.appendChild(makeSectionTitle(group.title));
+  }
+
+  const row = document.createElement("div");
+  row.className = "parter-wrap";
+
+  const items = Array.isArray(group.items) ? group.items : [];
+
+  items.forEach(id => {
+    const section = sectionsMap.get(id);
+    if (!section) return;
+
+    if (section.type === "rows") {
+      const rowsRendered = renderRowsSection({
+        ...section,
+        title: ""
+      });
+
+      const inner = document.createElement("div");
+
+      Array.from(rowsRendered.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          inner.appendChild(ch);
+        }
+      });
+
+      row.appendChild(inner);
+      return;
+    }
+
+    if (section.type === "lodges_vertical") {
+      row.appendChild(renderLodgesVertical(section));
+      return;
+    }
+
+    console.warn("Unsupported horizontal_group item:", section.type, section);
+  });
+
+  wrap.appendChild(row);
+  return wrap;
+}
+    
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
