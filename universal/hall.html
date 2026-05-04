@@ -1619,9 +1619,20 @@ function renderHallSections(hallData){
   root.innerHTML = "";
 
   const sections = Array.isArray(hallData?.sections) ? hallData.sections : [];
+  const sectionsMap = new Map();
+
+  sections.forEach(section => {
+    if (section?.id) sectionsMap.set(section.id, section);
+  });
 
   sections.forEach(section => {
     if (!section || !section.type) return;
+    if (section.hidden === true) return;
+
+    if (section.type === "horizontal_group") {
+      root.appendChild(renderHorizontalGroup(section, sectionsMap));
+      return;
+    }
 
     if (section.type === "rows") {
       root.appendChild(renderRowsSection(section));
