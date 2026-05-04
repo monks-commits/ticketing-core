@@ -1920,7 +1920,13 @@ document.getElementById("go-order").addEventListener("click", ()=>{
   SEANCE_CONFIG = await loadSeanceConfig();
   const SEANCE_META = await loadSeanceMeta();
 
-  const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
+ const VENUE = await loadVenue(SEANCE_META?.venue_id);
+
+const hallFile = (
+  VENUE?.hall_schema ||
+  SEANCE_CONFIG?.hall ||
+  "academy"
+).trim();
 
   const hallRes = await fetch(`../data/hall/${hallFile}.json`, {
     cache: "no-store"
