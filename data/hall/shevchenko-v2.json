@@ -4,10 +4,17 @@
   "title": "Театр ім. Т. Г. Шевченка",
   "sections": [
     {
+      "id": "main_floor_group",
+      "type": "horizontal_group",
+      "title": "Партер",
+      "items": ["lodge_a", "parter", "lodge_b"]
+    },
+    {
       "id": "parter",
       "type": "rows",
       "title": "Партер",
       "zone": "Партер",
+      "hidden": true,
       "rows": [
         { "row": 1, "seats": 20, "offset": 0, "aisles": [10] },
         { "row": 2, "seats": 20, "offset": 0, "aisles": [10] },
@@ -34,6 +41,7 @@
       "type": "lodges_vertical",
       "title": "Ложа А",
       "zone": "Ложа А",
+      "hidden": true,
       "seat_count": 18,
       "row": 0
     },
@@ -42,6 +50,7 @@
       "type": "lodges_vertical",
       "title": "Ложа Б",
       "zone": "Ложа Б",
+      "hidden": true,
       "seat_count": 18,
       "row": 0
     },
