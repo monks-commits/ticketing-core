@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Схема залу</title>
+
+  <link rel="stylesheet" href="../../styles/styles.css" />
+
+
+<style>
+  :root{
+    --bg:#f3f4f6;
+    --card:#ffffff;
+    --line:#e5e7eb;
+    --text:#111827;
+    --muted:#6b7280;
+    --muted-2:#9ca3af;
+    --stage:#e5e7eb;
+    --accent:#111827;
+    --shadow:0 10px 28px rgba(17,24,39,.08);
+    --radius:18px;
+    --seat-size:28px;
+    --seat-gap:4px;
+    --row-label-w:28px;
+    --section-gap:22px;
+    --hall-min-width:980px;
+  }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  .hall-page{
+    padding:20px 0 28px;
+  }
+
+  .hall-hero{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+    padding:18px 18px 16px;
+    margin-bottom:18px;
+  }
+
+  .hall-hero-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+
+  .hall-eyebrow{
+    font-size:12px;
+    line-height:1.2;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+
+  .hall-title{
+    margin:0;
+    font-size:32px;
+    line-height:1.08;
+  }
+
+  .hall-subtitle{
+    margin:8px 0 0;
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.45;
+  }
+
+  .hall-badges{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:14px;
+  }
+
+  .hall-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    border:1px solid var(--line);
+    background:#fafafa;
+    border-radius:999px;
+    padding:8px 12px;
+    font-size:13px;
+    color:#374151;
+  }
+
+  .hall-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 320px;
+    gap:20px;
+    align-items:start;
+  }
+
+  .hall-left{
+    min-width:0;
+  }
+
+  .hall-shell{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+
+  .hall-shell-head{
+    padding:16px 18px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+
+  .hall-shell-title{
+    margin:0;
+    font-size:20px;
+    line-height:1.2;
+  }
+
+  .hall-shell-meta{
+    margin:6px 0 0;
+    font-size:14px;
+    color:var(--muted);
+  }
+
+  .hall-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 14px;
+    font-size:13px;
+    color:#4b5563;
+  }
+
+  .hall-legend-item{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .hall-legend-dot{
+    width:14px;
+    height:14px;
+    border-radius:4px;
+    border:1px solid #d1d5db;
+    background:#fff;
+    flex:0 0 14px;
+  }
+
+  .hall-legend-dot--free{ background:#fff; }
+  .hall-legend-dot--hold{ background:#d32f2f; border-color:#d32f2f; }
+  .hall-legend-dot--taken{ background:#bfc5ce; border-color:#bfc5ce; }
+  .hall-legend-dot--reserved{ background:#f59e0b; border-color:#f59e0b; }
+
+  .hall-scroll{
+    position:relative;
+    padding:18px;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    background:
+      linear-gradient(to right, rgba(243,244,246,1), rgba(243,244,246,0)) left center/28px 100% no-repeat,
+      linear-gradient(to left, rgba(243,244,246,1), rgba(243,244,246,0)) right center/28px 100% no-repeat;
+  }
+
+  .mobile-hall-viewport{
+    position:relative;
+    width:100%;
+  }
+
+  .mobile-hall-scale{
+    transform-origin: top center;
+    will-change: transform;
+  }
+
+  .hall-inner{
+    min-width:var(--hall-min-width);
+    width:max-content;
+    margin:0 auto;
+  }
+
+  .stage-wrap{
+    margin:2px 0 18px;
+    display:flex;
+    justify-content:center;
+  }
+
+  .stage{
+    width:min(82%,760px);
+    min-width:280px;
+    text-align:center;
+    background:var(--stage);
+    color:#374151;
+    border-radius:999px;
+    padding:12px 18px;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+  }
+
+  .hall-section{
+    margin-bottom:var(--section-gap);
+  }
+
+  .hall-section:last-child{
+    margin-bottom:0;
+  }
+
+  .hall-section-title{
+    text-align:center;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:var(--muted);
+    margin:0 0 10px;
+  }
+
+  .row-line{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:5px;
+}
+
+  .row-label{
+    width:var(--row-label-w);
+    flex:0 0 var(--row-label-w);
+    text-align:right;
+    font-size:11px;
+    color:var(--muted);
+    font-weight:700;
+  }
+
+  .seats-row{
+    display:flex;
+    align-items:center;
+    gap:var(--seat-gap);
+    flex-wrap:nowrap;
+  }
+
+  .seat{
+    width:var(--seat-size);
+    height:var(--seat-size);
+    border-radius:8px;
+    border:1px solid #d1d5db;
+    background:#fff;
+    color:#111827;
+    font-size:11px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition:transform .08s ease, box-shadow .12s ease, background .12s ease;
+    box-sizing:border-box;
+  }
+
+  .seat:not(:disabled):hover{
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(17,24,39,.10);
+  }
+
+  .seat:disabled{
+    cursor:not-allowed;
+  }
+
+  .seat--gap-right{
+    margin-right:18px;
+  }
+
+  .amphi-gap{
+    width:28px;
+    flex:0 0 28px;
+  }
+
+  .seat--empty{
+    visibility:hidden;
+    pointer-events:none;
+    border:none;
+    background:transparent;
+    box-shadow:none;
+  }
+
+  .seat--no-sale{
+    background:#e5e7eb !important;
+    color:#9ca3af !important;
+    border-color:#e5e7eb !important;
+    cursor:not-allowed;
+  }
+
+  .seat--taken,
+  .seat--sold{
+    background:#bfc5ce !important;
+    color:#fff !important;
+    border-color:#bfc5ce !important;
+  }
+
+  .seat--blocked,
+  .seat--hold{
+    background:#d32f2f !important;
+    color:#fff !important;
+    border-color:#d32f2f !important;
+  }
+
+  .seat--selected{
+    outline:2px solid #1d4ed8;
+    outline-offset:1px;
+    box-shadow:0 0 0 3px rgba(29,78,216,.12);
+  }
+
+  .seat--reserved{
+    background:#f59e0b !important;
+    color:#111827 !important;
+    border-color:#f59e0b !important;
+    cursor:not-allowed;
+  }
+
+  .parter-wrap{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    gap:22px;
+  }
+
+  .hall-lodge{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    min-width:48px;
+  }
+
+  .hall-lodge-label{
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:4px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    text-align:center;
+  }
+
+  .hall-lodge-seats{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+
+  .hall-sidebar{
+    position:sticky;
+    top:14px;
+  }
+
+  .hall-summary-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+    padding:18px;
+  }
+
+  .hall-summary-title{
+    margin:0 0 12px;
+    font-size:22px;
+    line-height:1.15;
+  }
+
+  .hall-summary-meta{
+    font-size:14px;
+    color:#4b5563;
+    margin:0 0 8px;
+    line-height:1.45;
+  }
+
+  .hall-summary-divider{
+    height:1px;
+    background:var(--line);
+    margin:14px 0;
+  }
+
+  .hall-summary-total{
+    font-size:24px;
+    font-weight:800;
+    margin:0 0 14px;
+    line-height:1.1;
+  }
+
+  .hall-summary-help{
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.45;
+    margin-top:10px;
+  }
+
+  .hall-summary-note{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:10px;
+  }
+
+  .price-legend-mobile{
+    display:none;
+  }
+
+  .price-legend-mobile__stack{
+    position:fixed;
+    left:0;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:60;
+    border-radius:0 12px 12px 0;
+    overflow:hidden;
+    box-shadow:0 8px 22px rgba(17,24,39,.16);
+    opacity:.96;
+  }
+
+  .price-legend-mobile__item{
+    width:42px;
+    height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-weight:700;
+    font-size:12px;
+    line-height:1;
+  }
+
+  .seat-tooltip{
+    position:fixed;
+    z-index:1000;
+    min-width:190px;
+    max-width:240px;
+    background:#f3e44f;
+    color:#111827;
+    border:1px solid rgba(0,0,0,.12);
+    border-radius:10px;
+    padding:10px 12px;
+    box-shadow:0 10px 24px rgba(0,0,0,.18);
+    font-size:14px;
+    line-height:1.35;
+    pointer-events:none;
+  }
+
+  .seat-tooltip__title{
+    font-weight:800;
+    margin-bottom:4px;
+  }
+
+  .seat-tooltip__line{
+    margin:0;
+  }
+
+  @media (max-width:1100px){
+    :root{
+      --hall-min-width:900px;
+    }
+    .hall-layout{
+      grid-template-columns:minmax(0,1fr) 300px;
+    }
+  }
+
+  @media (max-width:900px){
+    :root{
+      --seat-size:26px;
+      --hall-min-width:760px;
+    }
+
+    .hall-page{
+      padding:10px 0 18px;
+    }
+
+    .hall-hero{
+      border-radius:16px;
+      padding:14px;
+      margin-bottom:12px;
+    }
+
+    .hall-title{
+      font-size:24px;
+    }
+
+    .hall-subtitle{
+      font-size:14px;
+      line-height:1.35;
+    }
+
+    .hall-layout{
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .hall-sidebar{
+      position:static;
+      order:2;
+    }
+
+    .hall-left{
+      order:1;
+    }
+
+    .hall-shell,
+    .hall-summary-card{
+      border-radius:16px;
+    }
+
+    .hall-shell-head{
+      padding:14px;
+      gap:10px;
+    }
+
+    .hall-legend{
+      gap:8px 10px;
+      font-size:12px;
+    }
+
+    .hall-scroll{
+      padding:10px;
+      overflow:hidden !important;
+    }
+  }
+
+  @media (max-width:640px){
+    :root{
+      --seat-size:20px;
+      --seat-gap:2px;
+      --row-label-w:18px;
+      --hall-min-width:520px;
+    }
+
+    .container{
+      padding-left:8px;
+      padding-right:8px;
+    }
+
+    .hall-hero{
+      padding:10px 12px;
+      border-radius:14px;
+      margin-bottom:10px;
+    }
+
+    .hall-title{
+      font-size:18px;
+      line-height:1.1;
+      margin-bottom:0;
+    }
+
+    .hall-eyebrow{
+      font-size:10px;
+      margin-bottom:6px;
+    }
+
+    .hall-subtitle{
+      display:none;
+    }
+
+    .hall-badges{
+      display:none;
+    }
+
+    .hall-shell{
+      border-radius:14px;
+    }
+
+    .hall-shell-head{
+      padding:10px 12px 8px;
+      border-bottom:none;
+    }
+
+    .hall-shell-title,
+    .hall-shell-meta{
+      display:none;
+    }
+
+    .hall-legend{
+      font-size:11px;
+      gap:6px 10px;
+      justify-content:flex-start;
+    }
+
+    .hall-scroll{
+      padding:8px 6px 12px;
+      overflow-x:auto !important;
+      overflow-y:hidden !important;
+      -webkit-overflow-scrolling:touch;
+      touch-action:auto;
+    }
+
+    .hall-inner{
+      min-width:unset !important;
+      width:max-content;
+      margin:0 auto;
+    }
+
+    .stage-wrap{
+      margin:0 0 10px;
+    }
+
+    .stage{
+      width:min(92%,420px);
+      min-width:180px;
+      padding:8px 10px;
+      font-size:10px;
+    }
+
+    .hall-section{
+      margin-bottom:16px;
+    }
+
+    .hall-section-title{
+      font-size:10px;
+      margin-bottom:6px;
+    }
+
+    .parter-wrap{
+      gap:6px;
+    }
+
+    .hall-lodge{
+      min-width:30px;
+    }
+
+    .hall-lodge-label{
+      font-size:8px;
+      line-height:1.1;
+    }
+
+    .row-line{
+      gap:4px;
+      margin-bottom:3px;
+    }
+
+    .row-label{
+      font-size:9px;
+    }
+
+    .seat{
+      border-radius:6px;
+      font-size:9px;
+    }
+
+    .seat--gap-right{
+      margin-right:8px;
+    }
+
+    .amphi-gap{
+      width:10px;
+      flex:0 0 10px;
+    }
+
+    .hall-summary-card{
+      position:sticky;
+      bottom:0;
+      z-index:50;
+      border-radius:14px 14px 0 0;
+      padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+      box-shadow:0 -10px 28px rgba(17,24,39,.12);
+      border-bottom:none;
+    }
+
+    .hall-summary-title{
+      font-size:16px;
+      margin-bottom:6px;
+    }
+
+    .hall-summary-meta{
+      font-size:12px;
+      margin-bottom:4px;
+    }
+
+    .hall-summary-total{
+      font-size:18px;
+      margin-bottom:8px;
+    }
+
+    .hall-summary-help{
+      font-size:10px;
+      margin-top:8px;
+    }
+
+    #go-order.button-primary{
+      min-height:44px;
+      font-size:15px;
+      border-radius:12px;
+    }
+
+    .price-legend-mobile{
+      display:block;
+    }
+
+    .price-legend-mobile__stack{
+      left:0;
+      top:56%;
+    }
+
+    .price-legend-mobile__item{
+      width:40px;
+      height:46px;
+      font-size:11px;
+    }
+
+    .seat-tooltip{
+      min-width:170px;
+      max-width:220px;
+      font-size:13px;
+      padding:8px 10px;
+    }
+  }
+
+  @media (max-width:420px){
+    :root{
+      --hall-min-width:460px;
+      --seat-size:18px;
+      --seat-gap:2px;
+      --row-label-w:16px;
+    }
+
+    .hall-title{
+      font-size:18px;
+    }
+
+    .hall-summary-card{
+      padding:9px 9px calc(9px + env(safe-area-inset-bottom));
+    }
+
+    .hall-summary-total{
+      font-size:18px;
+    }
+
+    .seat{
+      font-size:8px;
+    }
+
+    .seat--gap-right{
+      margin-right:6px;
+    }
+
+    .amphi-gap{
+      width:8px;
+      flex:0 0 8px;
+    }
+
+    .price-legend-mobile__stack{
+      left:0;
+      top:58%;
+    }
+
+    .price-legend-mobile__item{
+      width:36px;
+      height:42px;
+      font-size:10px;
+    }
+  }
+</style>
+ 
+</head>
+<body>
+   <div id="seat-tooltip" class="seat-tooltip" hidden></div>
+  <div id="site-header"></div>
+
+  <main class="main hall-page">
+    <div class="container">
+
+      <section class="hall-hero">
+        <div class="hall-hero-top">
+          <div>
+            <div class="hall-eyebrow">Ваш Адмін • Онлайн продаж</div>
+            <h1 class="hall-title">Схема залу</h1>
+            <p class="hall-subtitle" id="hero-subtitle">
+              Оберіть місця та перейдіть до оформлення замовлення.
+            </p>
+          </div>
+
+          <div class="hall-badges">
+            <div class="hall-badge" id="hero-show-badge">Вистава: —</div>
+            <div class="hall-badge" id="hero-seance-badge">Сеанс: —</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="hall-layout">
+        <div class="hall-left">
+          <section class="hall-shell">
+            <div class="hall-shell-head">
+              <div>
+        <div id="priceLegendMobile" class="price-legend-mobile"></div>        
+                <h2 class="hall-shell-title" id="hall-title">Схема залу</h2>
+                <p class="hall-shell-meta" id="hall-meta">Оберіть місця на схемі нижче.</p>
+              </div>
+
+              <div class="hall-legend">
+                <div class="hall-legend-item">
+                  <span class="hall-legend-dot hall-legend-dot--free"></span>
+                  <span>Вільно</span>
+                </div>
+                <div class="hall-legend-item">
+                  <span class="hall-legend-dot hall-legend-dot--hold"></span>
+                  <span>Тимчасово заброньовано</span>
+                </div>
+                <div class="hall-legend-item">
+                  <span class="hall-legend-dot hall-legend-dot--taken"></span>
+                  <span>Продано</span>
+                </div>
+                <div class="hall-legend-item">
+                  <span class="hall-legend-dot hall-legend-dot--reserved"></span>
+                  <span>Резерв</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hall-scroll">
+  <div id="mobile-hall-viewport" class="mobile-hall-viewport">
+    <div id="mobile-hall-scale" class="mobile-hall-scale">
+      <div class="hall-inner">
+        <div class="stage-wrap">
+          <div class="stage">Сцена</div>
+        </div>
+
+        <div id="hall-root"></div>
+      </div>
+    </div>
+  </div>
+</div>
+          </section>
+        </div>
+
+        <aside class="hall-sidebar">
+          <div class="hall-summary-card">
+            <h2 class="hall-summary-title">Ваше замовлення</h2>
+
+            <p id="summary-show" class="hall-summary-meta">Вистава: —</p>
+            <p id="summary-places" class="hall-summary-meta">Обрані місця: немає</p>
+
+            <div class="hall-summary-divider"></div>
+
+            <p id="summary-amount" class="hall-summary-total">Сума: 0 грн</p>
+
+            <button id="go-order" class="button-primary" disabled>Перейти до оформлення</button>
+
+            <p class="hall-summary-help">
+              Кнопка стане активною, коли ви оберете хоча б одне місце.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <!-- <script type="module" src="../scripts/include.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // ===== STATE =====
+    let takenSeats = new Set();
+    let reservedSeats = new Set();
+    let holdSeats = new Set();
+    let SEANCE_CONFIG = null;
+
+    const qs = new URLSearchParams(location.search);
+
+    const showSlug  = (qs.get("show")   || "").trim();
+    const showTitle = (qs.get("title")  || "").trim() || showSlug || "Вистава";
+    const SEANCE_ID = (qs.get("seance") || "").trim();
+
+    const returnSeats = (qs.get("seats") || "")
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    let returnPrices = {};
+    try {
+      returnPrices = JSON.parse(qs.get("prices") || "{}");
+    } catch(e) {
+      returnPrices = {};
+    }
+
+    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    const selected = new Map(); // key -> { meta, price }
+
+    // ===== UI helpers =====
+    function setHeroInfo(hallTitleText = "Схема залу", seanceMeta = null) {
+  const showText =
+    (seanceMeta?.show || seanceMeta?.title || showTitle || "Вистава").trim();
+
+  const dateText = (seanceMeta?.date || "").trim();
+  const timeText = (seanceMeta?.time || "").trim();
+
+  const eyebrowEl = document.querySelector(".hall-eyebrow");
+  const titleEl = document.querySelector(".hall-title");
+  const subtitleEl = document.getElementById("hero-subtitle");
+
+  if (eyebrowEl) eyebrowEl.textContent = "Ваш Адмін • Онлайн продаж";
+  if (titleEl) titleEl.textContent = showText;
+
+  if (subtitleEl) {
+    subtitleEl.textContent =
+      [dateText, timeText].filter(Boolean).join(" • ") ||
+      "Оберіть місця та перейдіть до оформлення замовлення.";
+  }
+
+  const heroShowBadge = document.getElementById("hero-show-badge");
+  const heroSeanceBadge = document.getElementById("hero-seance-badge");
+  const hallTitleEl = document.getElementById("hall-title");
+  const hallMetaEl = document.getElementById("hall-meta");
+  const summaryShowEl = document.getElementById("summary-show");
+
+  if (heroShowBadge) heroShowBadge.textContent = "Вистава: " + showText;
+  if (heroSeanceBadge) {
+    heroSeanceBadge.textContent =
+      [dateText, timeText].filter(Boolean).join(" • ") || ("Сеанс: " + (SEANCE_ID || "—"));
+  }
+
+  if (hallTitleEl) hallTitleEl.textContent = hallTitleText || "Схема залу";
+  if (hallMetaEl) hallMetaEl.textContent = "Оберіть місця на схемі нижче.";
+  if (summaryShowEl) summaryShowEl.textContent = "Вистава: " + showText;
+}
+
+    function makeSectionTitle(text){
+      const el = document.createElement("div");
+      el.className = "hall-section-title";
+      el.textContent = text;
+      return el;
+    }
+
+    function seatKey(meta){
+      const row  = meta.row ?? meta.index ?? 0;
+      const seat = meta.seat ?? meta.index ?? 0;
+
+      if (meta.zone === "Партер") return `P${row}-M${seat}`;
+      if (String(meta.zone).startsWith("Амфітеатр")) return `A${row}-M${seat}`;
+      if (meta.zone === "Балкон") return `B${row}-M${seat}`;
+
+      if (meta.zone === "Ложа А") return `A0-M${seat}`;
+      if (meta.zone === "Ложа Б") return `B0-M${seat}`;
+
+      return `P${row}-M${seat}`;
+    }
+
+    function seatKeyToHuman(k){
+      const m = String(k).match(/^([PAB])(\d+)-M(\d+)$/i);
+      if (!m) return k;
+
+      const prefix = m[1].toUpperCase();
+      const row = Number(m[2]);
+      const seat = Number(m[3]);
+
+      if (prefix === "P") return `Ряд ${row}, місце ${seat} (Партер)`;
+      if (prefix === "A") return row === 0 ? `Ложа А, місце ${seat}` : `Ряд ${row}, місце ${seat} (Амфітеатр)`;
+      if (prefix === "B") return row === 0 ? `Ложа Б, місце ${seat}` : `Ряд ${row}, місце ${seat} (Балкон)`;
+      return k;
+    }
+
+    function applySeanceConfig(meta) {
+      if (!SEANCE_CONFIG) return null;
+
+      const key = seatKey(meta);
+
+      // 1️⃣ Индивидуальное место
+      if (SEANCE_CONFIG.seat_overrides?.[key]) {
+        return SEANCE_CONFIG.seat_overrides[key];
+      }
+
+      // 2️⃣ Правила по зонам / рядам
+      const zoneLetter =
+        meta.zone === "Партер" ? "P" :
+        String(meta.zone).startsWith("Амфітеатр") ? "A" :
+        meta.zone === "Балкон" ? "B" : null;
+
+      if (!zoneLetter) return null;
+
+      for (const rule in SEANCE_CONFIG.pricing) {
+        const m = rule.match(/^([PAB])(\d+)-(\d+)$/);
+        if (!m) continue;
+
+        const [, z, from, to] = m;
+        if (
+          z === zoneLetter &&
+          meta.row >= Number(from) &&
+          meta.row <= Number(to)
+        ) {
+          return SEANCE_CONFIG.pricing[rule];
+        }
+      }
+
+      return null;
+    }
+
+
+let activeTooltipSeat = null;
+let hideTooltipTimer = null;
+
+function zoneToHuman(zone){
+  if (zone === "Партер") return "Партер";
+  if (zone === "Балкон") return "Балкон";
+  if (zone === "Ложа А") return "Ложа А";
+  if (zone === "Ложа Б") return "Ложа Б";
+  if (String(zone).startsWith("Амфітеатр")) return "Амфітеатр";
+  return zone || "Сектор";
+}
+
+function formatPrice(value){
+  return `${Number(value || 0).toFixed(2)} грн`;
+}
+
+function getSeatTooltipHtml(meta, price){
+  const zone = zoneToHuman(meta?.zone);
+  const row = Number(meta?.row || 0);
+  const seat = Number(meta?.seat || 0);
+
+  return `
+    <div class="seat-tooltip__title">Додати в кошик</div>
+    <p class="seat-tooltip__line">${zone}, ряд: ${row}, місце: ${seat}</p>
+    <p class="seat-tooltip__line">Ціна: ${formatPrice(price)}</p>
+  `;
+}
+
+function showSeatTooltip(btn, meta, price){
+  const tip = document.getElementById("seat-tooltip");
+  if (!tip || !btn) return;
+
+  if (hideTooltipTimer) {
+    clearTimeout(hideTooltipTimer);
+    hideTooltipTimer = null;
+  }
+
+  tip.innerHTML = getSeatTooltipHtml(meta, price);
+  tip.hidden = false;
+
+  const rect = btn.getBoundingClientRect();
+
+  // сначала временно показываем для измерения
+  tip.style.left = "-9999px";
+  tip.style.top = "-9999px";
+
+  requestAnimationFrame(() => {
+    const tipRect = tip.getBoundingClientRect();
+    const gap = 10;
+
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    let top = rect.top - tipRect.height - gap;
+
+    if (left < 8) left = 8;
+    if (left + tipRect.width > window.innerWidth - 8) {
+      left = window.innerWidth - tipRect.width - 8;
+    }
+
+    if (top < 8) {
+      top = rect.bottom + gap;
+    }
+
+    if (top + tipRect.height > window.innerHeight - 8) {
+      top = Math.max(8, window.innerHeight - tipRect.height - 8);
+    }
+
+    tip.style.left = `${left}px`;
+    tip.style.top = `${top}px`;
+  });
+
+  activeTooltipSeat = btn;
+}
+
+function hideSeatTooltip(force = false){
+  const tip = document.getElementById("seat-tooltip");
+  if (!tip) return;
+
+  if (force) {
+    tip.hidden = true;
+    activeTooltipSeat = null;
+    if (hideTooltipTimer) {
+      clearTimeout(hideTooltipTimer);
+      hideTooltipTimer = null;
+    }
+    return;
+  }
+
+  if (hideTooltipTimer) clearTimeout(hideTooltipTimer);
+
+  hideTooltipTimer = setTimeout(() => {
+    tip.hidden = true;
+    activeTooltipSeat = null;
+    hideTooltipTimer = null;
+  }, 120);
+}
+
+function showSeatTooltipTemporarily(btn, meta, price, ms = 1400){
+  showSeatTooltip(btn, meta, price);
+
+  if (hideTooltipTimer) clearTimeout(hideTooltipTimer);
+
+  hideTooltipTimer = setTimeout(() => {
+    hideSeatTooltip(true);
+  }, ms);
+}
+    
+    function makeSeatElement(key, label, extraClass, price, meta){
+  let finalPrice = price;
+  let finalClass = extraClass || "";
+  let saleAllowed = true;
+
+  const cfg = applySeanceConfig(meta);
+  if (cfg) {
+    if (cfg.price !== undefined) finalPrice = cfg.price;
+    if (cfg.class) finalClass = cfg.class;
+    if (cfg.sale === false) saleAllowed = false;
+  }
+
+  const btn = document.createElement("button");
+  btn.dataset.key = key;
+  btn.type = "button";
+  btn.textContent = label;
+  btn.className = "seat" + (finalClass ? " " + finalClass : "");
+  btn.dataset.price = String(finalPrice || 0);
+
+  if (cfg && cfg.color) {
+    btn.style.background = cfg.color;
+    btn.style.color = "#fff";
+  }
+
+  if (takenSeats.has(key)) {
+    btn.classList.add("seat--taken");
+    btn.disabled = true;
+  } else if (reservedSeats.has(key)) {
+    btn.classList.add("seat--reserved");
+    btn.disabled = true;
+  } else if (holdSeats.has(key)) {
+    btn.classList.add("seat--hold");
+    btn.disabled = true;
+  }
+
+  if (!saleAllowed) {
+    btn.classList.add("seat--no-sale");
+    btn.disabled = true;
+  }
+
+  // desktop hover
+  btn.addEventListener("mouseenter", () => {
+    showSeatTooltip(btn, meta, finalPrice);
+  });
+
+  btn.addEventListener("mouseleave", () => {
+    hideSeatTooltip();
+  });
+
+  // mobile / touch hint
+  btn.addEventListener("touchstart", () => {
+    showSeatTooltipTemporarily(btn, meta, finalPrice, 1500);
+  }, { passive: true });
+
+  // обычный клик выбора
+  btn.addEventListener("click", ()=>onSeatClick(btn, key, meta, finalPrice));
+
+  return btn;
+}
+
+    // ===== Supabase loaders =====
+    async function loadTakenSeats(){
+      if (!SEANCE_ID) return;
+
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seat_label`,
+          {
+            headers:{
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+            }
+          }
+        );
+
+        const rows = await res.json();
+        takenSeats = new Set((rows || []).map(r => r.seat_label));
+      } catch(e){
+        console.warn("loadTakenSeats error", e);
+      }
+    }
+
+    async function loadBookingSeats() {
+      if (!SEANCE_ID) return;
+
+      try {
+        const nowIso = new Date().toISOString();
+
+        holdSeats.clear();
+        reservedSeats.clear();
+
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
+          {
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+            }
+          }
+        );
+
+        const bookings = await res.json();
+        if (!Array.isArray(bookings)) return;
+
+        for (const b of bookings) {
+          const arr = Array.isArray(b.seats) ? b.seats : [];
+
+          if (b.status === "hold") {
+            if (b.expires_at && b.expires_at <= nowIso) continue;
+
+            for (const seat of arr) {
+              if (seat) holdSeats.add(String(seat).trim());
+            }
+          }
+
+          if (b.status === "reserved") {
+            for (const seat of arr) {
+              if (seat) reservedSeats.add(String(seat).trim());
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("loadBookingSeats error", e);
+      }
+    }
+
+    async function loadSeanceConfig() {
+      if (!SEANCE_ID) return null;
+
+      try {
+        const url =
+          `${SUPABASE_URL}/rest/v1/seances_pricing` +
+          `?seance_id=eq.${encodeURIComponent(SEANCE_ID)}` +
+          `&select=pricing,seat_overrides,hall`;
+
+        const res = await fetch(url, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          cache: "no-store"
+        });
+
+        if (res.ok) {
+          const rows = await res.json();
+          if (rows && rows.length) {
+            return {
+              pricing: rows[0].pricing || {},
+              seat_overrides: rows[0].seat_overrides || {},
+              hall: rows[0].hall || "academy"
+            };
+          }
+        }
+      } catch (e) {
+        console.warn("loadSeanceConfig supabase error", e);
+      }
+
+      try {
+        const res = await fetch(`../data/seances/${SEANCE_ID}.json`, {
+          cache: "no-store"
+        });
+
+        if (!res.ok) return null;
+
+        const localCfg = await res.json();
+        return {
+          pricing: localCfg?.pricing || {},
+          seat_overrides: localCfg?.seat_overrides || {},
+          hall: localCfg?.hall || "academy"
+        };
+      } catch (e) {
+        console.warn("loadSeanceConfig local fallback error", e);
+        return null;
+      }
+    }
+
+async function loadSeanceMeta() {
+  if (!SEANCE_ID) return null;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(SEANCE_ID)}&select=*`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        cache: "no-store"
+      }
+    );
+
+    if (!res.ok) {
+      console.warn("loadSeanceMeta HTTP", res.status);
+      return null;
+    }
+
+    const rows = await res.json();
+    console.log("SEANCE_META rows =", rows);
+
+    if (!Array.isArray(rows) || !rows.length) return null;
+
+    const row = rows[0];
+
+    return {
+      show: row.show || row.title || row.name || "",
+      date: row.date || "",
+      time: row.time || "",
+      venue_id: row.venue_id || ""
+    };
+  } catch (e) {
+    console.warn("loadSeanceMeta error", e);
+    return null;
+  }
+}
+// ===== Universal hall renderer =====
+function renderRowsSection(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const seatsRow = document.createElement("div");
+    seatsRow.className = "seats-row";
+
+    const offset = Number(r.offset || 0);
+for (let i = 0; i < offset; i++) {
+  const spacer = document.createElement("div");
+  spacer.className = "seat seat--empty";
+  seatsRow.appendChild(spacer);
+}
+
+// спец-поправка для 1 ряда Академии:
+// добавляем ширину прохода между 6 и 7 местом второго ряда
+if (r._academyLeadGap) {
+  const gap = document.createElement("div");
+  gap.className = "amphi-gap";
+  seatsRow.appendChild(gap);
+}
+
+    const seats = Number(r.seats || 0);
+    const aisles = Array.isArray(r.aisles) ? r.aisles : [];
+
+    for (let s = 1; s <= seats; s++) {
+      const meta = {
+        zone: section.zone || "Партер",
+        row: Number(r.row || 0),
+        seat: s
+      };
+
+      const cls = aisles.includes(s) ? "seat--gap-right" : "";
+
+      seatsRow.appendChild(
+        makeSeatElement(seatKey(meta), s, cls, 0, meta)
+      );
+    }
+
+    rowLine.appendChild(seatsRow);
+    wrap.appendChild(rowLine);
+
+    if (r.gapAfter) {
+      const gap = document.createElement("div");
+      gap.style.height = "34px";
+      wrap.appendChild(gap);
+    }
+  });
+
+  return wrap;
+}
+
+function renderLodgesVertical(section){
+  const lodge = document.createElement("div");
+  lodge.className = "hall-lodge";
+
+  const label = document.createElement("div");
+  label.className = "hall-lodge-label";
+  label.textContent = section.title || "Ложа";
+
+  const seatsCol = document.createElement("div");
+  seatsCol.className = "hall-lodge-seats";
+
+  const count = Number(section.seat_count || 0);
+  const row = Number(section.row || 0);
+  const zone = section.zone || "Ложа А";
+
+  for (let i = 1; i <= count; i++) {
+    const meta = {
+      zone,
+      row,
+      seat: i,
+      index: i
+    };
+
+    seatsCol.appendChild(
+      makeSeatElement(seatKey(meta), i, "", 0, meta)
+    );
+  }
+
+  lodge.appendChild(label);
+  lodge.appendChild(seatsCol);
+  return lodge;
+}
+
+function renderSplitRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  let maxRightCount = 0;
+  for (const r of rows) {
+    const count = Number(r?.right?.count || 0);
+    if (count > maxRightCount) maxRightCount = count;
+  }
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const left = document.createElement("div");
+    left.className = "seats-row";
+
+    if (r.left) {
+      const start = Number(r.left.start || 1);
+      const count = Number(r.left.count || 0);
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = start + i;
+        const meta = {
+          zone: section.zone || "Амфітеатр",
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        left.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+    }
+
+    rowLine.appendChild(left);
+
+    const gap = document.createElement("div");
+    gap.className = "amphi-gap";
+    rowLine.appendChild(gap);
+
+    const right = document.createElement("div");
+    right.className = "seats-row";
+
+    if (r.right) {
+      const start = Number(r.right.start || 1);
+      const count = Number(r.right.count || 0);
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = start + i;
+        const meta = {
+          zone: section.zone || "Амфітеатр",
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        right.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+    } else {
+      for (let i = 0; i < maxRightCount; i++) {
+        const empty = document.createElement("div");
+        empty.className = "seat seat--empty";
+        right.appendChild(empty);
+      }
+    }
+
+    rowLine.appendChild(right);
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
+}
+
+function renderCustomRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const seatsRow = document.createElement("div");
+    seatsRow.className = "seats-row";
+
+    const layout = Array.isArray(r.layout) ? r.layout : [];
+
+    layout.forEach(item => {
+      if (item.kind === "seat_range") {
+        const start = Number(item.start || 1);
+        const count = Number(item.count || 0);
+
+        for (let i = 0; i < count; i++) {
+          const seatNum = start + i;
+          const meta = {
+            zone: section.zone || "Балкон",
+            row: Number(r.row || 0),
+            seat: seatNum
+          };
+
+          seatsRow.appendChild(
+            makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+          );
+        }
+      }
+
+      if (item.kind === "gap") {
+        const count = Number(item.count || 1);
+        for (let i = 0; i < count; i++) {
+          const gap = document.createElement("div");
+          gap.className = "amphi-gap";
+          seatsRow.appendChild(gap);
+        }
+      }
+
+      if (item.kind === "empty") {
+        const count = Number(item.count || 1);
+        for (let i = 0; i < count; i++) {
+          const empty = document.createElement("div");
+          empty.className = "seat seat--empty";
+          seatsRow.appendChild(empty);
+        }
+      }
+    });
+
+    rowLine.appendChild(seatsRow);
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
+}
+
+function renderHallSections(hallData){
+  const root = document.getElementById("hall-root");
+  if (!root) return;
+
+  root.innerHTML = "";
+
+  const sections = Array.isArray(hallData.sections) ? hallData.sections : [];
+
+  const parter = sections.find(s => s.id === "parter");
+  const lodgeA = sections.find(s => s.id === "lodge_a");
+  const lodgeB = sections.find(s => s.id === "lodge_b");
+
+  if (parter) {
+    const section = document.createElement("section");
+    section.className = "hall-section";
+
+    section.appendChild(makeSectionTitle(parter.title || "Партер"));
+
+    if (lodgeA || lodgeB) {
+      const parterWrap = document.createElement("div");
+      parterWrap.className = "parter-wrap";
+
+      if (lodgeA) {
+        parterWrap.appendChild(renderLodgesVertical(lodgeA));
+      }
+
+      const parterRowsWrap = document.createElement("div");
+      const rowsOnlySection = renderRowsSection({
+        title: "",
+        zone: parter.zone,
+        rows: parter.rows
+      });
+
+      Array.from(rowsOnlySection.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          parterRowsWrap.appendChild(ch);
+        }
+      });
+
+      parterWrap.appendChild(parterRowsWrap);
+
+      if (lodgeB) {
+        parterWrap.appendChild(renderLodgesVertical(lodgeB));
+      }
+
+      section.appendChild(parterWrap);
+    } else {
+      const rowsRendered = renderRowsSection(parter);
+      Array.from(rowsRendered.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          section.appendChild(ch);
+        }
+      });
+    }
+
+    root.appendChild(section);
+  }
+
+  sections.forEach(section => {
+    if (["parter", "lodge_a", "lodge_b"].includes(section.id)) return;
+
+    if (section.type === "rows") {
+      root.appendChild(renderRowsSection(section));
+    }
+
+    if (section.type === "split_rows") {
+      root.appendChild(renderSplitRows(section));
+    }
+
+    if (section.type === "custom_rows") {
+      root.appendChild(renderCustomRows(section));
+    }
+  });
+}
+
+function renderSimpleRows(hallData) {
+  const root = document.getElementById("hall-root");
+  if (!root) return;
+
+  root.innerHTML = "";
+
+  const rows = Array.isArray(hallData?.rows)
+    ? hallData.rows.map(r => ({ ...r }))
+    : [];
+
+  const isAcademy =
+    hallData?.name && String(hallData.name).toLowerCase().includes("академ");
+
+  if (isAcademy) {
+    const row1 = rows.find(r => Number(r.row) === 1);
+
+    if (row1) {
+      row1.offset = 6;
+      row1._academyLeadGap = true;
+    }
+  }
+
+  const section = {
+    title: "",
+    zone: "Партер",
+    rows
+  };
+
+  root.appendChild(renderRowsSection(section));
+}
+
+function renderPriceLegendMobile() {
+  const box = document.getElementById("priceLegendMobile");
+  if (!box) return;
+
+  if (window.innerWidth > 640) {
+    box.innerHTML = "";
+    return;
+  }
+
+  const byPrice = new Map();
+
+  const addCfg = (cfg) => {
+    if (!cfg || cfg.price == null || !cfg.color) return;
+
+    const price = Number(cfg.price);
+    const color = String(cfg.color).trim();
+
+    if (!Number.isFinite(price) || !color) return;
+
+    if (!byPrice.has(price)) {
+      byPrice.set(price, color);
+    }
+  };
+
+  Object.values(SEANCE_CONFIG?.pricing || {}).forEach(addCfg);
+  Object.values(SEANCE_CONFIG?.seat_overrides || {}).forEach(addCfg);
+
+  const items = [...byPrice.entries()].sort((a, b) => a[0] - b[0]);
+
+  if (!items.length) {
+    box.innerHTML = "";
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="price-legend-mobile__stack">
+      ${items.map(([price, color]) => `
+        <div class="price-legend-mobile__item" style="background:${color}">
+          ${price}
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function applyMobileHallScale() {
+  const viewport = document.getElementById("mobile-hall-viewport");
+  const scaleWrap = document.getElementById("mobile-hall-scale");
+  const hallScroll = document.querySelector(".hall-scroll");
+
+  if (!viewport || !scaleWrap || !hallScroll) return;
+
+  const hallInner = scaleWrap.querySelector(".hall-inner");
+  if (!hallInner) return;
+
+  if (window.innerWidth > 640) {
+    scaleWrap.style.transform = "scale(1)";
+    viewport.style.height = "";
+    viewport.style.width = "";
+    hallScroll.scrollLeft = 0;
+    return;
+  }
+
+  scaleWrap.style.transform = "scale(1)";
+  viewport.style.height = "";
+  viewport.style.width = "";
+
+  const rect = hallScroll.getBoundingClientRect();
+  const contentWidth = hallInner.scrollWidth;
+  const contentHeight = hallInner.scrollHeight;
+
+  if (!contentWidth || !contentHeight) return;
+
+  const availableWidth = hallScroll.clientWidth;
+  const availableHeight = Math.max(window.innerHeight - rect.top - 140, 220);
+
+  const scaleByWidth = availableWidth / contentWidth;
+  const scaleByHeight = availableHeight / contentHeight;
+
+  let scale = Math.min(scaleByWidth, scaleByHeight, 1);
+  scale = Math.max(scale, 0.20);
+
+  scaleWrap.style.transform = `scale(${scale})`;
+  viewport.style.width = `${contentWidth * scale}px`;
+  viewport.style.height = `${contentHeight * scale}px`;
+
+  requestAnimationFrame(() => {
+    const maxScroll = hallScroll.scrollWidth - hallScroll.clientWidth;
+    if (maxScroll > 0) {
+      hallScroll.scrollLeft = Math.round(maxScroll / 2);
+    }
+  });
+}
+
+// ===== Selection / holds =====
+async function onSeatClick(btn, key, meta, price){
+  if (!SEANCE_ID) return;
+
+  if (takenSeats.has(key) || reservedSeats.has(key)) return;
+
+  if (selected.has(key)) {
+    try {
+      const findRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&select=id,seats`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+
+      const rows = await findRes.json();
+
+      const myHold = Array.isArray(rows)
+        ? rows.find(r => Array.isArray(r.seats) && r.seats.includes(key))
+        : null;
+
+      if (myHold?.id) {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(myHold.id)}`,
+          {
+            method: "PATCH",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              status: "cancelled"
+            })
+          }
+        );
+      }
+    } catch (e) {
+      console.warn("cancel hold error", e);
+    }
+
+    selected.delete(key);
+    holdSeats.delete(key);
+
+    btn.classList.remove("seat--selected", "seat--hold");
+    btn.disabled = false;
+
+    updateSummary();
+    return;
+  }
+
+  if (holdSeats.has(key)) return;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({
+        seance_id: SEANCE_ID,
+        show_slug: showSlug || "demo",
+        seats: [key],
+        status: "hold",
+        amount: Number(price || 0),
+        order_id: `hold-${Date.now()}`,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("hold create error", data);
+      return;
+    }
+
+    holdSeats.add(key);
+
+    btn.classList.add("seat--hold", "seat--selected");
+    btn.disabled = false;
+
+    selected.set(key, { meta, price });
+
+    updateSummary();
+
+  } catch (e) {
+    console.error("booking insert error", e);
+  }
+}
+
+function updateSummary(){
+  const placesEl = document.getElementById("summary-places");
+  const amountEl = document.getElementById("summary-amount");
+  const btn = document.getElementById("go-order");
+
+  const keys = Array.from(selected.keys());
+  if (!keys.length){
+    placesEl.textContent = "Обрані місця: немає";
+    amountEl.textContent = "Сума: 0 грн";
+    btn.disabled = true;
+    return;
+  }
+
+  const placesStr = keys.map(seatKeyToHuman).join("; ");
+  const total = Array.from(selected.values()).reduce((sum,x)=> sum + (x.price||0), 0);
+
+  placesEl.textContent = "Обрані місця: " + placesStr;
+  amountEl.textContent = "Сума: " + total + " грн";
+  btn.disabled = false;
+}
+
+// ===== Go to order =====
+document.getElementById("go-order").addEventListener("click", ()=>{
+  const entries = Array.from(selected.entries());
+  if (!entries.length) return;
+
+  const keys = entries.map(([k]) => k);
+
+  const prices = {};
+  let total = 0;
+
+  for (const [key, val] of entries) {
+    const p = Number(val.price || 0);
+    prices[key] = p;
+    total += p;
+  }
+
+  const u = new URL("./order.html", location.href);
+
+  u.searchParams.set("show", showSlug);
+  u.searchParams.set("title", showTitle);
+  u.searchParams.set("seance", SEANCE_ID);
+  u.searchParams.set("seats", keys.join(","));
+  u.searchParams.set("prices", JSON.stringify(prices));
+  u.searchParams.set("amount", String(total));
+
+  location.href = u.toString();
+});
+
+// ===== Boot =====
+(async ()=>{
+  SEANCE_CONFIG = await loadSeanceConfig();
+  const SEANCE_META = await loadSeanceMeta();
+
+  const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
+
+  const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
+    cache: "no-store"
+  });
+
+  if (!hallRes.ok) {
+    throw new Error(`Hall JSON not found: ${hallFile}.json`);
+  }
+
+  const HALL = await hallRes.json();
+
+  setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
+
+  await loadTakenSeats();
+  await loadBookingSeats();
+
+  if (Array.isArray(HALL?.sections)) {
+    renderHallSections(HALL);
+  } else {
+    renderSimpleRows(HALL);
+  }
+
+  renderPriceLegendMobile();
+  setTimeout(applyMobileHallScale, 0);
+
+  if (returnSeats.length) {
+    for (const key of returnSeats) {
+      const btn = document.querySelector(`.seat[data-key="${key}"]`);
+      if (!btn) continue;
+
+      if (takenSeats.has(key) || reservedSeats.has(key) || holdSeats.has(key)) {
+        btn.classList.remove("seat--selected");
+        continue;
+      }
+
+      const price = Number(returnPrices[key] || btn.dataset.price || 0);
+
+      selected.set(key, {
+        meta: null,
+        price
+      });
+
+      btn.classList.add("seat--selected");
+    }
+  }
+
+  updateSummary();
+
+  setInterval(async () => {
+    await loadTakenSeats();
+    await loadBookingSeats();
+
+    let summaryChanged = false;
+
+    document.querySelectorAll(".seat").forEach(btn => {
+      const key = btn.dataset?.key;
+      if (!key) return;
+
+      const isSelected = selected.has(key);
+
+      btn.classList.remove("seat--taken", "seat--hold", "seat--reserved");
+
+      if (takenSeats.has(key)) {
+        if (isSelected) {
+          selected.delete(key);
+          btn.classList.remove("seat--selected");
+          summaryChanged = true;
+        }
+
+        btn.classList.add("seat--taken");
+        btn.disabled = true;
+        return;
+      }
+
+      if (reservedSeats.has(key)) {
+        if (isSelected) {
+          selected.delete(key);
+          btn.classList.remove("seat--selected");
+          summaryChanged = true;
+        }
+
+        btn.classList.add("seat--reserved");
+        btn.disabled = true;
+        return;
+      }
+
+      if (holdSeats.has(key)) {
+        btn.classList.add("seat--hold");
+
+        if (isSelected) {
+          btn.classList.add("seat--selected");
+          btn.disabled = false;
+        } else {
+          btn.disabled = true;
+        }
+        return;
+      }
+
+      btn.disabled = btn.classList.contains("seat--no-sale");
+
+      if (isSelected) {
+        btn.classList.add("seat--selected"); 
+      }
+    });
+
+    if (summaryChanged) {
+      updateSummary();
+    }
+
+  }, 3000);
+})();
+
+    
+   window.addEventListener("resize", () => {
+  setTimeout(() => {
+    applyMobileHallScale();
+    renderPriceLegendMobile();
+  }, 0);
+});
+
+   window.addEventListener("scroll", () => hideSeatTooltip(true), true);
+window.addEventListener("resize", () => hideSeatTooltip(true));
+document.addEventListener("click", (e) => {
+  const tip = document.getElementById("seat-tooltip");
+  if (!tip) return;
+
+  const target = e.target;
+  if (!(target instanceof Element)) return;
+
+  if (!target.classList.contains("seat")) {
+    hideSeatTooltip(true);
+  }
+}); 
+    
+  </script>
+</body>
+</html>
