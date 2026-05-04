@@ -1543,16 +1543,6 @@ async function sellAndPrintOffline(){
     // ---- render blocks ----
     
 
-// ===== ПРОХОД МЕЖДУ РЯДАМИ =====
-if (r.gapAfter) {
-  const gap = document.createElement("div");
-  gap.style.height = "40px";   // ← ВОТ ТУТ регулируешь размер прохода
-  gap.style.width = "100%";
-  block.appendChild(gap);
-}
-    
-  });
-}
 
 function makeSectionTitle(text){
   const el = document.createElement("div");
