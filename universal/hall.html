@@ -1923,7 +1923,7 @@ document.getElementById("go-order").addEventListener("click", ()=>{
  const VENUE = await loadVenue(SEANCE_META?.venue_id);
 
 const hallFile = (
-  VENUE?.hall_schema ||
+  VENUE?.default_hall ||
   SEANCE_CONFIG?.hall ||
   "academy"
 ).trim();
