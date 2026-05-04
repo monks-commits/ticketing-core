@@ -1329,6 +1329,37 @@ async function loadSeanceMeta() {
     return null;
   }
 }
+
+async function loadVenue(venueId) {
+  if (!venueId) return null;
+
+  try {
+    const res = await fetch(
+  `${SUPABASE_URL}/rest/v1/venues?id=eq.${encodeURIComponent(venueId)}&select=id,name,default_hall`,
+  {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    },
+    cache: "no-store"
+  }
+);
+
+    if (!res.ok) {
+      console.warn("loadVenue HTTP", res.status);
+      return null;
+    }
+
+    const rows = await res.json();
+    if (!Array.isArray(rows) || !rows.length) return null;
+
+    return rows[0];
+  } catch (e) {
+    console.warn("loadVenue error", e);
+    return null;
+  }
+}
+    
 // ===== Universal hall renderer =====
 function renderRowsSection(section){
   const wrap = document.createElement("section");
@@ -1581,81 +1612,106 @@ function renderCustomRows(section){
   return wrap;
 }
 
+function renderHorizontalGroup(group, sectionsMap){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  if (group.title) {
+    wrap.appendChild(makeSectionTitle(group.title));
+  }
+
+  const row = document.createElement("div");
+  row.className = "parter-wrap";
+
+  const items = Array.isArray(group.items) ? group.items : [];
+
+  items.forEach(id => {
+    const section = sectionsMap.get(id);
+    if (!section) return;
+
+    if (section.type === "rows") {
+      const rowsRendered = renderRowsSection({
+        ...section,
+        title: ""
+      });
+
+      const inner = document.createElement("div");
+
+      Array.from(rowsRendered.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          inner.appendChild(ch);
+        }
+      });
+
+      row.appendChild(inner);
+      return;
+    }
+
+    if (section.type === "lodges_vertical") {
+      row.appendChild(renderLodgesVertical(section));
+      return;
+    }
+
+    console.warn("Unsupported horizontal_group item:", section.type, section);
+  });
+
+  wrap.appendChild(row);
+  return wrap;
+}
+    
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
 
   root.innerHTML = "";
 
-  const sections = Array.isArray(hallData.sections) ? hallData.sections : [];
-
-  const parter = sections.find(s => s.id === "parter");
-  const lodgeA = sections.find(s => s.id === "lodge_a");
-  const lodgeB = sections.find(s => s.id === "lodge_b");
-
-  if (parter) {
-    const section = document.createElement("section");
-    section.className = "hall-section";
-
-    section.appendChild(makeSectionTitle(parter.title || "Партер"));
-
-    if (lodgeA || lodgeB) {
-      const parterWrap = document.createElement("div");
-      parterWrap.className = "parter-wrap";
-
-      if (lodgeA) {
-        parterWrap.appendChild(renderLodgesVertical(lodgeA));
-      }
-
-      const parterRowsWrap = document.createElement("div");
-      const rowsOnlySection = renderRowsSection({
-        title: "",
-        zone: parter.zone,
-        rows: parter.rows
-      });
-
-      Array.from(rowsOnlySection.children).forEach(ch => {
-        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
-          parterRowsWrap.appendChild(ch);
-        }
-      });
-
-      parterWrap.appendChild(parterRowsWrap);
-
-      if (lodgeB) {
-        parterWrap.appendChild(renderLodgesVertical(lodgeB));
-      }
-
-      section.appendChild(parterWrap);
-    } else {
-      const rowsRendered = renderRowsSection(parter);
-      Array.from(rowsRendered.children).forEach(ch => {
-        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
-          section.appendChild(ch);
-        }
-      });
-    }
-
-    root.appendChild(section);
-  }
+  const sections = Array.isArray(hallData?.sections) ? hallData.sections : [];
+  const sectionsMap = new Map();
 
   sections.forEach(section => {
-    if (["parter", "lodge_a", "lodge_b"].includes(section.id)) return;
+    if (section?.id) sectionsMap.set(section.id, section);
+  });
+
+  sections.forEach(section => {
+    if (!section || !section.type) return;
+    if (section.hidden === true) return;
+
+    if (section.type === "horizontal_group") {
+      root.appendChild(renderHorizontalGroup(section, sectionsMap));
+      return;
+    }
 
     if (section.type === "rows") {
       root.appendChild(renderRowsSection(section));
+      return;
     }
 
     if (section.type === "split_rows") {
       root.appendChild(renderSplitRows(section));
+      return;
     }
 
     if (section.type === "custom_rows") {
       root.appendChild(renderCustomRows(section));
+      return;
     }
+
+    if (section.type === "lodges_vertical") {
+      const wrap = document.createElement("section");
+      wrap.className = "hall-section";
+
+      if (section.title) {
+        wrap.appendChild(makeSectionTitle(section.title));
+      }
+
+      wrap.appendChild(renderLodgesVertical(section));
+      root.appendChild(wrap);
+      return;
+    }
+
+    console.warn("Unknown hall section type:", section.type, section);
   });
 }
-
 function renderSimpleRows(hallData) {
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -1666,17 +1722,7 @@ function renderSimpleRows(hallData) {
     ? hallData.rows.map(r => ({ ...r }))
     : [];
 
-  const isAcademy =
-    hallData?.name && String(hallData.name).toLowerCase().includes("академ");
-
-  if (isAcademy) {
-    const row1 = rows.find(r => Number(r.row) === 1);
-
-    if (row1) {
-      row1.offset = 6;
-      row1._academyLeadGap = true;
-    }
-  }
+  
 
   const section = {
     title: "",
@@ -1932,9 +1978,15 @@ document.getElementById("go-order").addEventListener("click", ()=>{
   SEANCE_CONFIG = await loadSeanceConfig();
   const SEANCE_META = await loadSeanceMeta();
 
-  const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
+ const VENUE = await loadVenue(SEANCE_META?.venue_id);
 
-  const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
+const hallFile = (
+  VENUE?.default_hall ||
+  SEANCE_CONFIG?.hall ||
+  "academy"
+).trim();
+
+  const hallRes = await fetch(`../data/hall/${hallFile}.json`, {
     cache: "no-store"
   });
 
