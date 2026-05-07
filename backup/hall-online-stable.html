@@ -1619,6 +1619,50 @@ function renderMultiBlockRows(section){
 
   return wrap;
 }
+
+function renderSideVertical(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const box = document.createElement("div");
+  box.className = "parter-wrap";
+
+  const col = document.createElement("div");
+  col.className = "hall-lodge";
+
+  const seatsCol = document.createElement("div");
+  seatsCol.className = "hall-lodge-seats";
+
+  const row = Number(section.row || 0);
+  const start = Number(section.start || 1);
+  const count = Number(section.count || 0);
+  const reverse = section.reverse === true;
+
+  for (let i = 0; i < count; i++) {
+    const seatNum = reverse ? start - i : start + i;
+
+    const meta = {
+      zone: section.zone || section.title || "Боковий сектор",
+      prefix: section.prefix || null,
+      row,
+      seat: seatNum
+    };
+
+    seatsCol.appendChild(
+      makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+    );
+  }
+
+  col.appendChild(seatsCol);
+  box.appendChild(col);
+  wrap.appendChild(box);
+
+  return wrap;
+}
     
 function renderCustomRows(section){
   const wrap = document.createElement("section");
