@@ -944,27 +944,37 @@
       el.textContent = text;
       return el;
     }
-
-   function seatKey(meta){
+function seatKey(meta){
   const row  = meta.row ?? meta.index ?? 0;
   const seat = meta.seat ?? meta.index ?? 0;
 
-  // ✅ новый универсальный вариант
+  // ✅ Новый универсальный режим
   if (meta.prefix) {
     return `${meta.prefix}${row}-M${seat}`;
   }
 
-  // ✅ fallback для старых схем
+  // ✅ Старые схемы продолжают работать
   if (meta.zone === "Партер") return `P${row}-M${seat}`;
-  if (String(meta.zone).startsWith("Амфітеатр")) return `A${row}-M${seat}`;
-  if (meta.zone === "Балкон") return `B${row}-M${seat}`;
 
-  if (meta.zone === "Ложа А") return `A0-M${seat}`;
-  if (meta.zone === "Ложа Б") return `B0-M${seat}`;
+  if (String(meta.zone).startsWith("Амфітеатр")) {
+    return `A${row}-M${seat}`;
+  }
+
+  if (meta.zone === "Балкон") {
+    return `B${row}-M${seat}`;
+  }
+
+  if (meta.zone === "Ложа А") {
+    return `A0-M${seat}`;
+  }
+
+  if (meta.zone === "Ложа Б") {
+    return `B0-M${seat}`;
+  }
 
   return `P${row}-M${seat}`;
 }
-
+   
     function seatKeyToHuman(k){
       const m = String(k).match(/^([PAB])(\d+)-M(\d+)$/i);
       if (!m) return k;
