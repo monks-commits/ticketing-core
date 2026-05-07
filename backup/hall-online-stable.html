@@ -1765,7 +1765,11 @@ function renderHallSections(hallData){
       root.appendChild(renderSplitRows(section));
       return;
     }
-
+if (section.type === "multi_block_rows") {
+  root.appendChild(renderMultiBlockRows(section));
+  return;
+}
+    
     if (section.type === "custom_rows") {
       root.appendChild(renderCustomRows(section));
       return;
