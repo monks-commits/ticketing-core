@@ -1561,6 +1561,65 @@ function renderSplitRows(section){
   return wrap;
 }
 
+function renderMultiBlockRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const blocks = Array.isArray(r.blocks) ? r.blocks : [];
+
+    blocks.forEach((block, index) => {
+      const seatsRow = document.createElement("div");
+      seatsRow.className = "seats-row";
+
+      const start = Number(block.start || 1);
+      const count = Number(block.count || 0);
+      const reverse = block.reverse === true;
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = reverse
+          ? start - i
+          : start + i;
+
+        const meta = {
+          zone: section.zone || section.title || "Партер",
+          prefix: section.prefix || null,
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        seatsRow.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+
+      rowLine.appendChild(seatsRow);
+
+      if (index < blocks.length - 1) {
+        const gap = document.createElement("div");
+        gap.className = "amphi-gap";
+        rowLine.appendChild(gap);
+      }
+    });
+
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
+}
+    
 function renderCustomRows(section){
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
