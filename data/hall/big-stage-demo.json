@@ -112,12 +112,36 @@
     },
 
     {
-      "id": "balcony_label",
-      "type": "custom_rows",
-      "title": "Балкон",
-      "zone": "Балкон",
-      "prefix": "B",
-      "rows": []
-    }
+  "id": "side_left",
+  "type": "side_vertical",
+  "title": "",
+  "zone": "Лівий сектор",
+  "prefix": "L",
+  "row": 1,
+  "start": 26,
+  "count": 25,
+  "reverse": false
+},
+
+{
+  "id": "side_right",
+  "type": "side_vertical",
+  "title": "",
+  "zone": "Правий сектор",
+  "prefix": "R",
+  "row": 1,
+  "start": 1,
+  "count": 25,
+  "reverse": false
+},
+
+{
+  "id": "balcony_label",
+  "type": "custom_rows",
+  "title": "Балкон",
+  "zone": "Балкон",
+  "prefix": "B",
+  "rows": []
+}
   ]
 }
