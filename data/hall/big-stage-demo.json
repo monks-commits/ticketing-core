@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "hall_id": "big-stage-demo",
+  "title": "Велика сцена",
+  "sections": [
+    {
+      "id": "top_parter",
+      "type": "multi_block_rows",
+      "title": "Партер",
+      "zone": "Партер",
+      "prefix": "P",
+      "rows": [
+        {
+          "row": 1,
+          "blocks": [
+            { "start": 28, "count": 12, "reverse": true },
+            { "start": 12, "count": 12, "reverse": true }
+          ]
+        },
+        {
+          "row": 2,
+          "blocks": [
+            { "start": 28, "count": 14, "reverse": true },
+            { "start": 14, "count": 14, "reverse": true }
+          ]
+        },
+        {
+          "row": 3,
+          "blocks": [
+            { "start": 28, "count": 14, "reverse": true },
+            { "start": 14, "count": 14, "reverse": true }
+          ]
+        },
+        {
+          "row": 4,
+          "blocks": [
+            { "start": 28, "count": 14, "reverse": true },
+            { "start": 14, "count": 14, "reverse": true }
+          ]
+        },
+        {
+          "row": 5,
+          "blocks": [
+            { "start": 28, "count": 14, "reverse": true },
+            { "start": 14, "count": 14, "reverse": true }
+          ]
+        },
+        {
+          "row": 6,
+          "blocks": [
+            { "start": 28, "count": 14, "reverse": true },
+            { "start": 14, "count": 14, "reverse": true }
+          ]
+        },
+        {
+          "row": 7,
+          "blocks": [
+            { "start": 28, "count": 14, "reverse": true },
+            { "start": 14, "count": 14, "reverse": true }
+          ]
+        },
+        {
+          "row": 8,
+          "blocks": [
+            { "start": 28, "count": 14, "reverse": true },
+            { "start": 14, "count": 14, "reverse": true }
+          ]
+        },
+        {
+          "row": 9,
+          "blocks": [
+            { "start": 28, "count": 14, "reverse": true },
+            { "start": 14, "count": 14, "reverse": true }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "main_entrance_label",
+      "type": "custom_rows",
+      "title": "Вхід до партеру",
+      "zone": "Партер",
+      "prefix": "P",
+      "rows": []
+    },
+
+    {
+      "id": "main_parter",
+      "type": "multi_block_rows",
+      "title": "",
+      "zone": "Партер",
+      "prefix": "P",
+      "rows": [
+        { "row": 10, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 11, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 12, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 13, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 14, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 15, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 16, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 17, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 18, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 19, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 20, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 21, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 22, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 23, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 24, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
+        { "row": 25, "blocks": [{ "start": 32, "count": 12, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] }
+      ]
+    },
+
+    {
+      "id": "balcony_label",
+      "type": "custom_rows",
+      "title": "Балкон",
+      "zone": "Балкон",
+      "prefix": "B",
+      "rows": []
+    }
+  ]
+}
