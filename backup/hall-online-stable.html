@@ -1804,14 +1804,10 @@ function renderHorizontalGroup(group, sectionsMap){
     if (!section) return;
 
     if (section.type === "rows") {
-      const rowsRendered = renderRowsSection({
-        ...section,
-        title: ""
-      });
-
+      const rendered = renderRowsSection({ ...section, title: "" });
       const inner = document.createElement("div");
 
-      Array.from(rowsRendered.children).forEach(ch => {
+      Array.from(rendered.children).forEach(ch => {
         if (!ch.classList || !ch.classList.contains("hall-section-title")) {
           inner.appendChild(ch);
         }
@@ -1827,11 +1823,7 @@ function renderHorizontalGroup(group, sectionsMap){
     }
 
     if (section.type === "multi_block_rows") {
-      const rendered = renderMultiBlockRows({
-        ...section,
-        title: ""
-      });
-
+      const rendered = renderMultiBlockRows({ ...section, title: "" });
       const inner = document.createElement("div");
 
       Array.from(rendered.children).forEach(ch => {
@@ -1845,10 +1837,7 @@ function renderHorizontalGroup(group, sectionsMap){
     }
 
     if (section.type === "side_vertical") {
-      row.appendChild(renderSideVertical({
-        ...section,
-        title: ""
-      }));
+      row.appendChild(renderSideVertical({ ...section, title: "" }));
       return;
     }
 
