@@ -1807,6 +1807,32 @@ function renderHorizontalGroup(group, sectionsMap){
       return;
     }
 
+    if (section.type === "multi_block_rows") {
+      const rendered = renderMultiBlockRows({
+        ...section,
+        title: ""
+      });
+
+      const inner = document.createElement("div");
+
+      Array.from(rendered.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          inner.appendChild(ch);
+        }
+      });
+
+      row.appendChild(inner);
+      return;
+    }
+
+    if (section.type === "side_vertical") {
+      row.appendChild(renderSideVertical({
+        ...section,
+        title: ""
+      }));
+      return;
+    }
+
     console.warn("Unsupported horizontal_group item:", section.type, section);
   });
 
