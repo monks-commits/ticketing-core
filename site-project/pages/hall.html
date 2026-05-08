@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Схема залу</title>
 
-  <link rel="stylesheet" href="../../styles/styles.css" />
+  <link rel="stylesheet" href="../styles/styles.css" />
 
 
 <style>
@@ -500,9 +500,12 @@
     }
 
     .hall-layout{
-      grid-template-columns:1fr;
-      gap:14px;
-    }
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 300px;
+  gap:20px;
+  align-items:start;
+  max-width:none;
+}
 
     .hall-sidebar{
       position:static;
@@ -765,6 +768,58 @@
       font-size:10px;
     }
   }
+
+.multi-block-section{
+  display:flex;
+  flex-direction:column;
+  gap:28px;
+  align-items:center;
+}
+
+.multi-block-row{
+  display:flex;
+  gap:32px;
+  justify-content:center;
+  align-items:center;
+}
+
+.side-vertical-wrap{
+  display:flex;
+  gap:24px;
+  align-items:flex-start;
+  justify-content:center;
+}
+
+.side-vertical{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.side-vertical.left{
+  margin-right:24px;
+}
+
+.side-vertical.right{
+  margin-left:24px;
+}
+.hall-page .container{
+  max-width:1600px !important;
+  width:100%;
+}
+
+.hall-inner{
+  min-width:1320px !important;
+}
+
+.hall-scroll{
+  overflow:auto !important;
+}
+
+.parter-wrap{
+  gap:34px;
+  align-items:flex-start;
+}  
 </style>
  
 </head>
@@ -944,21 +999,37 @@
       el.textContent = text;
       return el;
     }
+function seatKey(meta){
+  const row  = meta.row ?? meta.index ?? 0;
+  const seat = meta.seat ?? meta.index ?? 0;
 
-    function seatKey(meta){
-      const row  = meta.row ?? meta.index ?? 0;
-      const seat = meta.seat ?? meta.index ?? 0;
+  // ✅ Новый универсальный режим
+  if (meta.prefix) {
+    return `${meta.prefix}${row}-M${seat}`;
+  }
 
-      if (meta.zone === "Партер") return `P${row}-M${seat}`;
-      if (String(meta.zone).startsWith("Амфітеатр")) return `A${row}-M${seat}`;
-      if (meta.zone === "Балкон") return `B${row}-M${seat}`;
+  // ✅ Старые схемы продолжают работать
+  if (meta.zone === "Партер") return `P${row}-M${seat}`;
 
-      if (meta.zone === "Ложа А") return `A0-M${seat}`;
-      if (meta.zone === "Ложа Б") return `B0-M${seat}`;
+  if (String(meta.zone).startsWith("Амфітеатр")) {
+    return `A${row}-M${seat}`;
+  }
 
-      return `P${row}-M${seat}`;
-    }
+  if (meta.zone === "Балкон") {
+    return `B${row}-M${seat}`;
+  }
 
+  if (meta.zone === "Ложа А") {
+    return `A0-M${seat}`;
+  }
+
+  if (meta.zone === "Ложа Б") {
+    return `B0-M${seat}`;
+  }
+
+  return `P${row}-M${seat}`;
+}
+   
     function seatKeyToHuman(k){
       const m = String(k).match(/^([PAB])(\d+)-M(\d+)$/i);
       if (!m) return k;
@@ -1161,7 +1232,7 @@ function showSeatTooltipTemporarily(btn, meta, price, ms = 1400){
   });
 
   btn.addEventListener("mouseleave", () => {
-    hideSeatTooltip();
+    hideSeatTooltip(); 
   });
 
   // mobile / touch hint
@@ -1273,7 +1344,7 @@ function showSeatTooltipTemporarily(btn, meta, price, ms = 1400){
       }
 
       try {
-        const res = await fetch(`../data/seances/${SEANCE_ID}.json`, {
+        const res = await fetch(`../site-project/data/seances/${SEANCE_ID}.json`, { 
           cache: "no-store"
         });
 
@@ -1545,6 +1616,109 @@ function renderSplitRows(section){
   return wrap;
 }
 
+function renderMultiBlockRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const blocks = Array.isArray(r.blocks) ? r.blocks : [];
+
+    blocks.forEach((block, index) => {
+      const seatsRow = document.createElement("div");
+      seatsRow.className = "seats-row";
+
+      const start = Number(block.start || 1);
+      const count = Number(block.count || 0);
+      const reverse = block.reverse === true;
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = reverse
+          ? start - i
+          : start + i;
+
+        const meta = {
+          zone: section.zone || section.title || "Партер",
+          prefix: section.prefix || null,
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        seatsRow.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+
+      rowLine.appendChild(seatsRow);
+
+      if (index < blocks.length - 1) {
+        const gap = document.createElement("div");
+        gap.className = "amphi-gap";
+        rowLine.appendChild(gap);
+      }
+    });
+
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
+}
+
+function renderSideVertical(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const box = document.createElement("div");
+  box.className = "parter-wrap";
+
+  const col = document.createElement("div");
+  col.className = "hall-lodge";
+
+  const seatsCol = document.createElement("div");
+  seatsCol.className = "hall-lodge-seats";
+
+  const row = Number(section.row || 0);
+  const start = Number(section.start || 1);
+  const count = Number(section.count || 0);
+  const reverse = section.reverse === true;
+
+  for (let i = 0; i < count; i++) {
+    const seatNum = reverse ? start - i : start + i;
+
+    const meta = {
+      zone: section.zone || section.title || "Боковий сектор",
+      prefix: section.prefix || null,
+      row,
+      seat: seatNum
+    };
+
+    seatsCol.appendChild(
+      makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+    );
+  }
+
+  col.appendChild(seatsCol);
+  box.appendChild(col);
+  wrap.appendChild(box);
+
+  return wrap;
+}
+    
 function renderCustomRows(section){
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
@@ -1630,14 +1804,10 @@ function renderHorizontalGroup(group, sectionsMap){
     if (!section) return;
 
     if (section.type === "rows") {
-      const rowsRendered = renderRowsSection({
-        ...section,
-        title: ""
-      });
-
+      const rendered = renderRowsSection({ ...section, title: "" });
       const inner = document.createElement("div");
 
-      Array.from(rowsRendered.children).forEach(ch => {
+      Array.from(rendered.children).forEach(ch => {
         if (!ch.classList || !ch.classList.contains("hall-section-title")) {
           inner.appendChild(ch);
         }
@@ -1649,6 +1819,25 @@ function renderHorizontalGroup(group, sectionsMap){
 
     if (section.type === "lodges_vertical") {
       row.appendChild(renderLodgesVertical(section));
+      return;
+    }
+
+    if (section.type === "multi_block_rows") {
+      const rendered = renderMultiBlockRows({ ...section, title: "" });
+      const inner = document.createElement("div");
+
+      Array.from(rendered.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          inner.appendChild(ch);
+        }
+      });
+
+      row.appendChild(inner);
+      return;
+    }
+
+    if (section.type === "side_vertical") {
+      row.appendChild(renderSideVertical({ ...section, title: "" }));
       return;
     }
 
@@ -1690,7 +1879,16 @@ function renderHallSections(hallData){
       root.appendChild(renderSplitRows(section));
       return;
     }
+if (section.type === "multi_block_rows") {
+  root.appendChild(renderMultiBlockRows(section));
+  return;
+}
 
+if (section.type === "side_vertical") {
+  root.appendChild(renderSideVertical(section));
+  return;
+}
+    
     if (section.type === "custom_rows") {
       root.appendChild(renderCustomRows(section));
       return;
@@ -1961,7 +2159,7 @@ document.getElementById("go-order").addEventListener("click", ()=>{
     total += p;
   }
 
-  const u = new URL("./order.html", location.href);
+  const u = new URL("../site-project/pages/order.html", location.href);
 
   u.searchParams.set("show", showSlug);
   u.searchParams.set("title", showTitle);
@@ -1986,9 +2184,9 @@ const hallFile = (
   "academy"
 ).trim();
 
-  const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
-    cache: "no-store"
-  });
+  const hallRes = await fetch(`../data/hall/${hallFile}.json`, {
+  cache: "no-store"
+});
 
   if (!hallRes.ok) {
     throw new Error(`Hall JSON not found: ${hallFile}.json`);
