@@ -1402,9 +1402,11 @@ publish.onclick = async () => {
   if (!date) return alert("Вкажи дату");
   if (!time) return alert("Вкажи час");
 
-  const hall = venueSelect.value;
-  const venueId = hall === "academy" ? "academy" : "shevchenko";
-
+  const venueId =
+  hall === "academy" ? "academy" :
+  hall === "shevchenko-v2" ? "shevchenko" :
+  hall === "big-stage-demo" ? "big-stage-demo" :
+  hall;
   try {
     const res = await fetch(SUPABASE_FUNCTION_URL, {
       method: "POST",
