@@ -1432,6 +1432,13 @@ async function loadVenue(venueId) {
     return null;
   }
 }
+ function makeSectionTitle(text){
+  const el = document.createElement("div");
+  el.className = "hall-section-title";
+  el.textContent = text;
+  return el;
+}   
+
     
 // ===== Universal hall renderer =====
 function renderRowsSection(section){
