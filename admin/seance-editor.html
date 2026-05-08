@@ -1551,10 +1551,12 @@ async function loadSeance(){
     posterUrl.value = seanceRow.poster_url || "";
 
     if (seanceRow.venue_id === "academy") {
-      venueSelect.value = "academy";
-    } else if (seanceRow.venue_id === "shevchenko") {
-      venueSelect.value = "shevchenko-v2";
-    }
+  venueSelect.value = "academy";
+} else if (seanceRow.venue_id === "shevchenko") {
+  venueSelect.value = "shevchenko-v2";
+} else if (seanceRow.venue_id === "big-stage-demo") {
+  venueSelect.value = "big-stage-demo";
+}
   }
 
   const res = await fetch(
