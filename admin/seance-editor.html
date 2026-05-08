@@ -1397,16 +1397,18 @@ publish.onclick = async () => {
   const time = showTime.value || null;
   const poster_url = posterUrl.value.trim() || null;
   const status = showStatus.value;
+  const hall = venueSelect.value;
+
+  const venueId =
+    hall === "academy" ? "academy" :
+    hall === "shevchenko-v2" ? "shevchenko" :
+    hall === "big-stage-demo" ? "big-stage-demo" :
+    hall;
 
   if (!show) return alert("Вкажи назву вистави");
   if (!date) return alert("Вкажи дату");
   if (!time) return alert("Вкажи час");
 
-  const venueId =
-  hall === "academy" ? "academy" : 
-  hall === "shevchenko-v2" ? "shevchenko" :
-  hall === "big-stage-demo" ? "big-stage-demo" :
-  hall;
   try {
     const res = await fetch(SUPABASE_FUNCTION_URL, {
       method: "POST",
