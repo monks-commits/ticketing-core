@@ -932,6 +932,8 @@
     const showSlug  = (qs.get("show")   || "").trim();
     const showTitle = (qs.get("title")  || "").trim() || showSlug || "Вистава";
     const SEANCE_ID = (qs.get("seance") || "").trim();
+    const DIRECT_HALL = (qs.get("hall") || "").trim();
+    
 
     const returnSeats = (qs.get("seats") || "")
       .split(",")
