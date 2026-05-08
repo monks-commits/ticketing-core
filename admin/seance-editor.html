@@ -778,19 +778,19 @@ function previewSeatState(key){
     };
   }
 
-  const m = String(key).match(/^([PAB])(\d+)-M(\d+)$/);
+  const m = String(key).match(/^([A-Z]+)(\d+)-M(\d+)$/i);
   if (!m) {
     return { price:null, color:null, sale:true };
   }
 
-  const zoneCode = m[1];
+  const zoneCode = m[1].toUpperCase();
   const row = Number(m[2]);
 
   for (const [ruleKey, rule] of Object.entries(data.pricing)) {
-    const mm = String(ruleKey).match(/^([PAB])(\d+)-(\d+)$/);
+    const mm = String(ruleKey).match(/^([A-Z]+)(\d+)-(\d+)$/i);
     if (!mm) continue;
 
-    const rz = mm[1];
+    const rz = mm[1].toUpperCase();
     const from = Number(mm[2]);
     const to = Number(mm[3]);
 
@@ -805,7 +805,7 @@ function previewSeatState(key){
 
   return { price:null, color:null, sale:true };
 }
-
+  
 function makePreviewSeatEl(key, num){
   const state = previewSeatState(key);
   const el = document.createElement("div");
