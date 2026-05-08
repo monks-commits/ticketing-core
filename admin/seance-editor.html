@@ -967,6 +967,101 @@ function renderLodgePreview(titleText, prefix, count){
   return zone;
 }
 
+function renderMultiBlockPreview(section){
+  const zone = document.createElement("div");
+  zone.style.width = "100%";
+  zone.style.display = "flex";
+  zone.style.flexDirection = "column";
+  zone.style.gap = "8px";
+  zone.style.alignItems = "flex-start";
+
+  const title = document.createElement("div");
+  title.style.fontSize = "14px";
+  title.style.fontWeight = "700";
+  title.style.color = "#b8c4d6";
+  title.textContent = section.title || section.zone || "Секція";
+  zone.appendChild(title);
+
+  const prefix = section.prefix || "P";
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.style.display = "flex";
+    rowLine.style.alignItems = "center";
+    rowLine.style.gap = "8px";
+    rowLine.style.flexWrap = "nowrap";
+
+    const lab = document.createElement("div");
+    lab.style.width = "36px";
+    lab.style.flex = "0 0 36px";
+    lab.style.fontSize = "12px";
+    lab.style.color = "#b8c4d6";
+    lab.style.textAlign = "right";
+    lab.textContent = r.row ?? "";
+    rowLine.appendChild(lab);
+
+    const blocks = Array.isArray(r.blocks) ? r.blocks : [];
+
+    blocks.forEach((block, index) => {
+      const seatsWrap = document.createElement("div");
+      seatsWrap.style.display = "flex";
+      seatsWrap.style.alignItems = "center";
+      seatsWrap.style.gap = "4px";
+      seatsWrap.style.flexWrap = "nowrap";
+
+      const start = Number(block.start || 1);
+      const count = Number(block.count || 0);
+      const reverse = block.reverse === true;
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = reverse ? start - i : start + i;
+        const key = `${prefix}${r.row}-M${seatNum}`;
+        seatsWrap.appendChild(makePreviewSeatEl(key, seatNum));
+      }
+
+      rowLine.appendChild(seatsWrap);
+
+      if (index < blocks.length - 1) {
+        rowLine.appendChild(makeGap(14));
+      }
+    });
+
+    zone.appendChild(rowLine);
+  });
+
+  return zone;
+}
+
+function renderSideVerticalPreview(section){
+  const zone = document.createElement("div");
+  zone.style.display = "flex";
+  zone.style.flexDirection = "column";
+  zone.style.gap = "4px";
+  zone.style.alignItems = "center";
+
+  const title = document.createElement("div");
+  title.style.fontSize = "12px";
+  title.style.fontWeight = "700";
+  title.style.color = "#b8c4d6";
+  title.textContent = section.zone || section.title || "Сектор";
+  zone.appendChild(title);
+
+  const prefix = section.prefix || "S";
+  const row = Number(section.row || 1);
+  const start = Number(section.start || 1);
+  const count = Number(section.count || 0);
+  const reverse = section.reverse === true;
+
+  for (let i = 0; i < count; i++) {
+    const seatNum = reverse ? start - i : start + i;
+    const key = `${prefix}${row}-M${seatNum}`;
+    zone.appendChild(makePreviewSeatEl(key, seatNum));
+  }
+
+  return zone;
+}
+  
 async function renderPreview(){
   if (!previewStage || !previewInfo) return;
 
