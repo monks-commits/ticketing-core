@@ -2377,7 +2377,7 @@ const RAW_HALL = await hallRes.json();
 if (Array.isArray(RAW_HALL?.sections)) {
   renderHallSections(RAW_HALL);
 } else {
-  renderHallFromJson(RAW_HALL);
+  renderSimpleRows(RAW_HALL);
 }
 
 // 🔥 первая загрузка статусов
