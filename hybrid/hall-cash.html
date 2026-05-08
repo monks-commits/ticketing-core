@@ -1894,7 +1894,12 @@ function renderCustomRows(section){
 
   return wrap;
 }
-
+function makeSectionTitle(text){
+  const el = document.createElement("div");
+  el.className = "hall-section-title";
+  el.textContent = text || "";
+  return el;
+}
 function renderHorizontalGroup(group, sectionsMap){
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
