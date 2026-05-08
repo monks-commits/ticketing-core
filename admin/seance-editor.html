@@ -1071,265 +1071,9 @@ async function renderPreview(){
   const hallName = normalizeHallNameForPreview(venueSelect.value);
 
   try {
-    if (hallName === "shevchenko-v2") {
-      const stage = document.createElement("div");
-      stage.style.display = "inline-flex";
-      stage.style.alignItems = "center";
-      stage.style.justifyContent = "center";
-      stage.style.minWidth = "180px";
-      stage.style.padding = "8px 18px";
-      stage.style.borderRadius = "999px";
-      stage.style.background = "rgba(255,255,255,.08)";
-      stage.style.color = "#fff";
-      stage.style.fontWeight = "700";
-      stage.style.letterSpacing = ".04em";
-      stage.textContent = "Театр ім. Т. Г. Шевченка";
-      previewStage.appendChild(stage);
-
-      // ===== ПАРТЕР + ЛОЖИ =====
-      const parterWrap = document.createElement("div");
-      parterWrap.style.display = "grid";
-      parterWrap.style.gridTemplateColumns = "auto auto auto";
-      parterWrap.style.alignItems = "start";
-      parterWrap.style.gap = "18px";
-      parterWrap.style.width = "100%";
-
-      // ЛОЖА А
-      const lodgeALabel = document.createElement("div");
-      lodgeALabel.style.fontSize = "12px";
-      lodgeALabel.style.color = "#b8c4d6";
-      lodgeALabel.style.marginBottom = "8px";
-      lodgeALabel.textContent = "Ложа А";
-
-      const lodgeACol = document.createElement("div");
-      lodgeACol.style.display = "flex";
-      lodgeACol.style.flexDirection = "column";
-      lodgeACol.style.alignItems = "center";
-      lodgeACol.style.gap = "4px";
-      lodgeACol.appendChild(lodgeALabel);
-
-      for (let s = 1; s <= 18; s++) {
-        const key = `A0-M${s}`;
-        lodgeACol.appendChild(makePreviewSeatEl(key, s));
-      }
-
-      // ПАРТЕР
-      const parterCol = document.createElement("div");
-      parterCol.style.display = "flex";
-      parterCol.style.flexDirection = "column";
-      parterCol.style.alignItems = "center";
-      parterCol.style.gap = "8px";
-
-      const parterTitle = document.createElement("div");
-      parterTitle.style.fontSize = "14px";
-      parterTitle.style.fontWeight = "700";
-      parterTitle.style.color = "#b8c4d6";
-      parterTitle.textContent = "Партер";
-      parterCol.appendChild(parterTitle);
-
-      for (let row = 1; row <= 18; row++) {
-        const rowLine = document.createElement("div");
-        rowLine.style.display = "flex";
-        rowLine.style.alignItems = "center";
-        rowLine.style.gap = "8px";
-
-        const lab = document.createElement("div");
-        lab.style.width = "28px";
-        lab.style.flex = "0 0 28px";
-        lab.style.fontSize = "12px";
-        lab.style.color = "#b8c4d6";
-        lab.style.textAlign = "right";
-        lab.textContent = String(row);
-        rowLine.appendChild(lab);
-
-        const seatsWrap = document.createElement("div");
-        seatsWrap.style.display = "flex";
-        seatsWrap.style.alignItems = "center";
-        seatsWrap.style.gap = "4px";
-
-        for (let seat = 1; seat <= 20; seat++) {
-          const key = `P${row}-M${seat}`;
-          seatsWrap.appendChild(makePreviewSeatEl(key, seat));
-
-          if (seat === 10) {
-            seatsWrap.appendChild(makeGap(14));
-          }
-        }
-
-        rowLine.appendChild(seatsWrap);
-        parterCol.appendChild(rowLine);
-      }
-
-      // ЛОЖА Б
-      const lodgeBLabel = document.createElement("div");
-      lodgeBLabel.style.fontSize = "12px";
-      lodgeBLabel.style.color = "#b8c4d6";
-      lodgeBLabel.style.marginBottom = "8px";
-      lodgeBLabel.textContent = "Ложа Б";
-
-      const lodgeBCol = document.createElement("div");
-      lodgeBCol.style.display = "flex";
-      lodgeBCol.style.flexDirection = "column";
-      lodgeBCol.style.alignItems = "center";
-      lodgeBCol.style.gap = "4px";
-      lodgeBCol.appendChild(lodgeBLabel);
-
-      for (let s = 1; s <= 18; s++) {
-        const key = `B0-M${s}`;
-        lodgeBCol.appendChild(makePreviewSeatEl(key, s));
-      }
-
-      parterWrap.appendChild(lodgeACol);
-      parterWrap.appendChild(parterCol);
-      parterWrap.appendChild(lodgeBCol);
-
-      previewStage.appendChild(parterWrap);
-
-      // ===== АМФИТЕАТР =====
-      const amphiZone = document.createElement("div");
-      amphiZone.style.width = "100%";
-      amphiZone.style.display = "flex";
-      amphiZone.style.flexDirection = "column";
-      amphiZone.style.alignItems = "center";
-      amphiZone.style.gap = "8px";
-      amphiZone.style.marginTop = "12px";
-
-      const amphiTitle = document.createElement("div");
-      amphiTitle.style.fontSize = "14px";
-      amphiTitle.style.fontWeight = "700";
-      amphiTitle.style.color = "#b8c4d6";
-      amphiTitle.textContent = "Амфітеатр";
-      amphiZone.appendChild(amphiTitle); 
-
-     const amphiRows = {
-  19: { left: 11, right: 11 },
-  20: { left: 11, right: 11 },
-  21: { left: 11, right: 11 },
-  22: { left: 11, right: 0 },
-  23: { left: 11, right: 0 }
-};
-
-     Object.entries(amphiRows).forEach(([rowStr, cfg]) => {
-  const row = Number(rowStr);
-
-  const rowLine = document.createElement("div");
-  rowLine.style.display = "flex";
-  rowLine.style.alignItems = "center";
-  rowLine.style.gap = "8px";
-
-  const lab = document.createElement("div");
-  lab.style.width = "28px";
-  lab.style.flex = "0 0 28px";
-  lab.style.fontSize = "12px";
-  lab.style.color = "#b8c4d6";
-  lab.style.textAlign = "right";
-  lab.textContent = String(row);
-  rowLine.appendChild(lab);
-
-  const seatsWrap = document.createElement("div");
-  seatsWrap.style.display = "flex";
-  seatsWrap.style.alignItems = "center";
-  seatsWrap.style.gap = "4px";
-
-  // левая часть
-  for (let seat = 1; seat <= cfg.left; seat++) {
-    const key = `A${row}-M${seat}`;
-    seatsWrap.appendChild(makePreviewSeatEl(key, seat));
-  }
-
-  // проход между левым и правым блоком
-  if (cfg.right > 0) {
-    seatsWrap.appendChild(makeGap(14));
-
-    for (let seat = 12; seat < 12 + cfg.right; seat++) {
-      const key = `A${row}-M${seat}`;
-      seatsWrap.appendChild(makePreviewSeatEl(key, seat));
-    }
-  }
-
-  rowLine.appendChild(seatsWrap);
-  amphiZone.appendChild(rowLine);
-});
-
-      previewStage.appendChild(amphiZone);
-
-      // ===== БАЛКОН =====
-      const balconyZone = document.createElement("div");
-      balconyZone.style.width = "100%";
-      balconyZone.style.display = "flex";
-      balconyZone.style.flexDirection = "column";
-      balconyZone.style.alignItems = "center";
-      balconyZone.style.gap = "8px";
-      balconyZone.style.marginTop = "12px";
-
-      const balconyTitle = document.createElement("div");
-      balconyTitle.style.fontSize = "14px";
-      balconyTitle.style.fontWeight = "700";
-      balconyTitle.style.color = "#b8c4d6";
-      balconyTitle.textContent = "Балкон";
-      balconyZone.appendChild(balconyTitle);
-
-      const balconyRows = {
-        1: 28,
-        2: 28,
-        3: 28,
-        4: 28,
-        5: 28,
-        6: 20
-      };
-
-      Object.entries(balconyRows).forEach(([rowStr, count]) => {
-        const row = Number(rowStr);
-
-        const rowLine = document.createElement("div");
-        rowLine.style.display = "flex";
-        rowLine.style.alignItems = "center";
-        rowLine.style.gap = "8px";
-
-        const lab = document.createElement("div");
-        lab.style.width = "28px";
-        lab.style.flex = "0 0 28px";
-        lab.style.fontSize = "12px";
-        lab.style.color = "#b8c4d6";
-        lab.style.textAlign = "right";
-        lab.textContent = String(row);
-        rowLine.appendChild(lab);
-
-        const seatsWrap = document.createElement("div");
-        seatsWrap.style.display = "flex";
-        seatsWrap.style.alignItems = "center";
-        seatsWrap.style.gap = "4px";
-
-        for (let seat = 1; seat <= count; seat++) {
-          const key = `B${row}-M${seat}`;
-          seatsWrap.appendChild(makePreviewSeatEl(key, seat));
-
-          if (seat === 14) {
-            seatsWrap.appendChild(makeGap(14));
-          }
-        }
-
-        rowLine.appendChild(seatsWrap);
-        balconyZone.appendChild(rowLine);
-      });
-
-      previewStage.appendChild(balconyZone);
-
-      const note = document.createElement("div");
-      note.style.fontSize = "12px";
-      note.style.color = "#b8c4d6";
-      note.style.marginTop = "8px";
-      note.textContent = "Preview показує поточні правила editor-а для цього сеансу.";
-      previewStage.appendChild(note);
-
-      previewInfo.textContent =
-        `Схема: shevchenko-v2 • Seance: ${seanceId.value.trim() || "новий сеанс"}`;
-
-      return;
-    }
-
-    // ===== УНИВЕРСАЛЬНЫЙ ВАРИАНТ ДЛЯ JSON-ЗАЛОВ =====
+    // ===== УНИВЕРСАЛЬНЫЙ PREVIEW ДЛЯ JSON-ЗАЛОВ =====
     const res = await fetch(`../data/hall/${hallName}.json`, { cache:"no-store" });
+
     if (!res.ok) {
       previewInfo.textContent = `Не вдалося завантажити схему: ${hallName}.json`;
       return;
@@ -1351,22 +1095,92 @@ async function renderPreview(){
     stage.textContent = hall.title || hall.name || "Сцена";
     previewStage.appendChild(stage);
 
-    if (Array.isArray(hall.sections) && hall.sections.length) {
-      hall.sections.forEach(sec => {
-        const secTitle = sec.title || sec.name || sec.zone || "Секція";
-        const rows = Array.isArray(sec.rows) ? sec.rows : [];
-
-        let zoneCode = "P";
-        if (/амф/i.test(secTitle)) zoneCode = "A";
-        else if (/балкон/i.test(secTitle)) zoneCode = "B";
-        else if (/партер/i.test(secTitle)) zoneCode = "P";
-
-        previewStage.appendChild(renderRowsPreview(secTitle, rows, zoneCode));
-      });
-    } else {
+    if (!Array.isArray(hall.sections) || !hall.sections.length) {
       previewInfo.textContent = "У hall JSON немає sections для preview.";
       return;
     }
+
+    const sectionsMap = new Map();
+
+    hall.sections.forEach(sec => {
+      if (sec && sec.id) {
+        sectionsMap.set(sec.id, sec);
+      }
+    });
+
+    hall.sections.forEach(sec => {
+      if (!sec || sec.hidden === true) return;
+
+      if (sec.type === "horizontal_group") {
+        const group = document.createElement("div");
+        group.style.display = "flex";
+        group.style.alignItems = "flex-start";
+        group.style.justifyContent = "center";
+        group.style.gap = "18px";
+        group.style.width = "100%";
+
+        (sec.items || []).forEach(id => {
+          const child = sectionsMap.get(id);
+          if (!child) return;
+
+          if (child.type === "multi_block_rows") {
+            group.appendChild(renderMultiBlockPreview(child));
+            return;
+          }
+
+          if (child.type === "side_vertical") {
+            group.appendChild(renderSideVerticalPreview(child));
+            return;
+          }
+
+          if (child.type === "rows") {
+            group.appendChild(
+              renderRowsPreview(
+                child.title || child.zone || "Секція",
+                child.rows || [],
+                child.prefix || "P"
+              )
+            );
+            return;
+          }
+        });
+
+        previewStage.appendChild(group);
+        return;
+      }
+
+      if (sec.type === "multi_block_rows") {
+        previewStage.appendChild(renderMultiBlockPreview(sec));
+        return;
+      }
+
+      if (sec.type === "side_vertical") {
+        previewStage.appendChild(renderSideVerticalPreview(sec));
+        return;
+      }
+
+      if (sec.type === "rows") {
+        previewStage.appendChild(
+          renderRowsPreview(
+            sec.title || sec.zone || "Секція",
+            sec.rows || [],
+            sec.prefix || "P"
+          )
+        );
+        return;
+      }
+
+      if (sec.type === "custom_rows") {
+        const title = document.createElement("div");
+        title.style.fontSize = "14px";
+        title.style.fontWeight = "700";
+        title.style.color = "#b8c4d6";
+        title.style.marginTop = "8px";
+        title.textContent = sec.title || sec.zone || "Секція";
+        previewStage.appendChild(title);
+        return;
+      }
+    });
 
     const note = document.createElement("div");
     note.style.fontSize = "12px";
@@ -1377,6 +1191,7 @@ async function renderPreview(){
 
     previewInfo.textContent =
       `Схема: ${hallName} • Seance: ${seanceId.value.trim() || "новий сеанс"}`;
+
   } catch (e) {
     previewInfo.textContent = `Помилка preview: ${e.message || e}`;
   }
