@@ -79,17 +79,17 @@
     },
 
     {
-      "id": "side_right",
-      "type": "side_vertical",
-      "title": "",
-      "zone": "Правий сектор",
-      "prefix": "R",
-      "row": 1,
-      "start": 1,
-      "count": 25,
-      "reverse": false,
-      "hidden": true
-    },
+  "id": "side_right",
+  "type": "side_vertical",
+  "title": "Вхід",
+  "zone": "Правий сектор",
+  "prefix": "R",
+  "row": 1,
+  "start": 1,
+  "count": 25,
+  "reverse": false,
+  "hidden": true
+}
 
     {
       "id": "balcony_label",
