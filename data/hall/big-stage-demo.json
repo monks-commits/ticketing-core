@@ -3,14 +3,14 @@
   "hall_id": "big-stage-demo",
   "title": "Велика сцена",
 
-  "layout_style": {
-    "hall_min_width": 1320,
-    "section_gap": 34,
-    "row_gap": 5,
-    "row_line_gap": 8,
-    "main_gap": 28,
-    "center_gap": 24
-  },
+ "layout_style": {
+  "hall_min_width": 1180,
+  "section_gap": 18,
+  "row_gap": 4,
+  "row_line_gap": 6,
+  "main_gap": 18,
+  "center_gap": 16
+}
 
   "sections": [
     {
