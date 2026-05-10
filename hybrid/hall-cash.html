@@ -1754,12 +1754,17 @@ function renderSideVertical(section){
   const seatsCol = document.createElement("div");
   seatsCol.className = "hall-lodge-seats";
 
-  const row = Number(section.row || 1);
-  const start = Number(section.start || 1);
-  const count = Number(section.count || 0);
-  const reverse = section.reverse === true;
+  const row = String(section.row || "1");
+const start = Number(section.start || 1);
+const count = Number(section.count || 0);
+const reverse = section.reverse === true;
+const offsetRows = Number(section.offsetRows || 0);
 
-  appendSeatRange(seatsCol, section, row, start, count, reverse);
+for (let i = 0; i < offsetRows; i++) {
+  seatsCol.appendChild(createEmptySeat());
+}
+
+appendSeatRange(seatsCol, section, row, start, count, reverse);
 
   col.appendChild(seatsCol);
   box.appendChild(col);
