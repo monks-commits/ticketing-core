@@ -1957,6 +1957,12 @@ function renderTheatreBigStageLayout(section){
   const layout = document.createElement("div");
   layout.className = "theatre-big-stage-layout";
 
+  const full = document.createElement("div");
+  full.className = "theatre-full-wrap";
+
+  const middle = document.createElement("div");
+  middle.className = "theatre-middle";
+
   const makeRowLabel = (text) => {
     const el = document.createElement("div");
     el.className = "row-label theatre-row-label";
@@ -1964,9 +1970,9 @@ function renderTheatreBigStageLayout(section){
     return el;
   };
 
-  const makeSeat = (prefix, row, seat) => {
+  const makeSeat = (prefix, row, seat, zone = "Партер") => {
     const meta = {
-      zone: "Партер",
+      zone,
       prefix,
       row: String(row),
       seat: Number(seat)
@@ -1975,12 +1981,12 @@ function renderTheatreBigStageLayout(section){
     return makeSeatElement(seatKey(meta), seat, "", 0, meta);
   };
 
-  const makeSeatsBlock = (prefix, row, seats) => {
+  const makeSeatsBlock = (prefix, row, seats, zone = "Партер") => {
     const block = document.createElement("div");
     block.className = "seats-row theatre-seat-block";
 
     seats.forEach(seat => {
-      block.appendChild(makeSeat(prefix, row, seat));
+      block.appendChild(makeSeat(prefix, row, seat, zone));
     });
 
     return block;
@@ -1995,12 +2001,14 @@ function renderTheatreBigStageLayout(section){
     title.textContent = "Балкон";
     col.appendChild(title);
 
+    const zone = sidePrefix === "L" ? "Лівий балкон" : "Правий балкон";
+
     for (let row = 4; row <= 25; row++) {
       const line = document.createElement("div");
       line.className = "theatre-side-line";
 
       const meta = {
-        zone: sidePrefix === "L" ? "Лівий балкон" : "Правий балкон",
+        zone,
         prefix: sidePrefix,
         row: "1",
         seat: row
@@ -2013,7 +2021,6 @@ function renderTheatreBigStageLayout(section){
     return col;
   };
 
-  // ===== TOP PARTER 1–9 =====
   const top = document.createElement("div");
   top.className = "theatre-top-parter";
 
@@ -2037,14 +2044,8 @@ function renderTheatreBigStageLayout(section){
     top.appendChild(line);
   }
 
-  // ===== MAIN PARTER 9A–25 WITH SIDE BALCONIES =====
-  const main = document.createElement("div");
-  main.className = "theatre-main-wrap";
-
-  const leftBalcony = makeSideBalcony("L");
   const center = document.createElement("div");
   center.className = "theatre-main-center";
-  const rightBalcony = makeSideBalcony("R");
 
   const rows = ["9A", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
 
@@ -2062,37 +2063,41 @@ function renderTheatreBigStageLayout(section){
         ? Array.from({ length: 13 }, (_, i) => 22 - i)
         : Array.from({ length: 12 }, (_, i) => 20 - i);
 
-   let rightBlock;
+    let rightBlock;
 
-if (row === 25) {
-  rightBlock = Array.from({ length: 9 }, (_, i) => 9 - i);
-} else if (row === 16 || row === 17) {
-  rightBlock = [];
-} else {
-  rightBlock = Array.from({ length: 8 }, (_, i) => 8 - i);
-}
+    if (row === 25) {
+      rightBlock = Array.from({ length: 9 }, (_, i) => 9 - i);
+    } else if (row === 16 || row === 17) {
+      rightBlock = [];
+    } else {
+      rightBlock = Array.from({ length: 8 }, (_, i) => 8 - i);
+    }
+
     line.appendChild(makeSeatsBlock("P", row, leftBlock));
     line.appendChild(makeRowLabel(row));
     line.appendChild(makeSeatsBlock("P", row, midBlock));
     line.appendChild(makeRowLabel(row));
+
     if (rightBlock.length) {
-  line.appendChild(makeSeatsBlock("P", row, rightBlock));
-} else {
-  const emptyRight = document.createElement("div");
-  emptyRight.className = "seats-row theatre-seat-block";
-  emptyRight.style.width = "224px";
-  line.appendChild(emptyRight);
-}
+      line.appendChild(makeSeatsBlock("P", row, rightBlock));
+    } else {
+      const emptyRight = document.createElement("div");
+      emptyRight.className = "seats-row theatre-seat-block";
+      emptyRight.style.width = "192px";
+      line.appendChild(emptyRight);
+    }
 
     center.appendChild(line);
   });
 
-  main.appendChild(leftBalcony);
-  main.appendChild(center);
-  main.appendChild(rightBalcony);
+  middle.appendChild(top);
+  middle.appendChild(center);
 
-  layout.appendChild(top);
-  layout.appendChild(main);
+  full.appendChild(makeSideBalcony("L"));
+  full.appendChild(middle);
+  full.appendChild(makeSideBalcony("R"));
+
+  layout.appendChild(full);
   wrap.appendChild(layout);
 
   return wrap;
