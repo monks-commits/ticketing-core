@@ -1540,6 +1540,13 @@ async function sellAndPrintOffline(){
       await openPrintWindowOffline(last.tickets, SHOW_META);
     }
 
+function makeSectionTitle(text){
+  const el = document.createElement("div");
+  el.className = "hall-section-title";
+  el.textContent = text || "";
+  return el;
+}
+    
    // ===== Universal hall renderer =====
 
 function createEmptySeat(){
