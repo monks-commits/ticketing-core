@@ -806,39 +806,44 @@
 
 .theatre-big-stage-layout{
   display:flex;
+  justify-content:center;
+}
+
+.theatre-full-wrap{
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  gap:var(--big-main-gap, 18px);
+}
+
+.theatre-middle{
+  display:flex;
   flex-direction:column;
   align-items:center;
-  gap:34px;
+  gap:var(--big-section-gap, 18px);
 }
 
 .theatre-top-parter,
 .theatre-main-center{
   display:flex;
   flex-direction:column;
-  gap:5px;
+  gap:var(--big-row-gap, 4px);
 }
 
 .theatre-row-line{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:10px;
+  gap:var(--big-row-line-gap, 6px);
 }
 
-.theatre-main-wrap{
-  display:flex;
-  align-items:flex-end;
-  justify-content:center;
-  gap:28px;
+.theatre-center-gap{
+  width:var(--big-center-gap, 16px);
+  flex:0 0 var(--big-center-gap, 16px);
 }
 
 .theatre-seat-block{
   gap:var(--seat-gap);
-}
-
-.theatre-center-gap{
-  width:48px;
-  flex:0 0 48px;
 }
 
 .theatre-row-label{
@@ -851,7 +856,8 @@
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:5px;
+  gap:var(--big-row-gap, 4px);
+  padding-top:var(--big-side-top, 92px);
 }
 
 .theatre-side-title{
@@ -859,7 +865,7 @@
   color:var(--muted);
   font-weight:700;
   margin-bottom:6px;
-}  
+}
 
 .theatre-big-stage-layout{
   display:flex;
