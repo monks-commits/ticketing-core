@@ -1579,7 +1579,7 @@ function appendSeatRange(target, section, rowNumber, start, count, reverse = fal
     const meta = {
       zone,
       prefix,
-      row: Number(rowNumber || 0),
+      row: String(rowNumber || "0"),
       seat: seatNum
     };
 
@@ -1623,7 +1623,7 @@ function renderRowsSection(section){
       const meta = {
         zone: getSectionZone(section),
         prefix: getSectionPrefix(section),
-        row: Number(r.row || 0),
+        row: String(r.row || "0"),
         seat: s
       };
 
