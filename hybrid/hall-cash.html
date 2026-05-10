@@ -1541,6 +1541,47 @@ async function sellAndPrintOffline(){
     }
 
    // ===== Universal hall renderer =====
+
+function createEmptySeat(){
+  const el = document.createElement("div");
+  el.className = "seat seat--empty";
+  return el;
+}
+
+function createGap(className = "amphi-gap"){
+  const el = document.createElement("div");
+  el.className = className;
+  return el;
+}
+
+function getSectionZone(section, fallback = "Партер"){
+  return section.zone || section.title || fallback;
+}
+
+function getSectionPrefix(section){
+  return section.prefix || null;
+}
+
+function appendSeatRange(target, section, rowNumber, start, count, reverse = false){
+  const zone = getSectionZone(section);
+  const prefix = getSectionPrefix(section);
+
+  for (let i = 0; i < count; i++) {
+    const seatNum = reverse ? start - i : start + i;
+
+    const meta = {
+      zone,
+      prefix,
+      row: Number(rowNumber || 0),
+      seat: seatNum
+    };
+
+    target.appendChild(
+      makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+    );
+  }
+}
+
 function renderRowsSection(section){
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
@@ -1557,33 +1598,24 @@ function renderRowsSection(section){
 
     const lab = document.createElement("div");
     lab.className = "row-label";
-    lab.textContent = r.row;
+    lab.textContent = r.row ?? "";
     rowLine.appendChild(lab);
 
     const seatsRow = document.createElement("div");
     seatsRow.className = "seats-row";
 
     const offset = Number(r.offset || 0);
-for (let i = 0; i < offset; i++) {
-  const spacer = document.createElement("div");
-  spacer.className = "seat seat--empty";
-  seatsRow.appendChild(spacer);
-}
-
-// спец-поправка для 1 ряда Академии:
-// добавляем ширину прохода между 6 и 7 местом второго ряда
-if (r._academyLeadGap) {
-  const gap = document.createElement("div");
-  gap.className = "amphi-gap";
-  seatsRow.appendChild(gap);
-}
+    for (let i = 0; i < offset; i++) {
+      seatsRow.appendChild(createEmptySeat());
+    }
 
     const seats = Number(r.seats || 0);
     const aisles = Array.isArray(r.aisles) ? r.aisles : [];
 
     for (let s = 1; s <= seats; s++) {
       const meta = {
-        zone: section.zone || "Партер",
+        zone: getSectionZone(section),
+        prefix: getSectionPrefix(section),
         row: Number(r.row || 0),
         seat: s
       };
@@ -1600,7 +1632,60 @@ if (r._academyLeadGap) {
 
     if (r.gapAfter) {
       const gap = document.createElement("div");
-      gap.style.height = "34px";
+      gap.style.height = `${Number(r.gapAfter) || 34}px`;
+      wrap.appendChild(gap);
+    }
+  });
+
+  return wrap;
+}
+
+function renderMultiBlockRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row ?? "";
+    rowLine.appendChild(lab);
+
+    const blocks = Array.isArray(r.blocks) ? r.blocks : [];
+
+    blocks.forEach((block, index) => {
+      const seatsRow = document.createElement("div");
+      seatsRow.className = "seats-row";
+
+      appendSeatRange(
+        seatsRow,
+        section,
+        r.row,
+        Number(block.start || 1),
+        Number(block.count || 0),
+        block.reverse === true
+      );
+
+      rowLine.appendChild(seatsRow);
+
+      if (index < blocks.length - 1) {
+        rowLine.appendChild(createGap());
+      }
+    });
+
+    wrap.appendChild(rowLine);
+
+    if (r.gapAfter) {
+      const gap = document.createElement("div");
+      gap.style.height = `${Number(r.gapAfter) || 34}px`;
       wrap.appendChild(gap);
     }
   });
@@ -1612,20 +1697,25 @@ function renderLodgesVertical(section){
   const lodge = document.createElement("div");
   lodge.className = "hall-lodge";
 
-  const label = document.createElement("div");
-  label.className = "hall-lodge-label";
-  label.textContent = section.title || "Ложа";
+  if (section.title) {
+    const label = document.createElement("div");
+    label.className = "hall-lodge-label";
+    label.textContent = section.title;
+    lodge.appendChild(label);
+  }
 
   const seatsCol = document.createElement("div");
   seatsCol.className = "hall-lodge-seats";
 
-  const count = Number(section.seat_count || 0);
+  const count = Number(section.seat_count || section.count || 0);
   const row = Number(section.row || 0);
-  const zone = section.zone || "Ложа А";
+  const zone = getSectionZone(section, "Ложа");
+  const prefix = getSectionPrefix(section);
 
   for (let i = 1; i <= count; i++) {
     const meta = {
       zone,
+      prefix,
       row,
       seat: i,
       index: i
@@ -1636,152 +1726,8 @@ function renderLodgesVertical(section){
     );
   }
 
-  lodge.appendChild(label);
   lodge.appendChild(seatsCol);
   return lodge;
-}
-
-function renderSplitRows(section){
-  const wrap = document.createElement("section");
-  wrap.className = "hall-section";
-
-  wrap.appendChild(makeSectionTitle(section.title || "Section"));
-
-  const rows = Array.isArray(section.rows) ? section.rows : [];
-
-  let maxRightCount = 0;
-  for (const r of rows) {
-    const count = Number(r?.right?.count || 0);
-    if (count > maxRightCount) maxRightCount = count;
-  }
-
-  rows.forEach(r => {
-    const rowLine = document.createElement("div");
-    rowLine.className = "row-line";
-
-    const lab = document.createElement("div");
-    lab.className = "row-label";
-    lab.textContent = r.row;
-    rowLine.appendChild(lab);
-
-    const left = document.createElement("div");
-    left.className = "seats-row";
-
-    if (r.left) {
-      const start = Number(r.left.start || 1);
-      const count = Number(r.left.count || 0);
-
-      for (let i = 0; i < count; i++) {
-        const seatNum = start + i;
-        const meta = {
-          zone: section.zone || "Амфітеатр",
-          row: Number(r.row || 0),
-          seat: seatNum
-        };
-
-        left.appendChild(
-          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
-        );
-      }
-    }
-
-    rowLine.appendChild(left);
-
-    const gap = document.createElement("div");
-    gap.className = "amphi-gap";
-    rowLine.appendChild(gap);
-
-    const right = document.createElement("div");
-    right.className = "seats-row";
-
-    if (r.right) {
-      const start = Number(r.right.start || 1);
-      const count = Number(r.right.count || 0);
-
-      for (let i = 0; i < count; i++) {
-        const seatNum = start + i;
-        const meta = {
-          zone: section.zone || "Амфітеатр",
-          row: Number(r.row || 0),
-          seat: seatNum
-        };
-
-        right.appendChild(
-          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
-        );
-      }
-    } else {
-      for (let i = 0; i < maxRightCount; i++) {
-        const empty = document.createElement("div");
-        empty.className = "seat seat--empty";
-        right.appendChild(empty);
-      }
-    }
-
-    rowLine.appendChild(right);
-    wrap.appendChild(rowLine);
-  });
-
-  return wrap;
-}
-
-function renderMultiBlockRows(section){
-  const wrap = document.createElement("section");
-  wrap.className = "hall-section";
-
-  wrap.appendChild(makeSectionTitle(section.title || "Section"));
-
-  const rows = Array.isArray(section.rows) ? section.rows : [];
-
-  rows.forEach(r => {
-    const rowLine = document.createElement("div");
-    rowLine.className = "row-line";
-
-    const lab = document.createElement("div");
-    lab.className = "row-label";
-    lab.textContent = r.row;
-    rowLine.appendChild(lab);
-
-    const blocks = Array.isArray(r.blocks) ? r.blocks : [];
-
-    blocks.forEach((block, index) => {
-      const seatsRow = document.createElement("div");
-      seatsRow.className = "seats-row";
-
-      const start = Number(block.start || 1);
-      const count = Number(block.count || 0);
-      const reverse = block.reverse === true;
-
-      for (let i = 0; i < count; i++) {
-        const seatNum = reverse
-          ? start - i
-          : start + i;
-
-        const meta = {
-          zone: section.zone || section.title || "Партер",
-          prefix: section.prefix || null,
-          row: Number(r.row || 0),
-          seat: seatNum
-        };
-
-        seatsRow.appendChild(
-          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
-        );
-      }
-
-      rowLine.appendChild(seatsRow);
-
-      if (index < blocks.length - 1) {
-        const gap = document.createElement("div");
-        gap.className = "amphi-gap";
-        rowLine.appendChild(gap);
-      }
-    });
-
-    wrap.appendChild(rowLine);
-  });
-
-  return wrap;
 }
 
 function renderSideVertical(section){
@@ -1801,25 +1747,12 @@ function renderSideVertical(section){
   const seatsCol = document.createElement("div");
   seatsCol.className = "hall-lodge-seats";
 
-  const row = Number(section.row || 0);
+  const row = Number(section.row || 1);
   const start = Number(section.start || 1);
   const count = Number(section.count || 0);
   const reverse = section.reverse === true;
 
-  for (let i = 0; i < count; i++) {
-    const seatNum = reverse ? start - i : start + i;
-
-    const meta = {
-      zone: section.zone || section.title || "Боковий сектор",
-      prefix: section.prefix || null,
-      row,
-      seat: seatNum
-    };
-
-    seatsCol.appendChild(
-      makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
-    );
-  }
+  appendSeatRange(seatsCol, section, row, start, count, reverse);
 
   col.appendChild(seatsCol);
   box.appendChild(col);
@@ -1827,12 +1760,80 @@ function renderSideVertical(section){
 
   return wrap;
 }
-    
+
+function renderSplitRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  let maxRightCount = 0;
+  rows.forEach(r => {
+    maxRightCount = Math.max(maxRightCount, Number(r?.right?.count || 0));
+  });
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row ?? "";
+    rowLine.appendChild(lab);
+
+    const left = document.createElement("div");
+    left.className = "seats-row";
+
+    if (r.left) {
+      appendSeatRange(
+        left,
+        section,
+        r.row,
+        Number(r.left.start || 1),
+        Number(r.left.count || 0),
+        r.left.reverse === true
+      );
+    }
+
+    rowLine.appendChild(left);
+    rowLine.appendChild(createGap());
+
+    const right = document.createElement("div");
+    right.className = "seats-row";
+
+    if (r.right) {
+      appendSeatRange(
+        right,
+        section,
+        r.row,
+        Number(r.right.start || 1),
+        Number(r.right.count || 0),
+        r.right.reverse === true
+      );
+    } else {
+      for (let i = 0; i < maxRightCount; i++) {
+        right.appendChild(createEmptySeat());
+      }
+    }
+
+    rowLine.appendChild(right);
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
+}
+
 function renderCustomRows(section){
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
 
-  wrap.appendChild(makeSectionTitle(section.title || "Section"));
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
 
   const rows = Array.isArray(section.rows) ? section.rows : [];
 
@@ -1842,7 +1843,7 @@ function renderCustomRows(section){
 
     const lab = document.createElement("div");
     lab.className = "row-label";
-    lab.textContent = r.row;
+    lab.textContent = r.row ?? "";
     rowLine.appendChild(lab);
 
     const seatsRow = document.createElement("div");
@@ -1852,39 +1853,35 @@ function renderCustomRows(section){
 
     layout.forEach(item => {
       if (item.kind === "seat_range") {
-        const start = Number(item.start || 1);
-        const count = Number(item.count || 0);
-
-        for (let i = 0; i < count; i++) {
-          const seatNum = start + i;
-          const meta = {
-            zone: section.zone || "Балкон",
-            row: Number(r.row || 0),
-            seat: seatNum
-          };
-
-          seatsRow.appendChild(
-            makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
-          );
-        }
+        appendSeatRange(
+          seatsRow,
+          section,
+          r.row,
+          Number(item.start || 1),
+          Number(item.count || 0),
+          item.reverse === true
+        );
       }
 
       if (item.kind === "gap") {
         const count = Number(item.count || 1);
         for (let i = 0; i < count; i++) {
-          const gap = document.createElement("div");
-          gap.className = "amphi-gap";
-          seatsRow.appendChild(gap);
+          seatsRow.appendChild(createGap());
         }
       }
 
       if (item.kind === "empty") {
         const count = Number(item.count || 1);
         for (let i = 0; i < count; i++) {
-          const empty = document.createElement("div");
-          empty.className = "seat seat--empty";
-          seatsRow.appendChild(empty);
+          seatsRow.appendChild(createEmptySeat());
         }
+      }
+
+      if (item.kind === "label") {
+        const label = document.createElement("div");
+        label.className = "hall-section-title";
+        label.textContent = item.text || "";
+        seatsRow.appendChild(label);
       }
     });
 
@@ -1894,12 +1891,47 @@ function renderCustomRows(section){
 
   return wrap;
 }
-function makeSectionTitle(text){
-  const el = document.createElement("div");
-  el.className = "hall-section-title";
-  el.textContent = text || "";
-  return el;
+
+function renderSectionWithoutOuterTitle(section){
+  let rendered = null;
+
+  if (section.type === "rows") {
+    rendered = renderRowsSection({ ...section, title: "" });
+  }
+
+  if (section.type === "multi_block_rows") {
+    rendered = renderMultiBlockRows({ ...section, title: "" });
+  }
+
+  if (section.type === "split_rows") {
+    rendered = renderSplitRows({ ...section, title: "" });
+  }
+
+  if (section.type === "custom_rows") {
+    rendered = renderCustomRows({ ...section, title: "" });
+  }
+
+  if (section.type === "side_vertical") {
+    rendered = renderSideVertical({ ...section, title: "" });
+  }
+
+  if (section.type === "lodges_vertical") {
+    return renderLodgesVertical(section);
+  }
+
+  if (!rendered) return null;
+
+  const inner = document.createElement("div");
+
+  Array.from(rendered.children).forEach(ch => {
+    if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+      inner.appendChild(ch);
+    }
+  });
+
+  return inner;
 }
+
 function renderHorizontalGroup(group, sectionsMap){
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
@@ -1917,41 +1949,9 @@ function renderHorizontalGroup(group, sectionsMap){
     const section = sectionsMap.get(id);
     if (!section) return;
 
-    if (section.type === "rows") {
-      const rendered = renderRowsSection({ ...section, title: "" });
-      const inner = document.createElement("div");
-
-      Array.from(rendered.children).forEach(ch => {
-        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
-          inner.appendChild(ch);
-        }
-      });
-
-      row.appendChild(inner);
-      return;
-    }
-
-    if (section.type === "lodges_vertical") {
-      row.appendChild(renderLodgesVertical(section));
-      return;
-    }
-
-    if (section.type === "multi_block_rows") {
-      const rendered = renderMultiBlockRows({ ...section, title: "" });
-      const inner = document.createElement("div");
-
-      Array.from(rendered.children).forEach(ch => {
-        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
-          inner.appendChild(ch);
-        }
-      });
-
-      row.appendChild(inner);
-      return;
-    }
-
-    if (section.type === "side_vertical") {
-      row.appendChild(renderSideVertical({ ...section, title: "" }));
+    const rendered = renderSectionWithoutOuterTitle(section);
+    if (rendered) {
+      row.appendChild(rendered);
       return;
     }
 
@@ -1961,7 +1961,7 @@ function renderHorizontalGroup(group, sectionsMap){
   wrap.appendChild(row);
   return wrap;
 }
-    
+
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -1989,22 +1989,23 @@ function renderHallSections(hallData){
       return;
     }
 
+    if (section.type === "multi_block_rows") {
+      root.appendChild(renderMultiBlockRows(section));
+      return;
+    }
+
     if (section.type === "split_rows") {
       root.appendChild(renderSplitRows(section));
       return;
     }
-if (section.type === "multi_block_rows") {
-  root.appendChild(renderMultiBlockRows(section));
-  return;
-}
 
-if (section.type === "side_vertical") {
-  root.appendChild(renderSideVertical(section));
-  return;
-}
-    
     if (section.type === "custom_rows") {
       root.appendChild(renderCustomRows(section));
+      return;
+    }
+
+    if (section.type === "side_vertical") {
+      root.appendChild(renderSideVertical(section));
       return;
     }
 
@@ -2024,6 +2025,7 @@ if (section.type === "side_vertical") {
     console.warn("Unknown hall section type:", section.type, section);
   });
 }
+
 function renderSimpleRows(hallData) {
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -2034,18 +2036,16 @@ function renderSimpleRows(hallData) {
     ? hallData.rows.map(r => ({ ...r }))
     : [];
 
-  
-
   const section = {
+    type: "rows",
     title: "",
     zone: "Партер",
+    prefix: "P",
     rows
   };
 
   root.appendChild(renderRowsSection(section));
 }
-
-
     
 
     // ---- кнопки ----
