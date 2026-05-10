@@ -2198,6 +2198,7 @@ function applyHallLayoutStyle(hallData){
   root.style.removeProperty("--big-row-line-gap");
   root.style.removeProperty("--big-main-gap");
   root.style.removeProperty("--big-center-gap");
+  root.style.removeProperty("--big-side-top");
 
   if (s.hall_min_width) {
     root.style.setProperty("--hall-min-width-local", `${Number(s.hall_min_width)}px`);
@@ -2222,6 +2223,11 @@ function applyHallLayoutStyle(hallData){
   if (s.center_gap) {
     root.style.setProperty("--big-center-gap", `${Number(s.center_gap)}px`);
   }
+
+if (s.side_top) {
+  root.style.setProperty("--big-side-top", `${Number(s.side_top)}px`);
+}
+  
 }
 
 function renderPriceLegendMobile() {
