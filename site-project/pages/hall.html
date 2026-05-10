@@ -2387,7 +2387,7 @@ const hallFile = (
   }
 
   const HALL = await hallRes.json();
-
+applyHallLayoutStyle(HALL);
   setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
 
   await loadTakenSeats();
