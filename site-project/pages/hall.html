@@ -1338,7 +1338,7 @@ function showSeatTooltipTemporarily(btn, meta, price, ms = 1400){
         );
 
         const rows = await res.json();
-        takenSeats = new Set((rows || []).map(r => r.seat_label));
+        takenSeats = new Set((rows || []).map(r => r.seat_label)); 
       } catch(e){
         console.warn("loadTakenSeats error", e);
       }
