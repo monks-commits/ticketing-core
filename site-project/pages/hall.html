@@ -2169,6 +2169,89 @@ function renderSimpleRows(hallData) {
   root.appendChild(renderRowsSection(section));
 }   
 
+function applyHallLayoutStyle(hallData){
+  const root = document.querySelector(".hall-inner");
+  if (!root) return;
+
+  const s = hallData?.layout_style || {};
+
+  root.style.removeProperty("--hall-min-width-local");
+  root.style.removeProperty("--big-section-gap");
+  root.style.removeProperty("--big-row-gap");
+  root.style.removeProperty("--big-row-line-gap");
+  root.style.removeProperty("--big-main-gap");
+  root.style.removeProperty("--big-center-gap");
+
+  if (s.hall_min_width) {
+    root.style.setProperty("--hall-min-width-local", `${Number(s.hall_min_width)}px`);
+  }
+
+  if (s.section_gap) {
+    root.style.setProperty("--big-section-gap", `${Number(s.section_gap)}px`);
+  }
+
+  if (s.row_gap) {
+    root.style.setProperty("--big-row-gap", `${Number(s.row_gap)}px`);
+  }
+
+  if (s.row_line_gap) {
+    root.style.setProperty("--big-row-line-gap", `${Number(s.row_line_gap)}px`);
+  }
+
+  if (s.main_gap) {
+    root.style.setProperty("--big-main-gap", `${Number(s.main_gap)}px`);
+  }
+
+  if (s.center_gap) {
+    root.style.setProperty("--big-center-gap", `${Number(s.center_gap)}px`);
+  }
+}
+
+function renderPriceLegendMobile() {
+  const box = document.getElementById("priceLegendMobile");
+  if (!box) return;
+
+  if (window.innerWidth > 640) {
+    box.innerHTML = "";
+    return;
+  }
+
+  const byPrice = new Map();
+
+  const addCfg = (cfg) => {
+    if (!cfg || cfg.price == null || !cfg.color) return;
+
+    const price = Number(cfg.price);
+    const color = String(cfg.color).trim();
+
+    if (!Number.isFinite(price) || !color) return;
+
+    if (!byPrice.has(price)) {
+      byPrice.set(price, color);
+    }
+  };
+
+  Object.values(SEANCE_CONFIG?.pricing || {}).forEach(addCfg);
+  Object.values(SEANCE_CONFIG?.seat_overrides || {}).forEach(addCfg);
+
+  const items = [...byPrice.entries()].sort((a, b) => a[0] - b[0]);
+
+  if (!items.length) {
+    box.innerHTML = "";
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="price-legend-mobile__stack">
+      ${items.map(([price, color]) => `
+        <div class="price-legend-mobile__item" style="background:${color}">
+          ${price}
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+    
 function applyMobileHallScale() {
   const viewport = document.getElementById("mobile-hall-viewport");
   const scaleWrap = document.getElementById("mobile-hall-scale");
