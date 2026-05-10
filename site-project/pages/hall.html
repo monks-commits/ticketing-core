@@ -2056,16 +2056,27 @@ function renderTheatreBigStageLayout(section){
         ? Array.from({ length: 13 }, (_, i) => 22 - i)
         : Array.from({ length: 12 }, (_, i) => 20 - i);
 
-    const rightBlock =
-      row === 25
-        ? Array.from({ length: 9 }, (_, i) => 9 - i)
-        : Array.from({ length: 8 }, (_, i) => 8 - i);
+   let rightBlock;
 
+if (row === 25) {
+  rightBlock = Array.from({ length: 9 }, (_, i) => 9 - i);
+} else if (row === 16 || row === 17) {
+  rightBlock = [];
+} else {
+  rightBlock = Array.from({ length: 8 }, (_, i) => 8 - i);
+}
     line.appendChild(makeSeatsBlock("P", row, leftBlock));
     line.appendChild(makeRowLabel(row));
     line.appendChild(makeSeatsBlock("P", row, midBlock));
     line.appendChild(makeRowLabel(row));
-    line.appendChild(makeSeatsBlock("P", row, rightBlock));
+    if (rightBlock.length) {
+  line.appendChild(makeSeatsBlock("P", row, rightBlock));
+} else {
+  const emptyRight = document.createElement("div");
+  emptyRight.className = "seats-row theatre-seat-block";
+  emptyRight.style.width = "224px";
+  line.appendChild(emptyRight);
+}
 
     center.appendChild(line);
   });
