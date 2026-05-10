@@ -9,7 +9,8 @@
     "row_gap": 4,
     "row_line_gap": 6,
     "main_gap": 18,
-    "center_gap": 16
+    "center_gap": 16,
+    "side_top": 78
   },
 
   "sections": [
