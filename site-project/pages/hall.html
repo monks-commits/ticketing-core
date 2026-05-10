@@ -2132,7 +2132,105 @@ function renderTheatreBigStageLayout(section){
 
   return wrap;
 }
-    
+ function renderCustomCoordinates(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const canvas = document.createElement("div");
+  canvas.className = "coord-hall";
+
+  const width = Number(section.width || 1180);
+  const height = Number(section.height || 860);
+  const seatSize = Number(section.seat_size || 24);
+  const gap = Number(section.gap || 6);
+
+  canvas.style.setProperty("--coord-width", width + "px");
+  canvas.style.setProperty("--coord-height", height + "px");
+
+  function addLabel(text, x, y, cls = ""){
+    const el = document.createElement("div");
+    el.className = "coord-label " + cls;
+    el.textContent = text;
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    canvas.appendChild(el);
+  }
+
+  function addSeat(prefix, zone, row, seat, x, y){
+    const meta = {
+      zone: zone || "Партер",
+      prefix: prefix || "P",
+      row: String(row),
+      seat: Number(seat)
+    };
+
+    const btn = makeSeatElement(seatKey(meta), seat, "", 0, meta);
+    btn.style.left = x + "px";
+    btn.style.top = y + "px";
+    canvas.appendChild(btn);
+  }
+
+  function drawSeatLine(cfg){
+    const prefix = cfg.prefix || "P";
+    const zone = cfg.zone || "Партер";
+    const row = cfg.row;
+    const x = Number(cfg.x || 0);
+    const y = Number(cfg.y || 0);
+    const start = Number(cfg.start || 1);
+    const count = Number(cfg.count || 0);
+    const reverse = cfg.reverse === true;
+
+    for (let i = 0; i < count; i++) {
+      const seat = reverse ? start - i : start + i;
+      addSeat(prefix, zone, row, seat, x + i * (seatSize + gap), y);
+    }
+  }
+
+  function drawSide(cfg){
+    const prefix = cfg.prefix || "L";
+    const zone = cfg.zone || "Балкон";
+    const x = Number(cfg.x || 0);
+    const y = Number(cfg.y || 0);
+    const start = Number(cfg.start || 1);
+    const count = Number(cfg.count || 0);
+
+    for (let i = 0; i < count; i++) {
+      const seat = start + i;
+      addSeat(prefix, zone, 1, seat, x, y + i * (seatSize + gap));
+    }
+  }
+
+  const items = Array.isArray(section.items) ? section.items : [];
+
+  items.forEach(item => {
+    if (item.type === "label") {
+      addLabel(item.text || "", Number(item.x || 0), Number(item.y || 0), item.class || "");
+      return;
+    }
+
+    if (item.type === "row_label") {
+      addLabel(item.text || "", Number(item.x || 0), Number(item.y || 0), "coord-label--row");
+      return;
+    }
+
+    if (item.type === "seat_line") {
+      drawSeatLine(item);
+      return;
+    }
+
+    if (item.type === "side_vertical") {
+      drawSide(item);
+      return;
+    }
+  });
+
+  wrap.appendChild(canvas);
+  return wrap;
+}   
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -2149,6 +2247,10 @@ function renderHallSections(hallData){
   sections.forEach(section => {
     if (!section || !section.type) return;
     if (section.hidden === true) return;
+    if (section.type === "custom_coordinates") {
+  root.appendChild(renderCustomCoordinates(section));
+  return;
+}
 if (section.type === "theatre_big_stage_layout") {
   root.appendChild(renderTheatreBigStageLayout(section));
   return;
