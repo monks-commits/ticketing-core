@@ -11,10 +11,12 @@
       "type": "custom_coordinates",
       "title": "Партер",
       "width": 1180,
-      "height": 900,
-      "seat_size": 24,
-      "gap": 6,
-      "items": [
+"height": 900,
+"seat_size": 24,
+"gap": 6,
+"offset_x": -90,
+"offset_y": 0,
+"items": [
         { "type": "label", "text": "ПАРТЕР", "x": 555, "y": 10, "class": "coord-label--title" },
 
         { "type": "side_vertical", "prefix": "L", "zone": "Лівий балкон", "x": 35, "y": 180, "start": 4, "count": 22 },
