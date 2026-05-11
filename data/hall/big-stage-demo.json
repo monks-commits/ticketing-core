@@ -23,7 +23,7 @@
         { "type": "label", "text": "Балкон", "x": 25, "y": 155 },
         { "type": "label", "text": "Балкон", "x": 1090, "y": 155 },
 
-        { "type": "seat_line", "row": 1, "x": 210, "y": 55, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 1, "x": 210, "y": 55, "start": 28, "count": 14, "reverse": true }, 
         { "type": "seat_line", "row": 1, "x": 650, "y": 55, "start": 14, "count": 14, "reverse": true },
         { "type": "row_label", "text": "1", "x": 180, "y": 60 },
         { "type": "row_label", "text": "1", "x": 1065, "y": 60 },
