@@ -14,8 +14,8 @@
       "height": 900,
       "seat_size": 24,
       "gap": 6,
-      "scale": 0.76,
-"offset_x": 0,
+      "scale": 0.82,
+"offset_x": 120,
 "offset_y": 0,
       "items": [
         { "type": "label", "text": "СЦЕНА", "x": 560, "y": 10, "class": "coord-label--row" },
