@@ -2199,6 +2199,11 @@ function renderCustomCoordinates(section){
  canvas.style.width = width + "px";
 canvas.style.height = height + "px";
 canvas.style.setProperty("--seat-size", seatSize + "px");
+ const offsetX = Number(section.offset_x || 0);
+const offsetY = Number(section.offset_y || 0);
+
+canvas.style.left = offsetX + "px";
+canvas.style.top = offsetY + "px"; 
 
   function addLabel(text, x, y, cls = ""){
     const el = document.createElement("div");
