@@ -1,156 +1,201 @@
 {
-  "id": "opera-theatre",
+  "version": 4,
+  "hall_id": "opera_hall",
   "title": "Оперний театр",
-  "type": "absolute",
-
-  "stage": {
-    "label": "СЦЕНА",
-    "x": 520,
-    "y": 1180,
-    "width": 260,
-    "height": 60
-  },
 
   "sections": [
-
     {
-      "id": "parter",
-      "title": "ПАРТЕР",
-      "zone": "Партер",
-      "type": "absolute_rows",
-      "center": true,
-      "startX": 120,
-      "startY": 980,
-      "rowGap": 36,
-      "seatGap": 22,
+      "type": "coordinate_hall",
 
-      "rows": [
-        { "row": 1,  "start": 27, "count": 27, "reverse": true },
-        { "row": 2,  "start": 30, "count": 30, "reverse": true },
-        { "row": 3,  "start": 30, "count": 30, "reverse": true },
+      "width": 1400,
+      "height": 1200,
 
-        { "row": 4,  "start": 33, "count": 33, "reverse": true },
-        { "row": 5,  "start": 33, "count": 33, "reverse": true },
-        { "row": 6,  "start": 33, "count": 33, "reverse": true },
+      "seat_size": 20,
+      "gap": 4,
+      "scale": 0.82,
 
-        { "row": 7,  "start": 36, "count": 36, "reverse": true },
-        { "row": 8,  "start": 36, "count": 36, "reverse": true },
+      "items": [
 
-        { "row": 9,  "start": 37, "count": 37, "reverse": true },
-        { "row": 10, "start": 37, "count": 37, "reverse": true },
+        {
+          "type": "stage",
+          "x": 560,
+          "y": 1080,
+          "width": 280,
+          "height": 58,
+          "label": "СЦЕНА"
+        },
 
-        { "row": 11, "start": 36, "count": 36, "reverse": true },
+        {
+          "type": "text",
+          "x": 655,
+          "y": 1035,
+          "text": "ПАРТЕР",
+          "size": 22
+        },
 
-        { "row": 12, "start": 34, "count": 34, "reverse": true },
+        {
+          "type": "text",
+          "x": 620,
+          "y": 690,
+          "text": "АМФІТЕАТР",
+          "size": 22
+        },
 
-        { "row": 13, "start": 35, "count": 35, "reverse": true }
-      ]
-    },
+        {
+          "type": "text",
+          "x": 655,
+          "y": 355,
+          "text": "БАЛКОН",
+          "size": 22
+        }
 
-    {
-      "id": "amphi",
-      "title": "АМФІТЕАТР",
-      "zone": "Амфітеатр",
-      "type": "absolute_rows",
-      "center": true,
-      "startX": 70,
-      "startY": 620,
-      "rowGap": 36,
-      "seatGap": 22,
+      ],
 
-      "rows": [
-        { "row": 14, "start": 40, "count": 40, "reverse": true },
+      "seat_groups": [
 
-        { "row": 15, "start": 45, "count": 45, "reverse": true },
-        { "row": 16, "start": 45, "count": 45, "reverse": true },
+        {
+          "zone": "Партер",
+          "prefix": "P",
 
-        { "row": 17, "start": 44, "count": 44, "reverse": true },
-        { "row": 18, "start": 44, "count": 44, "reverse": true },
+          "x": 240,
+          "y": 920,
 
-        { "row": 19, "start": 45, "count": 45, "reverse": true },
+          "row_gap": 34,
+          "seat_gap": 22,
 
-        { "row": 20, "start": 43, "count": 43, "reverse": true },
-        { "row": 21, "start": 43, "count": 43, "reverse": true },
+          "rows": [
 
-        { "row": 22, "start": 44, "count": 44, "reverse": true }
-      ]
-    },
+            { "row": 1,  "count": 27, "start": 27, "reverse": true },
+            { "row": 2,  "count": 30, "start": 30, "reverse": true },
+            { "row": 3,  "count": 30, "start": 30, "reverse": true },
 
-    {
-      "id": "balcony-center",
-      "title": "БАЛКОН",
-      "zone": "Балкон",
-      "type": "absolute_rows",
-      "center": true,
-      "startX": 80,
-      "startY": 220,
-      "rowGap": 36,
-      "seatGap": 22,
+            { "row": 4,  "count": 33, "start": 33, "reverse": true },
+            { "row": 5,  "count": 33, "start": 33, "reverse": true },
+            { "row": 6,  "count": 33, "start": 33, "reverse": true },
 
-      "rows": [
-        { "row": 10, "start": 44, "count": 44, "reverse": true },
-        { "row": 11, "start": 45, "count": 45, "reverse": true },
-        { "row": 12, "start": 45, "count": 45, "reverse": true },
-        { "row": 13, "start": 45, "count": 45, "reverse": true },
-        { "row": 14, "start": 44, "count": 44, "reverse": true }
-      ]
-    },
+            { "row": 7,  "count": 36, "start": 36, "reverse": true },
+            { "row": 8,  "count": 36, "start": 36, "reverse": true },
 
-    {
-      "id": "balcony-left",
-      "title": "Лівий балкон",
-      "zone": "Балкон",
-      "type": "absolute_side",
+            { "row": 9,  "count": 37, "start": 37, "reverse": true },
+            { "row": 10, "count": 37, "start": 37, "reverse": true },
 
-      "x": 20,
-      "y": 380,
+            { "row": 11, "count": 36, "start": 36, "reverse": true },
 
-      "rowGap": 34,
-      "seatGap": 20,
+            { "row": 12, "count": 34, "start": 34, "reverse": true },
 
-      "rows": [
-        { "row": 1, "start": 2, "count": 2, "reverse": true },
-        { "row": 2, "start": 2, "count": 2, "reverse": true },
-        { "row": 3, "start": 2, "count": 2, "reverse": true },
+            { "row": 13, "count": 35, "start": 35, "reverse": true }
 
-        { "row": 4, "start": 3, "count": 3, "reverse": true },
-        { "row": 5, "start": 3, "count": 3, "reverse": true },
+          ]
+        },
 
-        { "row": 6, "start": 4, "count": 4, "reverse": true },
-        { "row": 7, "start": 4, "count": 4, "reverse": true },
+        {
+          "zone": "Амфітеатр",
+          "prefix": "A",
 
-        { "row": 8, "start": 5, "count": 5, "reverse": true },
-        { "row": 9, "start": 5, "count": 5, "reverse": true }
-      ]
-    },
+          "x": 110,
+          "y": 600,
 
-    {
-      "id": "balcony-right",
-      "title": "Правий балкон",
-      "zone": "Балкон",
-      "type": "absolute_side",
+          "row_gap": 34,
+          "seat_gap": 22,
 
-      "x": 1080,
-      "y": 380,
+          "rows": [
 
-      "rowGap": 34,
-      "seatGap": 20,
+            { "row": 14, "count": 40, "start": 40, "reverse": true },
 
-      "rows": [
-        { "row": 1, "start": 2, "count": 2, "reverse": true },
-        { "row": 2, "start": 2, "count": 2, "reverse": true },
-        { "row": 3, "start": 2, "count": 2, "reverse": true },
+            { "row": 15, "count": 45, "start": 45, "reverse": true },
+            { "row": 16, "count": 45, "start": 45, "reverse": true },
 
-        { "row": 4, "start": 3, "count": 3, "reverse": true },
-        { "row": 5, "start": 3, "count": 3, "reverse": true },
+            { "row": 17, "count": 44, "start": 44, "reverse": true },
+            { "row": 18, "count": 44, "start": 44, "reverse": true },
 
-        { "row": 6, "start": 4, "count": 4, "reverse": true },
-        { "row": 7, "start": 4, "count": 4, "reverse": true },
+            { "row": 19, "count": 45, "start": 45, "reverse": true },
 
-        { "row": 8, "start": 5, "count": 5, "reverse": true },
-        { "row": 9, "start": 5, "count": 5, "reverse": true }
+            { "row": 20, "count": 43, "start": 43, "reverse": true },
+            { "row": 21, "count": 43, "start": 43, "reverse": true },
+
+            { "row": 22, "count": 44, "start": 44, "reverse": true }
+
+          ]
+        },
+
+        {
+          "zone": "Балкон",
+          "prefix": "B",
+
+          "x": 120,
+          "y": 210,
+
+          "row_gap": 34,
+          "seat_gap": 22,
+
+          "rows": [
+
+            { "row": 10, "count": 44, "start": 44, "reverse": true },
+            { "row": 11, "count": 45, "start": 45, "reverse": true },
+            { "row": 12, "count": 45, "start": 45, "reverse": true },
+            { "row": 13, "count": 45, "start": 45, "reverse": true },
+            { "row": 14, "count": 44, "start": 44, "reverse": true }
+
+          ]
+        },
+
+        {
+          "zone": "Балкон",
+          "prefix": "BL",
+
+          "x": 30,
+          "y": 430,
+
+          "row_gap": 34,
+          "seat_gap": 20,
+
+          "rows": [
+
+            { "row": 1, "count": 2, "start": 2, "reverse": true },
+            { "row": 2, "count": 2, "start": 2, "reverse": true },
+            { "row": 3, "count": 2, "start": 2, "reverse": true },
+
+            { "row": 4, "count": 3, "start": 3, "reverse": true },
+            { "row": 5, "count": 3, "start": 3, "reverse": true },
+
+            { "row": 6, "count": 4, "start": 4, "reverse": true },
+            { "row": 7, "count": 4, "start": 4, "reverse": true },
+
+            { "row": 8, "count": 5, "start": 5, "reverse": true },
+            { "row": 9, "count": 5, "start": 5, "reverse": true }
+
+          ]
+        },
+
+        {
+          "zone": "Балкон",
+          "prefix": "BR",
+
+          "x": 1180,
+          "y": 430,
+
+          "row_gap": 34,
+          "seat_gap": 20,
+
+          "rows": [
+
+            { "row": 1, "count": 2, "start": 2, "reverse": true },
+            { "row": 2, "count": 2, "start": 2, "reverse": true },
+            { "row": 3, "count": 2, "start": 2, "reverse": true },
+
+            { "row": 4, "count": 3, "start": 3, "reverse": true },
+            { "row": 5, "count": 3, "start": 3, "reverse": true },
+
+            { "row": 6, "count": 4, "start": 4, "reverse": true },
+            { "row": 7, "count": 4, "start": 4, "reverse": true },
+
+            { "row": 8, "count": 5, "start": 5, "reverse": true },
+            { "row": 9, "count": 5, "start": 5, "reverse": true }
+
+          ]
+        }
+
       ]
     }
-
   ]
 }
