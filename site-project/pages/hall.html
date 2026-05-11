@@ -1856,6 +1856,138 @@ function renderHorizontalGroup(group, sectionsMap){
   wrap.appendChild(row);
   return wrap;
 }
+
+function renderCoordinateHall(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section hall-section--coordinate";
+
+  const viewport = document.createElement("div");
+  viewport.className = "coordinate-viewport";
+
+  const canvas = document.createElement("div");
+  canvas.className = "coordinate-canvas";
+
+  const width = Number(section.width || 1200);
+  const height = Number(section.height || 900);
+  const scale = Number(section.scale || 1);
+
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+  canvas.style.transform = `scale(${scale})`;
+  canvas.style.transformOrigin = "top center";
+
+  viewport.style.height = (height * scale) + "px";
+
+  function addLabel(item){
+    const el = document.createElement("div");
+    el.className = "coordinate-label " + (item.class || "");
+    el.textContent = item.text || "";
+    el.style.left = Number(item.x || 0) + "px";
+    el.style.top = Number(item.y || 0) + "px";
+
+    if (item.rotate) {
+      el.style.transform = `rotate(${Number(item.rotate)}deg)`;
+      el.style.transformOrigin = item.origin || "center";
+    }
+
+    canvas.appendChild(el);
+  }
+
+  function addDecor(item){
+    const el = document.createElement("div");
+    el.className = "coordinate-decor " + (item.class || "");
+    el.style.left = Number(item.x || 0) + "px";
+    el.style.top = Number(item.y || 0) + "px";
+    el.style.width = Number(item.w || 0) + "px";
+    el.style.height = Number(item.h || 0) + "px";
+
+    if (item.style && typeof item.style === "object") {
+      Object.assign(el.style, item.style);
+    }
+
+    canvas.appendChild(el);
+  }
+
+  function addSeat(group, row, seat, x, y){
+    const meta = {
+      zone: group.zone || "Партер",
+      prefix: group.prefix || "P",
+      row: String(row),
+      seat: Number(seat)
+    };
+
+    const btn = makeSeatElement(
+      seatKey(meta),
+      seat,
+      "",
+      0,
+      meta
+    );
+
+    btn.classList.add("coordinate-seat");
+    btn.style.left = Number(x || 0) + "px";
+    btn.style.top = Number(y || 0) + "px";
+
+    canvas.appendChild(btn);
+  }
+
+  function drawLineGroup(group){
+    const rows = Array.isArray(group.rows) ? group.rows : [];
+    const seatSize = Number(group.seat_size || section.seat_size || 22);
+    const gap = Number(group.gap || section.gap || 5);
+    const step = seatSize + gap;
+
+    rows.forEach(r => {
+      const row = r.row;
+      const x = Number(r.x || 0);
+      const y = Number(r.y || 0);
+      const start = Number(r.start || 1);
+      const count = Number(r.count || 0);
+      const reverse = r.reverse === true;
+
+      for (let i = 0; i < count; i++) {
+        const seat = reverse ? start - i : start + i;
+        addSeat(group, row, seat, x + i * step, y);
+      }
+    });
+  }
+
+  function drawPointsGroup(group){
+    const seats = Array.isArray(group.seats) ? group.seats : [];
+
+    seats.forEach(s => {
+      addSeat(
+        group,
+        s.row ?? 0,
+        s.seat ?? s.label ?? 0,
+        s.x,
+        s.y
+      );
+    });
+  }
+
+  const items = Array.isArray(section.items) ? section.items : [];
+  const groups = Array.isArray(section.seat_groups) ? section.seat_groups : [];
+
+  items.forEach(item => {
+    if (item.type === "decor") addDecor(item);
+    if (item.type === "label") addLabel(item);
+  });
+
+  groups.forEach(group => {
+    if (group.type === "points") {
+      drawPointsGroup(group);
+      return;
+    }
+
+    drawLineGroup(group);
+  });
+
+  viewport.appendChild(canvas);
+  wrap.appendChild(viewport);
+
+  return wrap;
+}
     
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
