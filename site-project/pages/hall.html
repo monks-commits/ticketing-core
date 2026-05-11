@@ -2256,6 +2256,16 @@ function renderCustomCoordinates(section){
   canvas.style.transformOrigin = "top left";
   canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
 
+  function addDecor(item){
+    const el = document.createElement("div");
+    el.className = "coord-decor " + (item.class || "");
+    el.style.left = Number(item.x || 0) + "px";
+    el.style.top = Number(item.y || 0) + "px";
+    el.style.width = Number(item.w || 0) + "px";
+    el.style.height = Number(item.h || 0) + "px";
+    canvas.appendChild(el);
+  }
+
   function addLabel(text, x, y, cls = ""){
     const el = document.createElement("div");
     el.className = "coord-label " + cls;
@@ -2314,6 +2324,11 @@ function renderCustomCoordinates(section){
   const items = Array.isArray(section.items) ? section.items : [];
 
   items.forEach(item => {
+    if (item.type === "decor") {
+      addDecor(item);
+      return;
+    }
+
     if (item.type === "label") {
       addLabel(item.text || "", Number(item.x || 0), Number(item.y || 0), item.class || "");
       return;
