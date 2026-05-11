@@ -2222,136 +2222,182 @@ function renderTheatreBigStageLayout(section){
 }
 
 function renderCustomCoordinates(section){
+
   const wrap = document.createElement("section");
   wrap.className = "hall-section hall-section--coord";
 
-  if (section.title) {
-    wrap.appendChild(makeSectionTitle(section.title));
-  }
-
   const viewport = document.createElement("div");
   viewport.className = "coord-hall-viewport";
-
-  const stage = document.createElement("div");
-  stage.className = "coord-hall-stage";
 
   const canvas = document.createElement("div");
   canvas.className = "coord-hall";
 
   const width = Number(section.width || 1180);
-  const height = Number(section.height || 900);
+  const height = Number(section.height || 940);
+
   const seatSize = Number(section.seat_size || 24);
   const gap = Number(section.gap || 6);
 
   const scale = Number(section.scale || 1);
-  const offsetX = Number(section.offset_x || 0);
-  const offsetY = Number(section.offset_y || 0);
-
-  stage.style.width = (width * scale) + "px";
-  stage.style.height = (height * scale) + "px";
 
   canvas.style.width = width + "px";
   canvas.style.height = height + "px";
-  canvas.style.setProperty("--seat-size", seatSize + "px");
-  canvas.style.transformOrigin = "top left";
-  canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
 
-  function addDecor(item){
-    const el = document.createElement("div");
-    el.className = "coord-decor " + (item.class || "");
-    el.style.left = Number(item.x || 0) + "px";
-    el.style.top = Number(item.y || 0) + "px";
-    el.style.width = Number(item.w || 0) + "px";
-    el.style.height = Number(item.h || 0) + "px";
-    canvas.appendChild(el);
-  }
+  canvas.style.transformOrigin = "top center";
+  canvas.style.transform = `scale(${scale})`;
 
   function addLabel(text, x, y, cls = ""){
     const el = document.createElement("div");
-    el.className = "coord-label " + cls;
+
+    el.className = `coord-label ${cls}`;
     el.textContent = text;
+
     el.style.left = x + "px";
     el.style.top = y + "px";
+
+    canvas.appendChild(el);
+  }
+
+  function addDecor(item){
+
+    const el = document.createElement("div");
+
+    el.className = item.class || "";
+
+    el.style.position = "absolute";
+    el.style.left = item.x + "px";
+    el.style.top = item.y + "px";
+    el.style.width = item.w + "px";
+    el.style.height = item.h + "px";
+
     canvas.appendChild(el);
   }
 
   function addSeat(prefix, zone, row, seat, x, y){
+
     const meta = {
-      zone: zone || "Партер",
-      prefix: prefix || "P",
+      zone,
+      prefix,
       row: String(row),
       seat: Number(seat)
     };
 
-    const btn = makeSeatElement(seatKey(meta), seat, "", 0, meta);
+    const btn = makeSeatElement(
+      seatKey(meta),
+      seat,
+      "",
+      0,
+      meta
+    );
+
     btn.classList.add("coord-seat");
+
     btn.style.left = x + "px";
     btn.style.top = y + "px";
+
     canvas.appendChild(btn);
   }
 
   function drawSeatLine(cfg){
+
     const prefix = cfg.prefix || "P";
     const zone = cfg.zone || "Партер";
+
     const row = cfg.row;
+
     const x = Number(cfg.x || 0);
     const y = Number(cfg.y || 0);
+
     const start = Number(cfg.start || 1);
     const count = Number(cfg.count || 0);
+
     const reverse = cfg.reverse === true;
 
-    for (let i = 0; i < count; i++) {
-      const seat = reverse ? start - i : start + i;
-      addSeat(prefix, zone, row, seat, x + i * (seatSize + gap), y);
+    for(let i=0;i<count;i++){
+
+      const seat = reverse
+        ? start - i
+        : start + i;
+
+      addSeat(
+        prefix,
+        zone,
+        row,
+        seat,
+        x + i * (seatSize + gap),
+        y
+      );
     }
   }
 
   function drawSideVertical(cfg){
+
     const prefix = cfg.prefix || "L";
     const zone = cfg.zone || "Балкон";
+
     const x = Number(cfg.x || 0);
     const y = Number(cfg.y || 0);
+
     const start = Number(cfg.start || 1);
     const count = Number(cfg.count || 0);
-    const reverse = cfg.reverse === true;
 
-    for (let i = 0; i < count; i++) {
-      const seat = reverse ? start - i : start + i;
-      addSeat(prefix, zone, 1, seat, x, y + i * (seatSize + gap));
+    for(let i=0;i<count;i++){
+
+      addSeat(
+        prefix,
+        zone,
+        0,
+        start + i,
+        x,
+        y + i * (seatSize + gap)
+      );
     }
   }
 
-  const items = Array.isArray(section.items) ? section.items : [];
+  const items = Array.isArray(section.items)
+    ? section.items
+    : [];
 
   items.forEach(item => {
-    if (item.type === "decor") {
+
+    if(item.type === "decor"){
       addDecor(item);
       return;
     }
 
-    if (item.type === "label") {
-      addLabel(item.text || "", Number(item.x || 0), Number(item.y || 0), item.class || "");
+    if(item.type === "label"){
+      addLabel(
+        item.text || "",
+        Number(item.x || 0),
+        Number(item.y || 0),
+        item.class || ""
+      );
       return;
     }
 
-    if (item.type === "row_label") {
-      addLabel(item.text || "", Number(item.x || 0), Number(item.y || 0), "coord-label--row");
+    if(item.type === "row_label"){
+      addLabel(
+        item.text || "",
+        Number(item.x || 0),
+        Number(item.y || 0),
+        "coord-label--row"
+      );
       return;
     }
 
-    if (item.type === "seat_line") {
+    if(item.type === "seat_line"){
       drawSeatLine(item);
       return;
     }
 
-    if (item.type === "side_vertical") {
+    if(item.type === "side_vertical"){
       drawSideVertical(item);
       return;
     }
+
   });
 
-  stage.appendChild(canvas);
-  viewport.appendChild(stage);
+  viewport.appendChild(canvas);
   wrap.appendChild(viewport);
 
   return wrap;
