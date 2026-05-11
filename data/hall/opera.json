@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "hall_id": "opera_hall",
   "title": "Оперний театр",
   "sections": [
@@ -15,21 +15,21 @@
           "type": "label",
           "text": "БАЛКОН",
           "x": 650,
-          "y": 120,
+          "y": 90,
           "class": "zone-label"
         },
         {
           "type": "label",
           "text": "АМФІТЕАТР",
           "x": 610,
-          "y": 390,
+          "y": 410,
           "class": "zone-label"
         },
         {
           "type": "label",
           "text": "ПАРТЕР",
           "x": 650,
-          "y": 760,
+          "y": 815,
           "class": "zone-label"
         },
         {
@@ -50,8 +50,8 @@
           "zone": "Балкон",
           "prefix": "B",
           "x": 172,
-          "y": 40,
-          "row_gap": 28,
+          "y": 230,
+          "row_gap": -28,
           "seat_gap": 4,
           "rows": [
             { "row": 10, "count": 44, "start": 44, "reverse": true },
@@ -65,8 +65,8 @@
           "zone": "Амфітеатр",
           "prefix": "A",
           "x": 220,
-          "y": 300,
-          "row_gap": 28,
+          "y": 640,
+          "row_gap": -28,
           "seat_gap": 4,
           "rows": [
             { "row": 14, "count": 40, "start": 40, "reverse": true },
@@ -84,8 +84,8 @@
           "zone": "Партер",
           "prefix": "P",
           "x": 376,
-          "y": 650,
-          "row_gap": 28,
+          "y": 890,
+          "row_gap": -28,
           "seat_gap": 4,
           "rows": [
             { "row": 1, "count": 27, "start": 27, "reverse": true },
