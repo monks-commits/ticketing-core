@@ -2036,6 +2036,53 @@ function renderCoordinateHall(section){
 
   return wrap;
 }
+
+function renderBuilderSeats(hallData){
+  const root = document.getElementById("hall-root");
+  if (!root) return;
+
+  root.innerHTML = "";
+
+  const seats = Array.isArray(hallData?.seats) ? hallData.seats : [];
+
+  const width = Number(hallData.width || 1200);
+  const height = Number(hallData.height || 900);
+
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  const canvas = document.createElement("div");
+  canvas.style.position = "relative";
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+  canvas.style.margin = "0 auto";
+
+  seats.forEach(s => {
+    const meta = {
+      zone: s.zone || "Партер",
+      prefix: s.prefix || "P",
+      row: String(s.row || "0"),
+      seat: Number(s.seat || 0)
+    };
+
+    const btn = makeSeatElement(
+      seatKey(meta),
+      meta.seat,
+      "",
+      0,
+      meta
+    );
+
+    btn.style.position = "absolute";
+    btn.style.left = Number(s.x || 0) + "px";
+    btn.style.top = Number(s.y || 0) + "px";
+
+    canvas.appendChild(btn);
+  });
+
+  wrap.appendChild(canvas);
+  root.appendChild(wrap);
+}
     
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
