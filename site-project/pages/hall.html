@@ -2,8 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" /> 
-  
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Схема залу</title>
 
  <link rel="stylesheet" href="../../styles/styles.css" />
@@ -167,9 +166,9 @@
   .hall-legend-dot--reserved{ background:#f59e0b; border-color:#f59e0b; }
 
   .hall-scroll{
-  position:relative;
-  padding:18px;
-  overflow:hidden;
+    position:relative;
+    padding:18px;
+    overflow:auto;
     -webkit-overflow-scrolling:touch;
     background:
       linear-gradient(to right, rgba(243,244,246,1), rgba(243,244,246,0)) left center/28px 100% no-repeat,
@@ -181,17 +180,16 @@
     width:100%;
   }
 
- .mobile-hall-scale{
-  transform-origin: top center;
-  will-change: transform;
-  margin:0 auto;
-}
+  .mobile-hall-scale{
+    transform-origin: top center;
+    will-change: transform;
+  }
 
   .hall-inner{
-  min-width:var(--hall-min-width-local, var(--hall-min-width));
-  width:max-content;
-  margin:0 auto;
-}
+    min-width:var(--hall-min-width);
+    width:max-content;
+    margin:0 auto;
+  }
 
   .stage-wrap{
     margin:2px 0 18px;
@@ -805,199 +803,23 @@
 .side-vertical.right{
   margin-left:24px;
 }
-
-.theatre-big-stage-layout{
-  display:flex;
-  justify-content:center;
+.hall-page .container{
+  max-width:1600px !important;
+  width:100%;
 }
 
-.theatre-full-wrap{
-  display:flex;
+.hall-inner{
+  min-width:1320px !important;
+}
+
+.hall-scroll{
+  overflow:auto !important;
+}
+
+.parter-wrap{
+  gap:34px;
   align-items:flex-start;
-  justify-content:center;
-  gap:var(--big-main-gap, 18px);
-}
-
-.theatre-middle{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:var(--big-section-gap, 18px);
-}
-
-.theatre-top-parter,
-.theatre-main-center{
-  display:flex;
-  flex-direction:column;
-  gap:var(--big-row-gap, 4px);
-}
-
-.theatre-row-line{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:var(--big-row-line-gap, 6px);
-}
-
-.theatre-center-gap{
-  width:var(--big-center-gap, 16px);
-  flex:0 0 var(--big-center-gap, 16px);
-}
-
-.theatre-seat-block{
-  gap:var(--seat-gap);
-}
-
-.theatre-row-label{
-  width:28px;
-  flex:0 0 28px;
-  text-align:center;
-}
-
-.theatre-side-balcony{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:var(--big-row-gap, 4px);
-  padding-top:var(--big-side-top, 92px);
-}
-
-.theatre-side-title{
-  font-size:12px;
-  color:var(--muted);
-  font-weight:700;
-  margin-bottom:6px;
-}
-
-.theatre-big-stage-layout{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:var(--big-section-gap, 34px);
-}
-
-.theatre-top-parter,
-.theatre-main-center{
-  display:flex;
-  flex-direction:column;
-  gap:var(--big-row-gap, 5px);
-}
-
-.theatre-row-line{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:var(--big-row-line-gap, 10px);
-}
-
-.theatre-main-wrap{
-  display:flex;
-  align-items:flex-end;
-  justify-content:center;
-  gap:var(--big-main-gap, 28px);
-}
-
-.theatre-center-gap{
-  width:var(--big-center-gap, 32px);
-  flex:0 0 var(--big-center-gap, 32px);
-}
-
-/* ===== COORDINATE HALL ENGINE ===== */
-
-.hall-section--coord{
-  overflow: visible;
-  margin-bottom: 0;
-}
-
-.coord-hall-viewport{
-  width: 100%;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-.coord-hall{
-  position: relative;
-  flex: 0 0 auto;
-  margin: 0 auto;
-}
-
-.coord-seat{
-  position: absolute;
-  width: var(--coord-seat-size, 24px);
-  height: var(--coord-seat-size, 24px);
-  min-width: var(--coord-seat-size, 24px);
-  min-height: var(--coord-seat-size, 24px);
-  padding: 0;
-  font-size: 10px;
-  line-height: 1;
-}
-
-.coord-label{
-  position: absolute;
-  font-size: 12px;
-  font-weight: 700;
-  color: #111827;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.coord-label--row{
-  font-size: 11px;
-  color: #111827;
-}
-.coord-label--stage{
-  color:#fff;
-  font-size:26px;
-  font-weight:800;
-  letter-spacing:.08em;
-}
-
-.coord-label--parter{
-  font-size:24px;
-  font-weight:800;
-  color:#111827;
-}
-
-.coord-label--balcony-left{
-  transform:rotate(-90deg);
-  transform-origin:left top;
-  font-size:22px;
-  font-weight:800;
-  color:#111827;
-}
-
-.coord-label--balcony-right{
-  transform:rotate(90deg);
-  transform-origin:left top;
-  font-size:22px;
-  font-weight:800;
-  color:#111827;
-}
-
-.coord-stage-bg{
-  background:linear-gradient(to bottom,#c62828,#8e1b1b);
-  border-bottom-left-radius:120px 26px;
-  border-bottom-right-radius:120px 26px;
-}
-
-.coord-border-main{
-  border:4px solid #7f1d1d;
-  border-top:none;
-  border-bottom-left-radius:46px;
-  border-bottom-right-radius:46px;
-}
-
-.coord-border-side-left,
-.coord-border-side-right{
-  border:4px solid #7f1d1d;
-  border-top-left-radius:40px;
-  border-top-right-radius:40px;
-  border-bottom-left-radius:40px;
-  border-bottom-right-radius:40px;
-}
-  
+}  
 </style>
  
 </head>
@@ -1442,7 +1264,7 @@ function showSeatTooltipTemporarily(btn, meta, price, ms = 1400){
         );
 
         const rows = await res.json();
-        takenSeats = new Set((rows || []).map(r => r.seat_label)); 
+        takenSeats = new Set((rows || []).map(r => r.seat_label));
       } catch(e){
         console.warn("loadTakenSeats error", e);
       }
@@ -1617,48 +1439,8 @@ async function loadVenue(venueId) {
   return el;
 }   
 
- // ===== Universal hall renderer =====
-
-function createEmptySeat(){
-  const el = document.createElement("div");
-  el.className = "seat seat--empty";
-  return el;
-}
-
-function createGap(className = "amphi-gap"){
-  const el = document.createElement("div");
-  el.className = className;
-  return el;
-}
-
-function getSectionZone(section, fallback = "Партер"){
-  return section.zone || section.title || fallback;
-}
-
-function getSectionPrefix(section){
-  return section.prefix || null;
-}
-
-function appendSeatRange(target, section, rowNumber, start, count, reverse = false){
-  const zone = getSectionZone(section);
-  const prefix = getSectionPrefix(section);
-
-  for (let i = 0; i < count; i++) {
-    const seatNum = reverse ? start - i : start + i;
-
-    const meta = {
-      zone,
-      prefix,
-      row: String(rowNumber || "0"),
-      seat: seatNum
-    };
-
-    target.appendChild(
-      makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
-    );
-  }
-}
-
+    
+// ===== Universal hall renderer =====
 function renderRowsSection(section){
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
@@ -1675,25 +1457,34 @@ function renderRowsSection(section){
 
     const lab = document.createElement("div");
     lab.className = "row-label";
-    lab.textContent = r.row ?? "";
+    lab.textContent = r.row;
     rowLine.appendChild(lab);
 
     const seatsRow = document.createElement("div");
     seatsRow.className = "seats-row";
 
     const offset = Number(r.offset || 0);
-    for (let i = 0; i < offset; i++) {
-      seatsRow.appendChild(createEmptySeat());
-    }
+for (let i = 0; i < offset; i++) {
+  const spacer = document.createElement("div");
+  spacer.className = "seat seat--empty";
+  seatsRow.appendChild(spacer);
+}
+
+// спец-поправка для 1 ряда Академии:
+// добавляем ширину прохода между 6 и 7 местом второго ряда
+if (r._academyLeadGap) {
+  const gap = document.createElement("div");
+  gap.className = "amphi-gap";
+  seatsRow.appendChild(gap);
+}
 
     const seats = Number(r.seats || 0);
     const aisles = Array.isArray(r.aisles) ? r.aisles : [];
 
     for (let s = 1; s <= seats; s++) {
       const meta = {
-        zone: getSectionZone(section),
-        prefix: getSectionPrefix(section),
-        row: String(r.row || "0"),
+        zone: section.zone || "Партер",
+        row: Number(r.row || 0),
         seat: s
       };
 
@@ -1709,60 +1500,7 @@ function renderRowsSection(section){
 
     if (r.gapAfter) {
       const gap = document.createElement("div");
-      gap.style.height = `${Number(r.gapAfter) || 34}px`;
-      wrap.appendChild(gap);
-    }
-  });
-
-  return wrap;
-}
-
-function renderMultiBlockRows(section){
-  const wrap = document.createElement("section");
-  wrap.className = "hall-section";
-
-  if (section.title) {
-    wrap.appendChild(makeSectionTitle(section.title));
-  }
-
-  const rows = Array.isArray(section.rows) ? section.rows : [];
-
-  rows.forEach(r => {
-    const rowLine = document.createElement("div");
-    rowLine.className = "row-line";
-
-    const lab = document.createElement("div");
-    lab.className = "row-label";
-    lab.textContent = r.row ?? "";
-    rowLine.appendChild(lab);
-
-    const blocks = Array.isArray(r.blocks) ? r.blocks : [];
-
-    blocks.forEach((block, index) => {
-      const seatsRow = document.createElement("div");
-      seatsRow.className = "seats-row";
-
-      appendSeatRange(
-        seatsRow,
-        section,
-        r.row,
-        Number(block.start || 1),
-        Number(block.count || 0),
-        block.reverse === true
-      );
-
-      rowLine.appendChild(seatsRow);
-
-      if (index < blocks.length - 1) {
-        rowLine.appendChild(createGap());
-      }
-    });
-
-    wrap.appendChild(rowLine);
-
-    if (r.gapAfter) {
-      const gap = document.createElement("div");
-      gap.style.height = `${Number(r.gapAfter) || 34}px`;
+      gap.style.height = "34px";
       wrap.appendChild(gap);
     }
   });
@@ -1774,25 +1512,20 @@ function renderLodgesVertical(section){
   const lodge = document.createElement("div");
   lodge.className = "hall-lodge";
 
-  if (section.title) {
-    const label = document.createElement("div");
-    label.className = "hall-lodge-label";
-    label.textContent = section.title;
-    lodge.appendChild(label);
-  }
+  const label = document.createElement("div");
+  label.className = "hall-lodge-label";
+  label.textContent = section.title || "Ложа";
 
   const seatsCol = document.createElement("div");
   seatsCol.className = "hall-lodge-seats";
 
-  const count = Number(section.seat_count || section.count || 0);
+  const count = Number(section.seat_count || 0);
   const row = Number(section.row || 0);
-  const zone = getSectionZone(section, "Ложа");
-  const prefix = getSectionPrefix(section);
+  const zone = section.zone || "Ложа А";
 
   for (let i = 1; i <= count; i++) {
     const meta = {
       zone,
-      prefix,
       row,
       seat: i,
       index: i
@@ -1803,8 +1536,152 @@ function renderLodgesVertical(section){
     );
   }
 
+  lodge.appendChild(label);
   lodge.appendChild(seatsCol);
   return lodge;
+}
+
+function renderSplitRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  let maxRightCount = 0;
+  for (const r of rows) {
+    const count = Number(r?.right?.count || 0);
+    if (count > maxRightCount) maxRightCount = count;
+  }
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const left = document.createElement("div");
+    left.className = "seats-row";
+
+    if (r.left) {
+      const start = Number(r.left.start || 1);
+      const count = Number(r.left.count || 0);
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = start + i;
+        const meta = {
+          zone: section.zone || "Амфітеатр",
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        left.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+    }
+
+    rowLine.appendChild(left);
+
+    const gap = document.createElement("div");
+    gap.className = "amphi-gap";
+    rowLine.appendChild(gap);
+
+    const right = document.createElement("div");
+    right.className = "seats-row";
+
+    if (r.right) {
+      const start = Number(r.right.start || 1);
+      const count = Number(r.right.count || 0);
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = start + i;
+        const meta = {
+          zone: section.zone || "Амфітеатр",
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        right.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+    } else {
+      for (let i = 0; i < maxRightCount; i++) {
+        const empty = document.createElement("div");
+        empty.className = "seat seat--empty";
+        right.appendChild(empty);
+      }
+    }
+
+    rowLine.appendChild(right);
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
+}
+
+function renderMultiBlockRows(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
+
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.className = "row-line";
+
+    const lab = document.createElement("div");
+    lab.className = "row-label";
+    lab.textContent = r.row;
+    rowLine.appendChild(lab);
+
+    const blocks = Array.isArray(r.blocks) ? r.blocks : [];
+
+    blocks.forEach((block, index) => {
+      const seatsRow = document.createElement("div");
+      seatsRow.className = "seats-row";
+
+      const start = Number(block.start || 1);
+      const count = Number(block.count || 0);
+      const reverse = block.reverse === true;
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = reverse
+          ? start - i
+          : start + i;
+
+        const meta = {
+          zone: section.zone || section.title || "Партер",
+          prefix: section.prefix || null,
+          row: Number(r.row || 0),
+          seat: seatNum
+        };
+
+        seatsRow.appendChild(
+          makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+        );
+      }
+
+      rowLine.appendChild(seatsRow);
+
+      if (index < blocks.length - 1) {
+        const gap = document.createElement("div");
+        gap.className = "amphi-gap";
+        rowLine.appendChild(gap);
+      }
+    });
+
+    wrap.appendChild(rowLine);
+  });
+
+  return wrap;
 }
 
 function renderSideVertical(section){
@@ -1824,17 +1701,25 @@ function renderSideVertical(section){
   const seatsCol = document.createElement("div");
   seatsCol.className = "hall-lodge-seats";
 
-  const row = String(section.row || "1");
-const start = Number(section.start || 1);
-const count = Number(section.count || 0);
-const reverse = section.reverse === true;
-const offsetRows = Number(section.offsetRows || 0);
+  const row = Number(section.row || 0);
+  const start = Number(section.start || 1);
+  const count = Number(section.count || 0);
+  const reverse = section.reverse === true;
 
-for (let i = 0; i < offsetRows; i++) {
-  seatsCol.appendChild(createEmptySeat());
-}
+  for (let i = 0; i < count; i++) {
+    const seatNum = reverse ? start - i : start + i;
 
-appendSeatRange(seatsCol, section, row, start, count, reverse);
+    const meta = {
+      zone: section.zone || section.title || "Боковий сектор",
+      prefix: section.prefix || null,
+      row,
+      seat: seatNum
+    };
+
+    seatsCol.appendChild(
+      makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+    );
+  }
 
   col.appendChild(seatsCol);
   box.appendChild(col);
@@ -1842,80 +1727,12 @@ appendSeatRange(seatsCol, section, row, start, count, reverse);
 
   return wrap;
 }
-
-function renderSplitRows(section){
-  const wrap = document.createElement("section");
-  wrap.className = "hall-section";
-
-  if (section.title) {
-    wrap.appendChild(makeSectionTitle(section.title));
-  }
-
-  const rows = Array.isArray(section.rows) ? section.rows : [];
-
-  let maxRightCount = 0;
-  rows.forEach(r => {
-    maxRightCount = Math.max(maxRightCount, Number(r?.right?.count || 0));
-  });
-
-  rows.forEach(r => {
-    const rowLine = document.createElement("div");
-    rowLine.className = "row-line";
-
-    const lab = document.createElement("div");
-    lab.className = "row-label";
-    lab.textContent = r.row ?? "";
-    rowLine.appendChild(lab);
-
-    const left = document.createElement("div");
-    left.className = "seats-row";
-
-    if (r.left) {
-      appendSeatRange(
-        left,
-        section,
-        r.row,
-        Number(r.left.start || 1),
-        Number(r.left.count || 0),
-        r.left.reverse === true
-      );
-    }
-
-    rowLine.appendChild(left);
-    rowLine.appendChild(createGap());
-
-    const right = document.createElement("div");
-    right.className = "seats-row";
-
-    if (r.right) {
-      appendSeatRange(
-        right,
-        section,
-        r.row,
-        Number(r.right.start || 1),
-        Number(r.right.count || 0),
-        r.right.reverse === true
-      );
-    } else {
-      for (let i = 0; i < maxRightCount; i++) {
-        right.appendChild(createEmptySeat());
-      }
-    }
-
-    rowLine.appendChild(right);
-    wrap.appendChild(rowLine);
-  });
-
-  return wrap;
-}
-
+    
 function renderCustomRows(section){
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
 
-  if (section.title) {
-    wrap.appendChild(makeSectionTitle(section.title));
-  }
+  wrap.appendChild(makeSectionTitle(section.title || "Section"));
 
   const rows = Array.isArray(section.rows) ? section.rows : [];
 
@@ -1925,7 +1742,7 @@ function renderCustomRows(section){
 
     const lab = document.createElement("div");
     lab.className = "row-label";
-    lab.textContent = r.row ?? "";
+    lab.textContent = r.row;
     rowLine.appendChild(lab);
 
     const seatsRow = document.createElement("div");
@@ -1935,35 +1752,39 @@ function renderCustomRows(section){
 
     layout.forEach(item => {
       if (item.kind === "seat_range") {
-        appendSeatRange(
-          seatsRow,
-          section,
-          r.row,
-          Number(item.start || 1),
-          Number(item.count || 0),
-          item.reverse === true
-        );
+        const start = Number(item.start || 1);
+        const count = Number(item.count || 0);
+
+        for (let i = 0; i < count; i++) {
+          const seatNum = start + i;
+          const meta = {
+            zone: section.zone || "Балкон",
+            row: Number(r.row || 0),
+            seat: seatNum
+          };
+
+          seatsRow.appendChild(
+            makeSeatElement(seatKey(meta), seatNum, "", 0, meta)
+          );
+        }
       }
 
       if (item.kind === "gap") {
         const count = Number(item.count || 1);
         for (let i = 0; i < count; i++) {
-          seatsRow.appendChild(createGap());
+          const gap = document.createElement("div");
+          gap.className = "amphi-gap";
+          seatsRow.appendChild(gap);
         }
       }
 
       if (item.kind === "empty") {
         const count = Number(item.count || 1);
         for (let i = 0; i < count; i++) {
-          seatsRow.appendChild(createEmptySeat());
+          const empty = document.createElement("div");
+          empty.className = "seat seat--empty";
+          seatsRow.appendChild(empty);
         }
-      }
-
-      if (item.kind === "label") {
-        const label = document.createElement("div");
-        label.className = "hall-section-title";
-        label.textContent = item.text || "";
-        seatsRow.appendChild(label);
       }
     });
 
@@ -1972,46 +1793,6 @@ function renderCustomRows(section){
   });
 
   return wrap;
-}
-
-function renderSectionWithoutOuterTitle(section){
-  let rendered = null;
-
-  if (section.type === "rows") {
-    rendered = renderRowsSection({ ...section, title: "" });
-  }
-
-  if (section.type === "multi_block_rows") {
-    rendered = renderMultiBlockRows({ ...section, title: "" });
-  }
-
-  if (section.type === "split_rows") {
-    rendered = renderSplitRows({ ...section, title: "" });
-  }
-
-  if (section.type === "custom_rows") {
-    rendered = renderCustomRows({ ...section, title: "" });
-  }
-
-  if (section.type === "side_vertical") {
-    rendered = renderSideVertical({ ...section, title: "" });
-  }
-
-  if (section.type === "lodges_vertical") {
-    return renderLodgesVertical(section);
-  }
-
-  if (!rendered) return null;
-
-  const inner = document.createElement("div");
-
-  Array.from(rendered.children).forEach(ch => {
-    if (!ch.classList || !ch.classList.contains("hall-section-title")) {
-      inner.appendChild(ch);
-    }
-  });
-
-  return inner;
 }
 
 function renderHorizontalGroup(group, sectionsMap){
@@ -2031,9 +1812,41 @@ function renderHorizontalGroup(group, sectionsMap){
     const section = sectionsMap.get(id);
     if (!section) return;
 
-    const rendered = renderSectionWithoutOuterTitle(section);
-    if (rendered) {
-      row.appendChild(rendered);
+    if (section.type === "rows") {
+      const rendered = renderRowsSection({ ...section, title: "" });
+      const inner = document.createElement("div");
+
+      Array.from(rendered.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          inner.appendChild(ch);
+        }
+      });
+
+      row.appendChild(inner);
+      return;
+    }
+
+    if (section.type === "lodges_vertical") {
+      row.appendChild(renderLodgesVertical(section));
+      return;
+    }
+
+    if (section.type === "multi_block_rows") {
+      const rendered = renderMultiBlockRows({ ...section, title: "" });
+      const inner = document.createElement("div");
+
+      Array.from(rendered.children).forEach(ch => {
+        if (!ch.classList || !ch.classList.contains("hall-section-title")) {
+          inner.appendChild(ch);
+        }
+      });
+
+      row.appendChild(inner);
+      return;
+    }
+
+    if (section.type === "side_vertical") {
+      row.appendChild(renderSideVertical({ ...section, title: "" }));
       return;
     }
 
@@ -2041,460 +1854,6 @@ function renderHorizontalGroup(group, sectionsMap){
   });
 
   wrap.appendChild(row);
-  return wrap;
-}
-
-function renderTheatreBigStageLayout(section){
-  const wrap = document.createElement("section");
-  wrap.className = "hall-section theatre-big-stage";
-
-  if (section.title) {
-    wrap.appendChild(makeSectionTitle(section.title));
-  }
-
-  const layout = document.createElement("div");
-  layout.className = "theatre-big-stage-layout";
-
-  const full = document.createElement("div");
-  full.className = "theatre-full-wrap";
-
-  const middle = document.createElement("div");
-  middle.className = "theatre-middle";
-
-  const makeRowLabel = (text) => {
-    const el = document.createElement("div");
-    el.className = "row-label theatre-row-label";
-    el.textContent = text;
-    return el;
-  };
-
-  const makeSeat = (prefix, row, seat, zone = "Партер") => {
-    const meta = {
-      zone,
-      prefix,
-      row: String(row),
-      seat: Number(seat)
-    };
-
-    return makeSeatElement(seatKey(meta), seat, "", 0, meta);
-  };
-
-  const makeSeatsBlock = (prefix, row, seats, zone = "Партер") => {
-    const block = document.createElement("div");
-    block.className = "seats-row theatre-seat-block";
-
-    seats.forEach(seat => {
-      block.appendChild(makeSeat(prefix, row, seat, zone));
-    });
-
-    return block;
-  };
-
-  const makeSideBalcony = (sidePrefix) => {
-    const col = document.createElement("div");
-    col.className = "theatre-side-balcony";
-
-    const title = document.createElement("div");
-    title.className = "theatre-side-title";
-    title.textContent = "Балкон";
-    col.appendChild(title);
-
-    const zone = sidePrefix === "L" ? "Лівий балкон" : "Правий балкон";
-
-    for (let row = 4; row <= 25; row++) {
-      const line = document.createElement("div");
-      line.className = "theatre-side-line";
-
-      const meta = {
-        zone,
-        prefix: sidePrefix,
-        row: "1",
-        seat: row
-      };
-
-      line.appendChild(makeSeatElement(seatKey(meta), row, "", 0, meta));
-      col.appendChild(line);
-    }
-
-    return col;
-  };
-
-  const top = document.createElement("div");
-  top.className = "theatre-top-parter";
-
-  for (let row = 1; row <= 9; row++) {
-    const line = document.createElement("div");
-    line.className = "theatre-row-line";
-
-    const leftSeats = Array.from({ length: 14 }, (_, i) => 28 - i);
-    const rightSeats = Array.from({ length: 14 }, (_, i) => 14 - i);
-
-    line.appendChild(makeRowLabel(row));
-    line.appendChild(makeSeatsBlock("P", row, leftSeats));
-
-    const centerGap = document.createElement("div");
-    centerGap.className = "theatre-center-gap";
-    line.appendChild(centerGap);
-
-    line.appendChild(makeSeatsBlock("P", row, rightSeats));
-    line.appendChild(makeRowLabel(row));
-
-    top.appendChild(line);
-  }
-
-  const center = document.createElement("div");
-  center.className = "theatre-main-center";
-
-  const rows = ["9A", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
-
-  rows.forEach(row => {
-    const line = document.createElement("div");
-    line.className = "theatre-row-line theatre-main-row";
-
-    const leftBlock =
-      row === 25
-        ? Array.from({ length: 10 }, (_, i) => 32 - i)
-        : Array.from({ length: 8 }, (_, i) => 28 - i);
-
-    const midBlock =
-      row === 25
-        ? Array.from({ length: 13 }, (_, i) => 22 - i)
-        : Array.from({ length: 12 }, (_, i) => 20 - i);
-
-    let rightBlock;
-
-    if (row === 25) {
-      rightBlock = Array.from({ length: 9 }, (_, i) => 9 - i);
-    } else if (row === 16 || row === 17) {
-      rightBlock = [];
-    } else {
-      rightBlock = Array.from({ length: 8 }, (_, i) => 8 - i);
-    }
-
-    line.appendChild(makeSeatsBlock("P", row, leftBlock));
-    line.appendChild(makeRowLabel(row));
-    line.appendChild(makeSeatsBlock("P", row, midBlock));
-    line.appendChild(makeRowLabel(row));
-
-    if (rightBlock.length) {
-      line.appendChild(makeSeatsBlock("P", row, rightBlock));
-    } else {
-      const emptyRight = document.createElement("div");
-      emptyRight.className = "seats-row theatre-seat-block";
-      emptyRight.style.width = "192px";
-      line.appendChild(emptyRight);
-    }
-
-    center.appendChild(line);
-  });
-
-  middle.appendChild(top);
-  middle.appendChild(center);
-
-  full.appendChild(makeSideBalcony("L"));
-  full.appendChild(middle);
-  full.appendChild(makeSideBalcony("R"));
-
-  layout.appendChild(full);
-  wrap.appendChild(layout);
-
-  return wrap;
-}
-
-function renderCustomCoordinates(section){
-  const wrap = document.createElement("section");
-  wrap.className = "hall-section hall-section--coord";
-
-  if (section.title) {
-    wrap.appendChild(makeSectionTitle(section.title));
-  }
-
-  const viewport = document.createElement("div");
-  viewport.className = "coord-hall-viewport";
-
-  const canvas = document.createElement("div");
-  canvas.className = "coord-hall";
-
-  const width = Number(section.width || 1180);
-  const height = Number(section.height || 900);
-  const seatSize = Number(section.seat_size || 24);
-  const gap = Number(section.gap || 6);
-  const scale = Number(section.scale || 1);
-
-  canvas.style.width = width + "px";
-  canvas.style.height = height + "px";
-  canvas.style.setProperty("--coord-seat-size", seatSize + "px");
-  canvas.style.transform = `scale(${scale})`;
-  canvas.style.transformOrigin = "top center";
-
-  viewport.style.height = (height * scale) + "px";
-
-  function addLabel(text, x, y, cls = ""){
-    const el = document.createElement("div");
-    el.className = "coord-label " + cls;
-    el.textContent = text;
-    el.style.left = x + "px";
-    el.style.top = y + "px";
-    canvas.appendChild(el);
-  }
-
-  function addSeat(prefix, zone, row, seat, x, y){
-    const meta = {
-      zone: zone || "Партер",
-      prefix: prefix || "P",
-      row: String(row),
-      seat: Number(seat)
-    };
-
-    const btn = makeSeatElement(seatKey(meta), seat, "", 0, meta);
-    btn.classList.add("coord-seat");
-    btn.style.left = x + "px";
-    btn.style.top = y + "px";
-    canvas.appendChild(btn);
-  }
-
-  function drawSeatLine(cfg){
-    const prefix = cfg.prefix || "P";
-    const zone = cfg.zone || "Партер";
-    const row = cfg.row;
-    const x = Number(cfg.x || 0);
-    const y = Number(cfg.y || 0);
-    const start = Number(cfg.start || 1);
-    const count = Number(cfg.count || 0);
-    const reverse = cfg.reverse === true;
-
-    for (let i = 0; i < count; i++) {
-      const seat = reverse ? start - i : start + i;
-      addSeat(prefix, zone, row, seat, x + i * (seatSize + gap), y);
-    }
-  }
-
-  function drawSideVertical(cfg){
-    const prefix = cfg.prefix || "L";
-    const zone = cfg.zone || "Балкон";
-    const x = Number(cfg.x || 0);
-    const y = Number(cfg.y || 0);
-    const start = Number(cfg.start || 1);
-    const count = Number(cfg.count || 0);
-
-    for (let i = 0; i < count; i++) {
-      addSeat(prefix, zone, 1, start + i, x, y + i * (seatSize + gap));
-    }
-  }
-
-  const items = Array.isArray(section.items) ? section.items : [];
-
-  items.forEach(item => {
-    if (item.type === "label") {
-      addLabel(item.text || "", Number(item.x || 0), Number(item.y || 0), item.class || "");
-      return;
-    }
-
-    if (item.type === "row_label") {
-      addLabel(item.text || "", Number(item.x || 0), Number(item.y || 0), "coord-label--row");
-      return;
-    }
-
-    if (item.type === "seat_line") {
-      drawSeatLine(item);
-      return;
-    }
-
-    if (item.type === "side_vertical") {
-      drawSideVertical(item);
-      return;
-    }
-  });
-
-  viewport.appendChild(canvas);
-  wrap.appendChild(viewport);
-  return wrap;
-}
-
-function renderBigStageReference(section){
-  const wrap = document.createElement("section");
-  wrap.className = "hall-section hall-section--big-reference";
-
-  const scale = Number(section.scale || 0.58);
-  const W = 1180;
-  const H = 980;
-
-  const viewport = document.createElement("div");
-  viewport.style.width = "100%";
-  viewport.style.overflow = "hidden";
-  viewport.style.display = "flex";
-  viewport.style.justifyContent = "center";
-
-  const stage = document.createElement("div");
-  stage.style.position = "relative";
-  stage.style.width = (W * scale) + "px";
-  stage.style.height = (H * scale) + "px";
-
-  const canvas = document.createElement("div");
-  canvas.style.position = "absolute";
-  canvas.style.left = "0";
-  canvas.style.top = "0";
-  canvas.style.width = W + "px";
-  canvas.style.height = H + "px";
-  canvas.style.transform = `scale(${scale})`;
-  canvas.style.transformOrigin = "top left";
-
-  const seatSize = 24;
-  const gap = 7;
-  const step = seatSize + gap;
-
-  function addDiv(x, y, w, h, styles = {}){
-    const el = document.createElement("div");
-    el.style.position = "absolute";
-    el.style.left = x + "px";
-    el.style.top = y + "px";
-    el.style.width = w + "px";
-    el.style.height = h + "px";
-    Object.assign(el.style, styles);
-    canvas.appendChild(el);
-  }
-
-  function addText(text, x, y, styles = {}){
-    const el = document.createElement("div");
-    el.textContent = text;
-    el.style.position = "absolute";
-    el.style.left = x + "px";
-    el.style.top = y + "px";
-    el.style.fontWeight = "800";
-    el.style.color = "#111827";
-    el.style.whiteSpace = "nowrap";
-    Object.assign(el.style, styles);
-    canvas.appendChild(el);
-  }
-
-  function addSeat(prefix, zone, row, seat, x, y){
-    const meta = {
-      zone,
-      prefix,
-      row: String(row),
-      seat: Number(seat)
-    };
-
-    const btn = makeSeatElement(seatKey(meta), seat, "", 0, meta);
-    btn.style.position = "absolute";
-    btn.style.left = x + "px";
-    btn.style.top = y + "px";
-    btn.style.width = seatSize + "px";
-    btn.style.height = seatSize + "px";
-    btn.style.minWidth = seatSize + "px";
-    btn.style.minHeight = seatSize + "px";
-    btn.style.padding = "0";
-    btn.style.fontSize = "10px";
-    btn.style.lineHeight = "1";
-    canvas.appendChild(btn);
-  }
-
-  function addSeatLine(row, x, y, start, count, reverse = true){
-    for (let i = 0; i < count; i++) {
-      const seat = reverse ? start - i : start + i;
-      addSeat("P", "Партер", row, seat, x + i * step, y);
-    }
-  }
-
-  function addRowLabel(text, x, y){
-    addText(String(text), x, y + 4, {
-      fontSize: "17px",
-      fontWeight: "800"
-    });
-  }
-
-  // сцена
-  addDiv(135, 0, 910, 86, {
-    background: "linear-gradient(180deg,#b8372c,#7f1d17)",
-    borderBottomLeftRadius: "50% 34px",
-    borderBottomRightRadius: "50% 34px"
-  });
-
-  addText("СЦЕНА", 515, 20, {
-    color: "#fff",
-    fontSize: "42px",
-    letterSpacing: ".04em"
-  });
-
-  // рамки
-  addDiv(105, 60, 970, 880, {
-    border: "6px solid #7f1d17",
-    borderTop: "0",
-    borderRadius: "0 0 46px 46px",
-    boxSizing: "border-box"
-  });
-
-  addDiv(35, 205, 105, 720, {
-    border: "6px solid #7f1d17",
-    borderRight: "0",
-    borderRadius: "70px 0 0 70px",
-    boxSizing: "border-box"
-  });
-
-  addDiv(1040, 205, 105, 720, {
-    border: "6px solid #7f1d17",
-    borderLeft: "0",
-    borderRadius: "0 70px 70px 0",
-    boxSizing: "border-box"
-  });
-
-  addText("Партер", 535, 385, { fontSize: "36px" });
-
-  addText("Балкон", 48, 560, {
-    fontSize: "34px",
-    transform: "rotate(-90deg)",
-    transformOrigin: "left top"
-  });
-
-  addText("Балкон", 1118, 560, {
-    fontSize: "34px",
-    transform: "rotate(90deg)",
-    transformOrigin: "left top"
-  });
-
-  // боковые балконы
-  for (let seat = 4; seat <= 25; seat++) {
-    addSeat("L", "Лівий балкон", 1, seat, 78, 245 + (seat - 4) * step);
-    addSeat("R", "Правий балкон", 1, seat, 1082, 245 + (seat - 4) * step);
-  }
-
-  // верх 1–9
-  for (let row = 1; row <= 9; row++) {
-    const y = 145 + (row - 1) * step;
-
-    addRowLabel(row, 150, y);
-    addSeatLine(row, 180, y, 28, 14, true);
-
-    addSeatLine(row, 665, y, 14, 14, true);
-    addRowLabel(row, 1035, y);
-  }
-
-  // низ 9А–25
-  const lowerRows = ["9A", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
-
-  lowerRows.forEach((row, index) => {
-    const y = 430 + index * step;
-
-    if (row === 25) {
-      addSeatLine(row, 150, y + 34, 32, 32, true);
-      return;
-    }
-
-    addSeatLine(row, 140, y, 28, 8, true);
-    addRowLabel(row, 405, y);
-
-    addSeatLine(row, 455, y, 20, 12, true);
-    addRowLabel(row, 790, y);
-
-    if (row !== 16 && row !== 17) {
-      addSeatLine(row, 850, y, 8, 8, true);
-    }
-  });
-
-  stage.appendChild(canvas);
-  viewport.appendChild(stage);
-  wrap.appendChild(viewport);
-
   return wrap;
 }
     
@@ -2514,14 +1873,7 @@ function renderHallSections(hallData){
   sections.forEach(section => {
     if (!section || !section.type) return;
     if (section.hidden === true) return;
-    if (section.type === "custom_coordinates") {
-  root.appendChild(renderCustomCoordinates(section));
-  return;
-}
-if (section.type === "theatre_big_stage_layout") {
-  root.appendChild(renderTheatreBigStageLayout(section));
-  return;
-}
+
     if (section.type === "horizontal_group") {
       root.appendChild(renderHorizontalGroup(section, sectionsMap));
       return;
@@ -2532,26 +1884,22 @@ if (section.type === "theatre_big_stage_layout") {
       return;
     }
 
-    if (section.type === "multi_block_rows") {
-      root.appendChild(renderMultiBlockRows(section));
-      return;
-    }
-
     if (section.type === "split_rows") {
       root.appendChild(renderSplitRows(section));
       return;
     }
-if (section.type === "big_stage_reference") {
-  root.appendChild(renderBigStageReference(section));
+if (section.type === "multi_block_rows") {
+  root.appendChild(renderMultiBlockRows(section));
   return;
 }
+
+if (section.type === "side_vertical") {
+  root.appendChild(renderSideVertical(section));
+  return;
+}
+    
     if (section.type === "custom_rows") {
       root.appendChild(renderCustomRows(section));
-      return;
-    }
-
-    if (section.type === "side_vertical") {
-      root.appendChild(renderSideVertical(section));
       return;
     }
 
@@ -2571,7 +1919,6 @@ if (section.type === "big_stage_reference") {
     console.warn("Unknown hall section type:", section.type, section);
   });
 }
-
 function renderSimpleRows(hallData) {
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -2582,59 +1929,15 @@ function renderSimpleRows(hallData) {
     ? hallData.rows.map(r => ({ ...r }))
     : [];
 
+  
+
   const section = {
-    type: "rows",
     title: "",
     zone: "Партер",
-    prefix: "P",
     rows
   };
 
   root.appendChild(renderRowsSection(section));
-}   
-
-function applyHallLayoutStyle(hallData){
-  const root = document.querySelector(".hall-inner");
-  if (!root) return;
-
-  const s = hallData?.layout_style || {};
-
-  root.style.removeProperty("--hall-min-width-local");
-  root.style.removeProperty("--big-section-gap");
-  root.style.removeProperty("--big-row-gap");
-  root.style.removeProperty("--big-row-line-gap");
-  root.style.removeProperty("--big-main-gap");
-  root.style.removeProperty("--big-center-gap");
-  root.style.removeProperty("--big-side-top");
-
-  if (s.hall_min_width) {
-    root.style.setProperty("--hall-min-width-local", `${Number(s.hall_min_width)}px`);
-  }
-
-  if (s.section_gap) {
-    root.style.setProperty("--big-section-gap", `${Number(s.section_gap)}px`);
-  }
-
-  if (s.row_gap) {
-    root.style.setProperty("--big-row-gap", `${Number(s.row_gap)}px`);
-  }
-
-  if (s.row_line_gap) {
-    root.style.setProperty("--big-row-line-gap", `${Number(s.row_line_gap)}px`);
-  }
-
-  if (s.main_gap) {
-    root.style.setProperty("--big-main-gap", `${Number(s.main_gap)}px`);
-  }
-
-  if (s.center_gap) {
-    root.style.setProperty("--big-center-gap", `${Number(s.center_gap)}px`);
-  }
-
-if (s.side_top) {
-  root.style.setProperty("--big-side-top", `${Number(s.side_top)}px`);
-}
-  
 }
 
 function renderPriceLegendMobile() {
@@ -2681,7 +1984,7 @@ function renderPriceLegendMobile() {
     </div>
   `;
 }
-    
+
 function applyMobileHallScale() {
   const viewport = document.getElementById("mobile-hall-viewport");
   const scaleWrap = document.getElementById("mobile-hall-scale");
@@ -2692,35 +1995,45 @@ function applyMobileHallScale() {
   const hallInner = scaleWrap.querySelector(".hall-inner");
   if (!hallInner) return;
 
+  if (window.innerWidth > 640) {
+    scaleWrap.style.transform = "scale(1)";
+    viewport.style.height = "";
+    viewport.style.width = "";
+    hallScroll.scrollLeft = 0;
+    return;
+  }
+
   scaleWrap.style.transform = "scale(1)";
   viewport.style.height = "";
   viewport.style.width = "";
-  hallScroll.scrollLeft = 0;
-  hallScroll.scrollTop = 0;
 
+  const rect = hallScroll.getBoundingClientRect();
   const contentWidth = hallInner.scrollWidth;
   const contentHeight = hallInner.scrollHeight;
 
   if (!contentWidth || !contentHeight) return;
 
-  const availableWidth = hallScroll.clientWidth - 4;
-  const availableHeight = Math.max(window.innerHeight - hallScroll.getBoundingClientRect().top - 40, 420);
+  const availableWidth = hallScroll.clientWidth;
+  const availableHeight = Math.max(window.innerHeight - rect.top - 140, 220);
 
-  let scale = Math.min(
-    availableWidth / contentWidth,
-    availableHeight / contentHeight,
-    1
-  );
+  const scaleByWidth = availableWidth / contentWidth;
+  const scaleByHeight = availableHeight / contentHeight;
 
-  scale = Math.max(scale, 0.25);
+  let scale = Math.min(scaleByWidth, scaleByHeight, 1);
+  scale = Math.max(scale, 0.20);
 
   scaleWrap.style.transform = `scale(${scale})`;
-
   viewport.style.width = `${contentWidth * scale}px`;
   viewport.style.height = `${contentHeight * scale}px`;
 
-  viewport.style.margin = "0 auto";
+  requestAnimationFrame(() => {
+    const maxScroll = hallScroll.scrollWidth - hallScroll.clientWidth;
+    if (maxScroll > 0) {
+      hallScroll.scrollLeft = Math.round(maxScroll / 2);
+    }
+  });
 }
+
 // ===== Selection / holds =====
 async function onSeatClick(btn, key, meta, price){
   if (!SEANCE_ID) return;
@@ -2890,7 +2203,7 @@ const hallFile = (
   }
 
   const HALL = await hallRes.json();
-applyHallLayoutStyle(HALL);
+
   setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
 
   await loadTakenSeats();
