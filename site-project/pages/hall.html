@@ -166,9 +166,9 @@
   .hall-legend-dot--reserved{ background:#f59e0b; border-color:#f59e0b; }
 
   .hall-scroll{
-    position:relative;
-    padding:18px;
-    overflow:auto;
+  position:relative;
+  padding:18px;
+  overflow:hidden;
     -webkit-overflow-scrolling:touch;
     background:
       linear-gradient(to right, rgba(243,244,246,1), rgba(243,244,246,0)) left center/28px 100% no-repeat,
@@ -180,10 +180,11 @@
     width:100%;
   }
 
-  .mobile-hall-scale{
-    transform-origin: top center;
-    will-change: transform;
-  }
+ .mobile-hall-scale{
+  transform-origin: top center;
+  will-change: transform;
+  margin:0 auto;
+}
 
   .hall-inner{
   min-width:var(--hall-min-width-local, var(--hall-min-width));
