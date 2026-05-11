@@ -9,914 +9,130 @@
     {
       "id": "big_stage_coordinates",
       "type": "custom_coordinates",
-      "title": "",
+      "title": "Партер",
       "width": 1180,
-      "height": 980,
-
+      "height": 900,
       "seat_size": 24,
       "gap": 6,
-
-      "scale": 1,
+      "scale": 0.68,
       "offset_x": 0,
-      "offset_y": 0,
-
+      "offset_y": -10,
       "items": [
+        { "type": "side_vertical", "prefix": "L", "zone": "Лівий балкон", "x": 35, "y": 180, "start": 4, "count": 22 },
+        { "type": "side_vertical", "prefix": "R", "zone": "Правий балкон", "x": 1115, "y": 180, "start": 4, "count": 22 },
+        { "type": "label", "text": "Балкон", "x": 25, "y": 155 },
+        { "type": "label", "text": "Балкон", "x": 1090, "y": 155 },
+
+        { "type": "seat_line", "row": 1, "x": 210, "y": 55, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 1, "x": 650, "y": 55, "start": 14, "count": 14, "reverse": true },
+        { "type": "row_label", "text": "1", "x": 180, "y": 60 },
+        { "type": "row_label", "text": "1", "x": 1065, "y": 60 },
+
+        { "type": "seat_line", "row": 2, "x": 210, "y": 85, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 2, "x": 650, "y": 85, "start": 14, "count": 14, "reverse": true },
+        { "type": "row_label", "text": "2", "x": 180, "y": 90 },
+        { "type": "row_label", "text": "2", "x": 1065, "y": 90 },
+
+        { "type": "seat_line", "row": 3, "x": 210, "y": 115, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 3, "x": 650, "y": 115, "start": 14, "count": 14, "reverse": true },
+        { "type": "row_label", "text": "3", "x": 180, "y": 120 },
+        { "type": "row_label", "text": "3", "x": 1065, "y": 120 },
+
+        { "type": "seat_line", "row": 4, "x": 210, "y": 145, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 4, "x": 650, "y": 145, "start": 14, "count": 14, "reverse": true },
+        { "type": "row_label", "text": "4", "x": 180, "y": 150 },
+        { "type": "row_label", "text": "4", "x": 1065, "y": 150 },
+
+        { "type": "seat_line", "row": 5, "x": 210, "y": 175, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 5, "x": 650, "y": 175, "start": 14, "count": 14, "reverse": true },
+        { "type": "row_label", "text": "5", "x": 180, "y": 180 },
+        { "type": "row_label", "text": "5", "x": 1065, "y": 180 },
+
+        { "type": "seat_line", "row": 6, "x": 210, "y": 205, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 6, "x": 650, "y": 205, "start": 14, "count": 14, "reverse": true },
+        { "type": "row_label", "text": "6", "x": 180, "y": 210 },
+        { "type": "row_label", "text": "6", "x": 1065, "y": 210 },
+
+        { "type": "seat_line", "row": 7, "x": 210, "y": 235, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 7, "x": 650, "y": 235, "start": 14, "count": 14, "reverse": true },
+        { "type": "row_label", "text": "7", "x": 180, "y": 240 },
+        { "type": "row_label", "text": "7", "x": 1065, "y": 240 },
+
+        { "type": "seat_line", "row": 8, "x": 210, "y": 265, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 8, "x": 650, "y": 265, "start": 14, "count": 14, "reverse": true },
+        { "type": "row_label", "text": "8", "x": 180, "y": 270 },
+        { "type": "row_label", "text": "8", "x": 1065, "y": 270 },
+
+        { "type": "seat_line", "row": 9, "x": 210, "y": 295, "start": 28, "count": 14, "reverse": true },
+        { "type": "seat_line", "row": 9, "x": 650, "y": 295, "start": 14, "count": 14, "reverse": true },
+        { "type": "row_label", "text": "9", "x": 180, "y": 300 },
+        { "type": "row_label", "text": "9", "x": 1065, "y": 300 },
+
+        { "type": "seat_line", "row": "9A", "x": 150, "y": 375, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": "9A", "x": 450, "y": 375, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": "9A", "x": 840, "y": 375, "start": 8, "count": 8, "reverse": true },
+        { "type": "row_label", "text": "9A", "x": 390, "y": 380 },
+        { "type": "row_label", "text": "9A", "x": 750, "y": 380 },
+
+        { "type": "seat_line", "row": 10, "x": 150, "y": 405, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 10, "x": 450, "y": 405, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 10, "x": 840, "y": 405, "start": 8, "count": 8, "reverse": true },
+
+        { "type": "seat_line", "row": 11, "x": 150, "y": 435, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 11, "x": 450, "y": 435, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 11, "x": 840, "y": 435, "start": 8, "count": 8, "reverse": true },
+
+        { "type": "seat_line", "row": 12, "x": 150, "y": 465, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 12, "x": 450, "y": 465, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 12, "x": 840, "y": 465, "start": 8, "count": 8, "reverse": true },
+
+        { "type": "seat_line", "row": 13, "x": 150, "y": 495, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 13, "x": 450, "y": 495, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 13, "x": 840, "y": 495, "start": 8, "count": 8, "reverse": true },
+
+        { "type": "seat_line", "row": 14, "x": 150, "y": 525, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 14, "x": 450, "y": 525, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 14, "x": 840, "y": 525, "start": 8, "count": 8, "reverse": true },
+
+        { "type": "seat_line", "row": 15, "x": 150, "y": 555, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 15, "x": 450, "y": 555, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 15, "x": 840, "y": 555, "start": 8, "count": 8, "reverse": true },
+
+        { "type": "seat_line", "row": 16, "x": 150, "y": 585, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 16, "x": 450, "y": 585, "start": 20, "count": 12, "reverse": true },
+
+        { "type": "seat_line", "row": 17, "x": 150, "y": 615, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 17, "x": 450, "y": 615, "start": 20, "count": 12, "reverse": true },
+
+        { "type": "seat_line", "row": 18, "x": 150, "y": 645, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 18, "x": 450, "y": 645, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 18, "x": 840, "y": 645, "start": 8, "count": 8, "reverse": true },
+
+        { "type": "seat_line", "row": 19, "x": 150, "y": 675, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 19, "x": 450, "y": 675, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 19, "x": 840, "y": 675, "start": 8, "count": 8, "reverse": true },
+
+        { "type": "seat_line", "row": 20, "x": 150, "y": 705, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 20, "x": 450, "y": 705, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 20, "x": 840, "y": 705, "start": 8, "count": 8, "reverse": true },
+
+        { "type": "seat_line", "row": 21, "x": 150, "y": 735, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 21, "x": 450, "y": 735, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 21, "x": 840, "y": 735, "start": 8, "count": 8, "reverse": true },
 
-        {
-          "type": "label",
-          "text": "СЦЕНА",
-          "x": 520,
-          "y": 10,
-          "class": "coord-label--stage"
-        },
+        { "type": "seat_line", "row": 22, "x": 150, "y": 765, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 22, "x": 450, "y": 765, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 22, "x": 840, "y": 765, "start": 8, "count": 8, "reverse": true },
 
-        {
-          "type": "label",
-          "text": "ПАРТЕР",
-          "x": 555,
-          "y": 265,
-          "class": "coord-label--title"
-        },
+        { "type": "seat_line", "row": 23, "x": 150, "y": 795, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 23, "x": 450, "y": 795, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 23, "x": 840, "y": 795, "start": 8, "count": 8, "reverse": true },
 
-        {
-          "type": "label",
-          "text": "Балкон",
-          "x": 35,
-          "y": 470,
-          "class": "coord-label--vertical"
-        },
+        { "type": "seat_line", "row": 24, "x": 150, "y": 825, "start": 28, "count": 8, "reverse": true },
+        { "type": "seat_line", "row": 24, "x": 450, "y": 825, "start": 20, "count": 12, "reverse": true },
+        { "type": "seat_line", "row": 24, "x": 840, "y": 825, "start": 8, "count": 8, "reverse": true },
 
-        {
-          "type": "label",
-          "text": "Балкон",
-          "x": 1110,
-          "y": 470,
-          "class": "coord-label--vertical"
-        },
-
-
-
-        {
-          "type": "side_vertical",
-          "prefix": "L",
-          "zone": "Лівий балкон",
-          "x": 85,
-          "y": 110,
-          "start": 4,
-          "count": 22
-        },
-
-        {
-          "type": "side_vertical",
-          "prefix": "R",
-          "zone": "Правий балкон",
-          "x": 1045,
-          "y": 110,
-          "start": 4,
-          "count": 22
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 1,
-          "x": 210,
-          "y": 110,
-          "start": 28,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 1,
-          "x": 660,
-          "y": 110,
-          "start": 14,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "1",
-          "x": 180,
-          "y": 115
-        },
-
-        {
-          "type": "row_label",
-          "text": "1",
-          "x": 1080,
-          "y": 115
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 2,
-          "x": 210,
-          "y": 145,
-          "start": 28,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 2,
-          "x": 660,
-          "y": 145,
-          "start": 14,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "2",
-          "x": 180,
-          "y": 150
-        },
-
-        {
-          "type": "row_label",
-          "text": "2",
-          "x": 1080,
-          "y": 150
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 3,
-          "x": 210,
-          "y": 180,
-          "start": 28,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 3,
-          "x": 660,
-          "y": 180,
-          "start": 14,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "3",
-          "x": 180,
-          "y": 185
-        },
-
-        {
-          "type": "row_label",
-          "text": "3",
-          "x": 1080,
-          "y": 185
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 4,
-          "x": 210,
-          "y": 215,
-          "start": 28,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 4,
-          "x": 660,
-          "y": 215,
-          "start": 14,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "4",
-          "x": 180,
-          "y": 220
-        },
-
-        {
-          "type": "row_label",
-          "text": "4",
-          "x": 1080,
-          "y": 220
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 5,
-          "x": 210,
-          "y": 250,
-          "start": 28,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 5,
-          "x": 660,
-          "y": 250,
-          "start": 14,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "5",
-          "x": 180,
-          "y": 255
-        },
-
-        {
-          "type": "row_label",
-          "text": "5",
-          "x": 1080,
-          "y": 255
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 6,
-          "x": 210,
-          "y": 285,
-          "start": 28,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 6,
-          "x": 660,
-          "y": 285,
-          "start": 14,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "6",
-          "x": 180,
-          "y": 290
-        },
-
-        {
-          "type": "row_label",
-          "text": "6",
-          "x": 1080,
-          "y": 290
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 7,
-          "x": 210,
-          "y": 320,
-          "start": 28,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 7,
-          "x": 660,
-          "y": 320,
-          "start": 14,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "7",
-          "x": 180,
-          "y": 325
-        },
-
-        {
-          "type": "row_label",
-          "text": "7",
-          "x": 1080,
-          "y": 325
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 8,
-          "x": 210,
-          "y": 355,
-          "start": 28,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 8,
-          "x": 660,
-          "y": 355,
-          "start": 14,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "8",
-          "x": 180,
-          "y": 360
-        },
-
-        {
-          "type": "row_label",
-          "text": "8",
-          "x": 1080,
-          "y": 360
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 9,
-          "x": 210,
-          "y": 390,
-          "start": 28,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 9,
-          "x": 660,
-          "y": 390,
-          "start": 14,
-          "count": 14,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "9",
-          "x": 180,
-          "y": 395
-        },
-
-        {
-          "type": "row_label",
-          "text": "9",
-          "x": 1080,
-          "y": 395
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": "9A",
-          "x": 170,
-          "y": 470,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": "9A",
-          "x": 470,
-          "y": 470,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": "9A",
-          "x": 850,
-          "y": 470,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "row_label",
-          "text": "9A",
-          "x": 430,
-          "y": 475
-        },
-
-        {
-          "type": "row_label",
-          "text": "9A",
-          "x": 820,
-          "y": 475
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 10,
-          "x": 170,
-          "y": 505,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 10,
-          "x": 470,
-          "y": 505,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 10,
-          "x": 850,
-          "y": 505,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 11,
-          "x": 170,
-          "y": 540,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 11,
-          "x": 470,
-          "y": 540,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 11,
-          "x": 850,
-          "y": 540,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 12,
-          "x": 170,
-          "y": 575,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 12,
-          "x": 470,
-          "y": 575,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 12,
-          "x": 850,
-          "y": 575,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 13,
-          "x": 170,
-          "y": 610,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 13,
-          "x": 470,
-          "y": 610,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 13,
-          "x": 850,
-          "y": 610,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 14,
-          "x": 170,
-          "y": 645,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 14,
-          "x": 470,
-          "y": 645,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 14,
-          "x": 850,
-          "y": 645,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 15,
-          "x": 170,
-          "y": 680,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 15,
-          "x": 470,
-          "y": 680,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 15,
-          "x": 850,
-          "y": 680,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 16,
-          "x": 170,
-          "y": 715,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 16,
-          "x": 470,
-          "y": 715,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 17,
-          "x": 170,
-          "y": 750,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 17,
-          "x": 470,
-          "y": 750,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 18,
-          "x": 170,
-          "y": 785,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 18,
-          "x": 470,
-          "y": 785,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 18,
-          "x": 850,
-          "y": 785,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 19,
-          "x": 170,
-          "y": 820,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 19,
-          "x": 470,
-          "y": 820,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 19,
-          "x": 850,
-          "y": 820,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 20,
-          "x": 170,
-          "y": 855,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 20,
-          "x": 470,
-          "y": 855,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 20,
-          "x": 850,
-          "y": 855,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 21,
-          "x": 170,
-          "y": 890,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 21,
-          "x": 470,
-          "y": 890,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 21,
-          "x": 850,
-          "y": 890,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 22,
-          "x": 170,
-          "y": 925,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 22,
-          "x": 470,
-          "y": 925,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 22,
-          "x": 850,
-          "y": 925,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 23,
-          "x": 170,
-          "y": 960,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 23,
-          "x": 470,
-          "y": 960,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 23,
-          "x": 850,
-          "y": 960,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 24,
-          "x": 170,
-          "y": 995,
-          "start": 28,
-          "count": 8,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 24,
-          "x": 470,
-          "y": 995,
-          "start": 20,
-          "count": 12,
-          "reverse": true
-        },
-
-        {
-          "type": "seat_line",
-          "row": 24,
-          "x": 850,
-          "y": 995,
-          "start": 8,
-          "count": 8,
-          "reverse": true
-        },
-
-
-
-        {
-          "type": "seat_line",
-          "row": 25,
-          "x": 120,
-          "y": 1045,
-          "start": 32,
-          "count": 32,
-          "reverse": true
-        }
+        { "type": "seat_line", "row": 25, "x": 95, "y": 855, "start": 32, "count": 32, "reverse": true }
       ]
     }
   ]
