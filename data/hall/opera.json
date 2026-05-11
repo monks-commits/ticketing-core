@@ -1,0 +1,120 @@
+{
+  "version": 3,
+  "hall_id": "opera_hall",
+  "title": "Оперний театр",
+
+  "sections": [
+    {
+      "type": "coordinate_hall",
+
+      "width": 1400,
+      "height": 980,
+
+      "seat_size": 24,
+      "gap": 6,
+
+      "scale": 1,
+
+      "items": [
+
+        {
+          "type": "decor",
+          "x": 430,
+          "y": 20,
+          "w": 540,
+          "h": 54,
+          "style": {
+            "background": "#e5e7eb",
+            "borderRadius": "999px"
+          }
+        },
+
+        {
+          "type": "label",
+          "text": "СЦЕНА",
+          "x": 650,
+          "y": 37,
+          "class": "stage-label"
+        },
+
+        {
+          "type": "label",
+          "text": "ПАРТЕР",
+          "x": 640,
+          "y": 360,
+          "class": "zone-label"
+        },
+
+        {
+          "type": "label",
+          "text": "АМФІТЕАТР",
+          "x": 605,
+          "y": 670,
+          "class": "zone-label"
+        },
+
+        {
+          "type": "label",
+          "text": "БАЛКОН",
+          "x": 645,
+          "y": 880,
+          "class": "zone-label"
+        }
+      ],
+
+      "seat_groups": [
+
+        {
+          "zone": "Партер",
+          "prefix": "P",
+          "type": "line",
+
+          "rows": [
+
+            { "row": 1, "x": 300, "y": 120, "start": 1, "count": 28 },
+            { "row": 2, "x": 290, "y": 152, "start": 1, "count": 30 },
+            { "row": 3, "x": 280, "y": 184, "start": 1, "count": 32 },
+            { "row": 4, "x": 270, "y": 216, "start": 1, "count": 34 },
+            { "row": 5, "x": 260, "y": 248, "start": 1, "count": 36 },
+            { "row": 6, "x": 250, "y": 280, "start": 1, "count": 38 },
+            { "row": 7, "x": 240, "y": 312, "start": 1, "count": 40 },
+            { "row": 8, "x": 230, "y": 344, "start": 1, "count": 42 },
+            { "row": 9, "x": 220, "y": 376, "start": 1, "count": 44 }
+
+          ]
+        },
+
+        {
+          "zone": "Амфітеатр",
+          "prefix": "A",
+          "type": "line",
+
+          "rows": [
+
+            { "row": 10, "x": 310, "y": 520, "start": 1, "count": 28 },
+            { "row": 11, "x": 300, "y": 552, "start": 1, "count": 30 },
+            { "row": 12, "x": 290, "y": 584, "start": 1, "count": 32 },
+            { "row": 13, "x": 280, "y": 616, "start": 1, "count": 34 },
+            { "row": 14, "x": 270, "y": 648, "start": 1, "count": 36 }
+
+          ]
+        },
+
+        {
+          "zone": "Балкон",
+          "prefix": "B",
+          "type": "line",
+
+          "rows": [
+
+            { "row": 15, "x": 350, "y": 780, "start": 1, "count": 22 },
+            { "row": 16, "x": 340, "y": 812, "start": 1, "count": 24 },
+            { "row": 17, "x": 330, "y": 844, "start": 1, "count": 26 }
+
+          ]
+        }
+
+      ]
+    }
+  ]
+}
