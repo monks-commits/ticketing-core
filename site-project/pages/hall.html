@@ -2423,45 +2423,35 @@ function applyMobileHallScale() {
   const hallInner = scaleWrap.querySelector(".hall-inner");
   if (!hallInner) return;
 
-  if (window.innerWidth > 640) {
-    scaleWrap.style.transform = "scale(1)";
-    viewport.style.height = "";
-    viewport.style.width = "";
-    hallScroll.scrollLeft = 0;
-    return;
-  }
-
   scaleWrap.style.transform = "scale(1)";
   viewport.style.height = "";
   viewport.style.width = "";
+  hallScroll.scrollLeft = 0;
+  hallScroll.scrollTop = 0;
 
-  const rect = hallScroll.getBoundingClientRect();
   const contentWidth = hallInner.scrollWidth;
   const contentHeight = hallInner.scrollHeight;
 
   if (!contentWidth || !contentHeight) return;
 
-  const availableWidth = hallScroll.clientWidth;
-  const availableHeight = Math.max(window.innerHeight - rect.top - 140, 220);
+  const availableWidth = hallScroll.clientWidth - 4;
+  const availableHeight = Math.max(window.innerHeight - hallScroll.getBoundingClientRect().top - 40, 420);
 
-  const scaleByWidth = availableWidth / contentWidth;
-  const scaleByHeight = availableHeight / contentHeight;
+  let scale = Math.min(
+    availableWidth / contentWidth,
+    availableHeight / contentHeight,
+    1
+  );
 
-  let scale = Math.min(scaleByWidth, scaleByHeight, 1);
-  scale = Math.max(scale, 0.20);
+  scale = Math.max(scale, 0.25);
 
   scaleWrap.style.transform = `scale(${scale})`;
+
   viewport.style.width = `${contentWidth * scale}px`;
   viewport.style.height = `${contentHeight * scale}px`;
 
-  requestAnimationFrame(() => {
-    const maxScroll = hallScroll.scrollWidth - hallScroll.clientWidth;
-    if (maxScroll > 0) {
-      hallScroll.scrollLeft = Math.round(maxScroll / 2);
-    }
-  });
+  viewport.style.margin = "0 auto";
 }
-
 // ===== Selection / holds =====
 async function onSeatClick(btn, key, meta, price){
   if (!SEANCE_ID) return;
