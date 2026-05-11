@@ -14,9 +14,9 @@
 "height": 900,
 "seat_size": 24,
 "gap": 6,
-"scale": 0.72,
-"offset_x": -70,
-"offset_y": -15,
+"scale": 0.68,
+"offset_x": 0,
+"offset_y": -10,
 "items": [
         
 
