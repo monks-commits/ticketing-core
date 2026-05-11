@@ -14,7 +14,8 @@
 "height": 900,
 "seat_size": 24,
 "gap": 6,
-"offset_x": -90,
+"scale": 0.56,
+"offset_x": 0,
 "offset_y": 0,
 "items": [
         { "type": "label", "text": "ПАРТЕР", "x": 555, "y": 10, "class": "coord-label--title" },
