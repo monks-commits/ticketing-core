@@ -2205,9 +2205,12 @@ function renderTheatreBigStageLayout(section){
 }
 
 function renderCustomCoordinates(section){
-
   const wrap = document.createElement("section");
   wrap.className = "hall-section hall-section--coord";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
 
   const viewport = document.createElement("div");
   viewport.className = "coord-hall-viewport";
@@ -2216,173 +2219,98 @@ function renderCustomCoordinates(section){
   canvas.className = "coord-hall";
 
   const width = Number(section.width || 1180);
-  const height = Number(section.height || 940);
-
+  const height = Number(section.height || 900);
   const seatSize = Number(section.seat_size || 24);
   const gap = Number(section.gap || 6);
-
   const scale = Number(section.scale || 1);
 
   canvas.style.width = width + "px";
   canvas.style.height = height + "px";
-
-  canvas.style.transformOrigin = "top center";
+  canvas.style.setProperty("--coord-seat-size", seatSize + "px");
   canvas.style.transform = `scale(${scale})`;
+  canvas.style.transformOrigin = "top center";
+
+  viewport.style.height = (height * scale) + "px";
 
   function addLabel(text, x, y, cls = ""){
     const el = document.createElement("div");
-
-    el.className = `coord-label ${cls}`;
+    el.className = "coord-label " + cls;
     el.textContent = text;
-
     el.style.left = x + "px";
     el.style.top = y + "px";
-
-    canvas.appendChild(el);
-  }
-
-  function addDecor(item){
-
-    const el = document.createElement("div");
-
-    el.className = item.class || "";
-
-    el.style.position = "absolute";
-    el.style.left = item.x + "px";
-    el.style.top = item.y + "px";
-    el.style.width = item.w + "px";
-    el.style.height = item.h + "px";
-
     canvas.appendChild(el);
   }
 
   function addSeat(prefix, zone, row, seat, x, y){
-
     const meta = {
-      zone,
-      prefix,
+      zone: zone || "Партер",
+      prefix: prefix || "P",
       row: String(row),
       seat: Number(seat)
     };
 
-    const btn = makeSeatElement(
-      seatKey(meta),
-      seat,
-      "",
-      0,
-      meta
-    );
-
+    const btn = makeSeatElement(seatKey(meta), seat, "", 0, meta);
     btn.classList.add("coord-seat");
-
     btn.style.left = x + "px";
     btn.style.top = y + "px";
-
     canvas.appendChild(btn);
   }
 
   function drawSeatLine(cfg){
-
     const prefix = cfg.prefix || "P";
     const zone = cfg.zone || "Партер";
-
     const row = cfg.row;
-
     const x = Number(cfg.x || 0);
     const y = Number(cfg.y || 0);
-
     const start = Number(cfg.start || 1);
     const count = Number(cfg.count || 0);
-
     const reverse = cfg.reverse === true;
 
-    for(let i=0;i<count;i++){
-
-      const seat = reverse
-        ? start - i
-        : start + i;
-
-      addSeat(
-        prefix,
-        zone,
-        row,
-        seat,
-        x + i * (seatSize + gap),
-        y
-      );
+    for (let i = 0; i < count; i++) {
+      const seat = reverse ? start - i : start + i;
+      addSeat(prefix, zone, row, seat, x + i * (seatSize + gap), y);
     }
   }
 
   function drawSideVertical(cfg){
-
     const prefix = cfg.prefix || "L";
     const zone = cfg.zone || "Балкон";
-
     const x = Number(cfg.x || 0);
     const y = Number(cfg.y || 0);
-
     const start = Number(cfg.start || 1);
     const count = Number(cfg.count || 0);
 
-    for(let i=0;i<count;i++){
-
-      addSeat(
-        prefix,
-        zone,
-        0,
-        start + i,
-        x,
-        y + i * (seatSize + gap)
-      );
+    for (let i = 0; i < count; i++) {
+      addSeat(prefix, zone, 1, start + i, x, y + i * (seatSize + gap));
     }
   }
 
-  const items = Array.isArray(section.items)
-    ? section.items
-    : [];
+  const items = Array.isArray(section.items) ? section.items : [];
 
   items.forEach(item => {
-
-    if(item.type === "decor"){
-      addDecor(item);
+    if (item.type === "label") {
+      addLabel(item.text || "", Number(item.x || 0), Number(item.y || 0), item.class || "");
       return;
     }
 
-    if(item.type === "label"){
-      addLabel(
-        item.text || "",
-        Number(item.x || 0),
-        Number(item.y || 0),
-        item.class || ""
-      );
+    if (item.type === "row_label") {
+      addLabel(item.text || "", Number(item.x || 0), Number(item.y || 0), "coord-label--row");
       return;
     }
 
-    if(item.type === "row_label"){
-      addLabel(
-        item.text || "",
-        Number(item.x || 0),
-        Number(item.y || 0),
-        "coord-label--row"
-      );
-      return;
-    }
-
-    if(item.type === "seat_line"){
+    if (item.type === "seat_line") {
       drawSeatLine(item);
       return;
     }
 
-    if(item.type === "side_vertical"){
+    if (item.type === "side_vertical") {
       drawSideVertical(item);
       return;
     }
-
   });
 
   viewport.appendChild(canvas);
   wrap.appendChild(viewport);
-
   return wrap;
 }
     
