@@ -2315,29 +2315,36 @@ function renderBigStageReference(section){
   const wrap = document.createElement("section");
   wrap.className = "hall-section hall-section--big-reference";
 
+  const scale = Number(section.scale || 0.58);
+  const W = 1180;
+  const H = 980;
+
   const viewport = document.createElement("div");
   viewport.style.width = "100%";
   viewport.style.overflow = "hidden";
   viewport.style.display = "flex";
   viewport.style.justifyContent = "center";
 
-  const canvas = document.createElement("div");
-  canvas.style.position = "relative";
-  canvas.style.width = "1080px";
-  canvas.style.height = "980px";
-  canvas.style.transformOrigin = "top center";
+  const stage = document.createElement("div");
+  stage.style.position = "relative";
+  stage.style.width = (W * scale) + "px";
+  stage.style.height = (H * scale) + "px";
 
-  const scale = Number(section.scale || 0.72);
+  const canvas = document.createElement("div");
+  canvas.style.position = "absolute";
+  canvas.style.left = "0";
+  canvas.style.top = "0";
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
   canvas.style.transform = `scale(${scale})`;
-  viewport.style.height = (980 * scale) + "px";
+  canvas.style.transformOrigin = "top left";
 
   const seatSize = 24;
   const gap = 7;
   const step = seatSize + gap;
 
-  function addDiv(cls, x, y, w, h, styles = {}){
+  function addDiv(x, y, w, h, styles = {}){
     const el = document.createElement("div");
-    el.className = cls || "";
     el.style.position = "absolute";
     el.style.left = x + "px";
     el.style.top = y + "px";
@@ -2345,7 +2352,6 @@ function renderBigStageReference(section){
     el.style.height = h + "px";
     Object.assign(el.style, styles);
     canvas.appendChild(el);
-    return el;
   }
 
   function addText(text, x, y, styles = {}){
@@ -2359,7 +2365,6 @@ function renderBigStageReference(section){
     el.style.whiteSpace = "nowrap";
     Object.assign(el.style, styles);
     canvas.appendChild(el);
-    return el;
   }
 
   function addSeat(prefix, zone, row, seat, x, y){
@@ -2393,14 +2398,13 @@ function renderBigStageReference(section){
 
   function addRowLabel(text, x, y){
     addText(String(text), x, y + 4, {
-      fontSize: "18px",
+      fontSize: "17px",
       fontWeight: "800"
     });
   }
 
-  // ===== DECOR: stage and borders =====
-
-  addDiv("", 120, 0, 940, 86, {
+  // сцена
+  addDiv(135, 0, 910, 86, {
     background: "linear-gradient(180deg,#b8372c,#7f1d17)",
     borderBottomLeftRadius: "50% 34px",
     borderBottomRightRadius: "50% 34px"
@@ -2412,70 +2416,67 @@ function renderBigStageReference(section){
     letterSpacing: ".04em"
   });
 
-  addDiv("", 105, 60, 970, 880, {
+  // рамки
+  addDiv(105, 60, 970, 880, {
     border: "6px solid #7f1d17",
     borderTop: "0",
-    borderRadius: "0 0 46px 46px"
+    borderRadius: "0 0 46px 46px",
+    boxSizing: "border-box"
   });
 
-  addDiv("", 12, 205, 120, 720, {
+  addDiv(35, 205, 105, 720, {
     border: "6px solid #7f1d17",
     borderRight: "0",
-    borderRadius: "70px 0 0 70px"
+    borderRadius: "70px 0 0 70px",
+    boxSizing: "border-box"
   });
 
-  addDiv("", 1048, 205, 120, 720, {
+  addDiv(1040, 205, 105, 720, {
     border: "6px solid #7f1d17",
     borderLeft: "0",
-    borderRadius: "0 70px 70px 0"
+    borderRadius: "0 70px 70px 0",
+    boxSizing: "border-box"
   });
 
-  addText("Партер", 500, 345, {
-    fontSize: "36px"
-  });
+  addText("Партер", 535, 385, { fontSize: "36px" });
 
-  addText("Балкон", 32, 560, {
+  addText("Балкон", 48, 560, {
     fontSize: "34px",
     transform: "rotate(-90deg)",
     transformOrigin: "left top"
   });
 
-  addText("Балкон", 1136, 560, {
+  addText("Балкон", 1118, 560, {
     fontSize: "34px",
     transform: "rotate(90deg)",
     transformOrigin: "left top"
   });
 
-  // ===== SIDE BALCONIES =====
-
+  // боковые балконы
   for (let seat = 4; seat <= 25; seat++) {
-    addSeat("L", "Лівий балкон", 1, seat, 68, 245 + (seat - 4) * step);
-    addSeat("R", "Правий балкон", 1, seat, 1010, 245 + (seat - 4) * step);
+    addSeat("L", "Лівий балкон", 1, seat, 78, 245 + (seat - 4) * step);
+    addSeat("R", "Правий балкон", 1, seat, 1082, 245 + (seat - 4) * step);
   }
 
-  // ===== TOP PARTER rows 1-9 =====
-
+  // верх 1–9
   for (let row = 1; row <= 9; row++) {
     const y = 145 + (row - 1) * step;
 
     addRowLabel(row, 150, y);
     addSeatLine(row, 180, y, 28, 14, true);
 
-    addSeatLine(row, 610, y, 14, 14, true);
+    addSeatLine(row, 665, y, 14, 14, true);
     addRowLabel(row, 1035, y);
   }
 
-  // ===== LOWER PARTER rows 9A-25 =====
-
+  // низ 9А–25
   const lowerRows = ["9A", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
 
   lowerRows.forEach((row, index) => {
     const y = 430 + index * step;
 
     if (row === 25) {
-      addRowLabel(row, 390, y);
       addSeatLine(row, 150, y + 34, 32, 32, true);
-      addRowLabel(row, 780, y);
       return;
     }
 
@@ -2490,8 +2491,10 @@ function renderBigStageReference(section){
     }
   });
 
-  viewport.appendChild(canvas);
+  stage.appendChild(canvas);
+  viewport.appendChild(stage);
   wrap.appendChild(viewport);
+
   return wrap;
 }
     
