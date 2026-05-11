@@ -2213,8 +2213,8 @@ function renderCustomCoordinates(section){
   const height = Number(section.height || 900);
   const seatSize = Number(section.seat_size || 24);
 
-  canvas.style.width = width + "px";
-  canvas.style.height = height + "px";
+  canvas.style.maxWidth = width + "px";
+canvas.style.height = "auto";
   canvas.style.setProperty("--seat-size", seatSize + "px");
 
   function addLabel(text, x, y, cls = ""){
