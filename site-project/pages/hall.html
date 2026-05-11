@@ -902,48 +902,35 @@
   flex:0 0 var(--big-center-gap, 32px);
 }
 
+/* ===== COORDINATE HALL ENGINE ===== */
+
 .hall-section--coord{
   overflow: visible;
+  margin-bottom: 0;
 }
 
 .coord-hall-viewport{
   width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  display: block;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
-.coord-hall{
+.coord-hall-stage{
   position: relative;
   flex: 0 0 auto;
 }
 
-.coord-hall .seat{
+.coord-hall{
   position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: top left;
 }
 
-.coord-label{
-  position: absolute;
-  font-size: 12px;
-  font-weight: 700;
-  color: #6b7280;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.coord-label--title{
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  font-weight: 700;
-}
-
-.coord-label--row{
-  font-size: 11px;
-  color: #475569;
-}
-  
+/* seats */
+.coord-hall .seat,
 .coord-seat{
   position: absolute;
   width: var(--seat-size, 24px);
@@ -951,28 +938,84 @@
   min-width: var(--seat-size, 24px);
   min-height: var(--seat-size, 24px);
   padding: 0;
+  border-radius: 7px;
   font-size: 10px;
   line-height: 1;
 }
 
+/* labels */
 .coord-label{
   position: absolute;
-  font-size: 12px;
   font-weight: 700;
   color: #111827;
+  text-align: center;
   white-space: nowrap;
   pointer-events: none;
 }
 
-.coord-label--title{
+.coord-label--row{
   font-size: 13px;
-  letter-spacing: .08em;
-  color: #6b7280;
+  color: #111827;
 }
 
-.coord-label--row{
-  font-size: 11px;
+.coord-label--stage{
+  font-size: 34px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.coord-label--parter{
+  font-size: 32px;
+  font-weight: 800;
   color: #111827;
+}
+
+.coord-label--balcony-left{
+  font-size: 34px;
+  font-weight: 800;
+  color: #111827;
+  transform: rotate(-90deg);
+  transform-origin: center center;
+}
+
+.coord-label--balcony-right{
+  font-size: 34px;
+  font-weight: 800;
+  color: #111827;
+  transform: rotate(90deg);
+  transform-origin: center center;
+}
+
+/* decorative shapes */
+.coord-decor{
+  position: absolute;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.coord-stage-bg{
+  background: linear-gradient(180deg, #b43a2f 0%, #7d1f18 100%);
+  border-radius: 0 0 50% 50%;
+}
+
+.coord-border-main{
+  border: 6px solid #7d1f18;
+  border-top: 0;
+  border-radius: 0 0 48px 48px;
+}
+
+.coord-border-side-left{
+  border: 6px solid #7d1f18;
+  border-right: 0;
+  border-radius: 70px 0 0 70px;
+}
+
+.coord-border-side-right{
+  border: 6px solid #7d1f18;
+  border-left: 0;
+  border-radius: 0 70px 70px 0;
 }
   
 </style>
