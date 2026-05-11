@@ -2310,6 +2310,190 @@ function renderCustomCoordinates(section){
   wrap.appendChild(viewport);
   return wrap;
 }
+
+function renderBigStageReference(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section hall-section--big-reference";
+
+  const viewport = document.createElement("div");
+  viewport.style.width = "100%";
+  viewport.style.overflow = "hidden";
+  viewport.style.display = "flex";
+  viewport.style.justifyContent = "center";
+
+  const canvas = document.createElement("div");
+  canvas.style.position = "relative";
+  canvas.style.width = "1180px";
+  canvas.style.height = "980px";
+  canvas.style.transformOrigin = "top center";
+
+  const scale = Number(section.scale || 0.72);
+  canvas.style.transform = `scale(${scale})`;
+  viewport.style.height = (980 * scale) + "px";
+
+  const seatSize = 24;
+  const gap = 7;
+  const step = seatSize + gap;
+
+  function addDiv(cls, x, y, w, h, styles = {}){
+    const el = document.createElement("div");
+    el.className = cls || "";
+    el.style.position = "absolute";
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.style.width = w + "px";
+    el.style.height = h + "px";
+    Object.assign(el.style, styles);
+    canvas.appendChild(el);
+    return el;
+  }
+
+  function addText(text, x, y, styles = {}){
+    const el = document.createElement("div");
+    el.textContent = text;
+    el.style.position = "absolute";
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.style.fontWeight = "800";
+    el.style.color = "#111827";
+    el.style.whiteSpace = "nowrap";
+    Object.assign(el.style, styles);
+    canvas.appendChild(el);
+    return el;
+  }
+
+  function addSeat(prefix, zone, row, seat, x, y){
+    const meta = {
+      zone,
+      prefix,
+      row: String(row),
+      seat: Number(seat)
+    };
+
+    const btn = makeSeatElement(seatKey(meta), seat, "", 0, meta);
+    btn.style.position = "absolute";
+    btn.style.left = x + "px";
+    btn.style.top = y + "px";
+    btn.style.width = seatSize + "px";
+    btn.style.height = seatSize + "px";
+    btn.style.minWidth = seatSize + "px";
+    btn.style.minHeight = seatSize + "px";
+    btn.style.padding = "0";
+    btn.style.fontSize = "10px";
+    btn.style.lineHeight = "1";
+    canvas.appendChild(btn);
+  }
+
+  function addSeatLine(row, x, y, start, count, reverse = true){
+    for (let i = 0; i < count; i++) {
+      const seat = reverse ? start - i : start + i;
+      addSeat("P", "Партер", row, seat, x + i * step, y);
+    }
+  }
+
+  function addRowLabel(text, x, y){
+    addText(String(text), x, y + 4, {
+      fontSize: "18px",
+      fontWeight: "800"
+    });
+  }
+
+  // ===== DECOR: stage and borders =====
+
+  addDiv("", 120, 0, 940, 86, {
+    background: "linear-gradient(180deg,#b8372c,#7f1d17)",
+    borderBottomLeftRadius: "50% 34px",
+    borderBottomRightRadius: "50% 34px"
+  });
+
+  addText("СЦЕНА", 515, 20, {
+    color: "#fff",
+    fontSize: "42px",
+    letterSpacing: ".04em"
+  });
+
+  addDiv("", 105, 60, 970, 880, {
+    border: "6px solid #7f1d17",
+    borderTop: "0",
+    borderRadius: "0 0 46px 46px"
+  });
+
+  addDiv("", 12, 205, 120, 720, {
+    border: "6px solid #7f1d17",
+    borderRight: "0",
+    borderRadius: "70px 0 0 70px"
+  });
+
+  addDiv("", 1048, 205, 120, 720, {
+    border: "6px solid #7f1d17",
+    borderLeft: "0",
+    borderRadius: "0 70px 70px 0"
+  });
+
+  addText("Партер", 535, 390, {
+    fontSize: "36px"
+  });
+
+  addText("Балкон", 32, 560, {
+    fontSize: "34px",
+    transform: "rotate(-90deg)",
+    transformOrigin: "left top"
+  });
+
+  addText("Балкон", 1136, 560, {
+    fontSize: "34px",
+    transform: "rotate(90deg)",
+    transformOrigin: "left top"
+  });
+
+  // ===== SIDE BALCONIES =====
+
+  for (let seat = 4; seat <= 25; seat++) {
+    addSeat("L", "Лівий балкон", 1, seat, 68, 245 + (seat - 4) * step);
+    addSeat("R", "Правий балкон", 1, seat, 1088, 245 + (seat - 4) * step);
+  }
+
+  // ===== TOP PARTER rows 1-9 =====
+
+  for (let row = 1; row <= 9; row++) {
+    const y = 145 + (row - 1) * step;
+
+    addRowLabel(row, 150, y);
+    addSeatLine(row, 180, y, 28, 14, true);
+
+    addSeatLine(row, 650, y, 14, 14, true);
+    addRowLabel(row, 1035, y);
+  }
+
+  // ===== LOWER PARTER rows 9A-25 =====
+
+  const lowerRows = ["9A", 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
+
+  lowerRows.forEach((row, index) => {
+    const y = 430 + index * step;
+
+    if (row === 25) {
+      addRowLabel(row, 390, y);
+      addSeatLine(row, 150, y + 34, 32, 32, true);
+      addRowLabel(row, 780, y);
+      return;
+    }
+
+    addSeatLine(row, 140, y, 28, 8, true);
+    addRowLabel(row, 405, y);
+
+    addSeatLine(row, 455, y, 20, 12, true);
+    addRowLabel(row, 790, y);
+
+    if (row !== 16 && row !== 17) {
+      addSeatLine(row, 850, y, 8, 8, true);
+    }
+  });
+
+  viewport.appendChild(canvas);
+  wrap.appendChild(viewport);
+  return wrap;
+}
     
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
@@ -2354,7 +2538,10 @@ if (section.type === "theatre_big_stage_layout") {
       root.appendChild(renderSplitRows(section));
       return;
     }
-
+if (section.type === "big_stage_reference") {
+  root.appendChild(renderBigStageReference(section));
+  return;
+}
     if (section.type === "custom_rows") {
       root.appendChild(renderCustomRows(section));
       return;
