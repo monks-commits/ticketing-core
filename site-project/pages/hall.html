@@ -918,38 +918,35 @@
 }
 
 .coord-hall{
-  position:relative;
-  margin:0 auto;
-}
-
-.coord-hall-viewport{
-  width:100%;
-  overflow:auto;
+  position: relative;
+  flex: 0 0 auto;
+  margin: 0 auto;
 }
 
 .coord-seat{
-  position:absolute;
-  width:24px;
-  height:24px;
-  min-width:24px;
-  min-height:24px;
-  padding:0;
-  font-size:10px;
-  line-height:1;
+  position: absolute;
+  width: var(--coord-seat-size, 24px);
+  height: var(--coord-seat-size, 24px);
+  min-width: var(--coord-seat-size, 24px);
+  min-height: var(--coord-seat-size, 24px);
+  padding: 0;
+  font-size: 10px;
+  line-height: 1;
 }
 
 .coord-label{
-  position:absolute;
-  white-space:nowrap;
-  pointer-events:none;
+  position: absolute;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .coord-label--row{
-  font-size:11px;
-  color:#111827;
-  font-weight:700;
+  font-size: 11px;
+  color: #111827;
 }
-
 .coord-label--stage{
   color:#fff;
   font-size:26px;
