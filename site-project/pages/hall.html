@@ -2213,9 +2213,9 @@ function renderCustomCoordinates(section){
   const height = Number(section.height || 900);
   const seatSize = Number(section.seat_size || 24);
 
-  canvas.style.maxWidth = width + "px";
-canvas.style.height = "auto";
-  canvas.style.setProperty("--seat-size", seatSize + "px");
+ canvas.style.width = width + "px";
+canvas.style.height = height + "px";
+canvas.style.setProperty("--seat-size", seatSize + "px");
 
   function addLabel(text, x, y, cls = ""){
     const el = document.createElement("div");
@@ -2236,13 +2236,12 @@ canvas.style.height = "auto";
 
     const btn = makeSeatElement(seatKey(meta), seat, "", 0, meta);
     btn.classList.add("coord-seat");
-    btn.dataset.x = x;
-btn.dataset.y = y;
-btn.style.transform = `translate(${x}px, ${y}px)`;
-btn.style.left = "0";
-btn.style.top = "0";
+    btn.classList.add("coord-seat");
+btn.style.left = x + "px";
+btn.style.top = y + "px";
+canvas.appendChild(btn);
     
-    canvas.appendChild(btn);
+    
   }
 
   function addSeatLine(item){
