@@ -5,7 +5,7 @@
   "sections": [
     {
       "id": "big_stage_reference",
-      "type": "big_stage_reference",
+      "type": "big_stage_reference", 
       "title": "",
       "scale": 0.58
     }
