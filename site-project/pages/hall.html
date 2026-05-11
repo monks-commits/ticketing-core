@@ -901,50 +901,15 @@
   width:var(--big-center-gap, 32px);
   flex:0 0 var(--big-center-gap, 32px);
 }
-.coord-hall{
-  position: relative;
-  width: min(1180px, 100%);
-  aspect-ratio: 1180 / 900;
-
-  transform-origin: top center;
-
-  --sx: calc(100% / 1180);
-  --sy: calc(100% / 900);
-}
-
-.coord-hall .seat{
-  position:absolute;
-}
-
-.coord-label{
-  position:absolute;
-  font-size:12px;
-  font-weight:700;
-  color:#6b7280;
-  text-align:center;
-  white-space:nowrap;
-}
-
-.coord-label--title{
-  font-size:14px;
-  text-transform:uppercase;
-  letter-spacing:.12em;
-  font-weight:700;
-}
-
-.coord-label--row{
-  font-size:11px;
-  color:#475569;
-}  
 
 .hall-section--coord{
-  overflow: hidden;
+  overflow: visible;
 }
 
 .coord-hall-viewport{
   width: 100%;
   max-width: 100%;
-  overflow: hidden;
+  overflow: auto;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -953,14 +918,33 @@
 .coord-hall{
   position: relative;
   flex: 0 0 auto;
-  transform-origin: top center;
-  scale: min(1, calc((100vw - 420px) / 1180));
 }
-.coord-hall{
-  position: relative;
-  flex: 0 0 auto;
-  transform-origin: top center;
+
+.coord-hall .seat{
+  position: absolute;
 }
+
+.coord-label{
+  position: absolute;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.coord-label--title{
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-weight: 700;
+}
+
+.coord-label--row{
+  font-size: 11px;
+  color: #475569;
+}
+  
 .coord-seat{
   position: absolute;
   width: var(--seat-size, 24px);
