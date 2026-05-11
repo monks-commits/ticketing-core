@@ -2441,11 +2441,13 @@ const hallFile = (
   await loadTakenSeats();
   await loadBookingSeats();
 
-  if (Array.isArray(HALL?.sections)) {
-    renderHallSections(HALL);
-  } else {
-    renderSimpleRows(HALL);
-  }
+  if (Array.isArray(HALL?.seats)) {
+  renderBuilderSeats(HALL);
+} else if (Array.isArray(HALL?.sections)) {
+  renderHallSections(HALL);
+} else {
+  renderSimpleRows(HALL);
+}
 
   renderPriceLegendMobile();
   setTimeout(applyMobileHallScale, 0);
