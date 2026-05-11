@@ -14,11 +14,11 @@
 "height": 900,
 "seat_size": 24,
 "gap": 6,
-"scale": 0.56,
-"offset_x": 0,
-"offset_y": 0,
+"scale": 0.72,
+"offset_x": -70,
+"offset_y": -15,
 "items": [
-        { "type": "label", "text": "ПАРТЕР", "x": 555, "y": 10, "class": "coord-label--title" },
+        
 
         { "type": "side_vertical", "prefix": "L", "zone": "Лівий балкон", "x": 35, "y": 180, "start": 4, "count": 22 },
         { "type": "side_vertical", "prefix": "R", "zone": "Правий балкон", "x": 1115, "y": 180, "start": 4, "count": 22 },
