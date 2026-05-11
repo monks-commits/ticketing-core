@@ -955,7 +955,11 @@
   transform-origin: top center;
   scale: min(1, calc((100vw - 420px) / 1180));
 }
-
+.coord-hall > *{
+  position: absolute;
+  transform-origin: top left;
+  transform: scale(var(--sx), var(--sy));
+}
 .coord-seat{
   position: absolute;
   width: var(--seat-size, 24px);
