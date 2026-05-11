@@ -2010,7 +2010,12 @@ function renderHallSections(hallData){
       root.appendChild(renderHorizontalGroup(section, sectionsMap));
       return;
     }
+if (section.type === "coordinate_hall") {
+  root.appendChild(renderCoordinateHall(section));
+  return;
+}
 
+    
     if (section.type === "rows") {
       root.appendChild(renderRowsSection(section));
       return;
