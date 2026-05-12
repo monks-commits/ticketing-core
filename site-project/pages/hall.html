@@ -922,19 +922,40 @@
               </div>
             </div>
 
-            <div class="hall-scroll">
+
+<div class="hall-scroll">
+
+  <div class="zoom-controls">
+    <button class="zoom-btn" id="zoomIn">+</button>
+    <button class="zoom-btn" id="zoomOut">−</button>
+    <button class="zoom-btn" id="zoomReset">•</button>
+  </div>
+
   <div id="mobile-hall-viewport" class="mobile-hall-viewport">
     <div id="mobile-hall-scale" class="mobile-hall-scale">
+
       <div class="hall-inner">
+
+        <!-- УБИРАЕМ верхнюю сцену -->
+        <!--
         <div class="stage-wrap">
           <div class="stage">Сцена</div>
         </div>
+        -->
 
         <div id="hall-root"></div>
+
+        <!-- НОВАЯ сцена ВНИЗУ -->
+        <div class="stage-wrap stage-wrap-bottom">
+          <div class="stage">СЦЕНА</div>
+        </div>
+
       </div>
+
     </div>
   </div>
 </div>
+            
           </section>
         </div>
 
