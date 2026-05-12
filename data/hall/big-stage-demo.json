@@ -1,103 +1,6137 @@
 {
   "version": 1,
-  "hall_id": "big-stage-demo",
-  "title": "Велика сцена",
-  "sections": [
+  "generated": true,
+  "title": "Оперний театр",
+  "width": 1700,
+  "height": 1609,
+  "seats": [
     {
-      "id": "top_parter",
-      "type": "multi_block_rows",
-      "title": "Партер",
       "zone": "Партер",
       "prefix": "P",
-      "rows": [
-        { "row": 1, "blocks": [{ "start": 28, "count": 12, "reverse": true }, { "start": 12, "count": 12, "reverse": true }] },
-        { "row": 2, "blocks": [{ "start": 28, "count": 14, "reverse": true }, { "start": 14, "count": 14, "reverse": true }] },
-        { "row": 3, "blocks": [{ "start": 28, "count": 14, "reverse": true }, { "start": 14, "count": 14, "reverse": true }] },
-        { "row": 4, "blocks": [{ "start": 28, "count": 14, "reverse": true }, { "start": 14, "count": 14, "reverse": true }] },
-        { "row": 5, "blocks": [{ "start": 28, "count": 14, "reverse": true }, { "start": 14, "count": 14, "reverse": true }] },
-        { "row": 6, "blocks": [{ "start": 28, "count": 14, "reverse": true }, { "start": 14, "count": 14, "reverse": true }] },
-        { "row": 7, "blocks": [{ "start": 28, "count": 14, "reverse": true }, { "start": 14, "count": 14, "reverse": true }] },
-        { "row": 8, "blocks": [{ "start": 28, "count": 14, "reverse": true }, { "start": 14, "count": 14, "reverse": true }] },
-        { "row": 9, "blocks": [{ "start": 28, "count": 14, "reverse": true }, { "start": 14, "count": 14, "reverse": true }] }
-      ]
-    },
-
-    {
-      "id": "main_entrance_label",
-      "type": "custom_rows",
-      "title": "Вхід до партеру",
-      "zone": "Партер",
-      "prefix": "P",
-      "rows": []
-    },
-
-    {
-      "id": "main_hall_group",
-      "type": "horizontal_group",
-      "title": "",
-      "items": ["side_left", "main_parter", "side_right"]
-    },
-
-    {
-      "id": "side_left",
-      "type": "side_vertical",
-      "title": "",
-      "zone": "Лівий сектор",
-      "prefix": "L",
       "row": 1,
-      "start": 26,
-      "count": 25,
-      "reverse": false,
-      "hidden": true
+      "seat": 1,
+      "x": 1465,
+      "y": 250
     },
-
     {
-      "id": "main_parter",
-      "type": "multi_block_rows",
-      "title": "",
       "zone": "Партер",
       "prefix": "P",
-      "hidden": true,
-      "rows": [
-        { "row": 10, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 11, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 12, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 13, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 14, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 15, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 16, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 17, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 18, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 19, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 20, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 21, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 22, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 23, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 24, "blocks": [{ "start": 28, "count": 8, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] },
-        { "row": 25, "blocks": [{ "start": 32, "count": 12, "reverse": true }, { "start": 20, "count": 12, "reverse": true }, { "start": 8, "count": 8, "reverse": true }] }
-      ]
+      "row": 1,
+      "seat": 2,
+      "x": 1420,
+      "y": 249
     },
-
     {
-  "id": "side_right",
-  "type": "side_vertical",
-  "title": "Вхід",
-  "zone": "Правий сектор",
-  "prefix": "R",
-  "row": 1,
-  "start": 1,
-  "count": 25,
-  "reverse": false,
-  "hidden": true
-},
-
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 3,
+      "x": 1377,
+      "y": 249
+    },
     {
-      "id": "balcony_label",
-      "type": "custom_rows",
-      "title": "Балкон",
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 4,
+      "x": 1335,
+      "y": 249
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 5,
+      "x": 1292,
+      "y": 247
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 6,
+      "x": 1250,
+      "y": 247
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 7,
+      "x": 1206,
+      "y": 247
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 8,
+      "x": 1161,
+      "y": 248
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 9,
+      "x": 1118,
+      "y": 246
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 10,
+      "x": 1076,
+      "y": 251
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 11,
+      "x": 1036,
+      "y": 248
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 12,
+      "x": 991,
+      "y": 247
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 13,
+      "x": 947,
+      "y": 246
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 14,
+      "x": 904,
+      "y": 248
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 15,
+      "x": 786,
+      "y": 249
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 16,
+      "x": 745,
+      "y": 247
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 17,
+      "x": 702,
+      "y": 247
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 18,
+      "x": 659,
+      "y": 248
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 19,
+      "x": 614,
+      "y": 248
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 20,
+      "x": 573,
+      "y": 248
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 21,
+      "x": 529,
+      "y": 249
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 22,
+      "x": 487,
+      "y": 248
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 23,
+      "x": 445,
+      "y": 248
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 24,
+      "x": 401,
+      "y": 249
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 25,
+      "x": 359,
+      "y": 248
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 26,
+      "x": 316,
+      "y": 249
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 27,
+      "x": 274,
+      "y": 250
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 1,
+      "seat": 28,
+      "x": 231,
+      "y": 250
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 1,
+      "x": 1466,
+      "y": 294
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 2,
+      "x": 1418,
+      "y": 297
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 3,
+      "x": 1377,
+      "y": 292
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 4,
+      "x": 1335,
+      "y": 295
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 5,
+      "x": 1292,
+      "y": 294
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 6,
+      "x": 1250,
+      "y": 292
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 7,
+      "x": 1205,
+      "y": 296
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 8,
+      "x": 1162,
+      "y": 294
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 9,
+      "x": 1119,
+      "y": 292
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 10,
+      "x": 1077,
+      "y": 296
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 11,
+      "x": 1031,
+      "y": 292
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 12,
+      "x": 992,
+      "y": 292
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 13,
+      "x": 948,
+      "y": 294
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 14,
+      "x": 904,
+      "y": 293
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 15,
+      "x": 790,
+      "y": 292
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 16,
+      "x": 743,
+      "y": 293
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 17,
+      "x": 702,
+      "y": 294
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 18,
+      "x": 658,
+      "y": 294
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 19,
+      "x": 616,
+      "y": 292
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 20,
+      "x": 574,
+      "y": 294
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 21,
+      "x": 530,
+      "y": 291
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 22,
+      "x": 487,
+      "y": 295
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 23,
+      "x": 446,
+      "y": 295
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 24,
+      "x": 402,
+      "y": 294
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 25,
+      "x": 358,
+      "y": 293
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 26,
+      "x": 314,
+      "y": 294
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 27,
+      "x": 271,
+      "y": 296
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 2,
+      "seat": 28,
+      "x": 230,
+      "y": 295
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 1,
+      "x": 1464,
+      "y": 340
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 2,
+      "x": 1421,
+      "y": 339
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 3,
+      "x": 1379,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 4,
+      "x": 1334,
+      "y": 340
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 5,
+      "x": 1294,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 6,
+      "x": 1251,
+      "y": 340
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 7,
+      "x": 1207,
+      "y": 340
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 8,
+      "x": 1160,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 9,
+      "x": 1122,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 10,
+      "x": 1076,
+      "y": 340
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 11,
+      "x": 1033,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 12,
+      "x": 995,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 13,
+      "x": 950,
+      "y": 339
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 14,
+      "x": 906,
+      "y": 340
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 15,
+      "x": 787,
+      "y": 338
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 16,
+      "x": 745,
+      "y": 338
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 17,
+      "x": 703,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 18,
+      "x": 658,
+      "y": 340
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 19,
+      "x": 617,
+      "y": 339
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 20,
+      "x": 576,
+      "y": 340
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 21,
+      "x": 532,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 22,
+      "x": 489,
+      "y": 338
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 23,
+      "x": 447,
+      "y": 340
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 24,
+      "x": 402,
+      "y": 339
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 25,
+      "x": 359,
+      "y": 339
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 26,
+      "x": 317,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 27,
+      "x": 275,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 3,
+      "seat": 28,
+      "x": 229,
+      "y": 341
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 1,
+      "x": 1463,
+      "y": 386
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 2,
+      "x": 1422,
+      "y": 386
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 3,
+      "x": 1378,
+      "y": 387
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 4,
+      "x": 1337,
+      "y": 385
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 5,
+      "x": 1290,
+      "y": 385
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 6,
+      "x": 1249,
+      "y": 386
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 7,
+      "x": 1205,
+      "y": 387
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 8,
+      "x": 1164,
+      "y": 385
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 9,
+      "x": 1119,
+      "y": 385
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 10,
+      "x": 1077,
+      "y": 387
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 11,
+      "x": 1037,
+      "y": 385
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 12,
+      "x": 993,
+      "y": 388
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 13,
+      "x": 950,
+      "y": 384
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 14,
+      "x": 905,
+      "y": 386
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 15,
+      "x": 790,
+      "y": 385
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 16,
+      "x": 748,
+      "y": 386
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 17,
+      "x": 703,
+      "y": 386
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 18,
+      "x": 658,
+      "y": 389
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 19,
+      "x": 617,
+      "y": 388
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 20,
+      "x": 573,
+      "y": 387
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 21,
+      "x": 529,
+      "y": 388
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 22,
+      "x": 487,
+      "y": 388
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 23,
+      "x": 444,
+      "y": 384
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 24,
+      "x": 402,
+      "y": 387
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 25,
+      "x": 359,
+      "y": 387
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 26,
+      "x": 314,
+      "y": 387
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 27,
+      "x": 274,
+      "y": 388
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 4,
+      "seat": 28,
+      "x": 230,
+      "y": 384
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 1,
+      "x": 1463,
+      "y": 434
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 2,
+      "x": 1421,
+      "y": 431
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 3,
+      "x": 1376,
+      "y": 434
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 4,
+      "x": 1335,
+      "y": 431
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 5,
+      "x": 1292,
+      "y": 430
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 6,
+      "x": 1249,
+      "y": 431
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 7,
+      "x": 1206,
+      "y": 430
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 8,
+      "x": 1161,
+      "y": 434
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 9,
+      "x": 1118,
+      "y": 430
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 10,
+      "x": 1076,
+      "y": 429
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 11,
+      "x": 1037,
+      "y": 432
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 12,
+      "x": 991,
+      "y": 432
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 13,
+      "x": 949,
+      "y": 430
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 14,
+      "x": 902,
+      "y": 431
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 15,
+      "x": 788,
+      "y": 429
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 16,
+      "x": 745,
+      "y": 432
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 17,
+      "x": 698,
+      "y": 431
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 18,
+      "x": 657,
+      "y": 434
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 19,
+      "x": 617,
+      "y": 434
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 20,
+      "x": 576,
+      "y": 431
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 21,
+      "x": 531,
+      "y": 430
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 22,
+      "x": 487,
+      "y": 430
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 23,
+      "x": 445,
+      "y": 431
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 24,
+      "x": 402,
+      "y": 434
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 25,
+      "x": 358,
+      "y": 432
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 26,
+      "x": 313,
+      "y": 432
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 27,
+      "x": 271,
+      "y": 434
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 5,
+      "seat": 28,
+      "x": 227,
+      "y": 431
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 1,
+      "x": 1462,
+      "y": 477
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 2,
+      "x": 1421,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 3,
+      "x": 1376,
+      "y": 477
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 4,
+      "x": 1336,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 5,
+      "x": 1292,
+      "y": 477
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 6,
+      "x": 1248,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 7,
+      "x": 1206,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 8,
+      "x": 1164,
+      "y": 477
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 9,
+      "x": 1120,
+      "y": 478
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 10,
+      "x": 1077,
+      "y": 477
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 11,
+      "x": 1033,
+      "y": 477
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 12,
+      "x": 991,
+      "y": 477
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 13,
+      "x": 947,
+      "y": 476
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 14,
+      "x": 905,
+      "y": 478
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 15,
+      "x": 786,
+      "y": 477
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 16,
+      "x": 748,
+      "y": 478
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 17,
+      "x": 703,
+      "y": 480
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 18,
+      "x": 659,
+      "y": 480
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 19,
+      "x": 615,
+      "y": 476
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 20,
+      "x": 575,
+      "y": 478
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 21,
+      "x": 529,
+      "y": 480
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 22,
+      "x": 485,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 23,
+      "x": 444,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 24,
+      "x": 402,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 25,
+      "x": 359,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 26,
+      "x": 313,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 27,
+      "x": 276,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 6,
+      "seat": 28,
+      "x": 231,
+      "y": 479
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 1,
+      "x": 1463,
+      "y": 525
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 2,
+      "x": 1424,
+      "y": 521
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 3,
+      "x": 1376,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 4,
+      "x": 1336,
+      "y": 525
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 5,
+      "x": 1290,
+      "y": 523
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 6,
+      "x": 1249,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 7,
+      "x": 1207,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 8,
+      "x": 1164,
+      "y": 523
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 9,
+      "x": 1119,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 10,
+      "x": 1075,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 11,
+      "x": 1034,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 12,
+      "x": 994,
+      "y": 522
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 13,
+      "x": 948,
+      "y": 523
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 14,
+      "x": 905,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 15,
+      "x": 788,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 16,
+      "x": 746,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 17,
+      "x": 702,
+      "y": 522
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 18,
+      "x": 659,
+      "y": 523
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 19,
+      "x": 613,
+      "y": 525
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 20,
+      "x": 575,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 21,
+      "x": 531,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 22,
+      "x": 486,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 23,
+      "x": 445,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 24,
+      "x": 401,
+      "y": 523
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 25,
+      "x": 359,
+      "y": 527
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 26,
+      "x": 314,
+      "y": 525
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 27,
+      "x": 275,
+      "y": 522
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 7,
+      "seat": 28,
+      "x": 231,
+      "y": 524
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 1,
+      "x": 1464,
+      "y": 572
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 2,
+      "x": 1422,
+      "y": 569
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 3,
+      "x": 1376,
+      "y": 567
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 4,
+      "x": 1337,
+      "y": 571
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 5,
+      "x": 1292,
+      "y": 569
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 6,
+      "x": 1249,
+      "y": 569
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 7,
+      "x": 1205,
+      "y": 571
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 8,
+      "x": 1162,
+      "y": 568
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 9,
+      "x": 1120,
+      "y": 568
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 10,
+      "x": 1075,
+      "y": 571
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 11,
+      "x": 1036,
+      "y": 570
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 12,
+      "x": 989,
+      "y": 568
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 13,
+      "x": 947,
+      "y": 570
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 14,
+      "x": 904,
+      "y": 570
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 15,
+      "x": 787,
+      "y": 567
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 16,
+      "x": 745,
+      "y": 571
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 17,
+      "x": 703,
+      "y": 569
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 18,
+      "x": 659,
+      "y": 570
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 19,
+      "x": 616,
+      "y": 570
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 20,
+      "x": 573,
+      "y": 570
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 21,
+      "x": 531,
+      "y": 573
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 22,
+      "x": 487,
+      "y": 571
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 23,
+      "x": 444,
+      "y": 569
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 24,
+      "x": 401,
+      "y": 570
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 25,
+      "x": 359,
+      "y": 569
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 26,
+      "x": 314,
+      "y": 570
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 27,
+      "x": 273,
+      "y": 568
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 8,
+      "seat": 28,
+      "x": 231,
+      "y": 567
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 1,
+      "x": 1464,
+      "y": 618
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 2,
+      "x": 1421,
+      "y": 614
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 3,
+      "x": 1378,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 4,
+      "x": 1336,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 5,
+      "x": 1292,
+      "y": 614
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 6,
+      "x": 1247,
+      "y": 614
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 7,
+      "x": 1204,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 8,
+      "x": 1164,
+      "y": 613
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 9,
+      "x": 1120,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 10,
+      "x": 1077,
+      "y": 614
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 11,
+      "x": 1033,
+      "y": 613
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 12,
+      "x": 992,
+      "y": 610
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 13,
+      "x": 948,
+      "y": 614
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 14,
+      "x": 906,
+      "y": 614
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 15,
+      "x": 788,
+      "y": 613
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 16,
+      "x": 746,
+      "y": 614
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 17,
+      "x": 704,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 18,
+      "x": 660,
+      "y": 614
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 19,
+      "x": 618,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 20,
+      "x": 575,
+      "y": 614
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 21,
+      "x": 531,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 22,
+      "x": 489,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 23,
+      "x": 444,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 24,
+      "x": 400,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 25,
+      "x": 359,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 26,
+      "x": 318,
+      "y": 615
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 27,
+      "x": 274,
+      "y": 613
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 9,
+      "seat": 28,
+      "x": 231,
+      "y": 612
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 1,
+      "x": 1517,
+      "y": 761
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 2,
+      "x": 1475,
+      "y": 756
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 3,
+      "x": 1428,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 4,
+      "x": 1386,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 5,
+      "x": 1344,
+      "y": 761
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 6,
+      "x": 1302,
+      "y": 757
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 7,
+      "x": 1257,
+      "y": 761
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 8,
+      "x": 1217,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 9,
+      "x": 1086,
+      "y": 762
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 10,
+      "x": 1044,
+      "y": 762
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 11,
+      "x": 1001,
+      "y": 762
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 12,
+      "x": 960,
+      "y": 762
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 13,
+      "x": 919,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 14,
+      "x": 873,
+      "y": 761
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 15,
+      "x": 830,
+      "y": 758
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 16,
+      "x": 786,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 17,
+      "x": 746,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 18,
+      "x": 704,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 19,
+      "x": 661,
+      "y": 757
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 20,
+      "x": 617,
+      "y": 757
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 21,
+      "x": 489,
+      "y": 758
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 22,
+      "x": 442,
+      "y": 761
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 23,
+      "x": 402,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 24,
+      "x": 359,
+      "y": 758
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 25,
+      "x": 319,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 26,
+      "x": 275,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 27,
+      "x": 228,
+      "y": 763
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 10,
+      "seat": 28,
+      "x": 186,
+      "y": 759
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 1,
+      "x": 1519,
+      "y": 806
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 2,
+      "x": 1474,
+      "y": 806
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 3,
+      "x": 1429,
+      "y": 806
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 4,
+      "x": 1388,
+      "y": 806
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 5,
+      "x": 1347,
+      "y": 804
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 6,
+      "x": 1303,
+      "y": 809
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 7,
+      "x": 1260,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 8,
+      "x": 1217,
+      "y": 809
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 9,
+      "x": 1089,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 10,
+      "x": 1045,
+      "y": 806
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 11,
+      "x": 1002,
+      "y": 806
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 12,
+      "x": 960,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 13,
+      "x": 916,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 14,
+      "x": 873,
+      "y": 804
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 15,
+      "x": 830,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 16,
+      "x": 787,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 17,
+      "x": 743,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 18,
+      "x": 704,
+      "y": 803
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 19,
+      "x": 659,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 20,
+      "x": 616,
+      "y": 804
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 21,
+      "x": 487,
+      "y": 806
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 22,
+      "x": 447,
+      "y": 804
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 23,
+      "x": 400,
+      "y": 802
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 24,
+      "x": 359,
+      "y": 806
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 25,
+      "x": 316,
+      "y": 804
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 26,
+      "x": 273,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 27,
+      "x": 230,
+      "y": 805
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 11,
+      "seat": 28,
+      "x": 186,
+      "y": 803
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 1,
+      "x": 1516,
+      "y": 853
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 2,
+      "x": 1474,
+      "y": 852
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 3,
+      "x": 1430,
+      "y": 853
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 4,
+      "x": 1388,
+      "y": 854
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 5,
+      "x": 1343,
+      "y": 851
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 6,
+      "x": 1305,
+      "y": 852
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 7,
+      "x": 1258,
+      "y": 853
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 8,
+      "x": 1216,
+      "y": 853
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 9,
+      "x": 1089,
+      "y": 850
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 10,
+      "x": 1045,
+      "y": 853
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 11,
+      "x": 1002,
+      "y": 850
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 12,
+      "x": 961,
+      "y": 852
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 13,
+      "x": 916,
+      "y": 850
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 14,
+      "x": 872,
+      "y": 850
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 15,
+      "x": 832,
+      "y": 852
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 16,
+      "x": 788,
+      "y": 849
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 17,
+      "x": 745,
+      "y": 851
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 18,
+      "x": 704,
+      "y": 851
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 19,
+      "x": 658,
+      "y": 850
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 20,
+      "x": 616,
+      "y": 851
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 21,
+      "x": 487,
+      "y": 851
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 22,
+      "x": 448,
+      "y": 850
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 23,
+      "x": 400,
+      "y": 850
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 24,
+      "x": 358,
+      "y": 851
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 25,
+      "x": 317,
+      "y": 851
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 26,
+      "x": 274,
+      "y": 853
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 27,
+      "x": 233,
+      "y": 852
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 12,
+      "seat": 28,
+      "x": 190,
+      "y": 851
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 1,
+      "x": 1516,
+      "y": 895
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 2,
+      "x": 1475,
+      "y": 896
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 3,
+      "x": 1432,
+      "y": 896
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 4,
+      "x": 1391,
+      "y": 899
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 5,
+      "x": 1347,
+      "y": 897
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 6,
+      "x": 1302,
+      "y": 895
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 7,
+      "x": 1260,
+      "y": 897
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 8,
+      "x": 1215,
+      "y": 895
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 9,
+      "x": 1091,
+      "y": 896
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 10,
+      "x": 1046,
+      "y": 896
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 11,
+      "x": 1006,
+      "y": 899
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 12,
+      "x": 960,
+      "y": 897
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 13,
+      "x": 917,
+      "y": 896
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 14,
+      "x": 873,
+      "y": 897
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 15,
+      "x": 832,
+      "y": 898
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 16,
+      "x": 790,
+      "y": 897
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 17,
+      "x": 746,
+      "y": 896
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 18,
+      "x": 701,
+      "y": 898
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 19,
+      "x": 662,
+      "y": 897
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 20,
+      "x": 617,
+      "y": 895
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 21,
+      "x": 485,
+      "y": 894
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 22,
+      "x": 444,
+      "y": 895
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 23,
+      "x": 403,
+      "y": 897
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 24,
+      "x": 357,
+      "y": 895
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 25,
+      "x": 318,
+      "y": 897
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 26,
+      "x": 273,
+      "y": 895
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 27,
+      "x": 229,
+      "y": 897
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 13,
+      "seat": 28,
+      "x": 184,
+      "y": 895
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 1,
+      "x": 1517,
+      "y": 943
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 2,
+      "x": 1474,
+      "y": 941
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 3,
+      "x": 1430,
+      "y": 944
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 4,
+      "x": 1390,
+      "y": 939
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 5,
+      "x": 1348,
+      "y": 945
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 6,
+      "x": 1302,
+      "y": 942
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 7,
+      "x": 1258,
+      "y": 941
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 8,
+      "x": 1216,
+      "y": 941
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 9,
+      "x": 1088,
+      "y": 944
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 10,
+      "x": 1045,
+      "y": 941
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 11,
+      "x": 1002,
+      "y": 941
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 12,
+      "x": 958,
+      "y": 945
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 13,
+      "x": 917,
+      "y": 944
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 14,
+      "x": 878,
+      "y": 945
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 15,
+      "x": 831,
+      "y": 944
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 16,
+      "x": 789,
+      "y": 944
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 17,
+      "x": 744,
+      "y": 945
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 18,
+      "x": 706,
+      "y": 945
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 19,
+      "x": 659,
+      "y": 943
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 20,
+      "x": 618,
+      "y": 943
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 21,
+      "x": 487,
+      "y": 943
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 22,
+      "x": 445,
+      "y": 941
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 23,
+      "x": 404,
+      "y": 942
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 24,
+      "x": 358,
+      "y": 944
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 25,
+      "x": 316,
+      "y": 943
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 26,
+      "x": 273,
+      "y": 943
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 27,
+      "x": 231,
+      "y": 942
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 14,
+      "seat": 28,
+      "x": 186,
+      "y": 941
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 1,
+      "x": 1520,
+      "y": 987
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 2,
+      "x": 1476,
+      "y": 986
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 3,
+      "x": 1428,
+      "y": 985
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 4,
+      "x": 1391,
+      "y": 992
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 5,
+      "x": 1349,
+      "y": 987
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 6,
+      "x": 1302,
+      "y": 984
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 7,
+      "x": 1261,
+      "y": 987
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 8,
+      "x": 1215,
+      "y": 986
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 9,
+      "x": 1090,
+      "y": 986
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 10,
+      "x": 1044,
+      "y": 987
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 11,
+      "x": 1002,
+      "y": 986
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 12,
+      "x": 960,
+      "y": 989
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 13,
+      "x": 916,
+      "y": 985
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 14,
+      "x": 873,
+      "y": 990
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 15,
+      "x": 829,
+      "y": 989
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 16,
+      "x": 790,
+      "y": 986
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 17,
+      "x": 743,
+      "y": 989
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 18,
+      "x": 700,
+      "y": 989
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 19,
+      "x": 659,
+      "y": 985
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 20,
+      "x": 617,
+      "y": 991
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 21,
+      "x": 490,
+      "y": 990
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 22,
+      "x": 446,
+      "y": 990
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 23,
+      "x": 401,
+      "y": 987
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 24,
+      "x": 358,
+      "y": 989
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 25,
+      "x": 318,
+      "y": 989
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 26,
+      "x": 274,
+      "y": 990
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 27,
+      "x": 230,
+      "y": 987
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 15,
+      "seat": 28,
+      "x": 186,
+      "y": 989
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 9,
+      "x": 1086,
+      "y": 1031
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 10,
+      "x": 1045,
+      "y": 1033
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 11,
+      "x": 1000,
+      "y": 1034
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 12,
+      "x": 960,
+      "y": 1032
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 13,
+      "x": 916,
+      "y": 1031
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 14,
+      "x": 872,
+      "y": 1032
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 15,
+      "x": 830,
+      "y": 1030
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 16,
+      "x": 786,
+      "y": 1032
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 17,
+      "x": 744,
+      "y": 1033
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 18,
+      "x": 702,
+      "y": 1032
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 19,
+      "x": 660,
+      "y": 1036
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 20,
+      "x": 613,
+      "y": 1033
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 21,
+      "x": 489,
+      "y": 1031
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 22,
+      "x": 445,
+      "y": 1031
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 23,
+      "x": 401,
+      "y": 1033
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 24,
+      "x": 357,
+      "y": 1033
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 25,
+      "x": 316,
+      "y": 1031
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 26,
+      "x": 274,
+      "y": 1032
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 27,
+      "x": 230,
+      "y": 1034
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 16,
+      "seat": 28,
+      "x": 189,
+      "y": 1033
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 9,
+      "x": 1087,
+      "y": 1079
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 10,
+      "x": 1043,
+      "y": 1080
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 11,
+      "x": 1001,
+      "y": 1081
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 12,
+      "x": 959,
+      "y": 1081
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 13,
+      "x": 917,
+      "y": 1077
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 14,
+      "x": 873,
+      "y": 1081
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 15,
+      "x": 832,
+      "y": 1080
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 16,
+      "x": 788,
+      "y": 1083
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 17,
+      "x": 743,
+      "y": 1080
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 18,
+      "x": 702,
+      "y": 1079
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 19,
+      "x": 658,
+      "y": 1079
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 20,
+      "x": 617,
+      "y": 1081
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 21,
+      "x": 487,
+      "y": 1080
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 22,
+      "x": 442,
+      "y": 1083
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 23,
+      "x": 401,
+      "y": 1083
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 24,
+      "x": 357,
+      "y": 1079
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 25,
+      "x": 312,
+      "y": 1079
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 26,
+      "x": 274,
+      "y": 1080
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 27,
+      "x": 230,
+      "y": 1075
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 17,
+      "seat": 28,
+      "x": 188,
+      "y": 1082
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 1,
+      "x": 1517,
+      "y": 1128
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 2,
+      "x": 1473,
+      "y": 1128
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 3,
+      "x": 1431,
+      "y": 1128
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 4,
+      "x": 1386,
+      "y": 1128
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 5,
+      "x": 1343,
+      "y": 1130
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 6,
+      "x": 1297,
+      "y": 1129
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 7,
+      "x": 1257,
+      "y": 1127
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 8,
+      "x": 1215,
+      "y": 1129
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 9,
+      "x": 1087,
+      "y": 1124
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 10,
+      "x": 1045,
+      "y": 1125
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 11,
+      "x": 1004,
+      "y": 1127
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 12,
+      "x": 957,
+      "y": 1124
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 13,
+      "x": 915,
+      "y": 1125
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 14,
+      "x": 873,
+      "y": 1125
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 15,
+      "x": 829,
+      "y": 1127
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 16,
+      "x": 785,
+      "y": 1125
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 17,
+      "x": 744,
+      "y": 1127
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 18,
+      "x": 703,
+      "y": 1124
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 19,
+      "x": 658,
+      "y": 1125
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 20,
+      "x": 615,
+      "y": 1125
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 21,
+      "x": 487,
+      "y": 1124
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 22,
+      "x": 446,
+      "y": 1127
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 23,
+      "x": 402,
+      "y": 1123
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 24,
+      "x": 358,
+      "y": 1125
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 25,
+      "x": 318,
+      "y": 1125
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 26,
+      "x": 273,
+      "y": 1124
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 27,
+      "x": 229,
+      "y": 1124
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 18,
+      "seat": 28,
+      "x": 189,
+      "y": 1125
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 1,
+      "x": 1517,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 2,
+      "x": 1473,
+      "y": 1172
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 3,
+      "x": 1432,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 4,
+      "x": 1389,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 5,
+      "x": 1347,
+      "y": 1172
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 6,
+      "x": 1302,
+      "y": 1170
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 7,
+      "x": 1258,
+      "y": 1170
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 8,
+      "x": 1217,
+      "y": 1172
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 9,
+      "x": 1087,
+      "y": 1170
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 10,
+      "x": 1046,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 11,
+      "x": 1002,
+      "y": 1169
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 12,
+      "x": 960,
+      "y": 1170
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 13,
+      "x": 918,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 14,
+      "x": 873,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 15,
+      "x": 831,
+      "y": 1172
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 16,
+      "x": 787,
+      "y": 1170
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 17,
+      "x": 744,
+      "y": 1172
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 18,
+      "x": 702,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 19,
+      "x": 658,
+      "y": 1170
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 20,
+      "x": 616,
+      "y": 1172
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 21,
+      "x": 489,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 22,
+      "x": 444,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 23,
+      "x": 402,
+      "y": 1172
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 24,
+      "x": 360,
+      "y": 1169
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 25,
+      "x": 314,
+      "y": 1173
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 26,
+      "x": 272,
+      "y": 1169
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 27,
+      "x": 232,
+      "y": 1171
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 19,
+      "seat": 28,
+      "x": 188,
+      "y": 1172
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 1,
+      "x": 1518,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 2,
+      "x": 1475,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 3,
+      "x": 1434,
+      "y": 1220
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 4,
+      "x": 1390,
+      "y": 1218
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 5,
+      "x": 1344,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 6,
+      "x": 1304,
+      "y": 1220
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 7,
+      "x": 1262,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 8,
+      "x": 1218,
+      "y": 1218
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 9,
+      "x": 1089,
+      "y": 1218
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 10,
+      "x": 1045,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 11,
+      "x": 999,
+      "y": 1218
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 12,
+      "x": 960,
+      "y": 1218
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 13,
+      "x": 916,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 14,
+      "x": 874,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 15,
+      "x": 829,
+      "y": 1220
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 16,
+      "x": 788,
+      "y": 1218
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 17,
+      "x": 746,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 18,
+      "x": 700,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 19,
+      "x": 659,
+      "y": 1221
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 20,
+      "x": 617,
+      "y": 1218
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 21,
+      "x": 486,
+      "y": 1217
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 22,
+      "x": 446,
+      "y": 1215
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 23,
+      "x": 405,
+      "y": 1216
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 24,
+      "x": 361,
+      "y": 1217
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 25,
+      "x": 317,
+      "y": 1218
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 26,
+      "x": 273,
+      "y": 1219
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 27,
+      "x": 229,
+      "y": 1217
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 20,
+      "seat": 28,
+      "x": 186,
+      "y": 1217
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 1,
+      "x": 1519,
+      "y": 1264
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 2,
+      "x": 1475,
+      "y": 1258
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 3,
+      "x": 1432,
+      "y": 1266
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 4,
+      "x": 1391,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 5,
+      "x": 1346,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 6,
+      "x": 1302,
+      "y": 1262
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 7,
+      "x": 1262,
+      "y": 1262
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 8,
+      "x": 1220,
+      "y": 1262
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 9,
+      "x": 1089,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 10,
+      "x": 1045,
+      "y": 1264
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 11,
+      "x": 1004,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 12,
+      "x": 959,
+      "y": 1264
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 13,
+      "x": 919,
+      "y": 1262
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 14,
+      "x": 873,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 15,
+      "x": 832,
+      "y": 1264
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 16,
+      "x": 789,
+      "y": 1262
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 17,
+      "x": 745,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 18,
+      "x": 704,
+      "y": 1265
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 19,
+      "x": 658,
+      "y": 1264
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 20,
+      "x": 615,
+      "y": 1265
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 21,
+      "x": 485,
+      "y": 1262
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 22,
+      "x": 447,
+      "y": 1262
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 23,
+      "x": 401,
+      "y": 1265
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 24,
+      "x": 359,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 25,
+      "x": 316,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 26,
+      "x": 275,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 27,
+      "x": 230,
+      "y": 1264
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 21,
+      "seat": 28,
+      "x": 189,
+      "y": 1263
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 1,
+      "x": 1518,
+      "y": 1308
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 2,
+      "x": 1472,
+      "y": 1310
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 3,
+      "x": 1431,
+      "y": 1308
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 4,
+      "x": 1386,
+      "y": 1311
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 5,
+      "x": 1346,
+      "y": 1311
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 6,
+      "x": 1304,
+      "y": 1309
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 7,
+      "x": 1261,
+      "y": 1308
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 8,
+      "x": 1218,
+      "y": 1309
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 9,
+      "x": 1088,
+      "y": 1311
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 10,
+      "x": 1046,
+      "y": 1308
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 11,
+      "x": 1005,
+      "y": 1311
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 12,
+      "x": 959,
+      "y": 1310
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 13,
+      "x": 915,
+      "y": 1310
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 14,
+      "x": 873,
+      "y": 1310
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 15,
+      "x": 831,
+      "y": 1312
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 16,
+      "x": 786,
+      "y": 1311
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 17,
+      "x": 745,
+      "y": 1313
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 18,
+      "x": 703,
+      "y": 1311
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 19,
+      "x": 658,
+      "y": 1313
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 20,
+      "x": 615,
+      "y": 1313
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 21,
+      "x": 486,
+      "y": 1313
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 22,
+      "x": 446,
+      "y": 1310
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 23,
+      "x": 400,
+      "y": 1312
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 24,
+      "x": 358,
+      "y": 1311
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 25,
+      "x": 317,
+      "y": 1307
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 26,
+      "x": 274,
+      "y": 1306
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 27,
+      "x": 231,
+      "y": 1309
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 22,
+      "seat": 28,
+      "x": 189,
+      "y": 1310
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 1,
+      "x": 1519,
+      "y": 1357
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 2,
+      "x": 1476,
+      "y": 1357
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 3,
+      "x": 1432,
+      "y": 1353
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 4,
+      "x": 1389,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 5,
+      "x": 1345,
+      "y": 1356
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 6,
+      "x": 1301,
+      "y": 1354
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 7,
+      "x": 1260,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 8,
+      "x": 1218,
+      "y": 1353
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 9,
+      "x": 1086,
+      "y": 1357
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 10,
+      "x": 1044,
+      "y": 1356
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 11,
+      "x": 1002,
+      "y": 1356
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 12,
+      "x": 960,
+      "y": 1357
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 13,
+      "x": 916,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 14,
+      "x": 874,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 15,
+      "x": 829,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 16,
+      "x": 787,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 17,
+      "x": 743,
+      "y": 1356
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 18,
+      "x": 704,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 19,
+      "x": 661,
+      "y": 1357
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 20,
+      "x": 616,
+      "y": 1357
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 21,
+      "x": 487,
+      "y": 1354
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 22,
+      "x": 447,
+      "y": 1354
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 23,
+      "x": 400,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 24,
+      "x": 359,
+      "y": 1353
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 25,
+      "x": 317,
+      "y": 1356
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 26,
+      "x": 273,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 27,
+      "x": 230,
+      "y": 1355
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 23,
+      "seat": 28,
+      "x": 185,
+      "y": 1354
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 1,
+      "x": 1514,
+      "y": 1400
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 2,
+      "x": 1475,
+      "y": 1401
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 3,
+      "x": 1431,
+      "y": 1402
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 4,
+      "x": 1389,
+      "y": 1401
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 5,
+      "x": 1348,
+      "y": 1402
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 6,
+      "x": 1304,
+      "y": 1401
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 7,
+      "x": 1261,
+      "y": 1402
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 8,
+      "x": 1218,
+      "y": 1403
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 9,
+      "x": 1087,
+      "y": 1402
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 10,
+      "x": 1046,
+      "y": 1403
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 11,
+      "x": 1002,
+      "y": 1404
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 12,
+      "x": 961,
+      "y": 1401
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 13,
+      "x": 915,
+      "y": 1404
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 14,
+      "x": 876,
+      "y": 1403
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 15,
+      "x": 831,
+      "y": 1399
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 16,
+      "x": 791,
+      "y": 1400
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 17,
+      "x": 746,
+      "y": 1401
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 18,
+      "x": 704,
+      "y": 1404
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 19,
+      "x": 662,
+      "y": 1403
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 20,
+      "x": 618,
+      "y": 1401
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 21,
+      "x": 488,
+      "y": 1400
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 22,
+      "x": 446,
+      "y": 1402
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 23,
+      "x": 401,
+      "y": 1401
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 24,
+      "x": 359,
+      "y": 1401
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 25,
+      "x": 316,
+      "y": 1400
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 26,
+      "x": 273,
+      "y": 1401
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 27,
+      "x": 232,
+      "y": 1400
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 24,
+      "seat": 28,
+      "x": 188,
+      "y": 1399
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 1,
+      "x": 1518,
+      "y": 1448
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 2,
+      "x": 1472,
+      "y": 1444
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 3,
+      "x": 1430,
+      "y": 1445
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 4,
+      "x": 1388,
+      "y": 1448
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 5,
+      "x": 1348,
+      "y": 1448
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 6,
+      "x": 1303,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 7,
+      "x": 1258,
+      "y": 1448
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 8,
+      "x": 1216,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 9,
+      "x": 1090,
+      "y": 1445
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 10,
+      "x": 1045,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 11,
+      "x": 1004,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 12,
+      "x": 959,
+      "y": 1449
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 13,
+      "x": 917,
+      "y": 1445
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 14,
+      "x": 877,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 15,
+      "x": 833,
+      "y": 1448
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 16,
+      "x": 789,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 17,
+      "x": 745,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 18,
+      "x": 704,
+      "y": 1448
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 19,
+      "x": 657,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 20,
+      "x": 618,
+      "y": 1449
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 21,
+      "x": 487,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 22,
+      "x": 447,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 23,
+      "x": 401,
+      "y": 1444
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 24,
+      "x": 358,
+      "y": 1444
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 25,
+      "x": 317,
+      "y": 1449
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 26,
+      "x": 273,
+      "y": 1445
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 27,
+      "x": 230,
+      "y": 1447
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 25,
+      "seat": 28,
+      "x": 189,
+      "y": 1445
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 1,
+      "x": 1519,
+      "y": 1491
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 2,
+      "x": 1475,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 3,
+      "x": 1433,
+      "y": 1495
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 4,
+      "x": 1392,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 5,
+      "x": 1345,
+      "y": 1494
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 6,
+      "x": 1304,
+      "y": 1496
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 7,
+      "x": 1260,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 8,
+      "x": 1217,
+      "y": 1495
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 9,
+      "x": 1175,
+      "y": 1494
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 10,
+      "x": 1132,
+      "y": 1495
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 11,
+      "x": 1088,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 12,
+      "x": 1046,
+      "y": 1492
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 13,
+      "x": 1002,
+      "y": 1494
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 14,
+      "x": 959,
+      "y": 1492
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 15,
+      "x": 916,
+      "y": 1492
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 16,
+      "x": 873,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 17,
+      "x": 830,
+      "y": 1494
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 18,
+      "x": 787,
+      "y": 1492
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 19,
+      "x": 745,
+      "y": 1492
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 20,
+      "x": 704,
+      "y": 1491
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 21,
+      "x": 657,
+      "y": 1491
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 22,
+      "x": 616,
+      "y": 1495
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 23,
+      "x": 573,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 24,
+      "x": 529,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 25,
+      "x": 486,
+      "y": 1491
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 26,
+      "x": 441,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 27,
+      "x": 399,
+      "y": 1492
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 28,
+      "x": 356,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 29,
+      "x": 316,
+      "y": 1495
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 30,
+      "x": 273,
+      "y": 1492
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 31,
+      "x": 232,
+      "y": 1493
+    },
+    {
+      "zone": "Партер",
+      "prefix": "P",
+      "row": 26,
+      "seat": 32,
+      "x": 185,
+      "y": 1489
+    },
+    {
       "zone": "Балкон",
-      "prefix": "B",
-      "rows": []
+      "prefix": "P",
+      "row": 0,
+      "seat": 1,
+      "x": 1603,
+      "y": 397
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 2,
+      "x": 1605,
+      "y": 437
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 3,
+      "x": 1602,
+      "y": 484
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 4,
+      "x": 1604,
+      "y": 530
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 5,
+      "x": 1604,
+      "y": 574
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 6,
+      "x": 1606,
+      "y": 621
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 7,
+      "x": 1602,
+      "y": 667
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 8,
+      "x": 1600,
+      "y": 713
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 9,
+      "x": 1603,
+      "y": 760
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 10,
+      "x": 1603,
+      "y": 804
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 11,
+      "x": 1604,
+      "y": 849
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 12,
+      "x": 1604,
+      "y": 894
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 13,
+      "x": 1603,
+      "y": 942
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 14,
+      "x": 1603,
+      "y": 989
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 15,
+      "x": 1602,
+      "y": 1031
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 16,
+      "x": 1602,
+      "y": 1075
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 17,
+      "x": 1602,
+      "y": 1125
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 18,
+      "x": 1604,
+      "y": 1169
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 19,
+      "x": 1601,
+      "y": 1217
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 20,
+      "x": 1603,
+      "y": 1260
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 21,
+      "x": 1604,
+      "y": 1309
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 22,
+      "x": 1604,
+      "y": 1353
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 23,
+      "x": 1604,
+      "y": 1397
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 24,
+      "x": 1604,
+      "y": 1445
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 25,
+      "x": 1604,
+      "y": 1491
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 26,
+      "x": 100,
+      "y": 392
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 27,
+      "x": 100,
+      "y": 436
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 28,
+      "x": 101,
+      "y": 486
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 29,
+      "x": 100,
+      "y": 532
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 30,
+      "x": 101,
+      "y": 578
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 31,
+      "x": 100,
+      "y": 619
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 32,
+      "x": 101,
+      "y": 665
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 33,
+      "x": 101,
+      "y": 712
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 34,
+      "x": 100,
+      "y": 759
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 35,
+      "x": 99,
+      "y": 803
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 36,
+      "x": 100,
+      "y": 851
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 37,
+      "x": 102,
+      "y": 893
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 38,
+      "x": 100,
+      "y": 940
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 39,
+      "x": 100,
+      "y": 986
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 40,
+      "x": 100,
+      "y": 1031
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 41,
+      "x": 99,
+      "y": 1079
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 42,
+      "x": 99,
+      "y": 1124
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 43,
+      "x": 99,
+      "y": 1170
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 44,
+      "x": 98,
+      "y": 1216
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 45,
+      "x": 99,
+      "y": 1262
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 46,
+      "x": 101,
+      "y": 1307
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 47,
+      "x": 101,
+      "y": 1355
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 48,
+      "x": 101,
+      "y": 1399
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 49,
+      "x": 99,
+      "y": 1445
+    },
+    {
+      "zone": "Балкон",
+      "prefix": "P",
+      "row": 0,
+      "seat": 50,
+      "x": 99,
+      "y": 1489
     }
   ]
 }
