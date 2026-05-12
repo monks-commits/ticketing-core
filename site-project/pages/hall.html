@@ -2121,6 +2121,69 @@ function renderCoordinateHall(section){
   return wrap;
 }
 
+function renderDecor(hallData, target){
+
+  const decor = Array.isArray(hallData?.decor)
+    ? hallData.decor
+    : [];
+
+  decor.forEach(item => {
+
+    if (item.type === "label") {
+
+      const el = document.createElement("div");
+
+      el.style.position = "absolute";
+      el.style.left = item.x + "px";
+      el.style.top = item.y + "px";
+      el.style.transform = "translateX(-50%)";
+
+      el.style.fontSize = "42px";
+      el.style.fontWeight = "900";
+      el.style.letterSpacing = "2px";
+
+      el.style.color = "#1f2937";
+      el.style.pointerEvents = "none";
+
+      el.textContent = item.text || "";
+
+      target.appendChild(el);
+    }
+
+    if (item.type === "stage") {
+
+      const stage = document.createElement("div");
+
+      stage.style.position = "absolute";
+
+      stage.style.left = item.x + "px";
+      stage.style.top = item.y + "px";
+
+      stage.style.width = (item.w || 360) + "px";
+      stage.style.height = (item.h || 60) + "px";
+
+      stage.style.borderRadius = "999px";
+
+      stage.style.background = "#8b1f1a";
+
+      stage.style.color = "#fff";
+
+      stage.style.display = "flex";
+      stage.style.alignItems = "center";
+      stage.style.justifyContent = "center";
+
+      stage.style.fontWeight = "800";
+      stage.style.letterSpacing = ".08em";
+
+      stage.textContent = item.text || "СЦЕНА";
+
+      target.appendChild(stage);
+    }
+
+  });
+
+}
+    
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -2164,6 +2227,7 @@ function renderBuilderSeats(hallData){
     canvas.appendChild(btn);
   });
 
+  renderDecor(hallData, canvas);
   wrap.appendChild(canvas);
   root.appendChild(wrap);
 }
