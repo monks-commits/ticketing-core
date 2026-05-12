@@ -902,6 +902,41 @@
   background:#8b1f1a;
   color:#fff;
 }  
+
+.hall-inner{
+  position:relative;
+  min-width:1900px;
+  min-height:2200px;
+}
+
+.hall-label{
+  position:absolute;
+  font-weight:900;
+  font-size:42px;
+  color:#1f2937;
+  opacity:.9;
+  pointer-events:none;
+  letter-spacing:2px;
+}
+
+.hall-label-balcony{
+  top:360px;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+.hall-label-amphi{
+  top:980px;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+.hall-label-parter{
+  top:1680px;
+  left:50%;
+  transform:translateX(-50%);
+}
+  
 </style>
  
 </head>
@@ -982,6 +1017,18 @@
 
         <div id="hall-root"></div>
 
+<div class="hall-label hall-label-balcony">
+  БАЛКОН
+</div>
+
+<div class="hall-label hall-label-amphi">
+  АМФІТЕАТР
+</div>
+
+<div class="hall-label hall-label-parter">
+  ПАРТЕР
+</div>
+        
         <!-- НОВАЯ сцена ВНИЗУ -->
         <div class="stage-wrap stage-wrap-bottom">
           <div class="stage">СЦЕНА</div>
