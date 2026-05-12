@@ -2581,6 +2581,31 @@ document.addEventListener("click", (e) => {
     hideSeatTooltip(true);
   }
 }); 
+
+if (window.location.search.includes("opera")) {
+
+  document.body.classList.add("builder-hall-mode");
+
+  let scale = 1;
+
+  const hall = document.getElementById("hall");
+
+  document.getElementById("zoomIn")?.addEventListener("click", () => {
+    scale += 0.1;
+    hall.style.transform = `scale(${scale})`;
+  });
+
+  document.getElementById("zoomOut")?.addEventListener("click", () => {
+    scale = Math.max(0.4, scale - 0.1);
+    hall.style.transform = `scale(${scale})`;
+  });
+
+  document.getElementById("zoomReset")?.addEventListener("click", () => {
+    scale = 1;
+    hall.style.transform = `scale(1)`;
+  });
+
+}
     
   </script>
 </body>
