@@ -1096,10 +1096,47 @@ async function renderPreview(){
     stage.textContent = hall.title || hall.name || "Сцена";
     previewStage.appendChild(stage);
 
-    if (!Array.isArray(hall.sections) || !hall.sections.length) {
-      previewInfo.textContent = "У hall JSON немає sections для preview.";
-      return;
-    }
+    if (Array.isArray(hall.seats)) {
+  previewInfo.textContent = `Builder-схема: ${hall.seats.length} місць`;
+
+  previewBox.innerHTML = `
+    <div style="
+      width:100%;
+      height:220px;
+      overflow:auto;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:14px;
+      background:#111827;
+      position:relative;
+    ">
+      <div style="
+        position:relative;
+        width:${Number(hall.width || 1900) * 0.12}px;
+        height:${Number(hall.height || 1900) * 0.12}px;
+      ">
+        ${hall.seats.map(s => `
+          <span style="
+            position:absolute;
+            left:${Number(s.x || 0) * 0.12}px;
+            top:${Number(s.y || 0) * 0.12}px;
+            width:4px;
+            height:4px;
+            border-radius:50%;
+            background:#e5e7eb;
+            display:block;
+          "></span>
+        `).join("")}
+      </div>
+    </div>
+  `;
+
+  return;
+}
+
+if (!Array.isArray(hall.sections)) {
+  previewInfo.textContent = "У hall JSON немає sections для preview.";
+  return;
+}
 
     const sectionsMap = new Map();
 
