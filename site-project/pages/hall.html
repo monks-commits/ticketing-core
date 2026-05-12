@@ -2136,7 +2136,8 @@ function renderDecor(hallData, target){
       el.style.position = "absolute";
       el.style.left = item.x + "px";
       el.style.top = item.y + "px";
-      el.style.transform = "translateX(-50%)";
+      const rotate = Number(item.rotate || 0);
+el.style.transform = `translate(-50%, -50%) rotate(${rotate}deg)`;
 
       el.style.fontSize = "42px";
       el.style.fontWeight = "900";
