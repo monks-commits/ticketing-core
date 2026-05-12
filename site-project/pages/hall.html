@@ -2606,7 +2606,30 @@ if (window.location.search.includes("opera")) {
   });
 
 }
-    
+  let builderScale = 1;
+
+const scaleWrap = document.getElementById("mobile-hall-scale");
+
+function applyBuilderZoom(){
+  if (!scaleWrap) return;
+  scaleWrap.style.transformOrigin = "top center";
+  scaleWrap.style.transform = `scale(${builderScale})`;
+}
+
+document.getElementById("zoomIn")?.addEventListener("click", () => {
+  builderScale = Math.min(2.2, builderScale + 0.1);
+  applyBuilderZoom();
+});
+
+document.getElementById("zoomOut")?.addEventListener("click", () => {
+  builderScale = Math.max(0.3, builderScale - 0.1);
+  applyBuilderZoom();
+});
+
+document.getElementById("zoomReset")?.addEventListener("click", () => {
+  builderScale = 1;
+  applyBuilderZoom();
+});  
   </script>
 </body>
 </html>
