@@ -2038,6 +2038,111 @@ function renderHallSections(hallData){
   });
 }
 
+function renderBuilderSeatsCash(hallData){
+  const root = document.getElementById("hall-root");
+  if (!root) return;
+
+  root.innerHTML = "";
+  seatButtons.clear();
+
+  const width = Number(hallData.width || 1600);
+  const height = Number(hallData.height || 1000);
+  const seats = Array.isArray(hallData.seats) ? hallData.seats : [];
+  const decor = Array.isArray(hallData.decor) ? hallData.decor : [];
+
+  const canvas = document.createElement("div");
+  canvas.style.position = "relative";
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+  canvas.style.background = "#fff";
+  canvas.style.borderRadius = "14px";
+  canvas.style.overflow = "hidden";
+
+  decor.forEach(item => {
+    if (item.type === "text" || item.type === "label") {
+      const el = document.createElement("div");
+
+      el.style.position = "absolute";
+      el.style.left = Number(item.x || 0) + "px";
+      el.style.top = Number(item.y || 0) + "px";
+      el.style.transform =
+        `translate(-50%, -50%) rotate(${Number(item.rotate || 0)}deg)`;
+      el.style.fontSize = Number(item.size || 24) + "px";
+      el.style.fontWeight = item.weight || "700";
+      el.style.color = "#111827";
+      el.style.whiteSpace = "nowrap";
+      el.style.pointerEvents = "none";
+      el.style.zIndex = "40";
+
+      el.textContent = item.text || "";
+
+      canvas.appendChild(el);
+    }
+
+    if (item.type === "stage") {
+      const stage = document.createElement("div");
+
+      stage.style.position = "absolute";
+      stage.style.left = Number(item.x || 0) + "px";
+      stage.style.top = Number(item.y || 0) + "px";
+      stage.style.width = Number(item.w || 600) + "px";
+      stage.style.height = Number(item.h || 80) + "px";
+      stage.style.background = item.background || "#04a9e8";
+      stage.style.color = item.color || "#fff";
+      stage.style.display = "flex";
+      stage.style.alignItems = "center";
+      stage.style.justifyContent = "center";
+      stage.style.fontSize = Number(item.size || 44) + "px";
+      stage.style.fontWeight = item.weight || "900";
+      stage.style.letterSpacing = item.letterSpacing || ".08em";
+      stage.style.pointerEvents = "none";
+      stage.style.zIndex = "35";
+
+      stage.textContent = item.text || "СЦЕНА";
+
+      canvas.appendChild(stage);
+    }
+  });
+
+  seats.forEach(s => {
+    const key =
+      s.key ||
+      `${s.prefix || ""}${s.row}-M${s.seat}`;
+
+    const meta = {
+      zone:
+        s.zone ||
+        (s.prefix === "P" ? "Партер" :
+         s.prefix === "A" ? "Амфітеатр" :
+         s.prefix === "B" ? "Балкон" :
+         s.prefix === "LA" ? "Ложа А" :
+         s.prefix === "LB" ? "Ложа Б" :
+         "Партер"),
+      prefix: s.prefix || "",
+      row: String(s.row || "0"),
+      seat: Number(s.seat || 0)
+    };
+
+    const btn = makeSeatElement(
+      key,
+      s.seat,
+      "",
+      0,
+      meta
+    );
+
+    btn.style.position = "absolute";
+    btn.style.left = Number(s.x || 0) + "px";
+    btn.style.top = Number(s.y || 0) + "px";
+    btn.style.transform = "translate(-50%, -50%)";
+    btn.style.zIndex = "20";
+
+    canvas.appendChild(btn);
+  });
+
+  root.appendChild(canvas);
+}
+    
 function renderSimpleRows(hallData) {
   const root = document.getElementById("hall-root");
   if (!root) return;
