@@ -2129,22 +2129,26 @@ function renderDecor(hallData, target){
 
   decor.forEach(item => {
 
-    if (item.type === "label") {
+    // Новый конструктор сохраняет type:"text"
+    // Старые версии могли сохранять type:"label"
+    if (item.type === "text" || item.type === "label") {
 
       const el = document.createElement("div");
 
-      el.style.position = "absolute";
-      el.style.left = item.x + "px";
-      el.style.top = item.y + "px";
       const rotate = Number(item.rotate || 0);
-el.style.transform = `translate(-50%, -50%) rotate(${rotate}deg)`;
 
-      el.style.fontSize = "42px";
-      el.style.fontWeight = "900";
-      el.style.letterSpacing = "2px";
+      el.style.position = "absolute";
+      el.style.left = Number(item.x || 0) + "px";
+      el.style.top = Number(item.y || 0) + "px";
+      el.style.transform = `translate(-50%, -50%) rotate(${rotate}deg)`;
 
-      el.style.color = "#1f2937";
+      el.style.fontSize = Number(item.size || 24) + "px";
+      el.style.fontWeight = item.weight || "700";
+      el.style.letterSpacing = item.letterSpacing || "0";
+      el.style.color = item.color || "#1f2937";
+      el.style.whiteSpace = "nowrap";
       el.style.pointerEvents = "none";
+      el.style.zIndex = "40";
 
       el.textContent = item.text || "";
 
@@ -2157,24 +2161,25 @@ el.style.transform = `translate(-50%, -50%) rotate(${rotate}deg)`;
 
       stage.style.position = "absolute";
 
-      stage.style.left = item.x + "px";
-      stage.style.top = item.y + "px";
+      stage.style.left = Number(item.x || 0) + "px";
+      stage.style.top = Number(item.y || 0) + "px";
 
-      stage.style.width = (item.w || 360) + "px";
-      stage.style.height = (item.h || 60) + "px";
+      stage.style.width = Number(item.w || 600) + "px";
+      stage.style.height = Number(item.h || 80) + "px";
 
-      stage.style.borderRadius = "999px";
-
-      stage.style.background = "#8b1f1a";
-
-      stage.style.color = "#fff";
+      stage.style.background = item.background || "#04a9e8";
+      stage.style.color = item.color || "#fff";
 
       stage.style.display = "flex";
       stage.style.alignItems = "center";
       stage.style.justifyContent = "center";
 
-      stage.style.fontWeight = "800";
-      stage.style.letterSpacing = ".08em";
+      stage.style.fontSize = Number(item.size || 44) + "px";
+      stage.style.fontWeight = item.weight || "900";
+      stage.style.letterSpacing = item.letterSpacing || ".08em";
+
+      stage.style.pointerEvents = "none";
+      stage.style.zIndex = "35";
 
       stage.textContent = item.text || "СЦЕНА";
 
