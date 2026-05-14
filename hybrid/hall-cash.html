@@ -2491,7 +2491,9 @@ if (!hallRes.ok) {
 
 const RAW_HALL = await hallRes.json();
 
-if (Array.isArray(RAW_HALL?.sections)) {
+if (Array.isArray(RAW_HALL?.seats)) {
+  renderBuilderSeatsCash(RAW_HALL);
+} else if (Array.isArray(RAW_HALL?.sections)) {
   renderHallSections(RAW_HALL);
 } else {
   renderSimpleRows(RAW_HALL);
