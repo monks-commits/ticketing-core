@@ -583,7 +583,7 @@ function applyContextToUi(){
     `./reports/index.html?${contextQuery({ view:"sales" })}`;
 
   document.getElementById("linkHalls").href =
-    `../hall-engine-lab/hall-builder.html?${contextQuery({ hall: cfg.hallFile })}`;
+    `/hall-engine-lab/hall-builder-v3.html?${contextQuery({ hall: cfg.hallFile })}`;
 }
 
 document.getElementById("applyContextBtn").addEventListener("click", async () => {
@@ -627,7 +627,7 @@ function seancePublicUrl(id){
 }
 
 function seanceEditorUrl(id){
-  return `./seance-editor.html?${contextQuery({ seance:id })}`;
+  return `./seance-editor.html?${contextQuery({ seance:id, seance_id:id })}`;
 }
 
 function renderEvents(rows){
@@ -649,7 +649,7 @@ function renderEvents(rows){
   nextDate.textContent = sorted[0]?.date || "—";
 
   eventsList.innerHTML = sorted.map(s => {
-    const title = s.show || s.title || s.id;
+    const title = s.show || s.id;
     const poster = s.poster_url || "";
     const active = s.active !== false;
     const statusBadge = active
@@ -682,7 +682,7 @@ function renderEvents(rows){
           <div class="event-actions">
             <a class="btn" href="${seanceEditorUrl(s.id)}">Редактор</a>
             <a class="btn ghost" href="${seancePublicUrl(s.id)}" target="_blank">Зал</a>
-            <a class="btn orange" href="./reports/kg10.html?seance=${encodeURIComponent(s.id)}">KG-10</a>
+            <a class="btn orange" href="./reports/kg10.html?${contextQuery({ seance:s.id, seance_id:s.id })}">KG-10</a>
             <a class="btn dark" href="./reports/index.html?${contextQuery({ seance:s.id, view:"sales" })}">Продажі</a>
           </div>
         </div>
@@ -726,7 +726,7 @@ async function loadSeances(){
   try {
     const url =
       `${SUPABASE_URL}/rest/v1/seances` +
-      `?select=id,show,title,date,time,poster_url,venue_id,active,created_at` +
+      `?select=id,show,date,time,poster_url,venue_id,active,created_at` +
       `&venue_id=eq.${encodeURIComponent(venueForDb)}` +
       `&order=date.asc,time.asc`;
 
