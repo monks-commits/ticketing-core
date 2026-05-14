@@ -1096,43 +1096,89 @@ async function renderPreview(){
     stage.textContent = hall.title || hall.name || "Сцена";
     previewStage.appendChild(stage);
 
-    if (Array.isArray(hall.seats)) {
-  previewInfo.textContent = `Builder-схема: ${hall.seats.length} місць`;
+if (Array.isArray(hall.seats)) {
+  previewInfo.textContent =
+    `Builder-схема: ${hall.seats.length} місць`;
 
-  previewBox.innerHTML = `
-    <div style="
-      width:100%;
-      height:220px;
-      overflow:auto;
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:14px;
-      background:#111827;
-      position:relative;
-    ">
-      <div style="
-        position:relative;
-        width:${Number(hall.width || 1900) * 0.12}px;
-        height:${Number(hall.height || 1900) * 0.12}px;
-      ">
-        ${hall.seats.map(s => `
-          <span style="
-            position:absolute;
-            left:${Number(s.x || 0) * 0.12}px;
-            top:${Number(s.y || 0) * 0.12}px;
-            width:4px;
-            height:4px;
-            border-radius:50%;
-            background:#e5e7eb;
-            display:block;
-          "></span>
-        `).join("")}
-      </div>
-    </div>
-  `;
+  previewStage.innerHTML = "";
 
+  const scale = 0.16;
+  const w = Number(hall.width || 1600);
+  const h = Number(hall.height || 1000);
+
+  const box = document.createElement("div");
+  box.style.position = "relative";
+  box.style.width = (w * scale) + "px";
+  box.style.height = (h * scale) + "px";
+  box.style.background = "#f8fafc";
+  box.style.border = "1px solid rgba(255,255,255,.18)";
+  box.style.borderRadius = "14px";
+  box.style.overflow = "hidden";
+
+  // decor: сцена и подписи
+  (hall.decor || []).forEach(d => {
+    const el = document.createElement("div");
+
+    el.style.position = "absolute";
+    el.style.left = (Number(d.x || 0) * scale) + "px";
+    el.style.top = (Number(d.y || 0) * scale) + "px";
+    el.style.pointerEvents = "none";
+
+    if (d.type === "text" || d.type === "label") {
+      el.style.transform =
+        `translate(-50%, -50%) rotate(${Number(d.rotate || 0)}deg)`;
+      el.style.fontSize = Math.max(8, Number(d.size || 24) * scale) + "px";
+      el.style.fontWeight = d.weight || "700";
+      el.style.color = "#111827";
+      el.style.whiteSpace = "nowrap";
+      el.textContent = d.text || "";
+    }
+
+    if (d.type === "stage") {
+      el.style.width = (Number(d.w || 600) * scale) + "px";
+      el.style.height = (Number(d.h || 80) * scale) + "px";
+      el.style.background = "#04a9e8";
+      el.style.color = "#fff";
+      el.style.display = "flex";
+      el.style.alignItems = "center";
+      el.style.justifyContent = "center";
+      el.style.fontSize = Math.max(10, Number(d.size || 44) * scale) + "px";
+      el.style.fontWeight = "900";
+      el.textContent = d.text || "СЦЕНА";
+    }
+
+    box.appendChild(el);
+  });
+
+  // seats
+  hall.seats.forEach(s => {
+    const key = s.key || `${s.prefix || ""}${s.row}-M${s.seat}`;
+    const state = previewSeatState(key);
+
+    const dot = document.createElement("div");
+
+    dot.style.position = "absolute";
+    dot.style.left = (Number(s.x || 0) * scale) + "px";
+    dot.style.top = (Number(s.y || 0) * scale) + "px";
+    dot.style.width = "8px";
+    dot.style.height = "8px";
+    dot.style.borderRadius = "50%";
+    dot.style.transform = "translate(-50%, -50%)";
+    dot.style.background = state.color || "#9ca3af";
+    dot.style.border = "1px solid rgba(255,255,255,.9)";
+    dot.title = key;
+
+    if (state.sale === false) {
+      dot.style.opacity = ".45";
+    }
+
+    box.appendChild(dot);
+  });
+
+  previewStage.appendChild(box);
   return;
 }
-
+    
 if (!Array.isArray(hall.sections)) {
   previewInfo.textContent = "У hall JSON немає sections для preview.";
   return;
