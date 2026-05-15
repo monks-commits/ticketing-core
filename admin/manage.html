@@ -941,8 +941,15 @@ CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
   ? CLIENT_CONFIG.venues
   : [];
 
-load();
-  setToggleState("unknown", "Статус: —", "Натисніть «Оновити», щоб зчитати поточний стан.", null);
+  load();
+
+  setToggleState(
+    "unknown",
+    "Статус: —",
+    "Натисніть «Оновити», щоб зчитати поточний стан.",
+    null
+  );
+
 });
 </script>
 
