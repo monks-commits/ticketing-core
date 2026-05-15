@@ -761,9 +761,19 @@ async function load(){
     cache: "no-store"
   });
 
-  ALL_SEANCES = await res2.json();
-  renderLists();
+  const rows2 = await res2.json();
+
+ALL_SEANCES = Array.isArray(rows2) ? rows2 : [];
+
+const currentVenue = getCurrentVenue();
+
+if (currentVenue) {
+  ALL_SEANCES = ALL_SEANCES.filter(s =>
+    normalizeVenue(s.venue_id) === normalizeVenue(currentVenue)
+  );
 }
+
+renderLists();
 
 async function archiveSeance(id){
   await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`, {
