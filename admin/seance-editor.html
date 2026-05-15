@@ -693,6 +693,13 @@ function fillVenueSelectFromConfig(){
   venueSelect.innerHTML = CONFIG_VENUES.map(v => `
     <option value="${v.id}">${v.title || v.id}</option>
   `).join("");
+
+  const qs = new URLSearchParams(location.search);
+  const venueFromUrl = qs.get("venue");
+
+  if (venueFromUrl && CONFIG_VENUES.some(v => v.id === venueFromUrl)) {
+    venueSelect.value = venueFromUrl;
+  }
 }
   
 const venueSeanceSelect = document.getElementById("venueSeanceSelect");  
