@@ -685,6 +685,17 @@ const data = {
 const showStatus = document.getElementById("showStatus");
 const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
+let CLIENT_CONFIG = null;
+let CONFIG_VENUES = [];
+
+function fillVenueSelectFromConfig(){
+  if (!venueSelect) return;
+
+  venueSelect.innerHTML = CONFIG_VENUES.map(v => `
+    <option value="${v.id}">${v.title || v.id}</option>
+  `).join("");
+}
+  
 const venueSeanceSelect = document.getElementById("venueSeanceSelect");  
 const showName = document.getElementById("showName");
 const showDate = document.getElementById("showDate");
