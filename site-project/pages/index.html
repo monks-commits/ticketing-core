@@ -2,8 +2,8 @@
 <html lang="uk">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1"  
-  
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>Квитки онлайн — Ваш Адмін</title>
 
 <style>
@@ -23,9 +23,7 @@
     --radius-md:14px;
   }
 
-  *{
-    box-sizing:border-box;
-  }
+  *{ box-sizing:border-box; }
 
   html,body{
     margin:0;
@@ -42,6 +40,39 @@
     width:min(1280px, calc(100% - 32px));
     margin:0 auto;
     padding:18px 0 40px;
+  }
+
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    margin-bottom:14px;
+  }
+
+  .site-title{
+    font-size:18px;
+    font-weight:800;
+    color:#fff;
+  }
+
+  .partner-login{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:40px;
+    padding:0 14px;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.10);
+    color:#fff;
+    text-decoration:none;
+    font-size:14px;
+    font-weight:800;
+  }
+
+  .partner-login:hover{
+    background:rgba(255,255,255,.14);
   }
 
   .hero{
@@ -115,6 +146,45 @@
     border:1px solid rgba(255,255,255,.08);
     font-size:14px;
     color:#fff;
+  }
+
+  .filters{
+    display:grid;
+    grid-template-columns:1fr 1fr 1.4fr auto;
+    gap:10px;
+    margin:0 0 22px;
+    padding:14px;
+    border-radius:22px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.08);
+  }
+
+  .filters select,
+  .filters input{
+    width:100%;
+    min-height:46px;
+    border:none;
+    border-radius:14px;
+    padding:0 14px;
+    background:#fff;
+    color:#111827;
+    font-size:15px;
+    outline:none;
+  }
+
+  .filter-btn{
+    min-height:46px;
+    border:none;
+    border-radius:14px;
+    padding:0 18px;
+    background:var(--accent);
+    color:#111827;
+    font-weight:800;
+    cursor:pointer;
+  }
+
+  .filter-btn:hover{
+    background:var(--accent-hover);
   }
 
   .venues{
@@ -289,10 +359,21 @@
     font-size:16px;
   }
 
+  @media (max-width:900px){
+    .filters{
+      grid-template-columns:1fr 1fr;
+    }
+  }
+
   @media (max-width:760px){
     .page{
       width:min(100% - 16px, 1280px);
       padding:12px 0 24px;
+    }
+
+    .topbar{
+      align-items:flex-start;
+      flex-direction:column;
     }
 
     .hero{
@@ -316,6 +397,10 @@
     .venues{
       grid-template-columns:1fr;
       gap:14px;
+    }
+
+    .filters{
+      grid-template-columns:1fr;
     }
 
     .grid{
@@ -351,6 +436,11 @@
 
 <div class="page">
 
+  <div class="topbar">
+    <div class="site-title">Квитки онлайн — Ваш Адмін</div>
+    <a class="partner-login" href="../../admin/partner-login.html">Вхід для партнерів</a>
+  </div>
+
   <section class="hero">
     <div class="eyebrow">Ваш Адмін • Квитки онлайн</div>
 
@@ -372,26 +462,62 @@
     </div>
   </section>
 
-  <section class="venues">
+  <section class="filters">
+    <select id="citySelect">
+      <option value="">Усі міста</option>
+      <option value="kryvyi-rih">Кривий Ріг</option>
+      <option value="dnipro">Дніпро</option>
+    </select>
 
-    <div class="venue-card">
+    <select id="venueSelect">
+      <option value="">Усі майданчики</option>
+    </select>
+
+    <input id="searchInput" placeholder="Пошук за назвою події">
+
+    <button class="filter-btn" id="applyBtn">Показати</button>
+  </section>
+
+  <section class="venues" id="venuesBlock">
+
+    <div class="venue-card" data-city="kryvyi-rih" data-venue="academy">
       <div class="venue-title">Академія Руху</div>
       <div class="venue-text">
         Окрема онлайн-афіша, схема залу та продаж квитків
         для вистав і подій Академії Руху.
       </div>
-      <a class="venue-btn" href="index-academy.html">
+      <a class="venue-btn" href="index.html?venue=academy">
         Перейти до афіші
       </a>
     </div>
 
-    <div class="venue-card">
+    <div class="venue-card" data-city="kryvyi-rih" data-venue="shevchenko">
       <div class="venue-title">Театр Шевченка</div>
       <div class="venue-text">
         Офіційна театральна афіша, вибір місць та
         онлайн-продаж квитків на репертуарні вистави.
       </div>
-      <a class="venue-btn" href="index-shevchenko.html">
+      <a class="venue-btn" href="index.html?venue=shevchenko">
+        Перейти до афіші
+      </a>
+    </div>
+
+    <div class="venue-card" data-city="dnipro" data-venue="opera-test">
+      <div class="venue-title">Оперний театр</div>
+      <div class="venue-text">
+        Тестова афіша для подій на великій сцені з вибором місць.
+      </div>
+      <a class="venue-btn" href="index.html?venue=opera-test">
+        Перейти до афіші
+      </a>
+    </div>
+
+    <div class="venue-card" data-city="dnipro" data-venue="big-stage-demo">
+      <div class="venue-title">Велика сцена Demo</div>
+      <div class="venue-text">
+        Демонстраційна площадка для перевірки схем, цін і продажів.
+      </div>
+      <a class="venue-btn" href="index.html?venue=big-stage-demo">
         Перейти до афіші
       </a>
     </div>
@@ -401,7 +527,7 @@
   <section>
     <div class="section-head">
       <h2 class="section-title">Найближчі події</h2>
-      <div class="section-note">Загальна афіша всіх активних сеансів</div>
+      <div class="section-note" id="sectionNote">Загальна афіша всіх активних сеансів</div>
     </div>
 
     <div class="grid" id="grid"></div>
@@ -410,45 +536,209 @@
 </div>
 
 <script>
-console.log("INDEX FINAL VERSION");
+console.log("INDEX VITRINE FILTERED VERSION");
 
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-async function loadSeances(){
+const qs = new URLSearchParams(location.search);
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,poster_url,venue_id,active,status&order=date.asc`,
-    {
-      headers:{
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
+const citySelect = document.getElementById("citySelect");
+const venueSelect = document.getElementById("venueSelect");
+const searchInput = document.getElementById("searchInput");
+const sectionNote = document.getElementById("sectionNote");
+
+const VENUES = {
+  "academy": {
+    title: "Академія Руху",
+    city: "kryvyi-rih"
+  },
+  "shevchenko": {
+    title: "Театр Шевченка",
+    city: "kryvyi-rih"
+  },
+  "opera-test": {
+    title: "Оперний театр",
+    city: "dnipro"
+  },
+  "big-stage-demo": {
+    title: "Велика сцена Demo",
+    city: "dnipro"
+  }
+};
+
+const CITIES = {
+  "kryvyi-rih": "Кривий Ріг",
+  "dnipro": "Дніпро"
+};
+
+let ALL_SEANCES = [];
+
+function safeHtml(value){
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function dbVenueToPublic(v){
+  if (v === "shevchenko-v2") return "shevchenko";
+  return v || "";
+}
+
+function getVenueName(v){
+  const key = dbVenueToPublic(v);
+  return VENUES[key]?.title || "Майданчик";
+}
+
+function getCityByVenue(v){
+  const key = dbVenueToPublic(v);
+  return VENUES[key]?.city || "";
+}
+
+function fillVenueSelect(){
+  const city = citySelect.value;
+
+  const items = Object.entries(VENUES)
+    .filter(([, v]) => !city || v.city === city);
+
+  venueSelect.innerHTML =
+    `<option value="">Усі майданчики</option>` +
+    items.map(([id, v]) => `
+      <option value="${id}">${v.title}</option>
+    `).join("");
+
+  const venueFromUrl = qs.get("venue");
+  if (venueFromUrl && VENUES[venueFromUrl]) {
+    venueSelect.value = venueFromUrl;
+  }
+}
+
+function applyUrlParams(){
+  const city = qs.get("city") || "";
+  const venue = qs.get("venue") || "";
+  const q = qs.get("q") || "";
+
+  if (city && CITIES[city]) {
+    citySelect.value = city;
+  }
+
+  fillVenueSelect();
+
+  if (venue && VENUES[venue]) {
+    venueSelect.value = venue;
+    if (!citySelect.value) {
+      citySelect.value = VENUES[venue].city;
+      fillVenueSelect();
+      venueSelect.value = venue;
     }
+  }
+
+  if (q) {
+    searchInput.value = q;
+  }
+}
+
+function updateUrl(){
+  const params = new URLSearchParams();
+
+  if (citySelect.value) params.set("city", citySelect.value);
+  if (venueSelect.value) params.set("venue", venueSelect.value);
+  if (searchInput.value.trim()) params.set("q", searchInput.value.trim());
+
+  history.replaceState(
+    null,
+    "",
+    "index.html" + (params.toString() ? "?" + params.toString() : "")
   );
+}
 
-  const data = await res.json();
+function isFutureOrToday(date){
+  if (!date) return true;
+  const today = new Date().toISOString().slice(0,10);
+  return String(date) >= today;
+}
 
-  console.log("SEANCES:", data);
+function eventVisible(s){
+  const city = citySelect.value;
+  const venue = venueSelect.value;
+  const q = searchInput.value.trim().toLowerCase();
 
+  const publicVenue = dbVenueToPublic(s.venue_id);
+  const eventCity = getCityByVenue(publicVenue);
+
+  if (s.active === false) return false;
+  if (s.status === "archived") return false;
+  if (!isFutureOrToday(s.date)) return false;
+
+  if (city && eventCity !== city) return false;
+  if (venue && publicVenue !== venue) return false;
+
+  if (q) {
+    const text = [
+      s.show,
+      s.id,
+      getVenueName(publicVenue),
+      CITIES[eventCity]
+    ].join(" ").toLowerCase();
+
+    if (!text.includes(q)) return false;
+  }
+
+  return true;
+}
+
+function applyVenueCardsFilter(){
+  const city = citySelect.value;
+  const venue = venueSelect.value;
+
+  document.querySelectorAll(".venue-card").forEach(card => {
+    const cardCity = card.dataset.city || "";
+    const cardVenue = card.dataset.venue || "";
+
+    const okCity = !city || cardCity === city;
+    const okVenue = !venue || cardVenue === venue;
+
+    card.style.display = okCity && okVenue ? "" : "none";
+  });
+}
+
+function renderSeances(){
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
 
-  const visible = Array.isArray(data)
-    ? data.filter(s => s.active !== false && s.status !== "archived")
-    : [];
+  applyVenueCardsFilter();
+
+  const visible = ALL_SEANCES
+    .filter(eventVisible)
+    .sort((a, b) => {
+      const aa = `${a.date || "9999-99-99"} ${a.time || "99:99"}`;
+      const bb = `${b.date || "9999-99-99"} ${b.time || "99:99"}`;
+      return aa.localeCompare(bb);
+    });
+
+  const cityLabel = citySelect.value ? CITIES[citySelect.value] : "";
+  const venueLabel = venueSelect.value ? VENUES[venueSelect.value]?.title : "";
+
+  sectionNote.textContent =
+    visible.length
+      ? `Знайдено подій: ${visible.length}` +
+        (cityLabel ? ` • ${cityLabel}` : "") +
+        (venueLabel ? ` • ${venueLabel}` : "")
+      : "За цими фільтрами подій немає";
 
   if (!visible.length){
     grid.innerHTML = `
       <div class="empty">
-        Поки що немає активних сеансів.
+        Поки що немає активних сеансів за обраними фільтрами.
       </div>
     `;
     return;
   }
 
   visible.forEach(s => {
-
     const img = s.poster_url || "images/default.jpg";
     const venue = getVenueName(s.venue_id);
 
@@ -458,20 +748,21 @@ async function loadSeances(){
     el.innerHTML = `
       <div class="poster-wrap">
         <img
-          src="${img}"
+          src="${safeHtml(img)}"
           class="poster"
           onerror="this.src='images/default.jpg'"
+          alt="${safeHtml(s.show || "Афіша")}"
         >
-        <div class="poster-badge">${venue}</div>
+        <div class="poster-badge">${safeHtml(venue)}</div>
       </div>
 
       <div class="card-body">
         <div class="title">
-          ${s.show || "Вистава"}
+          ${safeHtml(s.show || "Вистава")}
         </div>
 
         <div class="date">
-          ${formatDate(s.date, s.time)}
+          ${safeHtml(formatDate(s.date, s.time))}
         </div>
 
         <a
@@ -487,10 +778,24 @@ async function loadSeances(){
   });
 }
 
-function getVenueName(v){
-  if (v === "academy") return "Академія Руху";
-  if (v === "shevchenko") return "Театр Шевченка";
-  return "Майданчик";
+async function loadSeances(){
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,poster_url,venue_id,active,status&active=eq.true&order=date.asc,time.asc`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      cache:"no-store"
+    }
+  );
+
+  const data = await res.json();
+
+  console.log("SEANCES:", data);
+
+  ALL_SEANCES = Array.isArray(data) ? data : [];
+  renderSeances();
 }
 
 function formatDate(date, time){
@@ -503,6 +808,30 @@ function formatDate(date, time){
   return `${day}.${month} ${time || ""}`.trim();
 }
 
+document.getElementById("applyBtn").addEventListener("click", () => {
+  updateUrl();
+  renderSeances();
+});
+
+citySelect.addEventListener("change", () => {
+  fillVenueSelect();
+  updateUrl();
+  renderSeances();
+});
+
+venueSelect.addEventListener("change", () => {
+  updateUrl();
+  renderSeances();
+});
+
+searchInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    updateUrl();
+    renderSeances();
+  }
+});
+
+applyUrlParams();
 loadSeances();
 </script>
 
