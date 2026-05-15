@@ -540,7 +540,7 @@ function dbVenueToPublic(v){
 
 function getVenueName(v){
   const key = dbVenueToPublic(v);
-  return VENUES[key]?.title || "Майданчик";
+  return VENUES[key]?.title || v || "Майданчик";
 }
 
 function getCityByVenue(v){
