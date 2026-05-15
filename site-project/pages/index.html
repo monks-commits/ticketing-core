@@ -513,25 +513,8 @@ const venueSelect = document.getElementById("venueSelect");
 const searchInput = document.getElementById("searchInput");
 const sectionNote = document.getElementById("sectionNote");
 
-const VENUES = {
-  "academy": {
-    title: "Академія Руху",
-    city: "kryvyi-rih"
-  },
-  "shevchenko": {
-    title: "Театр Шевченка",
-    city: "kryvyi-rih"
-  },
-  "opera-test": {
-    title: "Оперний театр",
-    city: "dnipro"
-  },
-  "big-stage-demo": {
-    title: "Велика сцена Demo",
-    city: "dnipro"
-  }
-};
-
+let VENUES = {};
+  
 const CITIES = {
   "kryvyi-rih": "Кривий Ріг",
   "dnipro": "Дніпро"
