@@ -2454,17 +2454,16 @@ function applyStatusFromBackoffice(status, seats){
 
 const res = await fetch(
   `${SUPABASE_URL}/rest/v1/seances` +
-  `?select=id,active,hall` +
+  `?select=id,active,venue_id,show,date,time` +
   `&active=eq.true` +
-  venueFilter +
   `&order=created_at.desc`,
-        {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        }
-      );
+  {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    }
+  }
+);
 
       const rows = await res.json();
 
