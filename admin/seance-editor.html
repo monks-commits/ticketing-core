@@ -1714,18 +1714,19 @@ if (venueSeanceSelect) {
   });
 }
 
-(async function bootEditor(){
-  applyUrlParams();
+async function bootEditor(){
+  CLIENT_CONFIG = await loadVAConfig();
+
+  if (Array.isArray(CLIENT_CONFIG?.venues)) {
+    CONFIG_VENUES = CLIENT_CONFIG.venues;
+    fillVenueSelectFromConfig();
+  }
+
   render();
   renderPreview();
-  await loadVenueSeances();
+}
 
-  if (seanceId.value.trim()) {
-    await loadSeance();
-  }
-})();
-render();
-renderPreview();  
+bootEditor();
 </script>
 </body>
 </html>
