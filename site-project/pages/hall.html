@@ -2581,6 +2581,8 @@ document.getElementById("go-order").addEventListener("click", ()=>{
 
 // ===== Boot =====
 (async ()=>{
+await loadClientConfig();
+  
   SEANCE_CONFIG = await loadSeanceConfig();
   const SEANCE_META = await loadSeanceMeta();
 
