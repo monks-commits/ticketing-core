@@ -1683,14 +1683,37 @@ async function loadSeance(){
   renderPreview();
 }
 
-["showName","showDate","showTime","posterUrl","venueSelect","seanceId","showStatus"].forEach(id => {
+["showName","showDate","showTime","posterUrl","seanceId","showStatus"].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener("input", render);
   if (el) el.addEventListener("change", render);
 });
 
-render();
-renderPreview();
+venueSelect.addEventListener("change", async () => {
+  render();
+  renderPreview();
+  await loadVenueSeances();
+});
+
+venueSeanceSelect.addEventListener("change", async () => {
+  const selectedSeance = venueSeanceSelect.value;
+  if (!selectedSeance) return;
+
+  seanceId.value = selectedSeance;
+  await loadSeance();
+});
+
+(async function bootEditor(){
+  applyUrlParams();
+  render();
+  renderPreview();
+  await loadVenueSeances();
+
+  if (seanceId.value.trim()) {
+    await loadSeance();
+  }
+})();
+  
 </script>
 </body>
 </html>
