@@ -59,22 +59,22 @@ if (!session || session.role !== "admin") {
 
 function toCash(){
   window.open(
-    "../hybrid/hall-cash.html",
+    withContext("../hybrid/hall-cash.html"),
     "cashWindow",
     "width=1280,height=900"
   );
 }
 
 function toEditor(){
-  location.href = "seance-editor.html";
+  location.href = withContext("seance-editor.html");
 }
 
 function toManage(){
-  location.href = "manage.html";
+  location.href = withContext("manage.html");
 }
 
 function toReports(){
-  location.href = "reports/index.html";
+  location.href = withContext("reports/index.html");
 }
 
 function logout(){
