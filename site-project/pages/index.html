@@ -534,8 +534,16 @@ function safeHtml(value){
 }
 
 function dbVenueToPublic(v){
-  if (v === "shevchenko-v2") return "shevchenko";
-  return v || "";
+  if (!v) return "";
+
+  const direct = VENUES[v];
+  if (direct) return v;
+
+  const found = CONFIG_VENUES.find(item =>
+    item.id === v || item.hall === v
+  );
+
+  return found?.id || v;
 }
 
 function getVenueName(v){
