@@ -1720,6 +1720,25 @@ if (venueSeanceSelect) {
   });
 }
 
+function applyEditorUrlParams(){
+  const qs = new URLSearchParams(location.search);
+
+  const seance =
+    qs.get("seance") ||
+    qs.get("seance_id") ||
+    "";
+
+  const venue = qs.get("venue") || "";
+
+  if (venue && venueSelect && CONFIG_VENUES.some(v => v.id === venue)) {
+    venueSelect.value = venue;
+  }
+
+  if (seance && seanceId) {
+    seanceId.value = seance;
+  }
+}
+  
 async function bootEditor(){
   CLIENT_CONFIG = await loadVAConfig();
 
@@ -1728,8 +1747,14 @@ async function bootEditor(){
     fillVenueSelectFromConfig();
   }
 
+  applyEditorUrlParams();
+
   render();
   renderPreview();
+
+  if (typeof loadVenueSeances === "function") {
+    await loadVenueSeances();
+  }
 }
 
 bootEditor();
