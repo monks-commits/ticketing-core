@@ -2447,8 +2447,17 @@ function applyStatusFromBackoffice(status, seats){
     if (!select) return;
 
     try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/seances?select=id,active&active=eq.true&order=created_at.desc`,
+      const venueFilter =
+  CLIENT_CONFIG?.default_hall
+    ? `&hall=eq.${encodeURIComponent(CLIENT_CONFIG.default_hall)}`
+    : "";
+
+const res = await fetch(
+  `${SUPABASE_URL}/rest/v1/seances` +
+  `?select=id,active,hall` +
+  `&active=eq.true` +
+  venueFilter +
+  `&order=created_at.desc`,
         {
           headers: {
             apikey: SUPABASE_ANON_KEY,
