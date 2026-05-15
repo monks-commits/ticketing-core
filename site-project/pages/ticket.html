@@ -135,23 +135,13 @@ body{
   // 👉 ОДИН источник данных
   const data = JSON.parse(decodeURIComponent(new URLSearchParams(location.search).get("data") || "{}"));
 
-  const venueMap = {
-    academy: {
-      name: "Академія руху, Кривий Ріг",
-      footer: "Організатор: Академія руху"
-    },
-    shevchenko: {
-      name: "Театр ім. Т. Г. Шевченка",
-      footer: "Організатор: Театр ім. Т. Г. Шевченка"
-    }
-  };
+ const posterEl = document.getElementById("poster");
 
-  const posterMap = {
-    "Сонечко всередині": "../images/sonechko.jpg",
-    "Залишайся собою": "../images/zalyshaysya.jpg"
-  };
-
-  const venue = venueMap[data.venue] || venueMap.academy;
+if (data.poster_url) {
+  posterEl.src = data.poster_url;
+} else {
+  posterEl.style.display = "none";
+}
 
   document.getElementById("venueName").textContent = venue.name;
   document.getElementById("venueFooter").textContent = venue.footer;
