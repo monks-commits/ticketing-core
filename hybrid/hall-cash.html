@@ -2488,8 +2488,11 @@ function applyStatusFromBackoffice(status, seats){
 
   // === ИНИЦИАЛИЗАЦИЯ ===
 
+await loadClientConfig();
 await loadSeancesForCash();
 await loadShowMeta();
+
+  
 
 SEANCE_CONFIG = await loadSeanceConfig();
 CASH_PATCH = loadCashPatch();
