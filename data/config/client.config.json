@@ -2,6 +2,29 @@
   "client_id": "va-demo",
   "client_name": "Ваш Адмін Demo",
   "city": "Кривий Ріг",
+  "venues": [
+  {
+    "id": "shevchenko",
+    "title": "Театр Шевченка",
+    "city": "kryvyi-rih",
+    "description": "Офіційна театральна афіша, вибір місць та онлайн-продаж квитків.",
+    "hall": "shevchenko-v2"
+  },
+  {
+    "id": "opera-test",
+    "title": "Оперний театр",
+    "city": "dnipro",
+    "description": "Тестова афіша для подій на великій сцені з вибором місць.",
+    "hall": "opera-test"
+  },
+  {
+    "id": "big-stage-demo",
+    "title": "Велика сцена Demo",
+    "city": "dnipro",
+    "description": "Демонстраційна площадка для перевірки схем, цін і продажів.",
+    "hall": "big-stage-demo"
+  }
+],
 
   "default_hall": "shevchenko-v2",
 
