@@ -825,13 +825,27 @@ searchInput.addEventListener("keydown", e => {
 applyUrlParams();
 async function boot(){
 
-  const cfg = await loadVAConfig();
+  CLIENT_CONFIG = await loadVAConfig();
 
-  if (cfg?.client_name) {
-    document.title = cfg.client_name + " — Квитки онлайн";
+  if (CLIENT_CONFIG?.client_name) {
+    document.title = CLIENT_CONFIG.client_name + " — Квитки онлайн";
   }
 
-  console.log("CLIENT CONFIG:", cfg);
+  if (Array.isArray(CLIENT_CONFIG?.venues)) {
+    CONFIG_VENUES = CLIENT_CONFIG.venues;
+
+    CONFIG_VENUES.forEach(v => {
+      VENUES[v.id] = {
+        title: v.title || v.id,
+        city: v.city || CLIENT_CONFIG.city || ""
+      };
+    });
+  }
+
+  console.log("CLIENT CONFIG:", CLIENT_CONFIG);
+
+  fillVenueSelect();
+  renderVenueCards();
 
   await loadSeances();
 }
