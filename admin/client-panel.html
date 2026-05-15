@@ -452,10 +452,7 @@ const cityLabel = document.getElementById("cityLabel");
 let VENUES = {};
 let CLIENT_CONFIG = null;
   
-const CITIES = {
-  "kryvyi-rih": "Кривий Ріг",
-  "dnipro": "Дніпро"
-};
+let CITIES = {};
 
 function log(msg){
   debugLog.textContent = String(msg || "");
@@ -738,7 +735,22 @@ async function loadSeances(){
 async function boot(){
 
   CLIENT_CONFIG = await loadVAConfig();
+CITIES = {};
 
+if (Array.isArray(CLIENT_CONFIG?.venues)) {
+
+  CLIENT_CONFIG.venues.forEach(v => {
+
+    if (v.city && !CITIES[v.city]) {
+
+      CITIES[v.city] =
+        v.city_label ||
+        v.city
+          .replaceAll("-", " ")
+          .replace(/\b\w/g, s => s.toUpperCase());
+    }
+  });
+}
   if (Array.isArray(CLIENT_CONFIG?.venues)) {
     VENUES = {};
 
