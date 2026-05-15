@@ -1390,6 +1390,13 @@ function applyUrlParams(){
 }
   
 function createNewSeance(){
+  const venue = venueSelect.value;
+
+  if (!venue) {
+    alert("Спочатку оберіть майданчик");
+    return;
+  }
+
   const showSlug = prompt("Назва show для Seance ID (латиниця):", "akakiy");
   if(!showSlug) return;
 
@@ -1402,24 +1409,24 @@ function createNewSeance(){
   const id = `${showSlug}-${date}-${time}`;
   seanceId.value = id;
 
-  if (!showName.value.trim()) {
-    showName.value = showSlug;
-  }
-  if (!showDate.value) {
-    showDate.value = date;
-  }
-  if (!showTime.value) {
-    showTime.value = time.replace("-", ":");
-  }
+  if (!showName.value.trim()) showName.value = showSlug;
+  if (!showDate.value) showDate.value = date;
+  if (!showTime.value) showTime.value = time.replace("-", ":");
 
   data.pricing = {};
   data.seat_overrides = {};
+
   render();
   renderPreview();
+
+  if (typeof loadVenueSeances === "function") {
+    loadVenueSeances();
+  }
 
   alert(
     "Створено новий seance_id:\n\n" +
     id +
+    "\n\nМайданчик: " + venue +
     "\n\nТепер заповніть назву вистави, дату, час, poster URL і натисніть «Опублікувати»."
   );
 }
