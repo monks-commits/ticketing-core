@@ -2588,12 +2588,22 @@ await loadClientConfig();
 
  const VENUE = await loadVenue(SEANCE_META?.venue_id);
 
-const hallFile = (
-  DIRECT_HALL ||
-  VENUE?.default_hall ||
-  SEANCE_CONFIG?.hall ||
-  "academy"
-).trim();
+let hallFile = DIRECT_HALL;
+
+if (!hallFile && CLIENT_CONFIG && VENUE_ID) {
+  hallFile = resolveHallFile(CLIENT_CONFIG, VENUE_ID);
+}
+
+if (!hallFile) {
+  hallFile =
+    VENUE?.default_hall ||
+    SEANCE_CONFIG?.hall ||
+    "academy";
+}
+
+hallFile = String(hallFile).trim();
+
+console.log("RESOLVED HALL:", hallFile);
 
   const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
   cache: "no-store"
