@@ -840,7 +840,20 @@ searchInput.addEventListener("keydown", e => {
 });
 
 applyUrlParams();
-loadSeances();
+async function boot(){
+
+  const cfg = await loadVAConfig();
+
+  if (cfg?.client_name) {
+    document.title = cfg.client_name + " — Квитки онлайн";
+  }
+
+  console.log("CLIENT CONFIG:", cfg);
+
+  await loadSeances();
+}
+
+boot();
 </script>
 
 </body>
