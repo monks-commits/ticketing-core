@@ -523,6 +523,9 @@
     </div>
   </div>
 
+
+  <script src="../shared/config.js"></script>
+<script src="../shared/config-helper.js"></script>
   <script>
 
 let takenSeatsOnline = new Set();
@@ -564,6 +567,18 @@ async function loadTakenSeatsOnline(){
     const qs = new URLSearchParams(location.search);
     const showSlug  = (qs.get("show")   || "").trim();
 const SEANCE_ID = (qs.get("seance") || "").trim();
+    const VENUE_ID = (qs.get("venue") || "").trim();
+
+let CLIENT_CONFIG = null;
+
+async function loadClientConfig(){
+  try{
+    CLIENT_CONFIG = await loadVAConfig();
+    console.log("CASH CONFIG:", CLIENT_CONFIG);
+  }catch(err){
+    console.error("CONFIG LOAD ERROR:", err);
+  }
+}
 
     // embed mode (backoffice): ?embed=1
     const EMBED = qs.get("embed") === "1";
