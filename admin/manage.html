@@ -932,7 +932,7 @@ searchInput.addEventListener("input", renderLists);
 venueFilter.addEventListener("change", renderLists);
 statusFilter.addEventListener("change", renderLists);
 
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
   const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
   if (saved) toggleSecretInput.value = saved;
 
