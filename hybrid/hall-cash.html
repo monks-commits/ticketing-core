@@ -2497,7 +2497,40 @@ await loadShowMeta();
 SEANCE_CONFIG = await loadSeanceConfig();
 CASH_PATCH = loadCashPatch();
 
-const hallFile = (SEANCE_CONFIG?.hall || "academy").trim();
+let hallFile = "";
+
+// 1. Если зал указан в настройках сеанса — он главный
+if (SEANCE_CONFIG?.hall) {
+  hallFile = SEANCE_CONFIG.hall;
+}
+
+// 2. Если зал не указан, пробуем определить по venue из URL
+if (!hallFile && CLIENT_CONFIG && VENUE_ID) {
+  hallFile = VAConfigHelper.getHallNameByVenue(
+    CLIENT_CONFIG.venues || [],
+    VENUE_ID
+  );
+}
+
+// 3. Если venue в URL нет, пробуем найти venue по seance_id
+if (!hallFile && CLIENT_CONFIG && SEANCE_ID) {
+  const matchedVenue = (CLIENT_CONFIG.venues || []).find(v =>
+    String(SEANCE_ID).includes(String(v.id))
+  );
+
+  if (matchedVenue) {
+    hallFile = matchedVenue.hall || matchedVenue.id;
+  }
+}
+
+// 4. Последний fallback
+if (!hallFile) {
+  hallFile = CLIENT_CONFIG?.default_hall || "academy";
+}
+
+hallFile = String(hallFile).trim();
+
+console.log("CASH HALL:", hallFile);
 
 const hallRes = await fetch(`../data/hall/${hallFile}.json`, {
   cache: "no-store"
