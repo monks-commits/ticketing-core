@@ -655,6 +655,32 @@ function eventVisible(s){
   return true;
 }
 
+function renderVenueCards(){
+  const block = document.getElementById("venuesBlock");
+  if (!block) return;
+
+  const venues = CONFIG_VENUES.length
+    ? CONFIG_VENUES
+    : Object.entries(VENUES).map(([id, v]) => ({
+        id,
+        title: v.title,
+        city: v.city,
+        description: "Онлайн-афіша, схема залу та продаж квитків."
+      }));
+
+  block.innerHTML = venues.map(v => `
+    <div class="venue-card" data-city="${v.city || ""}" data-venue="${v.id}">
+      <div class="venue-title">${safeHtml(v.title || v.id)}</div>
+      <div class="venue-text">
+        ${safeHtml(v.description || "Онлайн-афіша, схема залу та продаж квитків.")}
+      </div>
+      <a class="venue-btn" href="index.html?venue=${encodeURIComponent(v.id)}">
+        Перейти до афіші
+      </a>
+    </div>
+  `).join("");
+}
+  
 function applyVenueCardsFilter(){
   const city = citySelect.value;
   const venue = venueSelect.value;
