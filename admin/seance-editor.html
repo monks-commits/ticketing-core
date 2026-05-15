@@ -741,6 +741,27 @@ const rulesList = document.getElementById("rulesList");
 const seatOverridesList = document.getElementById("seatOverridesList");
 const publish = document.getElementById("publish");
 
+function getVenueConfig(id){
+  return CONFIG_VENUES.find(v => v.id === id) || null;
+}
+
+function getHallNameByVenue(id){
+  const v = getVenueConfig(id);
+  return v?.hall || id || "shevchenko-v2";
+}
+
+function setVenueByHallName(hallName){
+  if (!hallName || !venueSelect) return;
+
+  const found = CONFIG_VENUES.find(v =>
+    v.id === hallName || v.hall === hallName
+  );
+
+  if (found) {
+    venueSelect.value = found.id;
+  }
+}
+  
 function ensurePreviewUi() {
   let previewSection = document.getElementById("previewSection");
   if (previewSection) return;
