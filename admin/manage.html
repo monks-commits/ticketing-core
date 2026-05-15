@@ -521,7 +521,36 @@ const TOGGLE_ENDPOINT = "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/t
 const TOGGLE_LS_KEY = "va_toggle_secret_v1";
 
 let ALL_SEANCES = [];
+const qs = new URLSearchParams(location.search);
 
+let CLIENT_CONFIG = null;
+let CONFIG_VENUES = [];
+
+function getCurrentVenue(){
+  return qs.get("venue") || "";
+}
+
+function getCurrentHall(){
+  return qs.get("hall") || "";
+}
+
+function withContext(path, extra = {}){
+  const params = new URLSearchParams();
+
+  ["city","venue","hall","seance","seance_id","view"].forEach(key => {
+    const value = qs.get(key);
+    if (value) params.set(key, value);
+  });
+
+  Object.entries(extra).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      params.set(key, value);
+    }
+  });
+
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
+}
 const searchInput = document.getElementById("searchInput");
 const venueFilter = document.getElementById("venueFilter");
 const statusFilter = document.getElementById("statusFilter");
@@ -536,15 +565,19 @@ function escapeHtml(value){
 }
 
 function venueToHuman(v){
-  if (v === "academy") return "Академія Руху";
-  if (v === "shevchenko") return "Театр Шевченка";
-  return v || "—";
+  const key = normalizeVenue(v);
+  const found = CONFIG_VENUES.find(x => x.id === key || x.hall === key);
+  return found?.title || v || "—";
 }
 
 function normalizeVenue(v){
-  if (v === "academy") return "academy";
-  if (v === "shevchenko" || v === "shevchenko-v2") return "shevchenko";
-  return v || "";
+  if (!v) return "";
+
+  const found = CONFIG_VENUES.find(x =>
+    x.id === v || x.hall === v
+  );
+
+  return found?.id || v;
 }
 
 function formatDateTime(s){
