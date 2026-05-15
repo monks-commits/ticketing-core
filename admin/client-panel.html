@@ -545,9 +545,7 @@ function applyContextToUi(){
   document.getElementById("linkSales").href =
     `./reports/index.html?${contextQuery({ view:"sales" })}`;
 
-  document.getElementById("linkHalls").href =
-    `/hall-engine-lab/hall-builder-v3.html?${contextQuery({ hall: cfg.hallFile })}`;
-}
+  
 
 document.getElementById("applyContextBtn").addEventListener("click", async () => {
   applyContextToUi();
