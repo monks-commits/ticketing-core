@@ -1090,7 +1090,9 @@ async function renderPreview(){
   previewStage.innerHTML = "";
   previewInfo.textContent = "Завантаження схеми…";
 
-  const hallName = normalizeHallNameForPreview(venueSelect.value);
+  const hallName = normalizeHallNameForPreview(
+  getHallNameByVenue(venueSelect.value)
+);
 
   try {
     // ===== УНИВЕРСАЛЬНЫЙ PREVIEW ДЛЯ JSON-ЗАЛОВ =====
