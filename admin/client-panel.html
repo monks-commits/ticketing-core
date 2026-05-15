@@ -736,6 +736,23 @@ async function loadSeances(){
 }
 
 async function boot(){
+
+  CLIENT_CONFIG = await loadVAConfig();
+
+  if (Array.isArray(CLIENT_CONFIG?.venues)) {
+    VENUES = {};
+
+    CLIENT_CONFIG.venues.forEach(v => {
+      VENUES[v.id] = {
+        title: v.title || v.id,
+        city: v.city || CLIENT_CONFIG.city || "kryvyi-rih",
+        dbVenueId: v.dbVenueId || v.id,
+        editorVenue: v.hall || v.id,
+        hallFile: v.hall || v.id
+      };
+    });
+  }
+
   setContextFromUrl();
   applyContextToUi();
   await loadSeances();
