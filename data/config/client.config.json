@@ -1,0 +1,38 @@
+{
+  "client_id": "va-demo",
+  "client_name": "Ваш Адмін Demo",
+  "city": "Кривий Ріг",
+
+  "default_hall": "shevchenko-v2",
+
+  "halls": [
+    {
+      "id": "shevchenko-v2",
+      "name": "Театр Шевченка",
+      "file": "shevchenko-v2.json"
+    },
+    {
+      "id": "opera-test",
+      "name": "Оперний театр",
+      "file": "opera-test.json"
+    },
+    {
+      "id": "big-stage-demo",
+      "name": "Велика сцена Demo",
+      "file": "big-stage-demo.json"
+    }
+  ],
+
+  "contacts": {
+    "phone": "",
+    "email": "",
+    "address": ""
+  },
+
+  "features": {
+    "online_sales": true,
+    "cashier": true,
+    "scanner": true,
+    "reports": true
+  }
+}
