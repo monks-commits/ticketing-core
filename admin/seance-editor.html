@@ -1698,8 +1698,8 @@ async function loadSeance(){
   data.seat_overrides = rows[0].seat_overrides || {};
 
   if (rows[0].hall) {
-    venueSelect.value = rows[0].hall;
-  }
+  setVenueByHallName(rows[0].hall);
+}
 
   render();
   renderPreview();
