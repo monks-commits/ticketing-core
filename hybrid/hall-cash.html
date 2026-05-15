@@ -2466,10 +2466,16 @@ const res = await fetch(
 );
 
       const rows = await res.json();
+const allowedVenueIds = new Set(
+  (CLIENT_CONFIG?.venues || []).map(v => v.id)
+);
 
+const filteredRows = Array.isArray(rows)
+  ? rows.filter(s => !s.venue_id || allowedVenueIds.has(s.venue_id))
+  : [];
       select.innerHTML = `<option value="">Оберіть сеанс…</option>`;
 
-      rows.forEach(s => {
+     filteredRows.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.id;
         opt.textContent = s.id;
