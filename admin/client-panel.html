@@ -429,7 +429,7 @@ input{
   </section>
 
 </div>
-
+<script src="../shared/config.js"></script>
 <script>
 "use strict";
 
@@ -449,37 +449,9 @@ const nextDate = document.getElementById("nextDate");
 const todaySales = document.getElementById("todaySales");
 const cityLabel = document.getElementById("cityLabel");
 
-const VENUES = {
-  "shevchenko": {
-    title: "Театр Шевченка",
-    city: "kryvyi-rih",
-    dbVenueId: "shevchenko",
-    editorVenue: "shevchenko-v2",
-    hallFile: "shevchenko-v2"
-  },
-  "academy": {
-    title: "Академія Руху",
-    city: "kryvyi-rih",
-    dbVenueId: "academy",
-    editorVenue: "academy",
-    hallFile: "academy"
-  },
-  "opera-test": {
-    title: "Оперний театр",
-    city: "dnipro",
-    dbVenueId: "opera-test",
-    editorVenue: "opera-test",
-    hallFile: "opera-test"
-  },
-  "big-stage-demo": {
-    title: "Велика сцена Demo",
-    city: "dnipro",
-    dbVenueId: "big-stage-demo",
-    editorVenue: "big-stage-demo",
-    hallFile: "big-stage-demo"
-  }
-};
-
+let VENUES = {};
+let CLIENT_CONFIG = null;
+  
 const CITIES = {
   "kryvyi-rih": "Кривий Ріг",
   "dnipro": "Дніпро"
