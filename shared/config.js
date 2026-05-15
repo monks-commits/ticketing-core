@@ -9,7 +9,7 @@ async function loadVAConfig(){
   try {
 
     const res = await fetch(
-      "../data/config/client.config.json",
+  "/ticketing-core/data/config/client.config.json",
       { cache:"no-store" }
     );
 
