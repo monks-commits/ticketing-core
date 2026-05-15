@@ -1064,7 +1064,18 @@
     const showTitle = (qs.get("title")  || "").trim() || showSlug || "Вистава";
     const SEANCE_ID = (qs.get("seance") || "").trim();
     const DIRECT_HALL = (qs.get("hall") || "").trim();
-    
+    const VENUE_ID = (qs.get("venue") || "").trim();
+
+let CLIENT_CONFIG = null;
+
+async function loadClientConfig(){
+  try{
+    CLIENT_CONFIG = await loadVAConfig();
+    console.log("HALL CONFIG:", CLIENT_CONFIG);
+  }catch(err){
+    console.error("CONFIG LOAD ERROR:", err);
+  }
+}
 
     const returnSeats = (qs.get("seats") || "")
       .split(",")
