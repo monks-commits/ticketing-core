@@ -805,15 +805,24 @@ async function restoreSeance(id){
 }
 
 function openCash(id){
-  window.open(`../hybrid/hall-cash.html?seance=${encodeURIComponent(id)}`, "_blank");
+  window.open(
+    withContext("../hybrid/hall-cash.html", { seance:id }),
+    "_blank"
+  );
 }
 
 function openEditor(id){
-  window.open(`./seance-editor.html?seance=${encodeURIComponent(id)}`, "_blank");
+  window.open(
+    withContext("./seance-editor.html", { seance:id, seance_id:id }),
+    "_blank"
+  );
 }
 
 function openReports(){
-  window.open(`./reports/index.html`, "_blank");
+  window.open(
+    withContext("./reports/index.html"),
+    "_blank"
+  );
 }
 
 function openTogglePage(){
