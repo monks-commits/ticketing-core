@@ -1689,19 +1689,23 @@ async function loadSeance(){
   if (el) el.addEventListener("change", render);
 });
 
-venueSelect.addEventListener("change", async () => {
-  render();
-  renderPreview();
-  await loadVenueSeances();
-});
+if (venueSelect) {
+  venueSelect.addEventListener("change", async () => {
+    render();
+    renderPreview();
+    await loadVenueSeances();
+  });
+}
 
-venueSeanceSelect.addEventListener("change", async () => {
-  const selectedSeance = venueSeanceSelect.value;
-  if (!selectedSeance) return;
+if (venueSeanceSelect) {
+  venueSeanceSelect.addEventListener("change", async () => {
+    const selectedSeance = venueSeanceSelect.value;
+    if (!selectedSeance) return;
 
-  seanceId.value = selectedSeance;
-  await loadSeance();
-});
+    seanceId.value = selectedSeance;
+    await loadSeance();
+  });
+}
 
 (async function bootEditor(){
   applyUrlParams();
