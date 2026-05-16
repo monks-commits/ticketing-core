@@ -2539,8 +2539,7 @@ if (!hallFile && CLIENT_CONFIG && SEANCE_ID) {
 
 // 4. Последний fallback
 if (!hallFile) {
-  hallFile = CLIENT_CONFIG?.default_hall || "academy"; 
-}
+ const hallFile = "client-x";
 
 hallFile = String(hallFile).trim();
 
