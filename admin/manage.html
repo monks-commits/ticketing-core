@@ -786,7 +786,10 @@ async function archiveSeance(id){
       Authorization: "Bearer " + SUPABASE_ANON_KEY,
       "Content-Type":"application/json"
     },
-    body: JSON.stringify({ archived:true, active:false })
+    body: JSON.stringify({
+  archived: true,
+  active: false
+})
   });
   load();
 }
