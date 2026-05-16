@@ -669,8 +669,7 @@ textarea{
 
   </div>
 </div>
-<script src="../shared/config.js"></script>
-<script src="../shared/config-helper.js"></script>
+
   
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
@@ -686,8 +685,7 @@ const data = {
 const showStatus = document.getElementById("showStatus");
 const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
-let CLIENT_CONFIG = null;
-let CONFIG_VENUES = [];
+
 
 function fillVenueSelectFromConfig(){
   if (!venueSelect) return;
@@ -700,7 +698,7 @@ function fillVenueSelectFromConfig(){
   const venueFromUrl = qs.get("venue");
 
   if (venueFromUrl && CONFIG_VENUES.some(v => v.id === venueFromUrl)) {
-    venueSelect.value = venueFromUrl;
+    venueSelect.value = venueFromUrl; 
   }
 }
   
