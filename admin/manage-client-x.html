@@ -522,8 +522,7 @@ const TOGGLE_LS_KEY = "va_toggle_secret_v1";
 let ALL_SEANCES = [];
 const qs = new URLSearchParams(location.search);
 
-let CLIENT_CONFIG = null;
-let CONFIG_VENUES = [];
+
 
 function getCurrentVenue(){
   return qs.get("venue") || "";
@@ -569,15 +568,6 @@ function venueToHuman(v){
   return found?.title || v || "—";
 }
 
-function normalizeVenue(v){
-  if (!v) return "";
-
-  const found = CONFIG_VENUES.find(x =>
-    x.id === v || x.hall === v
-  );
-
-  return found?.id || v;
-}
 
 function formatDateTime(s){
   const parts = [];
