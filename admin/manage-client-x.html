@@ -931,10 +931,7 @@ window.addEventListener("load", async () => {
   const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
   if (saved) toggleSecretInput.value = saved;
 
-  CLIENT_CONFIG = await loadVAConfig();
-CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
-  ? CLIENT_CONFIG.venues
-  : [];
+  
 
   load();
 
