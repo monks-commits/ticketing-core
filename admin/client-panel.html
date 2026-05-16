@@ -706,8 +706,7 @@ async function loadSeances(){
     let rows = await res.json();
     if (!Array.isArray(rows)) rows = [];
 
-    rows = rows.filter(s => s.active !== false && isFutureOrToday(s.date));
-
+    rows = rows.filter(s => s.active !== false);
     renderEvents(rows);
 
     log(
