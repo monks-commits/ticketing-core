@@ -609,6 +609,18 @@ function renderEvents(rows){
     return;
   }
 
+function goManage(){
+  location.href =
+    `manage.html?city=${encodeURIComponent(currentCity())}` +
+    `&venue=${encodeURIComponent(currentVenue())}`;
+}
+
+function goCash(){
+  location.href =
+    `../hybrid/hall-cash.html?city=${encodeURIComponent(currentCity())}` +
+    `&venue=${encodeURIComponent(currentVenue())}`;
+}
+  
   activeCount.textContent = String(rows.length);
 
   const sorted = [...rows].sort((a,b) => {
