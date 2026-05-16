@@ -1313,7 +1313,7 @@ async function applyStatusToSelectedLocal(status){
 
 // ---- печать билетов (с QR) ----
     async function openPrintWindowOffline(tickets, meta){
-      const theatre = "Найменування майданчика";
+      const theatre = "Client X";
       const title = meta?.title || showSlug || "Квиток";
       const dt = (meta?.date && meta?.time) ? `${meta.date} ${meta.time}` : "";
       const seance = SEANCE_ID || "";
