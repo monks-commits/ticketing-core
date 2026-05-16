@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Квитки онлайн — Театр Шевченка</title>
+<title>Квитки онлайн — Client X</title>
 
 <style>
   :root{
@@ -289,7 +289,7 @@
 
   <section class="hero">
     <div class="eyebrow">Ваш Адмін • Квитки онлайн</div>
-    <h1 class="hero-title">Театр ім. Т. Г. Шевченка</h1>
+    <h1 class="hero-title">Client X</h1>
     <p class="hero-text">
       Офіційний онлайн-вибір місць на вистави театру. Перегляньте актуальні сеанси та придбайте квитки онлайн.
     </p>
@@ -304,7 +304,7 @@
   <section>
     <div class="section-head">
       <h2 class="section-title">Найближчі події</h2>
-      <div class="section-note">Актуальні сеанси театру Шевченка</div>
+      <div class="section-note">Актуальні сеанси Client X</div>
     </div>
 
     <div class="grid" id="grid"></div>
@@ -318,7 +318,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 async function loadSeances(){
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,poster_url,venue_id,active,status&venue_id=eq.shevchenko&order=date.asc`,
+    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,poster_url,venue_id,active,status&venue_id=eq.client-x&order=date.asc`,
     {
       headers:{
         apikey: SUPABASE_ANON_KEY,
@@ -350,7 +350,7 @@ async function loadSeances(){
     el.innerHTML = `
       <div class="poster-wrap">
         <img src="${img}" class="poster" onerror="this.src='images/default.jpg'">
-        <div class="poster-badge">Театр Шевченка</div>
+        <div class="poster-badge">client-x</div>
       </div>
       <div class="card-body">
         <div class="title">${s.show || "Вистава"}</div>
