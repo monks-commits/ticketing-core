@@ -332,9 +332,23 @@ input:focus{
 
 </div>
 
+<script src="../../shared/config.js"></script>
+<script src="../../shared/config-helper.js"></script>
+
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const qs = new URLSearchParams(location.search);
+const URL_VENUE = qs.get("venue") || "";
+
+let CLIENT_CONFIG = null;
+let CONFIG_VENUES = [];
+
+function normalizeVenue(v){
+  const found = CONFIG_VENUES.find(x => x.id === v || x.hall === v);
+  return found?.id || v || "";
+}
 
 async function run() {
   const day = document.getElementById("day").value;
@@ -344,63 +358,83 @@ async function run() {
     return;
   }
 
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?select=price,created_at`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: "Bearer " + SUPABASE_KEY
-        }
-      }
-    );
+  CLIENT_CONFIG = await loadVAConfig();
+  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+    ? CLIENT_CONFIG.venues
+    : [];
 
-    if (!res.ok) {
-      const t = await res.text();
-      console.error(t);
-      alert("Помилка запиту");
-      return;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/tickets?select=price,created_at,seance_id`,
+    {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY
+      },
+      cache:"no-store"
     }
+  );
 
-    const data = await res.json();
-
-    let count = 0;
-    let sum = 0;
-
-    for (const t of data) {
-      if (!t.created_at) continue;
-
-      const d = t.created_at.slice(0, 10);
-
-      if (d === day) {
-        count++;
-        sum += Number(t.price || 0);
-      }
-    }
-
-    document.getElementById("out").innerHTML = `
-      <div class="result-grid">
-        <div class="metric">
-          <div class="metric-label">Дата</div>
-          <div class="metric-value">${day}</div>
-        </div>
-
-        <div class="metric">
-          <div class="metric-label">Кількість квитків</div>
-          <div class="metric-value">${count}</div>
-        </div>
-
-        <div class="metric">
-          <div class="metric-label">Загальна сума</div>
-          <div class="metric-value">${sum} грн</div>
-        </div>
-      </div>
-    `;
-
-  } catch (e) {
-    console.error(e);
-    alert("Помилка звіту");
+  if (!res.ok) {
+    console.error(await res.text());
+    alert("Помилка запиту");
+    return;
   }
+
+  let tickets = await res.json();
+
+  tickets = tickets.filter(t =>
+    t.created_at && t.created_at.slice(0, 10) === day
+  );
+
+  if (URL_VENUE) {
+    const seanceIds = [...new Set(tickets.map(t => t.seance_id).filter(Boolean))];
+
+    if (seanceIds.length) {
+      const seanceRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/seances?select=id,venue_id&id=in.(${seanceIds.map(encodeURIComponent).join(",")})`,
+        {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: "Bearer " + SUPABASE_KEY
+          },
+          cache:"no-store"
+        }
+      );
+
+      const seances = await seanceRes.json();
+      const allowed = new Set(
+        seances
+          .filter(s => normalizeVenue(s.venue_id) === normalizeVenue(URL_VENUE))
+          .map(s => s.id)
+      );
+
+      tickets = tickets.filter(t => allowed.has(t.seance_id));
+    } else {
+      tickets = [];
+    }
+  }
+
+  const count = tickets.length;
+  const sum = tickets.reduce((total, t) => total + Number(t.price || 0), 0);
+
+  document.getElementById("out").innerHTML = `
+    <div class="result-grid">
+      <div class="metric">
+        <div class="metric-label">Дата</div>
+        <div class="metric-value">${day}</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Кількість квитків</div>
+        <div class="metric-value">${count}</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Загальна сума</div>
+        <div class="metric-value">${sum} грн</div>
+      </div>
+    </div>
+  `;
 }
 </script>
 
