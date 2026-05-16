@@ -1969,7 +1969,7 @@ function renderHorizontalGroup(group, sectionsMap){
   const row = document.createElement("div");
   row.className = "parter-wrap";
 
-  const items = Array.isArray(group.items) ? group.items : [];
+  const items = Array.isArray(group.items) ? group.items : []; 
 
   items.forEach(id => {
     const section = sectionsMap.get(id);
