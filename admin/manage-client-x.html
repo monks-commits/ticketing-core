@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Керування сеансами — VA Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#061a3a;
+  --card:#1d2d47;
+  --card-2:#223552;
+  --text:#ffffff;
+  --muted:#b8c4d6;
+  --line:rgba(255,255,255,.10);
+
+  --primary:#4c86f7;
+  --primary-hover:#3f78e6;
+
+  --success:#2ecc71;
+  --success-hover:#28b864;
+
+  --neutral:#50627d;
+  --neutral-hover:#44556d;
+
+  --danger:#f44336;
+  --danger-hover:#df392d;
+
+  --field:#10233f;
+  --field-border:rgba(255,255,255,.12);
+
+  --shadow:0 18px 40px rgba(0,0,0,.22);
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:14px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.page-wrap{
+  width:min(1240px, calc(100% - 48px));
+  margin:0 auto;
+  padding:48px 0 56px;
+}
+
+.topbar{
+  margin-bottom:28px;
+}
+
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  background:#fff;
+  color:#111827;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+}
+
+.hero{
+  margin-bottom:28px;
+}
+
+.hero h1{
+  margin:0 0 10px;
+  font-size:56px;
+  line-height:1.05;
+  font-weight:800;
+}
+
+.hero p{
+  margin:0;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.45;
+  max-width:860px;
+}
+
+.toolbar,
+.section,
+.toggle-card{
+  background:var(--card);
+  border-radius:var(--radius-xl);
+  padding:24px 20px;
+  box-shadow:var(--shadow);
+  margin-bottom:20px;
+}
+
+.toggle-card-head,
+.section-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+}
+
+.toggle-title,
+.section-title{
+  margin:0;
+  font-size:28px;
+  line-height:1.1;
+}
+
+.toggle-note,
+.section-note{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
+}
+
+.toolbar-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) repeat(2, minmax(180px, .4fr));
+  gap:14px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.field label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+input,select{
+  width:100%;
+  border:1px solid var(--field-border);
+  background:var(--field);
+  color:#fff;
+  border-radius:14px;
+  padding:12px;
+  outline:none;
+  font:inherit;
+}
+
+input::placeholder{
+  color:#8fa0b8;
+}
+
+input:focus,
+select:focus{
+  border-color:rgba(76,134,247,.6);
+  box-shadow:0 0 0 3px rgba(76,134,247,.16);
+}
+
+.toggle-grid{
+  display:grid;
+  grid-template-columns:minmax(280px, 360px) 1fr;
+  gap:18px;
+  align-items:start;
+}
+
+.state-box{
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  background:rgba(255,255,255,.04);
+}
+
+.state-box.ok{
+  background:rgba(46,204,113,.10);
+  border-color:rgba(46,204,113,.28);
+}
+
+.state-box.off{
+  background:rgba(244,67,54,.10);
+  border-color:rgba(244,67,54,.28);
+}
+
+.state-box.unknown{
+  background:rgba(255,255,255,.04);
+}
+
+.state-title{
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:8px;
+}
+
+.state-details{
+  color:var(--muted);
+  line-height:1.45;
+  font-size:14px;
+}
+
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  line-height:1;
+  font-weight:700;
+  background:rgba(255,255,255,.10);
+  color:#fff;
+}
+
+.badge-venue{
+  background:#304866;
+}
+
+.badge-active{
+  background:#14532d;
+}
+
+.badge-archived{
+  background:#475569;
+}
+
+.badge-on{
+  background:#14532d;
+}
+
+.badge-off{
+  background:#7f1d1d;
+}
+
+.toggle-actions,
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.actions{
+  justify-content:flex-end;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:120px;
+  min-height:42px;
+  padding:0 16px;
+  border:none;
+  border-radius:14px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  text-decoration:none;
+  transition:.15s ease;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+
+.btn-primary:hover{
+  background:var(--primary-hover);
+}
+
+.btn-success{
+  background:var(--success);
+  color:#08111f;
+}
+
+.btn-success:hover{
+  background:var(--success-hover);
+}
+
+.btn-neutral{
+  background:var(--neutral);
+  color:#fff;
+}
+
+.btn-neutral:hover{
+  background:var(--neutral-hover);
+}
+
+.btn-danger{
+  background:var(--danger);
+  color:#fff;
+}
+
+.btn-danger:hover{
+  background:var(--danger-hover);
+}
+
+.btn-link{
+  background:transparent;
+  border:1px solid var(--line);
+  color:#fff;
+}
+
+.btn-link:hover{
+  background:rgba(255,255,255,.06);
+}
+
+.small-note{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45;
+}
+
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.row{
+  background:var(--card-2);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  align-items:center;
+}
+
+.meta{
+  min-width:0;
+}
+
+.title{
+  font-size:22px;
+  font-weight:800;
+  line-height:1.2;
+  margin-bottom:8px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
+  word-break:break-word;
+}
+
+.empty{
+  color:var(--muted);
+  font-size:15px;
+  padding:8px 2px;
+}
+
+.hidden{
+  display:none !important;
+}
+
+@media (max-width:980px){
+  .toolbar-grid,
+  .toggle-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:900px){
+  .page-wrap{
+    width:min(100% - 24px, 1240px);
+    padding:24px 0 32px;
+  }
+
+  .hero h1{
+    font-size:38px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .toolbar,
+  .section,
+  .toggle-card{
+    padding:20px 16px;
+  }
+
+  .row{
+    grid-template-columns:1fr;
+  }
+
+  .actions{
+    justify-content:flex-start;
+  }
+
+  .btn{
+    width:100%;
+  }
+
+  .toggle-actions{
+    flex-direction:column;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="page-wrap">
+
+  <div class="topbar">
+    <a class="back-btn" href="./panel.html">← Назад</a>
+  </div>
+
+  <section class="hero">
+    <h1>🎭 Керування сеансами</h1>
+    <p>Робочий центр керування подіями: каса, редактор, звіти, архівування та контроль глобального стану онлайн-продажів.</p>
+  </section>
+
+  <section class="toggle-card">
+    <div class="toggle-card-head">
+      <div>
+        <h2 class="toggle-title">🌐 Глобальний стан онлайн-продажів</h2>
+        <div class="toggle-note">Демонстраційний і контрольний блок для адміністрації. Аварійний сценарій для касира залишається на окремій сторінці <b>/toggle/</b>.</div>
+      </div>
+    </div>
+
+    <div class="toggle-grid">
+      <div id="toggleStateBox" class="state-box unknown">
+        <div class="state-title" id="toggleStateTitle">Статус: —</div>
+        <div class="state-details" id="toggleStateDetails">Натисніть «Оновити», щоб зчитати поточний стан.</div>
+        <div class="badges">
+          <span id="toggleBadge" class="badge">Онлайн: —</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="field">
+          <label for="toggleSecret">TOGGLE_SECRET</label>
+          <input id="toggleSecret" type="password" placeholder="Вставте secret для керування">
+        </div>
+
+        <div class="toggle-actions" style="margin-top:16px;">
+          <button class="btn btn-neutral" onclick="refreshToggle()">Оновити</button>
+          <button class="btn btn-success" onclick="setOnlineSales(true)">Увімкнути онлайн</button>
+          <button class="btn btn-danger" onclick="setOnlineSales(false)">Вимкнути онлайн</button>
+          
+        </div>
+
+        <div class="small-note">
+          Поточний backend перемикає онлайн-продажі глобально для всієї системи, а не для окремого сеансу.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolbar">
+    <div class="toolbar-grid">
+      <div class="field">
+        <label for="searchInput">Пошук</label>
+        <input id="searchInput" type="text" placeholder="Назва вистави або seance_id">
+      </div>
+
+      <div class="field">
+        <label for="venueFilter">Майданчик</label>
+        <select id="venueFilter">
+          <option value="all">Усі майданчики</option>
+          <option value="academy">Академія Руху</option>
+          <option value="shevchenko">Театр Шевченка</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="statusFilter">Стан</label>
+        <select id="statusFilter">
+          <option value="all">Усі</option>
+          <option value="active">Активні</option>
+          <option value="archived">Архів</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section id="activeSection" class="section">
+    <div class="section-head">
+      <h2 class="section-title">Активні</h2>
+      <div class="section-note">Сеанси, доступні для роботи зараз</div>
+    </div>
+    <div id="active" class="list"></div>
+  </section>
+
+  <section id="archivedSection" class="section">
+    <div class="section-head">
+      <h2 class="section-title">Архів</h2>
+      <div class="section-note">Завершені або вручну архівовані сеанси</div>
+    </div>
+    <div id="archived" class="list"></div>
+  </section>
+
+</div>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const TOGGLE_ENDPOINT = "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/toggle-online-sales";
+const TOGGLE_LS_KEY = "va_toggle_secret_v1";
+
+let ALL_SEANCES = [];
+const qs = new URLSearchParams(location.search);
+
+let CLIENT_CONFIG = null;
+let CONFIG_VENUES = [];
+
+function getCurrentVenue(){
+  return qs.get("venue") || "";
+}
+
+function getCurrentHall(){
+  return qs.get("hall") || "";
+}
+
+function withContext(path, extra = {}){
+  const params = new URLSearchParams();
+
+  ["city","venue","hall","seance","seance_id","view"].forEach(key => {
+    const value = qs.get(key);
+    if (value) params.set(key, value);
+  });
+
+  Object.entries(extra).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      params.set(key, value);
+    }
+  });
+
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
+}
+const searchInput = document.getElementById("searchInput");
+const venueFilter = document.getElementById("venueFilter");
+const statusFilter = document.getElementById("statusFilter");
+const toggleSecretInput = document.getElementById("toggleSecret");
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function venueToHuman(v){
+  const key = normalizeVenue(v);
+  const found = CONFIG_VENUES.find(x => x.id === key || x.hall === key);
+  return found?.title || v || "—";
+}
+
+function normalizeVenue(v){
+  if (!v) return "";
+
+  const found = CONFIG_VENUES.find(x =>
+    x.id === v || x.hall === v
+  );
+
+  return found?.id || v;
+}
+
+function formatDateTime(s){
+  const parts = [];
+  if (s.date) parts.push(s.date);
+  if (s.time) parts.push(s.time);
+  return parts.join(" • ") || "Дата/час не вказані";
+}
+
+function detectShowTitle(s){
+  return s.show || s.title || s.name || "Без назви";
+}
+
+function makeSeanceCard(s, archivedMode = false){
+  const title = escapeHtml(detectShowTitle(s));
+  const id = escapeHtml(s.id || "");
+  const venue = escapeHtml(venueToHuman(normalizeVenue(s.venue_id)));
+  const dt = escapeHtml(formatDateTime(s));
+
+  if (!archivedMode) {
+    return `
+      <div class="row">
+        <div class="meta">
+          <div class="title">${title}</div>
+          <div class="sub"><b>Seance ID:</b> ${id}</div>
+          <div class="sub">${dt}</div>
+
+          <div class="badges">
+            <span class="badge badge-venue">${venue}</span>
+            <span class="badge badge-active">Активний</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" onclick="openCash('${id}')">Каса</button>
+          <button class="btn btn-neutral" onclick="openEditor('${id}')">Редактор</button>
+          <button class="btn btn-neutral" onclick="openReports('${id}')">Звіти</button>
+          <button class="btn btn-danger" onclick="archiveSeance('${id}')">Архівувати</button>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="row">
+      <div class="meta">
+        <div class="title">${title}</div>
+        <div class="sub"><b>Seance ID:</b> ${id}</div>
+        <div class="sub">${dt}</div>
+
+        <div class="badges">
+          <span class="badge badge-venue">${venue}</span>
+          <span class="badge badge-archived">Архів</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-success" onclick="restoreSeance('${id}')">Відновити</button>
+      </div>
+    </div>
+  `;
+}
+
+function matchesFilters(s){
+  const query = searchInput.value.trim().toLowerCase();
+  const venue = venueFilter.value;
+  const status = statusFilter.value;
+
+  const show = detectShowTitle(s).toLowerCase();
+  const id = String(s.id || "").toLowerCase();
+  const seanceVenue = normalizeVenue(s.venue_id);
+  const isArchived = s.archived === true;
+
+  if (query && !show.includes(query) && !id.includes(query)) {
+    return false;
+  }
+
+  if (venue !== "all" && seanceVenue !== venue) {
+    return false;
+  }
+
+  if (status === "active" && isArchived) {
+    return false;
+  }
+
+  if (status === "archived" && !isArchived) {
+    return false;
+  }
+
+  return true;
+}
+
+function renderLists(){
+  const activeDiv = document.getElementById("active");
+  const archDiv = document.getElementById("archived");
+  const activeSection = document.getElementById("activeSection");
+  const archivedSection = document.getElementById("archivedSection");
+
+  const filtered = ALL_SEANCES.filter(matchesFilters);
+
+  const active = filtered
+    .filter(s => s.archived !== true)
+    .sort((a,b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.time || "").localeCompare(String(b.time || "")));
+
+  const archived = filtered
+    .filter(s => s.archived === true)
+    .sort((a,b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.time || "").localeCompare(String(a.time || "")));
+
+  activeDiv.innerHTML = active.length
+    ? active.map(s => makeSeanceCard(s, false)).join("")
+    : `<div class="empty">Немає сеансів за обраними фільтрами.</div>`;
+
+  archDiv.innerHTML = archived.length
+    ? archived.map(s => makeSeanceCard(s, true)).join("")
+    : `<div class="empty">Немає сеансів за обраними фільтрами.</div>`;
+
+  activeSection.classList.toggle("hidden", statusFilter.value === "archived");
+  archivedSection.classList.toggle("hidden", statusFilter.value === "active");
+}
+
+async function load(){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
+    headers:{
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Cache-Control": "no-cache"
+    },
+    cache: "no-store"
+  });
+
+  const data = await res.json();
+
+  const now = new Date();
+  const toArchive = [];
+
+  data.forEach(s => {
+    if (s.archived === true) return;
+
+    let dt;
+
+    if (s.date && s.time) {
+      dt = new Date(`${s.date}T${s.time}`);
+    } else if (s.id) {
+      const match = s.id.match(/(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/);
+      if (match) {
+        const [_, y, m, d, h, min] = match;
+        dt = new Date(`${y}-${m}-${d}T${h}:${min}`);
+      }
+    }
+
+    if (!dt || isNaN(dt)) return;
+
+    if (dt < now) {
+      toArchive.push(s.id);
+    }
+  });
+
+  if (toArchive.length){
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=in.(${toArchive.join(",")})`,
+      {
+        method:"PATCH",
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+          "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+          archived:true,
+          active:false
+        })
+      }
+    );
+  }
+
+  const res2 = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
+    headers:{
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY
+    },
+    cache: "no-store"
+  });
+
+  const rows2 = await res2.json();
+
+ALL_SEANCES = Array.isArray(rows2) ? rows2 : [];
+
+const currentVenue = getCurrentVenue();
+
+if (currentVenue) {
+  ALL_SEANCES = ALL_SEANCES.filter(s =>
+    normalizeVenue(s.venue_id) === normalizeVenue(currentVenue)
+  );
+}
+
+renderLists();
+
+}
+
+async function archiveSeance(id){
+  
+  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`, {
+    method:"PATCH",
+    headers:{
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+  archived: true,
+  active: false
+})
+  });
+  load();
+}
+
+async function restoreSeance(id){
+  await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`, {
+    method:"PATCH",
+    headers:{
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      archived:false,
+      active:true
+    })
+  });
+  load();
+}
+
+function openCash(id){
+  window.open(
+    withContext("../hybrid/hall-cash.html", { seance:id }),
+    "_blank"
+  );
+}
+
+function openEditor(id){
+  window.open(
+    withContext("./seance-editor.html", { seance:id, seance_id:id }),
+    "_blank"
+  );
+}
+
+function openReports(id){
+  window.open(
+    `./reports/kg10.html?seance=${encodeURIComponent(id)}`,
+    "_blank"
+  );
+}
+
+function openTogglePage(){
+  window.open(`../toggle/`, "_blank");
+}
+
+function getToggleSecret(){
+  const secret = (toggleSecretInput.value || "").trim();
+  if (!secret) {
+    throw new Error("Потрібен TOGGLE_SECRET");
+  }
+  localStorage.setItem(TOGGLE_LS_KEY, secret);
+  return secret;
+}
+
+function setToggleState(kind, title, details, enabled){
+  const box = document.getElementById("toggleStateBox");
+  const titleEl = document.getElementById("toggleStateTitle");
+  const detailsEl = document.getElementById("toggleStateDetails");
+  const badgeEl = document.getElementById("toggleBadge");
+
+  box.classList.remove("ok", "off", "unknown");
+  box.classList.add(kind);
+
+  titleEl.textContent = title || "Статус: —";
+  detailsEl.textContent = details || "—";
+
+  if (enabled === true) {
+    badgeEl.textContent = "Онлайн: УВІМК";
+    badgeEl.className = "badge badge-on";
+  } else if (enabled === false) {
+    badgeEl.textContent = "Онлайн: ВИМК";
+    badgeEl.className = "badge badge-off";
+  } else {
+    badgeEl.textContent = "Онлайн: —";
+    badgeEl.className = "badge";
+  }
+}
+
+async function toggleApi(method, body){
+  const secret = getToggleSecret();
+
+  const r = await fetch(TOGGLE_ENDPOINT, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "x-toggle-secret": secret
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const data = await r.json().catch(() => ({}));
+
+  if (r.status === 401) {
+    setToggleState("unknown", "Доступ заборонено", "Невірний TOGGLE_SECRET (401).", null);
+    return null;
+  }
+
+  if (!r.ok || data?.ok === false) {
+    setToggleState("unknown", "Помилка", data?.error ? String(data.error) : `HTTP ${r.status}`, null);
+    return null;
+  }
+
+  return data;
+}
+
+function renderToggle(settings){
+  const enabled = settings?.online_sales_enabled;
+  const at = settings?.updated_at ? `Оновлено: ${settings.updated_at}` : "Дані отримано.";
+
+  if (enabled === true) {
+    setToggleState("ok", "Статус: Онлайн УВІМКНЕНО", at, true);
+  } else if (enabled === false) {
+    setToggleState("off", "Статус: Онлайн ВИМКНЕНО", at, false);
+  } else {
+    setToggleState("unknown", "Статус: —", "Немає даних.", null);
+  }
+}
+
+async function refreshToggle(){
+  try {
+    setToggleState("unknown", "Статус: Зчитую…", "Зачекайте…", null);
+    const data = await toggleApi("GET");
+    if (data?.settings) renderToggle(data.settings);
+  } catch (e) {
+    setToggleState("unknown", "Статус: Помилка", String(e.message || e), null);
+  }
+}
+
+async function setOnlineSales(val){
+  try {
+    setToggleState("unknown", "Статус: Застосовую…", val ? "Увімкнення онлайн-продажів…" : "Вимкнення онлайн-продажів…", null);
+    const data = await toggleApi("POST", { online_sales_enabled: !!val });
+    if (data?.settings) renderToggle(data.settings);
+  } catch (e) {
+    setToggleState("unknown", "Статус: Помилка", String(e.message || e), null);
+  }
+}
+
+function clearToggleSecret(){
+  localStorage.removeItem(TOGGLE_LS_KEY);
+  toggleSecretInput.value = "";
+  setToggleState("unknown", "Статус: Secret очищено", "Вставте TOGGLE_SECRET знову при потребі.", null);
+}
+
+searchInput.addEventListener("input", renderLists);
+venueFilter.addEventListener("change", renderLists);
+statusFilter.addEventListener("change", renderLists);
+
+window.addEventListener("load", async () => {
+  const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
+  if (saved) toggleSecretInput.value = saved;
+
+  CLIENT_CONFIG = await loadVAConfig();
+CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+  ? CLIENT_CONFIG.venues
+  : [];
+
+  load();
+
+  setToggleState(
+    "unknown",
+    "Статус: —",
+    "Натисніть «Оновити», щоб зчитати поточний стан.",
+    null
+  );
+
+});
+</script>
+
+</body>
+</html>
