@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Адмін</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../styles/styles.css">
+</head>
+
+<body>
+
+<div class="admin-center">
+  <div class="admin-card">
+
+    <div class="admin-title">🎛 Адміністрація</div>
+
+    <button class="admin-btn admin-btn-blue" onclick="toCash()">Події / Каса</button>
+    <button class="admin-btn admin-btn-green" onclick="toEditor()">Редактор сеансів</button>
+    <button class="admin-btn admin-btn-gray" onclick="toManage()">Керування сеансами</button>
+    <button class="admin-btn admin-btn-gray" onclick="toReports()">Звіти</button>
+    <button class="admin-btn admin-btn-red" onclick="logout()">Вихід</button>
+
+  </div>
+</div>
+
+<script>
+const SESSION_KEY = "va_session_v1";
+
+function getSession(){
+  try{
+    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+  }catch(e){
+    return null;
+  }
+}
+
+const session = getSession();
+const qs = new URLSearchParams(location.search);
+
+function withContext(path){
+
+  const params = new URLSearchParams();
+
+  ["city","venue","hall","seance","seance_id","view"].forEach(key => {
+    const value = qs.get(key);
+    if (value) params.set(key, value);
+  });
+
+  const query = params.toString();
+
+  return query
+    ? `${path}?${query}`
+    : path;
+}  
+
+if (!session || session.role !== "admin") {
+  location.href = "index-client-x.html";
+}
+
+function toCash(){
+  window.open(
+    withContext("../hybrid/hall-cash-client-x.html"),
+    "cashWindow",
+    "width=1280,height=900"
+  );
+}
+
+function toEditor(){
+  location.href = withContext("seance-editor-client-x.html");
+}
+
+function toManage(){
+  location.href = withContext("manage-client-x.html");
+}
+
+function toReports(){
+  location.href = withContext("reports/index-client-x.html");
+}
+
+function logout(){
+  localStorage.removeItem(SESSION_KEY);
+  location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
