@@ -840,39 +840,7 @@ async function boot(){
   fillVenueSelect();
   renderVenueCards();
 
-function renderVenueCards(){
 
-  const grid = document.getElementById("venuesGrid");
-
-  if (!grid) return;
-
-  grid.innerHTML = "";
-
-  CONFIG_VENUES.forEach(v => {
-
-    const card = document.createElement("div");
-    card.className = "venue-card";
-
-    card.innerHTML = `
-      <div class="venue-title">
-        ${v.title || v.id}
-      </div>
-
-      <div class="venue-text">
-        ${v.description || "Онлайн-афіша та продаж квитків"}
-      </div>
-
-      <a
-        class="venue-btn"
-        href="index.html?venue=${encodeURIComponent(v.id)}"
-      >
-        Перейти до афіші
-      </a>
-    `;
-
-    grid.appendChild(card);
-  });
-}
   
   renderVenueCards();
 
