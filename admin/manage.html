@@ -824,9 +824,9 @@ function openEditor(id){
   );
 }
 
-function openReports(){
+function openReports(id){
   window.open(
-    withContext("./reports/index.html"),
+    `./reports/kg10.html?seance=${encodeURIComponent(id)}`,
     "_blank"
   );
 }
