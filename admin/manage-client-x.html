@@ -583,7 +583,7 @@ function detectShowTitle(s){
 function makeSeanceCard(s, archivedMode = false){
   const title = escapeHtml(detectShowTitle(s));
   const id = escapeHtml(s.id || "");
-  const venue = escapeHtml(venueToHuman(normalizeVenue(s.venue_id)));
+  const venue = "Client X";
   const dt = escapeHtml(formatDateTime(s));
 
   if (!archivedMode) {
@@ -801,21 +801,21 @@ async function restoreSeance(id){
 
 function openCash(id){
   window.open(
-    withContext("../hybrid/hall-cash.html", { seance:id }),
+    withContext("../hybrid/hall-cash-client-x.html", { seance:id }),
     "_blank"
   );
 }
 
 function openEditor(id){
   window.open(
-    withContext("./seance-editor.html", { seance:id, seance_id:id }),
+    withContext("./seance-editor-client-x.html", { seance:id, seance_id:id }),
     "_blank"
   );
 }
 
 function openReports(id){
   window.open(
-    `./reports/kg10.html?seance=${encodeURIComponent(id)}`,
+    `./reports/index-client-x.html?seance=${encodeURIComponent(id)}`,
     "_blank"
   );
 }
