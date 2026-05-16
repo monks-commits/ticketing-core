@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Редактор сеансу — VA Admin</title>
+<title>Редактор сеансу — Client X</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -358,9 +358,9 @@ textarea{
   </div>
 
   <section class="hero">
-    <h1>🎛️ Редактор сеансу</h1>
+    <h1>🎛️ Редактор сеансу — Client X</h1>
     <p>Налаштування майданчика, цін, кольорів, лож і сегментів рядів для конкретного сеансу.</p>
-    <span class="badge">VA Admin • seance editor</span>
+    <span class="badge">Client X • seance editor</span>
   </section>
 
   <div class="layout">
@@ -670,7 +670,6 @@ textarea{
   </div>
 </div>
 
-  
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
@@ -686,22 +685,16 @@ const showStatus = document.getElementById("showStatus");
 const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
 
+const FIXED_VENUE_ID = "client-x";
+const FIXED_HALL_ID = "client-x";
+const FIXED_VENUE_TITLE = "Client X";
 
-function fillVenueSelectFromConfig(){
-  if (!venueSelect) return;
-
-  venueSelect.innerHTML = CONFIG_VENUES.map(v => `
-    <option value="${v.id}">${v.title || v.id}</option>
-  `).join("");
-
-  const qs = new URLSearchParams(location.search);
-  const venueFromUrl = qs.get("venue");
-
-  if (venueFromUrl && CONFIG_VENUES.some(v => v.id === venueFromUrl)) {
-    venueSelect.value = venueFromUrl; 
-  }
+if (venueSelect) {
+  venueSelect.innerHTML = `<option value="${FIXED_VENUE_ID}">${FIXED_VENUE_TITLE}</option>`;
+  venueSelect.value = FIXED_VENUE_ID;
+  venueSelect.disabled = true;
 }
-  
+
 const venueSeanceSelect = document.getElementById("venueSeanceSelect");  
 const showName = document.getElementById("showName");
 const showDate = document.getElementById("showDate");
@@ -741,26 +734,10 @@ const rulesList = document.getElementById("rulesList");
 const seatOverridesList = document.getElementById("seatOverridesList");
 const publish = document.getElementById("publish");
 
-function getVenueConfig(id){
-  return VAConfigHelper.getVenueConfig(CONFIG_VENUES, id);
+function getHallNameByVenue(){
+  return FIXED_HALL_ID;
 }
 
-function getHallNameByVenue(id){
-  return VAConfigHelper.getHallNameByVenue(CONFIG_VENUES, id);
-}
-
-function setVenueByHallName(hallName){
-
-  if (!hallName || !venueSelect) return;
-
-  const found =
-    VAConfigHelper.getVenueByHall(CONFIG_VENUES, hallName);
-
-  if (found) {
-    venueSelect.value = found.id;
-  }
-}
-  
 function ensurePreviewUi() {
   let previewSection = document.getElementById("previewSection");
   if (previewSection) return;
@@ -1110,9 +1087,7 @@ async function renderPreview(){
   previewStage.innerHTML = "";
   previewInfo.textContent = "Завантаження схеми…";
 
-  const hallName = normalizeHallNameForPreview(
-  getHallNameByVenue(venueSelect.value)
-);
+  const hallName = FIXED_HALL_ID;
 
   try {
     // ===== УНИВЕРСАЛЬНЫЙ PREVIEW ДЛЯ JSON-ЗАЛОВ =====
@@ -1324,14 +1299,12 @@ if (!Array.isArray(hall.sections)) {
   }
 }
 
-function venueToDbVenueId(v){
-  if (v === "shevchenko-v2") return "shevchenko";
-  return v || "academy";
+function venueToDbVenueId(){
+  return FIXED_VENUE_ID;
 }
 
-function dbVenueIdToVenue(v){
-  if (v === "shevchenko") return "shevchenko-v2";
-  return v || "academy";
+function dbVenueIdToVenue(){
+  return FIXED_VENUE_ID;
 }
 
 async function loadVenueSeances(){
@@ -1397,20 +1370,9 @@ async function loadVenueSeances(){
 }
 
 function applyUrlParams(){
-  const qs = new URLSearchParams(location.search);
-
-  const venue = qs.get("venue") || qs.get("hall");
-  const seance = qs.get("seance") || qs.get("seance_id");
-
-  if (venue) {
-    venueSelect.value = dbVenueIdToVenue(venue);
-  }
-
-  if (seance) {
-    seanceId.value = seance;
-  }
+  // Client X editor is fixed to one venue.
 }
-  
+
 function createNewSeance(){
   const venue = venueSelect.value;
 
@@ -1618,13 +1580,9 @@ publish.onclick = async () => {
   const time = showTime.value || null;
   const poster_url = posterUrl.value.trim() || null;
   const status = showStatus.value;
-  const hall = venueSelect.value;
+  const hall = FIXED_HALL_ID;
 
-  const venueId =
-    hall === "academy" ? "academy" :
-    hall === "shevchenko-v2" ? "shevchenko" :
-    hall === "big-stage-demo" ? "big-stage-demo" :
-    hall;
+  const venueId = FIXED_VENUE_ID;
 
   if (!show) return alert("Вкажи назву вистави");
   if (!date) return alert("Вкажи дату");
@@ -1685,15 +1643,7 @@ async function loadSeance(){
     showDate.value = seanceRow.date || "";
     showTime.value = seanceRow.time || "";
     posterUrl.value = seanceRow.poster_url || "";
-
-    if (seanceRow.venue_id === "academy") {
-  venueSelect.value = "academy";
-} else if (seanceRow.venue_id === "shevchenko") {
-  venueSelect.value = "shevchenko-v2";
-} else if (seanceRow.venue_id === "big-stage-demo") {
-  venueSelect.value = "big-stage-demo";
 }
-  }
 
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seance)}&select=pricing,seat_overrides,hall,venue_id`,
@@ -1716,12 +1666,7 @@ async function loadSeance(){
 
   data.pricing = rows[0].pricing || {};
   data.seat_overrides = rows[0].seat_overrides || {};
-
-  if (rows[0].hall) {
-  setVenueByHallName(rows[0].hall);
-}
-
-  render();
+render();
   renderPreview();
 }
 
@@ -1751,42 +1696,17 @@ if (venueSeanceSelect) {
 
 function applyEditorUrlParams(){
   const qs = new URLSearchParams(location.search);
-
-  const seance =
-    qs.get("seance") ||
-    qs.get("seance_id") ||
-    "";
-
-  const venue = qs.get("venue") || "";
-
-  if (venue && venueSelect && CONFIG_VENUES.some(v => v.id === venue)) {
-    venueSelect.value = venue;
-  }
+  const seance = qs.get("seance") || qs.get("seance_id") || "";
 
   if (seance && seanceId) {
     seanceId.value = seance;
   }
 }
-  
-async function bootEditor(){
-  CLIENT_CONFIG = await loadVAConfig();
 
-  if (Array.isArray(CLIENT_CONFIG?.venues)) {
-    CONFIG_VENUES = CLIENT_CONFIG.venues;
-    fillVenueSelectFromConfig();
-  }
-
-  applyEditorUrlParams();
-
-  render();
-  renderPreview();
-
-  if (typeof loadVenueSeances === "function") {
-    await loadVenueSeances();
-  }
-}
-
-bootEditor();
+applyEditorUrlParams();
+render();
+renderPreview();
+loadVenueSeances();
 </script>
 </body>
 </html>
