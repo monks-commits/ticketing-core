@@ -2455,7 +2455,8 @@ const res = await fetch(
   `${SUPABASE_URL}/rest/v1/seances` +
   `?select=id,active,venue_id,show,date,time` +
   `&active=eq.true` +
-  `&order=created_at.desc`,
+  `&venue_id=eq.client-x` +
+  `&order=date.asc,time.asc`,
   {
     headers: {
       apikey: SUPABASE_ANON_KEY,
@@ -2474,16 +2475,16 @@ const filteredRows = Array.isArray(rows)
   : [];
       select.innerHTML = `<option value="">Оберіть сеанс…</option>`;
 
-     filteredRows.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s.id;
-        opt.textContent = s.id;
-        select.appendChild(opt);
-      });
+rows.forEach(s => {
+  const opt = document.createElement("option");
+  opt.value = s.id;
+  opt.textContent = `${s.date || ""} ${s.time || ""} — ${s.show || s.id}`;
+  select.appendChild(opt);
+});
 
-      if (SEANCE_ID) {
-        select.value = SEANCE_ID;
-      }
+if (SEANCE_ID) {
+  select.value = SEANCE_ID;
+}
 
     } catch (e) {
       select.innerHTML = `<option value="">Помилка</option>`;
