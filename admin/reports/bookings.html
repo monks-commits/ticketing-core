@@ -397,42 +397,67 @@ tbody tr:hover{
 
 </div>
 
+<script src="../../shared/config.js"></script>
+<script src="../../shared/config-helper.js"></script>
+
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const qs = new URLSearchParams(location.search);
+const URL_VENUE = qs.get("venue") || "";
+const URL_SEANCE = qs.get("seance") || qs.get("seance_id") || "";
+
+let CLIENT_CONFIG = null;
+let CONFIG_VENUES = [];
+
+function normalizeVenue(v){
+  const found = CONFIG_VENUES.find(x => x.id === v || x.hall === v);
+  return found?.id || v || "";
+}
 
 async function loadSeances(){
   const sel = document.getElementById("seance");
   sel.innerHTML = `<option value="">Оберіть сеанс...</option>`;
 
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?select=id&archived=eq.false`,
-      {
-        headers:{
-          apikey: SUPABASE_KEY,
-          Authorization: "Bearer " + SUPABASE_KEY
-        }
-      }
-    );
+  CLIENT_CONFIG = await loadVAConfig();
+  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+    ? CLIENT_CONFIG.venues
+    : [];
 
-    if (!res.ok) {
-      console.error(await res.text());
-      sel.innerHTML = `<option value="">Помилка завантаження</option>`;
-      return;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?select=id,archived,venue_id,show,date,time&archived=eq.false`,
+    {
+      headers:{
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY
+      },
+      cache:"no-store"
     }
+  );
 
-    const rows = await res.json();
-
-    rows.forEach(s=>{
-      const opt = document.createElement("option");
-      opt.value = s.id;
-      opt.textContent = s.id;
-      sel.appendChild(opt);
-    });
-  } catch (e) {
-    console.error(e);
+  if (!res.ok) {
+    console.error(await res.text());
     sel.innerHTML = `<option value="">Помилка завантаження</option>`;
+    return;
+  }
+
+  const rows = await res.json();
+
+  const filtered = URL_VENUE
+    ? rows.filter(s => normalizeVenue(s.venue_id) === normalizeVenue(URL_VENUE))
+    : rows;
+
+  filtered.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.date || ""} ${s.time || ""} — ${s.show || s.id}`;
+    sel.appendChild(opt);
+  });
+
+  if (URL_SEANCE) {
+    sel.value = URL_SEANCE;
+    run();
   }
 }
 
@@ -455,107 +480,101 @@ async function run(){
     return;
   }
 
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/bookings?select=buyer_name,buyer_email,seats,amount,status,created_at&seance_id=eq.${encodeURIComponent(seance)}`,
-      {
-        headers:{
-          apikey: SUPABASE_KEY,
-          Authorization: "Bearer " + SUPABASE_KEY
-        }
-      }
-    );
-
-    if (!res.ok) {
-      console.error(await res.text());
-      alert("Помилка запиту");
-      return;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/bookings?select=buyer_name,buyer_email,seats,amount,status,created_at&seance_id=eq.${encodeURIComponent(seance)}`,
+    {
+      headers:{
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY
+      },
+      cache:"no-store"
     }
+  );
 
-    const data = await res.json();
+  if (!res.ok) {
+    console.error(await res.text());
+    alert("Помилка запиту");
+    return;
+  }
 
-    if (!data.length){
-      document.getElementById("out").innerHTML = `
-        <div class="result-empty">Немає бронювань для цього сеансу.</div>
-      `;
-      return;
-    }
+  const data = await res.json();
 
-    const totalBookings = data.length;
-    const totalAmount = data.reduce((sum, b) => sum + Number(b.amount || 0), 0);
-    const totalSeats = data.reduce((sum, b) => sum + (Array.isArray(b.seats) ? b.seats.length : 0), 0);
-
-    let html = `
-      <div class="summary-grid">
-        <div class="metric">
-          <div class="metric-label">Сеанс</div>
-          <div class="metric-value">${seance}</div>
-        </div>
-
-        <div class="metric">
-          <div class="metric-label">Кількість бронювань</div>
-          <div class="metric-value">${totalBookings}</div>
-        </div>
-
-        <div class="metric">
-          <div class="metric-label">Сума по бронях</div>
-          <div class="metric-value">${totalAmount} грн</div>
-        </div>
-      </div>
-
-      <div class="summary-grid" style="grid-template-columns:1fr;">
-        <div class="metric">
-          <div class="metric-label">Загальна кількість місць у бронях</div>
-          <div class="metric-value">${totalSeats}</div>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Час</th>
-              <th>Клієнт</th>
-              <th>Email</th>
-              <th>Місця</th>
-              <th>Сума</th>
-              <th>Статус</th>
-            </tr>
-          </thead>
-          <tbody>
+  if (!data.length){
+    document.getElementById("out").innerHTML = `
+      <div class="result-empty">Немає бронювань для цього сеансу.</div>
     `;
+    return;
+  }
 
-    data.forEach(b => {
-      const seats = Array.isArray(b.seats) ? b.seats.join(", ") : "";
+  const totalBookings = data.length;
+  const totalAmount = data.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+  const totalSeats = data.reduce((sum, b) => sum + (Array.isArray(b.seats) ? b.seats.length : 0), 0);
 
-      html += `
-        <tr>
-          <td>${(b.created_at || "").replace("T"," ").slice(0,16)}</td>
-          <td>${b.buyer_name || ""}</td>
-          <td>${b.buyer_email || ""}</td>
-          <td>${seats}</td>
-          <td>${b.amount || 0}</td>
-          <td>${statusBadge(b.status)}</td>
-        </tr>
-      `;
-    });
+  let html = `
+    <div class="summary-grid">
+      <div class="metric">
+        <div class="metric-label">Сеанс</div>
+        <div class="metric-value">${seance}</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Кількість бронювань</div>
+        <div class="metric-value">${totalBookings}</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Сума по бронях</div>
+        <div class="metric-value">${totalAmount} грн</div>
+      </div>
+    </div>
+
+    <div class="summary-grid" style="grid-template-columns:1fr;">
+      <div class="metric">
+        <div class="metric-label">Загальна кількість місць у бронях</div>
+        <div class="metric-value">${totalSeats}</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Час</th>
+            <th>Клієнт</th>
+            <th>Email</th>
+            <th>Місця</th>
+            <th>Сума</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  data.forEach(b => {
+    const seats = Array.isArray(b.seats) ? b.seats.join(", ") : "";
 
     html += `
-          </tbody>
-        </table>
-      </div>
+      <tr>
+        <td>${(b.created_at || "").replace("T"," ").slice(0,16)}</td>
+        <td>${b.buyer_name || ""}</td>
+        <td>${b.buyer_email || ""}</td>
+        <td>${seats}</td>
+        <td>${b.amount || 0}</td>
+        <td>${statusBadge(b.status)}</td>
+      </tr>
     `;
+  });
 
-    document.getElementById("out").innerHTML = html;
+  html += `
+        </tbody>
+      </table>
+    </div>
+  `;
 
-  } catch (e) {
-    console.error(e);
-    alert("Помилка звіту");
-  }
+  document.getElementById("out").innerHTML = html;
 }
 
 loadSeances();
 </script>
-
 </body>
 </html>
