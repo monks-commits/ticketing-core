@@ -632,19 +632,13 @@ function makeSeanceCard(s, archivedMode = false){
 
 function matchesFilters(s){
   const query = searchInput.value.trim().toLowerCase();
-  const venue = venueFilter.value;
   const status = statusFilter.value;
 
   const show = detectShowTitle(s).toLowerCase();
   const id = String(s.id || "").toLowerCase();
-  const seanceVenue = normalizeVenue(s.venue_id);
   const isArchived = s.archived === true;
 
   if (query && !show.includes(query) && !id.includes(query)) {
-    return false;
-  }
-
-  if (venue !== "all" && seanceVenue !== venue) {
     return false;
   }
 
