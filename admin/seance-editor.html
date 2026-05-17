@@ -426,11 +426,14 @@ textarea{
         <div class="row">
           <div class="field">
             <label for="showStatus">Статус сеансу</label>
-            <select id="showStatus">
-              <option value="active">Активний</option>
-              <option value="cancelled">Скасовано</option>
-              <option value="sold_out">Продано</option>
-            </select>
+           <select id="showStatus">
+  <option value="draft">Чернетка</option>
+  <option value="published">Опубліковано</option>
+  <option value="sales_open">Продаж відкрито</option>
+  <option value="sales_closed">Продаж закрито</option>
+  <option value="archived">Архів</option>
+  <option value="cancelled">Скасовано</option>
+</select>
           </div>
         </div>
 
