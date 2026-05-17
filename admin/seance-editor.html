@@ -1650,6 +1650,10 @@ publish.onclick = async () => {
         time: time,
         poster_url: poster_url,
         status: status,
+
+active:
+  status === "sales_open" ||
+  status === "published",
         pricing: data.pricing,
         seat_overrides: data.seat_overrides
       })
