@@ -397,36 +397,16 @@ tbody tr:hover{
 
 </div>
 
-<script src="../../shared/config.js"></script>
-<script src="../../shared/config-helper.js"></script>
-
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-
-const qs = new URLSearchParams(location.search);
-const URL_VENUE = qs.get("venue") || "";
-const URL_SEANCE = qs.get("seance") || qs.get("seance_id") || "";
-
-let CLIENT_CONFIG = null;
-let CONFIG_VENUES = [];
-
-function normalizeVenue(v){
-  const found = CONFIG_VENUES.find(x => x.id === v || x.hall === v);
-  return found?.id || v || "";
-}
 
 async function loadSeances(){
   const sel = document.getElementById("seance");
   sel.innerHTML = `<option value="">Оберіть сеанс...</option>`;
 
-  CLIENT_CONFIG = await loadVAConfig();
-  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
-    ? CLIENT_CONFIG.venues
-    : [];
-
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,archived,venue_id,show,date,time&archived=eq.false`,
+    `${SUPABASE_URL}/rest/v1/seances?select=id,archived,venue_id,show,date,time&archived=eq.false&venue_id=eq.client-x&order=date.asc,time.asc`,
     {
       headers:{
         apikey: SUPABASE_KEY,
@@ -444,21 +424,12 @@ async function loadSeances(){
 
   const rows = await res.json();
 
-  const filtered = URL_VENUE
-    ? rows.filter(s => normalizeVenue(s.venue_id) === normalizeVenue(URL_VENUE))
-    : rows;
-
-  filtered.forEach(s => {
+  rows.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s.id;
     opt.textContent = `${s.date || ""} ${s.time || ""} — ${s.show || s.id}`;
     sel.appendChild(opt);
   });
-
-  if (URL_SEANCE) {
-    sel.value = URL_SEANCE;
-    run();
-  }
 }
 
 function statusBadge(status){
@@ -576,5 +547,7 @@ async function run(){
 
 loadSeances();
 </script>
+
+
 </body>
 </html>
