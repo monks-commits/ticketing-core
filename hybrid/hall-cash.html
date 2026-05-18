@@ -438,7 +438,45 @@
     <div class="cash-pos-total-label">Сума до оформлення</div>
     <div id="summary-amount" class="cash-pos-total-value">Сума: 0 грн</div>
   </div>
+<div class="cash-ticket-type" style="margin:16px 0;">
 
+  <label
+    for="ticketType"
+    style="
+      display:block;
+      margin-bottom:8px;
+      font-size:13px;
+      opacity:.9;
+    "
+  >
+    Тип квитка
+  </label>
+
+  <select
+    id="ticketType"
+    style="
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:#10233f;
+      color:#fff;
+      font:inherit;
+    "
+  >
+    <option value="full">Повний</option>
+    <option value="discount">Пільговий</option>
+    <option value="student">Студентський</option>
+    <option value="child">Дитячий</option>
+    <option value="invite">Запрошення</option>
+    <option value="free">Безкоштовний</option>
+    <option value="promo">Акційний</option>
+    <option value="partner">Партнерський</option>
+    <option value="vip">VIP</option>
+    <option value="deposit">Депозит</option>
+  </select>
+
+</div>
   <div class="cash-actions cash-actions-premium">
     <button id="btn-sell" class="btn btn-sell" disabled>ПРОДАТИ (КАСА) + ДРУК</button>
     <button id="btn-reserve" class="btn btn-reserve" disabled>ДО РЕЗЕРВУ</button>
