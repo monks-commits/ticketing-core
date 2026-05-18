@@ -1,0 +1,57 @@
+{
+  "id": "club-demo",
+  "type": "mixed",
+  "title": "Club Demo",
+  "width": 1200,
+  "height": 800,
+
+  "sections": [
+    {
+      "id": "entry",
+      "type": "standing",
+      "title": "Вхід / Dance Floor",
+      "capacity": 200,
+      "price": 300
+    },
+    {
+      "id": "tables-main",
+      "type": "tables",
+      "title": "Столи",
+      "items": [
+        {
+          "id": "T1",
+          "title": "Стіл №1",
+          "x": 220,
+          "y": 220,
+          "shape": "round",
+          "capacity": 6,
+          "booking_mode": "table_only",
+          "deposit": 5000,
+          "price_per_seat": null
+        },
+        {
+          "id": "T2",
+          "title": "Стіл №2",
+          "x": 420,
+          "y": 220,
+          "shape": "round",
+          "capacity": 6,
+          "booking_mode": "mixed",
+          "deposit": 5000,
+          "price_per_seat": 900
+        },
+        {
+          "id": "T3",
+          "title": "Стіл №3",
+          "x": 620,
+          "y": 220,
+          "shape": "rect",
+          "capacity": 8,
+          "booking_mode": "seat_only",
+          "deposit": null,
+          "price_per_seat": 700
+        }
+      ]
+    }
+  ]
+}
