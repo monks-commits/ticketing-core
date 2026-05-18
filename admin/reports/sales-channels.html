@@ -387,15 +387,9 @@ async function loadSeances() {
 }
 
 async function run() {
-  const seance = document.getElementById("seance").value;
-
-  if (!seance) {
-    alert("Оберіть сеанс");
-    return;
-  }
 
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/tickets?select=price,seance_id&seance_id=eq.${encodeURIComponent(seance)}`,
+    `${SUPABASE_URL}/rest/v1/tickets?select=channel,price`,
     {
       headers:{
         apikey: SUPABASE_KEY,
@@ -412,25 +406,37 @@ async function run() {
 
   const data = await res.json();
 
-  const count = data.length;
-  const sum = data.reduce((total, t) => total + Number(t.price || 0), 0);
+  const stats = {};
+
+  for (const t of data) {
+    const channel = t.channel || "unknown";
+
+    if (!stats[channel]) {
+      stats[channel] = {
+        count: 0,
+        amount: 0
+      };
+    }
+
+    stats[channel].count += 1;
+    stats[channel].amount += Number(t.price || 0);
+  }
+
+  const html = Object.entries(stats)
+    .map(([channel, s]) => `
+      <div class="metric">
+        <div class="metric-label">${channel.toUpperCase()}</div>
+        <div class="metric-value">${s.count} кв.</div>
+        <div style="margin-top:10px;font-size:18px;font-weight:700;">
+          ${s.amount} грн
+        </div>
+      </div>
+    `)
+    .join("");
 
   document.getElementById("out").innerHTML = `
     <div class="result-grid">
-      <div class="metric">
-        <div class="metric-label">Сеанс</div>
-        <div class="metric-value">${seance}</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Кількість квитків</div>
-        <div class="metric-value">${count}</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Загальна сума</div>
-        <div class="metric-value">${sum} грн</div>
-      </div>
+      ${html || `<div class="result-empty">Даних немає.</div>`}
     </div>
   `;
 }
