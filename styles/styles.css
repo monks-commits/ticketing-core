@@ -530,4 +530,56 @@ img {
   cursor:pointer;
   box-shadow:0 4px 12px rgba(0,0,0,.15);
 } 
+.club-tables-layer{
+  position:relative;
+  width:100%;
+  min-height:700px;
+}
 
+.club-table{
+  position:absolute;
+  width:120px;
+  height:120px;
+  border-radius:999px;
+  border:2px solid rgba(255,255,255,.18);
+  background:#173257;
+  color:#fff;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  transition:.15s ease;
+}
+
+.club-table--rect{
+  border-radius:18px;
+  width:150px;
+  height:100px;
+}
+
+.club-table:hover{
+  transform:scale(1.04);
+  background:#21406a;
+}
+
+.club-table.selected{
+  outline:3px solid #facc15;
+}
+
+.club-table.taken{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.club-table-title{
+  font-size:15px;
+  font-weight:700;
+}
+
+.club-table-meta,
+.club-table-price{
+  font-size:12px;
+  opacity:.85;
+}
