@@ -407,69 +407,68 @@ async function loadSeances() {
 }
 
 async function run() {
-  const dateFrom = document.getElementById("dateFrom").value;
-  const dateTo = document.getElementById("dateTo").value;
 
-  let filters = [];
-
-  if (dateFrom) {
-    const start = new Date(dateFrom + "T00:00:00").toISOString();
-    filters.push(`created_at=gte.${encodeURIComponent(start)}`);
-  }
-
-  if (dateTo) {
-    const end = new Date(dateTo + "T23:59:59").toISOString();
-    filters.push(`created_at=lte.${encodeURIComponent(end)}`);
-  }
-
-  const queryTail = filters.length ? "&" + filters.join("&") : "";
-
-  const url =
-    `${SUPABASE_URL}/rest/v1/audit_log?select=action,entity_type,entity_id,after_data,source,created_at&order=created_at.desc${queryTail}`;
-
-  const res = await fetch(url, {
-    headers:{
-      apikey: SUPABASE_KEY,
-      Authorization: "Bearer " + SUPABASE_KEY
-    },
-    cache:"no-store"
-  });
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/audit_log?select=action,entity_type,entity_id,after_data,source,created_at&order=created_at.desc&limit=50`,
+    {
+      headers:{
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY
+      },
+      cache:"no-store"
+    }
+  );
 
   if (!res.ok) {
-    alert("Помилка запиту audit_log");
+    alert("Помилка audit_log");
     return;
   }
 
-  const data = await res.json();
+  const rows = await res.json();
 
-  const rows = data.map(x => `
-    <div class="metric" style="grid-column:1 / -1;">
-      <div class="metric-label">${new Date(x.created_at).toLocaleString("uk-UA")}</div>
-      <div class="metric-value" style="font-size:22px;">${x.action}</div>
+  if (!rows.length) {
+    document.getElementById("out").innerHTML =
+      `<div class="result-empty">Audit log порожній.</div>`;
+    return;
+  }
 
-      <div style="margin-top:10px;color:#b8c4d6;">
-        <b>Source:</b> ${x.source || "—"}<br>
-        <b>Entity:</b> ${x.entity_type || "—"} / ${x.entity_id || "—"}
+  const html = rows.map(r => `
+    <div class="metric" style="margin-bottom:14px;">
+      
+      <div class="metric-label">
+        ${new Date(r.created_at).toLocaleString()}
+      </div>
+
+      <div class="metric-value" style="font-size:20px;">
+        ${r.action}
+      </div>
+
+      <div style="
+        margin-top:8px;
+        color:var(--muted);
+        font-size:14px;
+        line-height:1.5;
+      ">
+        <b>${r.entity_type}</b><br>
+        ${r.entity_id}<br>
+        source: ${r.source}
       </div>
 
       <pre style="
         margin-top:12px;
-        white-space:pre-wrap;
-        word-break:break-word;
         background:rgba(0,0,0,.18);
-        border-radius:12px;
         padding:12px;
-        color:#fff;
-        font-size:13px;
-      ">${JSON.stringify(x.after_data || {}, null, 2)}</pre>
+        border-radius:12px;
+        overflow:auto;
+        font-size:12px;
+        color:#dbeafe;
+        white-space:pre-wrap;
+      ">${JSON.stringify(r.after_data || {}, null, 2)}</pre>
+
     </div>
   `).join("");
 
-  document.getElementById("out").innerHTML = `
-    <div class="result-grid">
-      ${rows || `<div class="result-empty">Audit log порожній.</div>`}
-    </div>
-  `;
+  document.getElementById("out").innerHTML = html;
 }
 loadSeances();
 </script>
