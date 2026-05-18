@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Продажі по каналах — VA Admin</title>
+<title>Audit Log — VA Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -297,8 +297,8 @@ input:focus{
   </div>
 
   <section class="hero">
-    <h1>📊 Продажі по каналах</h1>
-    <p>Аналітика продажів по каналах: online, cash, partner, invite, offline.</p>
+    <h1>🧾 Audit Log</h1>
+<p>Журнал системних дій: продажі, генерація квитків, зміни сеансів та службові операції.</p>
   </section>
 
   <section class="card">
@@ -407,32 +407,26 @@ async function loadSeances() {
 }
 
 async function run() {
-  const seance = document.getElementById("seance").value;
-const dateFrom = document.getElementById("dateFrom").value;
-const dateTo = document.getElementById("dateTo").value;
- let filters = [];
+  const dateFrom = document.getElementById("dateFrom").value;
+  const dateTo = document.getElementById("dateTo").value;
 
-if (seance && seance !== "__all__") {
-  filters.push(
-    `seance_id=eq.${encodeURIComponent(seance)}`
-  );
-}
+  let filters = [];
 
-const now = new Date();
+  if (dateFrom) {
+    const start = new Date(dateFrom + "T00:00:00").toISOString();
+    filters.push(`created_at=gte.${encodeURIComponent(start)}`);
+  }
 
-if (dateFrom) {
-  const start = new Date(dateFrom + "T00:00:00").toISOString();
-  filters.push(`created_at=gte.${encodeURIComponent(start)}`);
-}
+  if (dateTo) {
+    const end = new Date(dateTo + "T23:59:59").toISOString();
+    filters.push(`created_at=lte.${encodeURIComponent(end)}`);
+  }
 
-if (dateTo) {
-  const end = new Date(dateTo + "T23:59:59").toISOString();
-  filters.push(`created_at=lte.${encodeURIComponent(end)}`);
-}
-const qs = filters.length ? "&" + filters.join("&") : "";
+  const queryTail = filters.length ? "&" + filters.join("&") : "";
 
-const url =
-  `${SUPABASE_URL}/rest/v1/tickets?select=channel,price,seance_id,created_at${qs}`;
+  const url =
+    `${SUPABASE_URL}/rest/v1/audit_log?select=action,entity_type,entity_id,after_data,source,created_at&order=created_at.desc${queryTail}`;
+
   const res = await fetch(url, {
     headers:{
       apikey: SUPABASE_KEY,
@@ -442,94 +436,40 @@ const url =
   });
 
   if (!res.ok) {
-    alert("Помилка запиту");
+    alert("Помилка запиту audit_log");
     return;
   }
 
   const data = await res.json();
 
-  const stats = {};
+  const rows = data.map(x => `
+    <div class="metric" style="grid-column:1 / -1;">
+      <div class="metric-label">${new Date(x.created_at).toLocaleString("uk-UA")}</div>
+      <div class="metric-value" style="font-size:22px;">${x.action}</div>
 
-  for (const t of data) {
-    const channel = t.channel || "unknown";
-    const price = Number(t.price || 0);
+      <div style="margin-top:10px;color:#b8c4d6;">
+        <b>Source:</b> ${x.source || "—"}<br>
+        <b>Entity:</b> ${x.entity_type || "—"} / ${x.entity_id || "—"}
+      </div>
 
-    if (!stats[channel]) {
-      stats[channel] = {
-        count: 0,
-        amount: 0,
-        prices: {}
-      };
-    }
-
-    if (!stats[channel].prices[price]) {
-      stats[channel].prices[price] = {
-        count: 0,
-        amount: 0
-      };
-    }
-
-    stats[channel].count += 1;
-    stats[channel].amount += price;
-
-    stats[channel].prices[price].count += 1;
-    stats[channel].prices[price].amount += price;
-  }
-const totalCount = data.length;
-const totalAmount = data.reduce((sum, t) => sum + Number(t.price || 0), 0);
-  const html = Object.entries(stats)
-    .map(([channel, s]) => {
-      const priceRows = Object.entries(s.prices)
-        .sort((a, b) => Number(a[0]) - Number(b[0]))
-        .map(([price, p]) => `
-          <div style="
-            display:flex;
-            justify-content:space-between;
-            gap:12px;
-            padding:6px 0;
-            border-bottom:1px solid rgba(255,255,255,.08);
-            font-size:14px;
-          ">
-            <span>${price} грн × ${p.count}</span>
-            <b>${p.amount} грн</b>
-          </div>
-        `)
-        .join("");
-
-      return `
-        <div class="metric">
-          <div class="metric-label">${channel.toUpperCase()}</div>
-          <div class="metric-value">${s.count} кв.</div>
-
-          <div style="margin-top:8px;font-size:18px;font-weight:800;">
-            ${s.amount} грн
-          </div>
-
-          <div style="margin-top:14px;">
-            ${priceRows}
-          </div>
-        </div>
-      `;
-    })
-    .join("");
+      <pre style="
+        margin-top:12px;
+        white-space:pre-wrap;
+        word-break:break-word;
+        background:rgba(0,0,0,.18);
+        border-radius:12px;
+        padding:12px;
+        color:#fff;
+        font-size:13px;
+      ">${JSON.stringify(x.after_data || {}, null, 2)}</pre>
+    </div>
+  `).join("");
 
   document.getElementById("out").innerHTML = `
-  <div class="result-grid" style="margin-bottom:18px;">
-    <div class="metric">
-      <div class="metric-label">УСЬОГО КВИТКІВ</div>
-      <div class="metric-value">${totalCount}</div>
+    <div class="result-grid">
+      ${rows || `<div class="result-empty">Audit log порожній.</div>`}
     </div>
-
-    <div class="metric">
-      <div class="metric-label">ЗАГАЛЬНА СУМА</div>
-      <div class="metric-value">${totalAmount} грн</div>
-    </div>
-  </div>
-
-  <div class="result-grid">
-    ${html || `<div class="result-empty">Даних немає.</div>`}
-  </div>
-`;
+  `;
 }
 loadSeances();
 </script>
