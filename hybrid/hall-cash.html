@@ -1503,14 +1503,18 @@ async function sellAndPrintOffline(){
 
   const order_id = `CASH-${SEANCE_ID}-${op_id}`;
 
-  const tickets = keys.map(k => ({
-    op_id,
-    order_id,
-    show_slug: safeShowSlug,
-    seance_id: SEANCE_ID,
-    seat_label: k,
-    price: prices[k] || 0
-  }));
+ const tickets = keys.map(k => ({
+  op_id,
+  order_id,
+
+  // NEW CORE
+  channel: "cash",
+
+  show_slug: safeShowSlug,
+  seance_id: SEANCE_ID,
+  seat_label: k,
+  price: prices[k] || 0
+}));
 
   pushCashLog({
     ts: Date.now(),
