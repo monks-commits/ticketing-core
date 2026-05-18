@@ -323,7 +323,25 @@ input:focus{
   <label for="dateTo">Дата до</label>
   <input id="dateTo" type="date">
 </div>
-        
+     <div class="field">
+  <label for="action">Дія</label>
+<div class="field">
+  <label for="source">Source</label>
+
+  <select id="source">
+    <option value="__all__">Усі source</option>
+    <option value="liqpay-callback">liqpay-callback</option>
+    <option value="cash-sync-ts">cash-sync-ts</option>
+    <option value="generate-tickets">generate-tickets</option>
+  </select>
+</div>
+  <select id="action">
+    <option value="__all__">Усі дії</option>
+    <option value="online_sale">online_sale</option>
+    <option value="cash_sale">cash_sale</option>
+    <option value="ticket_generated">ticket_generated</option>
+  </select>
+</div>   
         <label for="seance">Сеанс</label>
         <select id="seance">
           <option value="">Завантаження…</option>
@@ -408,16 +426,55 @@ async function loadSeances() {
 
 async function run() {
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/audit_log?select=action,entity_type,entity_id,after_data,source,created_at&order=created_at.desc&limit=50`,
-    {
-      headers:{
-        apikey: SUPABASE_KEY,
-        Authorization: "Bearer " + SUPABASE_KEY
-      },
-      cache:"no-store"
-    }
-  );
+  const dateFrom = document.getElementById("dateFrom").value;
+  const dateTo = document.getElementById("dateTo").value;
+  const action = document.getElementById("action").value;
+  const source = document.getElementById("source").value;
+
+  let filters = [];
+
+  if (dateFrom) {
+    const start = new Date(dateFrom + "T00:00:00").toISOString();
+
+    filters.push(
+      `created_at=gte.${encodeURIComponent(start)}`
+    );
+  }
+
+  if (dateTo) {
+    const end = new Date(dateTo + "T23:59:59").toISOString();
+
+    filters.push(
+      `created_at=lte.${encodeURIComponent(end)}`
+    );
+  }
+
+  if (action && action !== "__all__") {
+    filters.push(
+      `action=eq.${encodeURIComponent(action)}`
+    );
+  }
+
+  if (source && source !== "__all__") {
+    filters.push(
+      `source=eq.${encodeURIComponent(source)}`
+    );
+  }
+
+  const qs = filters.length
+    ? "&" + filters.join("&")
+    : "";
+
+  const url =
+    `${SUPABASE_URL}/rest/v1/audit_log?select=action,entity_type,entity_id,after_data,source,created_at&order=created_at.desc&limit=100${qs}`;
+
+  const res = await fetch(url, {
+    headers:{
+      apikey: SUPABASE_KEY,
+      Authorization: "Bearer " + SUPABASE_KEY
+    },
+    cache:"no-store"
+  });
 
   if (!res.ok) {
     alert("Помилка audit_log");
@@ -427,14 +484,17 @@ async function run() {
   const rows = await res.json();
 
   if (!rows.length) {
+
     document.getElementById("out").innerHTML =
       `<div class="result-empty">Audit log порожній.</div>`;
+
     return;
   }
 
   const html = rows.map(r => `
+
     <div class="metric" style="margin-bottom:14px;">
-      
+
       <div class="metric-label">
         ${new Date(r.created_at).toLocaleString()}
       </div>
@@ -466,6 +526,7 @@ async function run() {
       ">${JSON.stringify(r.after_data || {}, null, 2)}</pre>
 
     </div>
+
   `).join("");
 
   document.getElementById("out").innerHTML = html;
