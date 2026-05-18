@@ -1478,16 +1478,19 @@ async function sellAndPrintOffline(){
   const op_id = genOpId();
 
   const op = {
-    op_id,
-    type: "sale",
-    seance_id: SEANCE_ID,
-    show_slug: safeShowSlug,
-    seats: keys,
-    prices,
-    total,
-    sold_at: new Date().toISOString()
-  };
+  op_id,
+  type: "sale",
 
+  // NEW CORE
+  channel: "cash",
+
+  seance_id: SEANCE_ID,
+  show_slug: safeShowSlug,
+  seats: keys,
+  prices,
+  total,
+  sold_at: new Date().toISOString()
+};
   const queue = loadQueue();
   queue.push({
     op_id,
