@@ -439,7 +439,8 @@ async function run() {
     stats[channel].prices[price].count += 1;
     stats[channel].prices[price].amount += price;
   }
-
+const totalCount = data.length;
+const totalAmount = data.reduce((sum, t) => sum + Number(t.price || 0), 0);
   const html = Object.entries(stats)
     .map(([channel, s]) => {
       const priceRows = Object.entries(s.prices)
@@ -477,10 +478,22 @@ async function run() {
     .join("");
 
   document.getElementById("out").innerHTML = `
-    <div class="result-grid">
-      ${html || `<div class="result-empty">Даних немає.</div>`}
+  <div class="result-grid" style="margin-bottom:18px;">
+    <div class="metric">
+      <div class="metric-label">УСЬОГО КВИТКІВ</div>
+      <div class="metric-value">${totalCount}</div>
     </div>
-  `;
+
+    <div class="metric">
+      <div class="metric-label">ЗАГАЛЬНА СУМА</div>
+      <div class="metric-value">${totalAmount} грн</div>
+    </div>
+  </div>
+
+  <div class="result-grid">
+    ${html || `<div class="result-empty">Даних немає.</div>`}
+  </div>
+`;
 }
 loadSeances();
 </script>
