@@ -2034,6 +2034,70 @@ function renderHorizontalGroup(group, sectionsMap){
   return wrap;
 }
 
+function renderTablesSection(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section hall-section--tables";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const layer = document.createElement("div");
+  layer.className = "club-tables-layer";
+
+  (section.items || []).forEach(table => {
+    const key = table.id;
+    if (!key) return;
+
+    const btn = makeSeatElement(
+      key,
+      table.title || key,
+      "",
+      Number(table.deposit || table.price_per_seat || 0),
+      {
+        zone: section.title || "Столи",
+        prefix: "T",
+        row: "0",
+        seat: 0,
+        type: "table",
+        table
+      }
+    );
+
+    btn.classList.add("club-table");
+    btn.dataset.key = key;
+    btn.dataset.type = "table";
+    btn.dataset.bookingMode = table.booking_mode || "table_only";
+    btn.dataset.capacity = String(table.capacity || 0);
+    btn.dataset.deposit = String(table.deposit || "");
+    btn.dataset.pricePerSeat = String(table.price_per_seat || "");
+
+    btn.style.position = "absolute";
+    btn.style.left = Number(table.x || 0) + "px";
+    btn.style.top = Number(table.y || 0) + "px";
+    btn.style.width = table.shape === "rect" ? "150px" : "120px";
+    btn.style.height = table.shape === "rect" ? "100px" : "120px";
+    btn.style.borderRadius = table.shape === "rect" ? "18px" : "999px";
+
+    btn.innerHTML = `
+      <div class="club-table-title">${table.title || key}</div>
+      <div class="club-table-meta">${table.capacity || 0} місць</div>
+      ${
+        table.deposit
+          ? `<div class="club-table-price">${table.deposit} грн депозит</div>`
+          : table.price_per_seat
+            ? `<div class="club-table-price">${table.price_per_seat} грн / місце</div>`
+            : ""
+      }
+    `;
+
+    layer.appendChild(btn);
+  });
+
+  wrap.appendChild(layer);
+  return wrap;
+}
+    
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
