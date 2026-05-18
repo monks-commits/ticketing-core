@@ -304,7 +304,13 @@ input:focus{
   <section class="card">
     <h2>Параметри звіту</h2>
     <p>Оберіть сеанс зі списку та сформуйте звіт.</p>
+<label>Період</label>
 
+<select id="period">
+  <option value="today">Сьогодні</option>
+  <option value="month">Місяць</option>
+  <option value="all" selected>Увесь час</option>
+</select>
     <div class="row">
       <div class="field field--grow">
         <label for="seance">Сеанс</label>
@@ -391,12 +397,47 @@ async function loadSeances() {
 
 async function run() {
   const seance = document.getElementById("seance").value;
+const period = document.getElementById("period").value;
+ let filters = [];
 
-  const url =
-    seance && seance !== "__all__"
-      ? `${SUPABASE_URL}/rest/v1/tickets?select=channel,price,seance_id&seance_id=eq.${encodeURIComponent(seance)}`
-      : `${SUPABASE_URL}/rest/v1/tickets?select=channel,price,seance_id`;
+if (seance && seance !== "__all__") {
+  filters.push(
+    `seance_id=eq.${encodeURIComponent(seance)}`
+  );
+}
 
+const now = new Date();
+
+if (period === "today") {
+
+  const start = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).toISOString();
+
+  filters.push(
+    `created_at=gte.${encodeURIComponent(start)}`
+  );
+}
+
+if (period === "month") {
+
+  const start = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1
+  ).toISOString();
+
+  filters.push(
+    `created_at=gte.${encodeURIComponent(start)}`
+  );
+}
+
+const qs = filters.length ? "&" + filters.join("&") : "";
+
+const url =
+  `${SUPABASE_URL}/rest/v1/tickets?select=channel,price,seance_id,created_at${qs}`;
   const res = await fetch(url, {
     headers:{
       apikey: SUPABASE_KEY,
