@@ -936,6 +936,42 @@
   left:50%;
   transform:translateX(-50%);
 }
+
+.hall-section--tables{
+  margin-top:24px;
+}
+
+.club-tables-layer{
+  position:relative;
+  width:100%;
+  min-height:700px;
+  background:rgba(255,255,255,.04);
+  border-radius:18px;
+}
+
+.club-table{
+  position:absolute !important;
+  background:#173257 !important;
+  color:#fff !important;
+  border:2px solid rgba(255,255,255,.18) !important;
+  display:flex !important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  text-align:center;
+}
+
+.club-table-title{
+  font-weight:800;
+  font-size:14px;
+}
+
+.club-table-meta,
+.club-table-price{
+  font-size:11px;
+  opacity:.9;
+}
   
 </style>
  
@@ -2250,6 +2286,71 @@ function renderBuilderSeats(hallData){
   wrap.appendChild(canvas);
   root.appendChild(wrap);
 }
+
+function renderTablesSection(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section hall-section--tables";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const layer = document.createElement("div");
+  layer.className = "club-tables-layer";
+
+  (section.items || []).forEach(table => {
+    const key = table.id;
+    if (!key) return;
+
+    const btn = makeSeatElement(
+      key,
+      table.title || key,
+      "",
+      Number(table.deposit || table.price_per_seat || 0),
+      {
+        zone: section.title || "Столи",
+        prefix: "T",
+        row: "0",
+        seat: 0,
+        type: "table",
+        table
+      }
+    );
+
+    btn.classList.add("club-table");
+    btn.dataset.key = key;
+    btn.dataset.type = "table";
+    btn.dataset.bookingMode = table.booking_mode || "table_only";
+    btn.dataset.capacity = String(table.capacity || 0);
+    btn.dataset.deposit = String(table.deposit || "");
+    btn.dataset.pricePerSeat = String(table.price_per_seat || "");
+
+    btn.style.position = "absolute";
+    btn.style.left = Number(table.x || 0) + "px";
+    btn.style.top = Number(table.y || 0) + "px";
+    btn.style.width = table.shape === "rect" ? "150px" : "120px";
+    btn.style.height = table.shape === "rect" ? "100px" : "120px";
+    btn.style.borderRadius = table.shape === "rect" ? "18px" : "999px";
+
+    btn.innerHTML = `
+      <div class="club-table-title">${table.title || key}</div>
+      <div class="club-table-meta">${table.capacity || 0} місць</div>
+      ${
+        table.deposit
+          ? `<div class="club-table-price">${table.deposit} грн депозит</div>`
+          : table.price_per_seat
+            ? `<div class="club-table-price">${table.price_per_seat} грн / місце</div>`
+            : ""
+      }
+    `;
+
+    layer.appendChild(btn);
+  });
+
+  wrap.appendChild(layer);
+  return wrap;
+}
+
     
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
@@ -2302,6 +2403,11 @@ if (section.type === "side_vertical") {
       return;
     }
 
+if (section.type === "tables") {
+  root.appendChild(renderTablesSection(section));
+  return;
+}
+    
     if (section.type === "lodges_vertical") {
       const wrap = document.createElement("section");
       wrap.className = "hall-section";
