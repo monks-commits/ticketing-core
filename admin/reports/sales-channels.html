@@ -313,6 +313,17 @@ input:focus{
 </select>
     <div class="row">
       <div class="field field--grow">
+
+<div class="field">
+  <label for="dateFrom">Дата від</label>
+  <input id="dateFrom" type="date">
+</div>
+
+<div class="field">
+  <label for="dateTo">Дата до</label>
+  <input id="dateTo" type="date">
+</div>
+        
         <label for="seance">Сеанс</label>
         <select id="seance">
           <option value="">Завантаження…</option>
@@ -397,7 +408,8 @@ async function loadSeances() {
 
 async function run() {
   const seance = document.getElementById("seance").value;
-const period = document.getElementById("period").value;
+const dateFrom = document.getElementById("dateFrom").value;
+const dateTo = document.getElementById("dateTo").value;
  let filters = [];
 
 if (seance && seance !== "__all__") {
@@ -408,32 +420,15 @@ if (seance && seance !== "__all__") {
 
 const now = new Date();
 
-if (period === "today") {
-
-  const start = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).toISOString();
-
-  filters.push(
-    `created_at=gte.${encodeURIComponent(start)}`
-  );
+if (dateFrom) {
+  const start = new Date(dateFrom + "T00:00:00").toISOString();
+  filters.push(`created_at=gte.${encodeURIComponent(start)}`);
 }
 
-if (period === "month") {
-
-  const start = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    1
-  ).toISOString();
-
-  filters.push(
-    `created_at=gte.${encodeURIComponent(start)}`
-  );
+if (dateTo) {
+  const end = new Date(dateTo + "T23:59:59").toISOString();
+  filters.push(`created_at=lte.${encodeURIComponent(end)}`);
 }
-
 const qs = filters.length ? "&" + filters.join("&") : "";
 
 const url =
