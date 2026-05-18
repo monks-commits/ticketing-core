@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Продажі по каналах — VA Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#061a3a;
+  --card:#1d2d47;
+  --card-2:#223552;
+  --text:#ffffff;
+  --muted:#b8c4d6;
+  --line:rgba(255,255,255,.10);
+
+  --primary:#4c86f7;
+  --primary-hover:#3f78e6;
+
+  --success:#2ecc71;
+  --success-hover:#28b864;
+
+  --field:#10233f;
+  --field-border:rgba(255,255,255,.12);
+
+  --shadow:0 18px 40px rgba(0,0,0,.22);
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:14px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.page-wrap{
+  width:min(1100px, calc(100% - 48px));
+  margin:0 auto;
+  padding:48px 0 56px;
+}
+
+.topbar{
+  margin-bottom:28px;
+}
+
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  background:#fff;
+  color:#111827;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+}
+
+.hero{
+  margin-bottom:28px;
+}
+
+.hero h1{
+  margin:0 0 10px;
+  font-size:52px;
+  line-height:1.05;
+  font-weight:800;
+}
+
+.hero p{
+  margin:0;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.45;
+  max-width:760px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius-xl);
+  padding:28px 24px;
+  box-shadow:var(--shadow);
+}
+
+.card h2{
+  margin:0 0 10px;
+  font-size:24px;
+}
+
+.card p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.45;
+}
+
+.row{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  align-items:end;
+  margin-top:22px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:220px;
+}
+
+.field--grow{
+  flex:1 1 420px;
+}
+
+.field label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+select,input{
+  width:100%;
+  border:1px solid var(--field-border);
+  background:var(--field);
+  color:#fff;
+  border-radius:14px;
+  padding:12px;
+  outline:none;
+  font:inherit;
+}
+
+select:focus,
+input:focus{
+  border-color:rgba(76,134,247,.6);
+  box-shadow:0 0 0 3px rgba(76,134,247,.16);
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:22px;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:140px;
+  min-height:46px;
+  padding:0 18px;
+  border:none;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.15s ease;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+
+.btn-primary:hover{
+  background:var(--primary-hover);
+}
+
+.btn-success{
+  background:var(--success);
+  color:#08111f;
+}
+
+.btn-success:hover{
+  background:var(--success-hover);
+}
+
+.result{
+  margin-top:26px;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:22px;
+  min-height:160px;
+}
+
+.result-empty{
+  color:var(--muted);
+}
+
+.result-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:16px;
+}
+
+.metric{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  padding:18px;
+}
+
+.metric-label{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+.metric-value{
+  font-size:28px;
+  font-weight:800;
+  word-break:break-word;
+}
+
+@media print{
+  body{
+    background:#fff;
+    color:#000;
+  }
+
+  .topbar,
+  .actions{
+    display:none;
+  }
+
+  .card,
+  .result,
+  .metric{
+    background:#fff !important;
+    color:#000 !important;
+    box-shadow:none !important;
+    border:1px solid #ddd !important;
+  }
+
+  select,input{
+    color:#000;
+    background:#fff;
+    border:1px solid #ccc;
+  }
+}
+
+@media (max-width:768px){
+  .page-wrap{
+    width:min(100% - 24px, 1100px);
+    padding:24px 0 32px;
+  }
+
+  .hero h1{
+    font-size:38px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .card{
+    padding:20px 16px;
+  }
+
+  .field,
+  .field--grow{
+    min-width:100%;
+    flex:1 1 100%;
+  }
+
+  .btn{
+    width:100%;
+  }
+
+  .result-grid{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="page-wrap">
+
+  <div class="topbar">
+    <a class="back-btn" href="./index.html">← Назад</a>
+  </div>
+
+  <section class="hero">
+    <h1>📊 Продажі по каналах</h1>
+    <p>Аналітика продажів по каналах: online, cash, partner, invite, offline.</p>
+  </section>
+
+  <section class="card">
+    <h2>Параметри звіту</h2>
+    <p>Оберіть сеанс зі списку та сформуйте звіт.</p>
+<label>Період</label>
+
+<select id="period">
+  <option value="today">Сьогодні</option>
+  <option value="month">Місяць</option>
+  <option value="all" selected>Увесь час</option>
+</select>
+    <div class="row">
+      <div class="field field--grow">
+
+<div class="field">
+  <label for="dateFrom">Дата від</label>
+  <input id="dateFrom" type="date">
+</div>
+
+<div class="field">
+  <label for="dateTo">Дата до</label>
+  <input id="dateTo" type="date">
+</div>
+        
+        <label for="seance">Сеанс</label>
+        <select id="seance">
+          <option value="">Завантаження…</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="run()">Сформувати</button>
+      <button class="btn btn-success" onclick="window.print()">Друк</button>
+    </div>
+
+    <div id="out" class="result">
+      <div class="result-empty">
+        Звіт ще не сформовано.
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="../../shared/config.js"></script>
+<script src="../../shared/config-helper.js"></script>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const qs = new URLSearchParams(location.search);
+const URL_VENUE = qs.get("venue") || "";
+const URL_SEANCE = qs.get("seance") || qs.get("seance_id") || "";
+
+let CLIENT_CONFIG = null;
+let CONFIG_VENUES = [];
+
+function normalizeVenue(v){
+  const found = CONFIG_VENUES.find(x => x.id === v || x.hall === v);
+  return found?.id || v || "";
+}
+
+async function loadSeances() {
+  const sel = document.getElementById("seance");
+  sel.innerHTML = `
+  <option value="__all__">Усі сеанси</option>
+  <option value="">Оберіть сеанс...</option>
+`;
+
+  CLIENT_CONFIG = await loadVAConfig();
+  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+    ? CLIENT_CONFIG.venues
+    : [];
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?select=id,archived,venue_id,show,date,time&archived=eq.false`,
+    {
+      headers:{
+        apikey: SUPABASE_KEY,
+        Authorization: "Bearer " + SUPABASE_KEY
+      },
+      cache:"no-store"
+    }
+  );
+
+  const rows = await res.json();
+
+  const filtered = URL_VENUE
+    ? rows.filter(s => normalizeVenue(s.venue_id) === normalizeVenue(URL_VENUE))
+    : rows;
+
+  filtered.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.date || ""} ${s.time || ""} — ${s.show || s.id}`;
+    sel.appendChild(opt);
+  });
+
+  if (URL_SEANCE) {
+    sel.value = URL_SEANCE;
+    run();
+  }
+}
+
+async function run() {
+  const seance = document.getElementById("seance").value;
+const dateFrom = document.getElementById("dateFrom").value;
+const dateTo = document.getElementById("dateTo").value;
+ let filters = [];
+
+if (seance && seance !== "__all__") {
+  filters.push(
+    `seance_id=eq.${encodeURIComponent(seance)}`
+  );
+}
+
+const now = new Date();
+
+if (dateFrom) {
+  const start = new Date(dateFrom + "T00:00:00").toISOString();
+  filters.push(`created_at=gte.${encodeURIComponent(start)}`);
+}
+
+if (dateTo) {
+  const end = new Date(dateTo + "T23:59:59").toISOString();
+  filters.push(`created_at=lte.${encodeURIComponent(end)}`);
+}
+const qs = filters.length ? "&" + filters.join("&") : "";
+
+const url =
+  `${SUPABASE_URL}/rest/v1/tickets?select=channel,price,seance_id,created_at${qs}`;
+  const res = await fetch(url, {
+    headers:{
+      apikey: SUPABASE_KEY,
+      Authorization: "Bearer " + SUPABASE_KEY
+    },
+    cache:"no-store"
+  });
+
+  if (!res.ok) {
+    alert("Помилка запиту");
+    return;
+  }
+
+  const data = await res.json();
+
+  const stats = {};
+
+  for (const t of data) {
+    const channel = t.channel || "unknown";
+    const price = Number(t.price || 0);
+
+    if (!stats[channel]) {
+      stats[channel] = {
+        count: 0,
+        amount: 0,
+        prices: {}
+      };
+    }
+
+    if (!stats[channel].prices[price]) {
+      stats[channel].prices[price] = {
+        count: 0,
+        amount: 0
+      };
+    }
+
+    stats[channel].count += 1;
+    stats[channel].amount += price;
+
+    stats[channel].prices[price].count += 1;
+    stats[channel].prices[price].amount += price;
+  }
+const totalCount = data.length;
+const totalAmount = data.reduce((sum, t) => sum + Number(t.price || 0), 0);
+  const html = Object.entries(stats)
+    .map(([channel, s]) => {
+      const priceRows = Object.entries(s.prices)
+        .sort((a, b) => Number(a[0]) - Number(b[0]))
+        .map(([price, p]) => `
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            padding:6px 0;
+            border-bottom:1px solid rgba(255,255,255,.08);
+            font-size:14px;
+          ">
+            <span>${price} грн × ${p.count}</span>
+            <b>${p.amount} грн</b>
+          </div>
+        `)
+        .join("");
+
+      return `
+        <div class="metric">
+          <div class="metric-label">${channel.toUpperCase()}</div>
+          <div class="metric-value">${s.count} кв.</div>
+
+          <div style="margin-top:8px;font-size:18px;font-weight:800;">
+            ${s.amount} грн
+          </div>
+
+          <div style="margin-top:14px;">
+            ${priceRows}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  document.getElementById("out").innerHTML = `
+  <div class="result-grid" style="margin-bottom:18px;">
+    <div class="metric">
+      <div class="metric-label">УСЬОГО КВИТКІВ</div>
+      <div class="metric-value">${totalCount}</div>
+    </div>
+
+    <div class="metric">
+      <div class="metric-label">ЗАГАЛЬНА СУМА</div>
+      <div class="metric-value">${totalAmount} грн</div>
+    </div>
+  </div>
+
+  <div class="result-grid">
+    ${html || `<div class="result-empty">Даних немає.</div>`}
+  </div>
+`;
+}
+loadSeances();
+</script>
+
+</body>
+</html>
