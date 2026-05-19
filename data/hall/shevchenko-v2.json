@@ -3,8 +3,8 @@
   "format": "va-hall-studio-geometry-stable",
   "title": "Назва залу",
   "width": 1600,
-  "height": 1924,
-  "background_mode": "contain",
+  "height": 1940,
+  "background_mode": "original",
   "seats": [
     {
       "id": "seat_1778752581577_705",
@@ -8893,28 +8893,6 @@
       "key": "P18-M20",
       "x": 323,
       "y": 793
-    },
-    {
-      "id": "seat_1778774298230_420",
-      "type": "seat",
-      "zone": "Партер",
-      "prefix": "P",
-      "row": "13",
-      "seat": 21,
-      "key": "P13-M21",
-      "x": 261,
-      "y": 745
-    },
-    {
-      "id": "seat_1778774346663_421",
-      "type": "seat",
-      "zone": "Партер",
-      "prefix": "P",
-      "row": "13",
-      "seat": 22,
-      "key": "P13-M22",
-      "x": 1457,
-      "y": 318
     },
     {
       "id": "seat_1778774362881_422",
