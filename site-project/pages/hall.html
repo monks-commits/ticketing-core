@@ -2536,13 +2536,8 @@ function renderSimpleRows(hallData) {
 }
 
 function renderPriceLegendMobile() {
-  const box = document.getElementById("priceLegendMobile");
-  if (!box) return;
-
-  if (window.innerWidth > 640) {
-    box.innerHTML = "";
-    return;
-  }
+  const desktop = document.getElementById("priceLegendDesktop");
+  const mobile = document.getElementById("priceLegendMobile");
 
   const byPrice = new Map();
 
@@ -2553,10 +2548,7 @@ function renderPriceLegendMobile() {
     const color = String(cfg.color).trim();
 
     if (!Number.isFinite(price) || !color) return;
-
-    if (!byPrice.has(price)) {
-      byPrice.set(price, color);
-    }
+    if (!byPrice.has(price)) byPrice.set(price, color);
   };
 
   Object.values(SEANCE_CONFIG?.pricing || {}).forEach(addCfg);
@@ -2564,22 +2556,30 @@ function renderPriceLegendMobile() {
 
   const items = [...byPrice.entries()].sort((a, b) => a[0] - b[0]);
 
-  if (!items.length) {
-    box.innerHTML = "";
-    return;
-  }
-
-  box.innerHTML = `
-    <div class="price-legend-mobile__stack">
-      ${items.map(([price, color]) => `
-        <div class="price-legend-mobile__item" style="background:${color}">
-          ${price}
+  const desktopHtml = items.length
+    ? items.map(([price, color]) => `
+        <div class="price-legend-row">
+          <span class="price-dot" style="background:${color}"></span>
+          <span>${price} грн</span>
         </div>
-      `).join("")}
-    </div>
-  `;
-}
+      `).join("")
+    : `<div class="price-legend-empty">Ціни не задані</div>`;
 
+  const mobileHtml = items.length
+    ? `
+      <div class="price-legend-mobile__stack">
+        ${items.map(([price, color]) => `
+          <div class="price-legend-mobile__item" style="background:${color}">
+            ${price}
+          </div>
+        `).join("")}
+      </div>
+    `
+    : "";
+
+  if (desktop) desktop.innerHTML = desktopHtml;
+  if (mobile) mobile.innerHTML = window.innerWidth <= 640 ? mobileHtml : "";
+}
 function applyMobileHallScale() {
   const viewport = document.getElementById("mobile-hall-viewport");
   const scaleWrap = document.getElementById("mobile-hall-scale");
