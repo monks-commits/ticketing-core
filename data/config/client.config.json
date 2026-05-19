@@ -17,7 +17,7 @@
   "title": "Академія Руху",
   "city": "kryvyi-rih",
   "description": "Театр та культурний центр Академія Руху.",
-  "hall": "academy-ruhu"
+  "hall": "academy"
 },
     
     {
@@ -55,7 +55,7 @@
 {
   "id": "academy-ruhu",
   "name": "Академія Руху",
-  "file": "academy-ruhu.json"
+  "file": "academy.json"
 },
     
     {
