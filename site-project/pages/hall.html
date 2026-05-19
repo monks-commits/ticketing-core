@@ -1103,6 +1103,28 @@
   display:inline-block;
   flex-shrink:0;
 }
+
+.hall-status-row{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  margin:10px 0 !important;
+}
+
+.status-dot{
+  width:14px !important;
+  height:14px !important;
+  border-radius:4px !important;
+  display:inline-block !important;
+  flex:0 0 14px !important;
+  border:1px solid #d1d5db !important;
+}
+
+.status-dot--free{ background:#fff !important; }
+.status-dot--hold{ background:#d32f2f !important; border-color:#d32f2f !important; }
+.status-dot--sold{ background:#bfc5ce !important; border-color:#bfc5ce !important; }
+.status-dot--reserved{ background:#f59e0b !important; border-color:#f59e0b !important; }
+  
 </style>
  
 </head>
