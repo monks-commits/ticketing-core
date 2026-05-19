@@ -1758,6 +1758,21 @@ function showSeatTooltipTemporarily(btn, meta, price, ms = 1400){
       }
     }
 
+function setEventPosterFromSeance(row){
+  const img = document.getElementById("event-poster");
+  if (!img) return;
+
+  const url = row?.poster_url || "";
+
+  if (!url) {
+    img.style.display = "none";
+    return;
+  }
+
+  img.style.display = "block";
+  img.src = url;
+}
+    
 async function loadSeanceMeta() {
   if (!SEANCE_ID) return null;
 
@@ -1779,18 +1794,20 @@ async function loadSeanceMeta() {
     }
 
     const rows = await res.json();
-    console.log("SEANCE_META rows =", rows);
-
     if (!Array.isArray(rows) || !rows.length) return null;
 
     const row = rows[0];
+
+    setEventPosterFromSeance(row);
 
     return {
       show: row.show || row.title || row.name || "",
       date: row.date || "",
       time: row.time || "",
-      venue_id: row.venue_id || ""
+      venue_id: row.venue_id || "",
+      poster_url: row.poster_url || ""
     };
+
   } catch (e) {
     console.warn("loadSeanceMeta error", e);
     return null;
