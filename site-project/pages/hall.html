@@ -1124,6 +1124,76 @@
 .status-dot--hold{ background:#d32f2f !important; border-color:#d32f2f !important; }
 .status-dot--sold{ background:#bfc5ce !important; border-color:#bfc5ce !important; }
 .status-dot--reserved{ background:#f59e0b !important; border-color:#f59e0b !important; }
+
+/* ===== VA SITE FINAL LAYOUT ===== */
+
+.ticket-layout{
+  display:grid !important;
+  grid-template-columns:240px minmax(0,1fr) 320px !important;
+  gap:24px !important;
+  align-items:start !important;
+}
+
+.ticket-sidebar-left{
+  width:100% !important;
+}
+
+.ticket-sidebar-right{
+  width:100% !important;
+}
+
+.hall-scroll{
+  overflow:auto !important;
+  border:none !important;
+  background:transparent !important;
+}
+
+.hall-inner{
+  width:max-content !important;
+  min-width:max-content !important;
+  margin:0 auto !important;
+  padding:40px 80px !important;
+}
+
+.hall-status-row{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  margin:12px 0 !important;
+}
+
+.status-dot{
+  width:14px !important;
+  height:14px !important;
+  border-radius:4px !important;
+  display:inline-block !important;
+  flex:0 0 14px !important;
+}
+
+.status-dot--free{
+  background:#ffffff !important;
+  border:1px solid #cbd5e1 !important;
+}
+
+.status-dot--hold{
+  background:#d32f2f !important;
+}
+
+.status-dot--sold{
+  background:#bfc5ce !important;
+}
+
+.status-dot--reserved{
+  background:#f59e0b !important;
+}
+
+@media(max-width:1100px){
+
+  .ticket-layout{
+    grid-template-columns:1fr !important;
+  }
+
+}
   
 </style>
  
