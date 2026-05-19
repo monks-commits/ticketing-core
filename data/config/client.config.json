@@ -2,41 +2,46 @@
   "client_id": "va-demo",
   "client_name": "Ваш Адмін Demo",
   "city": "Кривий Ріг",
+
   "venues": [
-  {
-    "id": "shevchenko",
-    "title": "Театр Шевченка",
-    "city": "kryvyi-rih",
-    "description": "Офіційна театральна афіша, вибір місць та онлайн-продаж квитків.",
-    "hall": "shevchenko-v2"
-  },
-  {
-    "id": "opera-test",
-    "title": "Оперний театр",
-    "city": "dnipro",
-    "description": "Тестова афіша для подій на великій сцені з вибором місць.",
-    "hall": "opera-test"
-  },
-  {
-  "id": "big-stage-demo",
-  "title": "Велика сцена Demo",
-  "city": "dnipro",
-  "description": "Демонстраційна площадка для перевірки схем, цін і продажів.",
-  "hall": "big-stage-demo"
-},
+    {
+      "id": "shevchenko",
+      "title": "Театр Шевченка",
+      "city": "kryvyi-rih",
+      "description": "Офіційна театральна афіша, вибір місць та онлайн-продаж квитків.",
+      "hall": "shevchenko-v2"
+    },
+
 {
-  "id": "club-demo",
-  "title": "Club Demo",
+  "id": "academy-ruhu",
+  "title": "Академія Руху",
   "city": "kryvyi-rih",
-  "description": "Клубний майданчик з підтримкою входу без місця, столів, депозитів та змішаних схем розсадки.",
-  "hall": "club-demo-tables",
-  "halls": [
-    "club-demo-tables",
-    "club-demo-mixed",
-    "club-demo-seated",
-    "club-demo-standing"
-  ]
-}
+  "description": "Театр та культурний центр Академія Руху.",
+  "hall": "academy-ruhu"
+},
+    
+    {
+      "id": "opera-test",
+      "title": "Оперний театр",
+      "city": "dnipro",
+      "description": "Тестова афіша для подій на великій сцені з вибором місць.",
+      "hall": "opera-test"
+    },
+    {
+      "id": "big-stage-demo",
+      "title": "Велика сцена Demo",
+      "city": "dnipro",
+      "description": "Демонстраційна площадка для перевірки схем, цін і продажів.",
+      "hall": "big-stage-demo"
+    },
+    {
+      "id": "club-demo",
+      "title": "Club Demo",
+      "city": "kryvyi-rih",
+      "description": "Клубний майданчик з підтримкою входу без місця, столів, депозитів та змішаних схем розсадки.",
+      "hall": "club-demo-tables"
+    }
+  ],
 
   "default_hall": "shevchenko-v2",
 
@@ -46,6 +51,13 @@
       "name": "Театр Шевченка",
       "file": "shevchenko-v2.json"
     },
+
+{
+  "id": "academy-ruhu",
+  "name": "Академія Руху",
+  "file": "academy-ruhu.json"
+},
+    
     {
       "id": "opera-test",
       "name": "Оперний театр",
@@ -55,28 +67,27 @@
       "id": "big-stage-demo",
       "name": "Велика сцена Demo",
       "file": "big-stage-demo.json"
-     },
-
+    },
     {
-  "id": "club-demo-tables",
-  "name": "Club Demo — столи",
-  "file": "club-demo-tables.json"
-},
-{
-  "id": "club-demo-mixed",
-  "name": "Club Demo — змішана схема",
-  "file": "club-demo-mixed.json"
-},
-{
-  "id": "club-demo-seated",
-  "name": "Club Demo — сидяча розсадка",
-  "file": "club-demo-seated.json"
-},
-{
-  "id": "club-demo-standing",
-  "name": "Club Demo — вхід без місця",
-  "file": "club-demo-standing.json"
-}
+      "id": "club-demo-tables",
+      "name": "Club Demo — столи",
+      "file": "club-demo-tables.json"
+    },
+    {
+      "id": "club-demo-mixed",
+      "name": "Club Demo — змішана схема",
+      "file": "club-demo-mixed.json"
+    },
+    {
+      "id": "club-demo-seated",
+      "name": "Club Demo — сидяча розсадка",
+      "file": "club-demo-seated.json"
+    },
+    {
+      "id": "club-demo-standing",
+      "name": "Club Demo — вхід без місця",
+      "file": "club-demo-standing.json"
+    }
   ],
 
   "contacts": {
