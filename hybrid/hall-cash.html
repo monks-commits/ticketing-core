@@ -2766,7 +2766,7 @@ setInterval(async () => {
 
 })();
 
-let hallZoom = 1;
+let hallZoom = 0.45;
 
 function applyHallZoom(){
 
@@ -2788,8 +2788,7 @@ function applyHallZoom(){
 document.getElementById("hallZoomOut")
 ?.addEventListener("click", ()=>{
 
-  hallZoom = Math.max(0.45, hallZoom - 0.1);
-
+  hallZoom = Math.max(0.25, hallZoom - 0.1);
   applyHallZoom();
 });
 
