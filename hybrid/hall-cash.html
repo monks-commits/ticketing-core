@@ -2741,6 +2741,44 @@ setInterval(async () => {
 }, 3000);
 
 })();
+
+let hallZoom = 1;
+
+function applyHallZoom(){
+
+  const inner = document.querySelector(".hall-inner");
+  const label = document.getElementById("hallZoomLabel");
+
+  if (!inner) return;
+
+  inner.style.transform = `scale(${hallZoom})`;
+  inner.style.transformOrigin = "top center";
+  inner.style.width = (100 / hallZoom) + "%";
+
+  if (label) {
+    label.textContent =
+      Math.round(hallZoom * 100) + "%";
+  }
+}
+
+document.getElementById("hallZoomOut")
+?.addEventListener("click", ()=>{
+
+  hallZoom = Math.max(0.45, hallZoom - 0.1);
+
+  applyHallZoom();
+});
+
+document.getElementById("hallZoomIn")
+?.addEventListener("click", ()=>{
+
+  hallZoom = Math.min(1.5, hallZoom + 0.1);
+
+  applyHallZoom();
+});
+
+applyHallZoom();
+    
   </script>
 </body>
 </html>
