@@ -1000,86 +1000,69 @@
         </div>
       </section>
 
-      <div class="hall-layout">
-        <div class="hall-left">
-          <section class="hall-shell">
-            <div class="hall-shell-head">
-              <div>
-        <div id="priceLegendMobile" class="price-legend-mobile"></div>        
-                <h2 class="hall-shell-title" id="hall-title">Схема залу</h2>
-                <p class="hall-shell-meta" id="hall-meta">Оберіть місця на схемі нижче.</p>
-              </div>
+     <div class="ticket-layout">
 
-              <div class="hall-legend">
-                <div class="hall-legend-item">
-                  <span class="hall-legend-dot hall-legend-dot--free"></span>
-                  <span>Вільно</span>
-                </div>
-                <div class="hall-legend-item">
-                  <span class="hall-legend-dot hall-legend-dot--hold"></span>
-                  <span>Тимчасово заброньовано</span>
-                </div>
-                <div class="hall-legend-item">
-                  <span class="hall-legend-dot hall-legend-dot--taken"></span>
-                  <span>Продано</span>
-                </div>
-                <div class="hall-legend-item">
-                  <span class="hall-legend-dot hall-legend-dot--reserved"></span>
-                  <span>Резерв</span>
-                </div>
-              </div>
-            </div>
+  <aside class="ticket-price-sidebar">
+    <div class="price-card">
+      <h3>Ціна</h3>
 
+      <div id="priceLegendDesktop" class="price-legend-desktop"></div>
 
-<div class="hall-scroll">
-
-  <div class="zoom-controls">
-    <button class="zoom-btn" id="zoomIn">+</button>
-    <button class="zoom-btn" id="zoomOut">−</button>
-    <button class="zoom-btn" id="zoomReset">•</button>
-  </div>
-
-  <div id="mobile-hall-viewport" class="mobile-hall-viewport">
-    <div id="mobile-hall-scale" class="mobile-hall-scale">
-
-      <div class="hall-inner">
-
-      
-
-        <div id="hall-root"></div>
-
-
+      <div class="hall-status-legend">
+        <div><span class="hall-legend-dot hall-legend-dot--free"></span> Вільно</div>
+        <div><span class="hall-legend-dot hall-legend-dot--hold"></span> Тимчасово заброньовано</div>
+        <div><span class="hall-legend-dot hall-legend-dot--taken"></span> Продано</div>
+        <div><span class="hall-legend-dot hall-legend-dot--reserved"></span> Резерв</div>
       </div>
-
     </div>
-  </div>
-</div>
-            
-          </section>
+  </aside>
+
+  <section class="ticket-hall-center">
+    <section class="hall-shell">
+      <div class="hall-shell-head">
+        <div>
+          <div id="priceLegendMobile" class="price-legend-mobile"></div>
+          <h2 class="hall-shell-title" id="hall-title">Схема залу</h2>
+          <p class="hall-shell-meta" id="hall-meta">Оберіть місця на схемі нижче.</p>
         </div>
+      </div>
 
-        <aside class="hall-sidebar">
-          <div class="hall-summary-card">
-            <h2 class="hall-summary-title">Ваше замовлення</h2>
-
-            <p id="summary-show" class="hall-summary-meta">Вистава: —</p>
-            <p id="summary-places" class="hall-summary-meta">Обрані місця: немає</p>
-
-            <div class="hall-summary-divider"></div>
-
-            <p id="summary-amount" class="hall-summary-total">Сума: 0 грн</p>
-
-            <button id="go-order" class="button-primary" disabled>Перейти до оформлення</button>
-
-            <p class="hall-summary-help">
-              Кнопка стане активною, коли ви оберете хоча б одне місце.
-            </p>
+      <div class="hall-scroll">
+        <div id="mobile-hall-viewport" class="mobile-hall-viewport">
+          <div id="mobile-hall-scale" class="mobile-hall-scale">
+            <div class="hall-inner">
+              <div id="hall-root"></div>
+            </div>
           </div>
-        </aside>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <aside class="ticket-event-sidebar">
+    <div class="event-card">
+      <div class="event-poster-wrap">
+        <img id="event-poster" class="event-poster" src="../images/poster-placeholder.jpg" alt="Афіша">
+      </div>
+
+      <div class="event-info">
+        <p id="summary-show" class="hall-summary-meta">Вистава: —</p>
+        <p id="summary-places" class="hall-summary-meta">Обрані місця: немає</p>
+
+        <div class="hall-summary-divider"></div>
+
+        <p id="summary-amount" class="hall-summary-total">Сума: 0 грн</p>
+
+        <button id="go-order" class="button-primary" disabled>Перейти до оформлення</button>
+
+        <p class="hall-summary-help">
+          Кнопка стане активною, коли ви оберете хоча б одне місце.
+        </p>
       </div>
     </div>
-  </main>
+  </aside>
 
+</div>
   <div id="site-footer"></div>
 
   <!-- <script type="module" src="../scripts/include.js"></script> -->
