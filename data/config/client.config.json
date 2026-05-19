@@ -18,13 +18,25 @@
     "hall": "opera-test"
   },
   {
-    "id": "big-stage-demo",
-    "title": "Велика сцена Demo",
-    "city": "dnipro",
-    "description": "Демонстраційна площадка для перевірки схем, цін і продажів.",
-    "hall": "big-stage-demo"
-  }
-],
+  "id": "big-stage-demo",
+  "title": "Велика сцена Demo",
+  "city": "dnipro",
+  "description": "Демонстраційна площадка для перевірки схем, цін і продажів.",
+  "hall": "big-stage-demo"
+},
+{
+  "id": "club-demo",
+  "title": "Club Demo",
+  "city": "kryvyi-rih",
+  "description": "Клубний майданчик з підтримкою входу без місця, столів, депозитів та змішаних схем розсадки.",
+  "hall": "club-demo-tables",
+  "halls": [
+    "club-demo-tables",
+    "club-demo-mixed",
+    "club-demo-seated",
+    "club-demo-standing"
+  ]
+}
 
   "default_hall": "shevchenko-v2",
 
