@@ -2782,6 +2782,14 @@ function applyHallZoom(){
   inner.style.transform = `scale(${hallZoom})`;
   inner.style.transformOrigin = "top center";
   inner.style.width = (100 / hallZoom) + "%";
+  inner.style.height = "auto";
+
+const hallRoot = document.getElementById("hall-root");
+
+if (hallRoot) {
+  hallRoot.style.minHeight =
+    (1200 * hallZoom) + "px";
+}
 
   if (label) {
     label.textContent =
