@@ -55,7 +55,28 @@
       "id": "big-stage-demo",
       "name": "Велика сцена Demo",
       "file": "big-stage-demo.json"
-    }
+     },
+
+    {
+  "id": "club-demo-tables",
+  "name": "Club Demo — столи",
+  "file": "club-demo-tables.json"
+},
+{
+  "id": "club-demo-mixed",
+  "name": "Club Demo — змішана схема",
+  "file": "club-demo-mixed.json"
+},
+{
+  "id": "club-demo-seated",
+  "name": "Club Demo — сидяча розсадка",
+  "file": "club-demo-seated.json"
+},
+{
+  "id": "club-demo-standing",
+  "name": "Club Demo — вхід без місця",
+  "file": "club-demo-standing.json"
+}
   ],
 
   "contacts": {
