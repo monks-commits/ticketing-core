@@ -617,6 +617,11 @@ function makeSeanceCard(s, archivedMode = false){
           <div class="badges">
             <span class="badge badge-venue">${venue}</span>
             <span class="badge badge-active">Активний</span>
+            ${s.compensation_stats ? `
+  <span class="badge" style="background:#f5b400;color:#111;">
+    🟡 Компенсація: ${s.compensation_stats.used}/${s.compensation_stats.total}
+  </span>
+` : ""}
           </div>
         </div>
 
