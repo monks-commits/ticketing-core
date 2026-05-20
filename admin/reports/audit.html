@@ -463,6 +463,12 @@ async function run() {
     );
   }
 
+if (URL_SEANCE) {
+  filters.push(
+    `seance_id=eq.${encodeURIComponent(URL_SEANCE)}`
+  );
+}
+  
   if (source && source !== "__all__") {
     filters.push(
       `source=eq.${encodeURIComponent(source)}`
@@ -491,7 +497,7 @@ async function run() {
 
   const rows = await res.json();
 
-  if (!rows.length) {
+  renderDirectorAudit(rows);
 
     document.getElementById("out").innerHTML =
       `<div class="result-empty">Audit log порожній.</div>`;
