@@ -797,18 +797,18 @@ renderLists();
 
 }
 
-async function activateCompensation(id){
+async function activateTicketCompensation(seanceId){
 
-  const ok = confirm(
-    "Активувати компенсацію для ВСІХ квитків цього сеансу?"
-  );
+  const orderId = prompt("Введіть ORDER ID:");
+  if (!orderId) return;
 
-  if (!ok) return;
+  const seatLabel = prompt("Введіть місце (P18-M6):");
+  if (!seatLabel) return;
 
   try {
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(id)}`,
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(seanceId)}&order_id=eq.${encodeURIComponent(orderId)}&seat_label=eq.${encodeURIComponent(seatLabel)}`,
       {
         method:"PATCH",
         headers:{
@@ -821,22 +821,26 @@ async function activateCompensation(id){
           compensation_allowed: true,
           compensation_used: false,
           compensation_granted_at: new Date().toISOString(),
-          compensation_reason: "air_alert"
+          compensation_reason: "manual_single_ticket"
         })
       }
     );
 
     if (!res.ok) {
-      const err = await res.text();
-      console.error(err);
-      alert("Помилка активації компенсації");
+      console.error(await res.text());
+      alert("Помилка");
       return;
     }
 
     const rows = await res.json();
 
+    if (!rows.length) {
+      alert("Квиток не знайдено");
+      return;
+    }
+
     alert(
-      `🟡 Компенсацію активовано\nКвитків: ${rows.length}`
+      `🟡 Компенсацію активовано\n${rows[0].seat_label}`
     );
 
   } catch(e){
