@@ -1018,6 +1018,64 @@ async function activateTicketCompensation(seanceId){
     alert("Помилка");
   }
 }
+
+async function openAudit(seanceId){
+
+  const modal = document.getElementById("audit-modal");
+  const list = document.getElementById("audit-list");
+
+  list.innerHTML = "Завантаження...";
+
+  modal.classList.remove("hidden");
+
+  try {
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/audit_log?seance_id=eq.${encodeURIComponent(seanceId)}&select=*&order=created_at.desc`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization:"Bearer " + SUPABASE_ANON_KEY
+        }
+      }
+    );
+
+    const rows = await res.json();
+
+    if (!Array.isArray(rows) || !rows.length) {
+      list.innerHTML = "<div class='audit-row'>Подій немає</div>";
+      return;
+    }
+
+    list.innerHTML = rows.map(r => `
+      <div class="audit-row">
+
+        <div class="audit-time">
+          ${new Date(r.created_at).toLocaleString()}
+        </div>
+
+        <div class="audit-action">
+          ${r.action || "ACTION"}
+        </div>
+
+        <div class="audit-meta">
+          ${r.role_code || ""} · ${r.source || ""}
+        </div>
+
+      </div>
+    `).join("");
+
+  } catch(e){
+    console.error(e);
+    list.innerHTML = "Помилка";
+  }
+}
+
+function closeAudit(){
+  document
+    .getElementById("audit-modal")
+    .classList.add("hidden");
+}
   
 async function archiveSeance(id){
   
