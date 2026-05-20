@@ -601,8 +601,12 @@ function detectShowTitle(s){
 }
 
 function renderCompensationBadge(s){
+
   const stats = s.compensation_stats;
-  if (!stats || !stats.total) return "";
+
+  if (!stats || !stats.total) {
+    return "";
+  }
 
   const used = Number(stats.used || 0);
   const total = Number(stats.total || 0);
