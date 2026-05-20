@@ -432,6 +432,92 @@ async function loadSeances() {
   }
 }
 
+function count(rows, action){
+  return rows.filter(r => r.action === action).length;
+}
+
+function renderDirectorAudit(rows){
+  const scanOk = count(rows, "QR_SCAN_OK");
+  const compUsed = count(rows, "COMPENSATION_ENTRY_USED");
+  const compEnabled = count(rows, "COMPENSATION_ENABLED") + count(rows, "SINGLE_COMPENSATION_ENABLED");
+  const repeat = count(rows, "QR_SCAN_REPEAT") + count(rows, "already_used");
+
+  if (!rows.length) {
+    document.getElementById("out").innerHTML =
+      `<div class="result-empty">Подій по цьому сеансу немає.</div>`;
+    return;
+  }
+
+  const status =
+    repeat > 0 ? "🔴 Є інциденти" :
+    compUsed > 0 || compEnabled > 0 ? "🟠 Є компенсаційні дії" :
+    "🟢 Подія проходить штатно";
+
+  const cards = `
+    <div class="result-grid">
+      <div class="metric">
+        <div class="metric-label">Стан події</div>
+        <div class="metric-value">${status}</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Звичайні проходи</div>
+        <div class="metric-value">${scanOk}</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Компенсаційні проходи</div>
+        <div class="metric-value">${compUsed}</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Компенсації активовано</div>
+        <div class="metric-value">${compEnabled}</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Інциденти / повтори</div>
+        <div class="metric-value">${repeat}</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Усього подій</div>
+        <div class="metric-value">${rows.length}</div>
+      </div>
+    </div>
+  `;
+
+  const history = rows.map(r => `
+    <div class="metric" style="margin-top:14px;">
+      <div class="metric-label">${new Date(r.created_at).toLocaleString()}</div>
+      <div class="metric-value" style="font-size:20px;">${humanAction(r.action)}</div>
+      <div style="margin-top:8px;color:var(--muted);font-size:14px;line-height:1.5;">
+        ${r.entity_type || ""} · ${r.source || ""}
+        <br>${r.entity_id || ""}
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("out").innerHTML = `
+    ${cards}
+    <h2 style="margin-top:28px;">📜 Детальна історія</h2>
+    ${history}
+  `;
+}
+
+function humanAction(action){
+  const map = {
+    QR_SCAN_OK: "🎟 Звичайний прохід",
+    COMPENSATION_ENTRY_USED: "🟡 Компенсаційний прохід",
+    COMPENSATION_ENABLED: "🟡 Компенсацію активовано для сеансу",
+    SINGLE_COMPENSATION_ENABLED: "🟡 Компенсацію активовано для одного квитка",
+    QR_SCAN_REPEAT: "⚠️ Повторний прохід",
+    QR_SCAN_INVALID: "⛔ Недійсний QR"
+  };
+
+  return map[action] || action || "Подія";
+}
+  
 async function run() {
 
   const dateFrom = document.getElementById("dateFrom").value;
