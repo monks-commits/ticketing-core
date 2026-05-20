@@ -796,6 +796,54 @@ renderLists();
 
 }
 
+async function activateCompensation(id){
+
+  const ok = confirm(
+    "Активувати компенсацію для ВСІХ квитків цього сеансу?"
+  );
+
+  if (!ok) return;
+
+  try {
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(id)}`,
+      {
+        method:"PATCH",
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization:"Bearer " + SUPABASE_ANON_KEY,
+          "Content-Type":"application/json",
+          Prefer:"return=representation"
+        },
+        body: JSON.stringify({
+          compensation_allowed: true,
+          compensation_used: false,
+          compensation_granted_at: new Date().toISOString(),
+          compensation_reason: "air_alert"
+        })
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error(err);
+      alert("Помилка активації компенсації");
+      return;
+    }
+
+    const rows = await res.json();
+
+    alert(
+      `🟡 Компенсацію активовано\nКвитків: ${rows.length}`
+    );
+
+  } catch(e){
+    console.error(e);
+    alert("Помилка");
+  }
+}
+  
 async function archiveSeance(id){
   
   await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`, {
