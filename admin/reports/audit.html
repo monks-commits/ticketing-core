@@ -567,8 +567,7 @@ async function run(){
   const action =
     document.getElementById("action").value;
 
-  const source =
-    document.getElementById("source").value;
+  
 
   let filters = [];
 
@@ -601,12 +600,7 @@ async function run(){
     );
   }
 
-  if (source && source !== "__all__") {
-
-    filters.push(
-      `source=eq.${encodeURIComponent(source)}`
-    );
-  }
+  
 
   if (URL_SEANCE) {
 
