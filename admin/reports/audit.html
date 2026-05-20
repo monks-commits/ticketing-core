@@ -379,156 +379,210 @@ const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 const qs = new URLSearchParams(location.search);
-const URL_VENUE = qs.get("venue") || "";
-const URL_SEANCE = qs.get("seance") || qs.get("seance_id") || "";
 
-let CLIENT_CONFIG = null;
-let CONFIG_VENUES = [];
+const URL_VENUE =
+  qs.get("venue") || "";
 
-function normalizeVenue(v){
-  const found = CONFIG_VENUES.find(x => x.id === v || x.hall === v);
-  return found?.id || v || "";
-}
-
-async function loadSeances() {
-  const sel = document.getElementById("seance");
-  sel.innerHTML = `
-  <option value="__all__">Усі сеанси</option>
-  <option value="">Оберіть сеанс...</option>
-`;
-
-  CLIENT_CONFIG = await loadVAConfig();
-  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
-    ? CLIENT_CONFIG.venues
-    : [];
-
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,archived,venue_id,show,date,time&archived=eq.false`,
-    {
-      headers:{
-        apikey: SUPABASE_KEY,
-        Authorization: "Bearer " + SUPABASE_KEY
-      },
-      cache:"no-store"
-    }
-  );
-
-  const rows = await res.json();
-
-  const filtered = URL_VENUE
-    ? rows.filter(s => normalizeVenue(s.venue_id) === normalizeVenue(URL_VENUE))
-    : rows;
-
-  filtered.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = `${s.date || ""} ${s.time || ""} — ${s.show || s.id}`;
-    sel.appendChild(opt);
-  });
-
-  if (URL_SEANCE) {
-    sel.value = URL_SEANCE;
-    run();
-  }
-}
+const URL_SEANCE =
+  qs.get("seance") ||
+  qs.get("seance_id") ||
+  "";
 
 function count(rows, action){
   return rows.filter(r => r.action === action).length;
 }
 
-function renderDirectorAudit(rows){
-  const scanOk = count(rows, "QR_SCAN_OK");
-  const compUsed = count(rows, "COMPENSATION_ENTRY_USED");
-  const compEnabled = count(rows, "COMPENSATION_ENABLED") + count(rows, "SINGLE_COMPENSATION_ENABLED");
-  const repeat = count(rows, "QR_SCAN_REPEAT") + count(rows, "already_used");
-
-  if (!rows.length) {
-    document.getElementById("out").innerHTML =
-      `<div class="result-empty">Подій по цьому сеансу немає.</div>`;
-    return;
-  }
-
-  const status =
-    repeat > 0 ? "🔴 Є інциденти" :
-    compUsed > 0 || compEnabled > 0 ? "🟠 Є компенсаційні дії" :
-    "🟢 Подія проходить штатно";
-
-  const cards = `
-    <div class="result-grid">
-      <div class="metric">
-        <div class="metric-label">Стан події</div>
-        <div class="metric-value">${status}</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Звичайні проходи</div>
-        <div class="metric-value">${scanOk}</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Компенсаційні проходи</div>
-        <div class="metric-value">${compUsed}</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Компенсації активовано</div>
-        <div class="metric-value">${compEnabled}</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Інциденти / повтори</div>
-        <div class="metric-value">${repeat}</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Усього подій</div>
-        <div class="metric-value">${rows.length}</div>
-      </div>
-    </div>
-  `;
-
-  const history = rows.map(r => `
-    <div class="metric" style="margin-top:14px;">
-      <div class="metric-label">${new Date(r.created_at).toLocaleString()}</div>
-      <div class="metric-value" style="font-size:20px;">${humanAction(r.action)}</div>
-      <div style="margin-top:8px;color:var(--muted);font-size:14px;line-height:1.5;">
-        ${r.entity_type || ""} · ${r.source || ""}
-        <br>${r.entity_id || ""}
-      </div>
-    </div>
-  `).join("");
-
-  document.getElementById("out").innerHTML = `
-    ${cards}
-    <h2 style="margin-top:28px;">📜 Детальна історія</h2>
-    ${history}
-  `;
-}
-
 function humanAction(action){
+
   const map = {
-    QR_SCAN_OK: "🎟 Звичайний прохід",
-    COMPENSATION_ENTRY_USED: "🟡 Компенсаційний прохід",
-    COMPENSATION_ENABLED: "🟡 Компенсацію активовано для сеансу",
-    SINGLE_COMPENSATION_ENABLED: "🟡 Компенсацію активовано для одного квитка",
-    QR_SCAN_REPEAT: "⚠️ Повторний прохід",
-    QR_SCAN_INVALID: "⛔ Недійсний QR"
+
+    QR_SCAN_OK:
+      "🎟 Звичайний прохід",
+
+    COMPENSATION_ENTRY_USED:
+      "🟡 Компенсаційний прохід",
+
+    COMPENSATION_ENABLED:
+      "🟡 Компенсацію активовано для сеансу",
+
+    SINGLE_COMPENSATION_ENABLED:
+      "🟡 Компенсацію активовано для одного квитка",
+
+    QR_SCAN_REPEAT:
+      "⚠️ Повторний прохід",
+
+    QR_SCAN_INVALID:
+      "⛔ Недійсний QR",
+
+    already_used:
+      "⚠️ Квиток вже використано"
   };
 
   return map[action] || action || "Подія";
 }
-  
-async function run() {
 
-  const dateFrom = document.getElementById("dateFrom").value;
-  const dateTo = document.getElementById("dateTo").value;
-  const action = document.getElementById("action").value;
-  const source = document.getElementById("source").value;
+function renderDirectorAudit(rows){
+
+  if (!rows.length) {
+
+    document.getElementById("out").innerHTML = `
+      <div class="result-empty">
+        Подій по цьому сеансу немає.
+      </div>
+    `;
+
+    return;
+  }
+
+  const scanOk =
+    count(rows, "QR_SCAN_OK");
+
+  const compUsed =
+    count(rows, "COMPENSATION_ENTRY_USED");
+
+  const compEnabled =
+    count(rows, "COMPENSATION_ENABLED") +
+    count(rows, "SINGLE_COMPENSATION_ENABLED");
+
+  const repeat =
+    count(rows, "QR_SCAN_REPEAT") +
+    count(rows, "already_used");
+
+  const status =
+    repeat > 0
+      ? "🔴 Є інциденти"
+      : compUsed > 0 || compEnabled > 0
+      ? "🟠 Є компенсаційні дії"
+      : "🟢 Подія проходить штатно";
+
+  const cards = `
+
+    <div class="result-grid">
+
+      <div class="metric">
+        <div class="metric-label">
+          Стан події
+        </div>
+
+        <div class="metric-value">
+          ${status}
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">
+          Звичайні проходи
+        </div>
+
+        <div class="metric-value">
+          ${scanOk}
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">
+          Компенсаційні проходи
+        </div>
+
+        <div class="metric-value">
+          ${compUsed}
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">
+          Компенсації активовано
+        </div>
+
+        <div class="metric-value">
+          ${compEnabled}
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">
+          Інциденти / повтори
+        </div>
+
+        <div class="metric-value">
+          ${repeat}
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">
+          Усього подій
+        </div>
+
+        <div class="metric-value">
+          ${rows.length}
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  const history = rows.map(r => `
+
+    <div class="metric" style="margin-top:14px;">
+
+      <div class="metric-label">
+        ${new Date(r.created_at).toLocaleString()}
+      </div>
+
+      <div class="metric-value" style="font-size:20px;">
+        ${humanAction(r.action)}
+      </div>
+
+      <div style="
+        margin-top:8px;
+        color:var(--muted);
+        font-size:14px;
+        line-height:1.5;
+      ">
+        ${r.entity_type || ""}
+        ·
+        ${r.source || ""}
+        <br>
+        ${r.entity_id || ""}
+      </div>
+
+    </div>
+
+  `).join("");
+
+  document.getElementById("out").innerHTML = `
+    ${cards}
+
+    <h2 style="margin-top:28px;">
+      📜 Детальна історія
+    </h2>
+
+    ${history}
+  `;
+}
+
+async function run(){
+
+  const dateFrom =
+    document.getElementById("dateFrom").value;
+
+  const dateTo =
+    document.getElementById("dateTo").value;
+
+  const action =
+    document.getElementById("action").value;
+
+  const source =
+    document.getElementById("source").value;
 
   let filters = [];
 
   if (dateFrom) {
-    const start = new Date(dateFrom + "T00:00:00").toISOString();
+
+    const start =
+      new Date(dateFrom + "T00:00:00")
+      .toISOString();
 
     filters.push(
       `created_at=gte.${encodeURIComponent(start)}`
@@ -536,7 +590,10 @@ async function run() {
   }
 
   if (dateTo) {
-    const end = new Date(dateTo + "T23:59:59").toISOString();
+
+    const end =
+      new Date(dateTo + "T23:59:59")
+      .toISOString();
 
     filters.push(
       `created_at=lte.${encodeURIComponent(end)}`
@@ -544,29 +601,33 @@ async function run() {
   }
 
   if (action && action !== "__all__") {
+
     filters.push(
       `action=eq.${encodeURIComponent(action)}`
     );
   }
 
-if (URL_SEANCE) {
-  filters.push(
-    `seance_id=eq.${encodeURIComponent(URL_SEANCE)}`
-  );
-}
-  
   if (source && source !== "__all__") {
+
     filters.push(
       `source=eq.${encodeURIComponent(source)}`
     );
   }
 
-  const qs = filters.length
-    ? "&" + filters.join("&")
-    : "";
+  if (URL_SEANCE) {
+
+    filters.push(
+      `seance_id=eq.${encodeURIComponent(URL_SEANCE)}`
+    );
+  }
+
+  const query =
+    filters.length
+      ? "&" + filters.join("&")
+      : "";
 
   const url =
-    `${SUPABASE_URL}/rest/v1/audit_log?select=action,entity_type,entity_id,after_data,source,created_at&order=created_at.desc&limit=100${qs}`;
+    `${SUPABASE_URL}/rest/v1/audit_log?select=action,entity_type,entity_id,source,created_at&order=created_at.desc&limit=100${query}`;
 
   const res = await fetch(url, {
     headers:{
@@ -577,60 +638,18 @@ if (URL_SEANCE) {
   });
 
   if (!res.ok) {
+
     alert("Помилка audit_log");
+
     return;
   }
 
-  const rows = await res.json();
+  const rows =
+    await res.json();
 
   renderDirectorAudit(rows);
-
-    document.getElementById("out").innerHTML =
-      `<div class="result-empty">Audit log порожній.</div>`;
-
-    return;
-  }
-
-  const html = rows.map(r => `
-
-    <div class="metric" style="margin-bottom:14px;">
-
-      <div class="metric-label">
-        ${new Date(r.created_at).toLocaleString()}
-      </div>
-
-      <div class="metric-value" style="font-size:20px;">
-        ${r.action}
-      </div>
-
-      <div style="
-        margin-top:8px;
-        color:var(--muted);
-        font-size:14px;
-        line-height:1.5;
-      ">
-        <b>${r.entity_type}</b><br>
-        ${r.entity_id}<br>
-        source: ${r.source}
-      </div>
-
-      <pre style="
-        margin-top:12px;
-        background:rgba(0,0,0,.18);
-        padding:12px;
-        border-radius:12px;
-        overflow:auto;
-        font-size:12px;
-        color:#dbeafe;
-        white-space:pre-wrap;
-      ">${JSON.stringify(r.after_data || {}, null, 2)}</pre>
-
-    </div>
-
-  `).join("");
-
-  document.getElementById("out").innerHTML = html;
 }
+
 run();
 </script>
 
