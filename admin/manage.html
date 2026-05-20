@@ -600,6 +600,36 @@ function detectShowTitle(s){
   return s.show || s.title || s.name || "Без назви";
 }
 
+function renderCompensationBadge(s){
+  const stats = s.compensation_stats;
+  if (!stats || !stats.total) return "";
+
+  const used = Number(stats.used || 0);
+  const total = Number(stats.total || 0);
+
+  if (used >= total) {
+    return `
+      <span class="badge" style="background:#14532d;color:#fff;">
+        🟢 Компенсації закрито: ${used}/${total}
+      </span>
+    `;
+  }
+
+  if (used === 0) {
+    return `
+      <span class="badge" style="background:#f5b400;color:#111;">
+        🟡 Борг театру: ${used}/${total}
+      </span>
+    `;
+  }
+
+  return `
+    <span class="badge" style="background:#f97316;color:#111;">
+      🟠 Частково закрито: ${used}/${total}
+    </span>
+  `;
+}
+  
 function makeSeanceCard(s, archivedMode = false){
   const title = escapeHtml(detectShowTitle(s));
   const id = escapeHtml(s.id || "");
@@ -618,10 +648,7 @@ function makeSeanceCard(s, archivedMode = false){
             <span class="badge badge-venue">${venue}</span>
             <span class="badge badge-active">Активний</span>
             ${s.compensation_stats ? `
-  <span class="badge" style="background:#f5b400;color:#111;">
-    🟡 Компенсація: ${s.compensation_stats.used}/${s.compensation_stats.total}
-  </span>
-` : ""}
+ ${renderCompensationBadge(s)}
           </div>
         </div>
 
