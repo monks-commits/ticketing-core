@@ -783,7 +783,7 @@ async function load(){
   const rows2 = await res2.json();
 
 ALL_SEANCES = Array.isArray(rows2) ? rows2 : [];
-
+await loadCompensationStats();
 const currentVenue = getCurrentVenue();
 const view = qs.get("view") || "all";
 
