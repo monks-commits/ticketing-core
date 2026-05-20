@@ -641,40 +641,31 @@ function makeSeanceCard(s, archivedMode = false){
   const dt = escapeHtml(formatDateTime(s));
 
   if (!archivedMode) {
-    return `
-      <div class="row">
-        <div class="meta">
-          <div class="title">${title}</div>
-          <div class="sub"><b>Seance ID:</b> ${id}</div>
-          <div class="sub">${dt}</div>
+  return `
+    <div class="row">
+      <div class="meta">
+        <div class="title">${title}</div>
+        <div class="sub"><b>Seance ID:</b> ${id}</div>
+        <div class="sub">${dt}</div>
 
-          <div class="badges">
-            <span class="badge badge-venue">${venue}</span>
-            <span class="badge badge-active">Активний</span>
-            ${s.compensation_stats ? `
- ${renderCompensationBadge(s)}
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn btn-primary" onclick="openCash('${id}')">Каса</button>
-          <button class="btn btn-neutral" onclick="openEditor('${id}')">Редактор</button>
-          <button class="btn btn-neutral" onclick="openReports('${id}')">Звіти</button>
-
-<button class="btn btn-warning" onclick="activateCompensation('${id}')">
-  🟡 Компенсація
-</button>
-<button class="btn btn-warning" onclick="activateTicketCompensation()">
-  🟡 1 квиток
-</button>
-<button class="btn btn-danger" onclick="archiveSeance('${id}')">
-  Архівувати
-</button>
-
+        <div class="badges">
+          <span class="badge badge-venue">${venue}</span>
+          <span class="badge badge-active">Активний</span>
+          ${renderCompensationBadge(s)}
         </div>
       </div>
-    `;
-  }
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="openCash('${id}')">Каса</button>
+        <button class="btn btn-neutral" onclick="openEditor('${id}')">Редактор</button>
+        <button class="btn btn-neutral" onclick="openReports('${id}')">Звіти</button>
+        <button class="btn btn-warning" onclick="activateTicketCompensation('${id}')">🟡 1 квиток</button>
+        <button class="btn btn-warning" onclick="activateCompensation('${id}')">🟡 Компенсація</button>
+        <button class="btn btn-danger" onclick="archiveSeance('${id}')">Архівувати</button>
+      </div>
+    </div>
+  `;
+}
 
   return `
     <div class="row">
