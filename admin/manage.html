@@ -785,8 +785,9 @@ async function load(){
 ALL_SEANCES = Array.isArray(rows2) ? rows2 : [];
 
 const currentVenue = getCurrentVenue();
+const view = qs.get("view") || "all";
 
-if (currentVenue) {
+if (currentVenue && view !== "all") {
   ALL_SEANCES = ALL_SEANCES.filter(s =>
     normalizeVenue(s.venue_id) === normalizeVenue(currentVenue)
   );
