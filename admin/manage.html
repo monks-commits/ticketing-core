@@ -1124,10 +1124,19 @@ function openEditor(id){
 
 function openReports(id){
   window.open(
-    `./reports/kg10.html?seance=${encodeURIComponent(id)}`,
+    withContext("./reports/kg13.html", { seance:id }),
     "_blank"
   );
 }
+
+function openAuditPage(id){
+  window.open(
+    withContext("./reports/audit.html", { seance:id }),
+    "_blank"
+  );
+}
+
+async function activateCompensation(id){
 
 function openTogglePage(){
   window.open(`../toggle/`, "_blank");
