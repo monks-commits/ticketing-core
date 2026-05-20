@@ -385,7 +385,7 @@ select:focus{
   .toggle-grid{
     grid-template-columns:1fr;
   }
-}
+
 
 @media (max-width:900px){
   .page-wrap{
@@ -422,12 +422,67 @@ select:focus{
   .toggle-actions{
     flex-direction:column;
   }
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
 }
+
+.hidden{
+  display:none;
+}
+
+.modal-content{
+  width:min(900px,90vw);
+  max-height:80vh;
+  overflow:auto;
+  background:#1e293b;
+  border-radius:18px;
+  padding:20px;
+}
+
+.audit-row{
+  padding:12px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.audit-time{
+  color:#94a3b8;
+  font-size:12px;
+}
+
+.audit-action{
+  font-weight:700;
+  margin-top:4px;
+}
+
+.audit-meta{
+  color:#cbd5e1;
+  margin-top:4px;
+}
+
+
+  
 </style>
 </head>
 
 <body>
 
+<div id="audit-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-head">
+      <h3>Audit Log</h3>
+      <button onclick="closeAudit()">✕</button>
+    </div>
+
+    <div id="audit-list"></div>
+  </div>
+</div>
+  
 <div class="page-wrap">
 
   <div class="topbar">
