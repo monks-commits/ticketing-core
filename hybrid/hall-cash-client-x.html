@@ -503,6 +503,101 @@ main,
 .hall-inner{
   transform-origin:top center !important;
 }    
+
+/* ===== CASH FULLSCREEN STABLE FIX ===== */
+
+html,
+body{
+  width:100%;
+  min-height:100%;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:auto !important;
+}
+
+#site-header,
+#site-footer{
+  display:none !important;
+}
+
+.main,
+.container{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:12px !important;
+}
+
+.container > h1{
+  margin:0 0 12px !important;
+  font-size:26px !important;
+}
+
+.cash-topbar{
+  margin-bottom:10px !important;
+}
+
+.cash-badge{
+  margin-bottom:10px !important;
+}
+
+.hall-layout{
+  width:100% !important;
+  max-width:none !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 330px !important;
+  gap:14px !important;
+  align-items:start !important;
+}
+
+.hall-left{
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  display:block !important;
+  overflow:visible !important;
+}
+
+.hall-sidebar{
+  width:330px !important;
+  max-width:330px !important;
+  flex:none !important;
+}
+
+.hall-scroll{
+  width:100% !important;
+  max-width:none !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+  padding:8px !important;
+  background:#e5e7eb !important;
+  border-radius:16px !important;
+}
+
+.hall-inner{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  transform:none !important;
+  margin:0 !important;
+}
+
+#hall-root{
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+
+.cash-zoom-panel{
+  display:none !important;
+}
+
+.row-price-list{
+  display:none !important;
+}
+    
   </style>
 </head>
 
@@ -2881,41 +2976,19 @@ setInterval(async () => {
 let hallZoom = 1;
 
 function applyHallZoom(){
-
   const inner = document.querySelector(".hall-inner");
-  const scroll = document.querySelector(".hall-scroll");
   const label = document.getElementById("hallZoomLabel");
 
-  if (!inner || !scroll) return;
+  if (inner) {
+    inner.style.transform = "none";
+    inner.style.width = "100%";
+    inner.style.minWidth = "0";
+  }
 
-  const sidebarWidth = 360;
-
-  const availableWidth =
-    window.innerWidth - sidebarWidth - 80;
-
-  const availableHeight =
-    window.innerHeight - 260;
-
-  const contentWidth = inner.scrollWidth;
-  const contentHeight = inner.scrollHeight;
-
-  const scaleX = availableWidth / contentWidth;
-  const scaleY = availableHeight / contentHeight;
-
-  hallZoom = Math.min(scaleX, scaleY, 1);
-
-  inner.style.transform =
-    `scale(${hallZoom})`;
-
-  inner.style.transformOrigin =
-    "top center";
-
-  if(label){
-    label.textContent =
-      Math.round(hallZoom * 100) + "%";
+  if (label) {
+    label.textContent = "100%";
   }
 }
-
 document.getElementById("hallZoomOut")
 ?.addEventListener("click", ()=>{
 
