@@ -1106,21 +1106,21 @@ async function restoreSeance(id){
 
 function openCash(id){
   window.open(
-    withContext("../hybrid/hall-cash.html", { seance:id }),
+    withContext("../hybrid/hall-cash.html-client-x", { seance:id }),
     "_blank"
   );
 }
 
 function openEditor(id){
   window.open(
-    withContext("./seance-editor.html", { seance:id, seance_id:id }),
+    withContext("./seance-editor-client-x.html", { seance:id, seance_id:id }),
     "_blank"
   );
 }
 
 function openReports(id){
   window.open(
-    withContext("./reports/kg13.html", { seance:id }),
+    withContext("./reports/index-client-x.html, { seance:id }),
     "_blank"
   );
 }
