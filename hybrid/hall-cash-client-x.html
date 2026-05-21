@@ -2913,7 +2913,11 @@ function applyStatusFromBackoffice(status, seats){
 
     const select = document.getElementById("cashSeanceSelect");
     if (!select) return;
-
+const clientRows = Array.isArray(rows)
+  ? rows.filter(
+      s => s.venue_id === CLIENT_X_VENUE
+    )
+  : [];
     try {
       const venueFilter =
   CLIENT_CONFIG?.default_hall
@@ -2943,7 +2947,9 @@ const filteredRows = Array.isArray(rows)
   : [];
       select.innerHTML = `<option value="">Оберіть сеанс…</option>`;
 
-     filteredRows.forEach(s => {
+     filteredRows
+  .filter(s => s.venue_id === CLIENT_X_VENUE)
+  .forEach(s => {
         const opt = document.createElement("option");
         opt.value = s.id;
         opt.textContent = s.id;
