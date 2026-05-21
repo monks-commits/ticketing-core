@@ -904,18 +904,14 @@ async function load(){
   const rows2 = await res2.json();
 
 ALL_SEANCES = Array.isArray(rows2) ? rows2 : [];
-await loadCompensationStats();
-const currentVenue = getCurrentVenue();
-const view = qs.get("view") || "all";
 
-if (currentVenue && view !== "all") {
-  ALL_SEANCES = ALL_SEANCES.filter(s =>
-    normalizeVenue(s.venue_id) === normalizeVenue(currentVenue)
-  );
-}
+ALL_SEANCES = ALL_SEANCES.filter(
+  s => s.venue_id === "client-x"
+);
+
+await loadCompensationStats();
 
 renderLists();
-
 }
 async function activateCompensation(id){
 
