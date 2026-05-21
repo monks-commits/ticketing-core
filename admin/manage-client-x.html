@@ -465,14 +465,8 @@ select:focus{
   margin-top:4px;
 }
 
-#venueFilter,
-label[for="venueFilter"]{
-  display:none !important;
-}
-  #venueFilter,
-label[for="venueFilter"]{
-  display:none !important;
-}
+
+  
 </style>
 </head>
 
@@ -539,17 +533,19 @@ label[for="venueFilter"]{
 
   <section class="toolbar">
     <div class="toolbar-grid">
-      <div class="field" style="display:none;">
+      <div class="field">
+        <label for="searchInput">Пошук</label>
+        <input id="searchInput" type="text" placeholder="Назва вистави або seance_id">
+      </div>
 
-  <label for="venueFilter">Майданчик</label>
-
-  <select id="venueFilter">
-    <option value="client-x" selected>
-      Client X
-    </option>
-  </select>
-
-</div>
+      <div class="field">
+        <label for="venueFilter">Майданчик</label>
+        <select id="venueFilter">
+          <option value="all">Усі майданчики</option>
+          <option value="academy">Академія Руху</option>
+          <option value="shevchenko">Театр Шевченка</option>
+        </select>
+      </div>
 
       <div class="field">
         <label for="statusFilter">Стан</label>
@@ -590,13 +586,12 @@ const TOGGLE_LS_KEY = "va_toggle_secret_v1";
 
 let ALL_SEANCES = [];
 const qs = new URLSearchParams(location.search);
-const CLIENT_X_VENUE = "client-x";
-  
+
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];
 
 function getCurrentVenue(){
-  return CLIENT_X_VENUE;
+  return qs.get("venue") || "";
 }
 
 function getCurrentHall(){
@@ -911,11 +906,13 @@ async function load(){
 ALL_SEANCES = Array.isArray(rows2) ? rows2 : [];
 await loadCompensationStats();
 const currentVenue = getCurrentVenue();
+const view = qs.get("view") || "all";
 
-ALL_SEANCES = ALL_SEANCES.filter(s =>
-  normalizeVenue(s.venue_id) === normalizeVenue(currentVenue)
-);
-
+if (currentVenue && view !== "all") {
+  ALL_SEANCES = ALL_SEANCES.filter(s =>
+    normalizeVenue(s.venue_id) === normalizeVenue(currentVenue)
+  );
+}
 
 renderLists();
 
