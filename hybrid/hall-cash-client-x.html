@@ -399,7 +399,58 @@
   font-size:11px;
   opacity:.9;
 }
+body{
+  overflow:hidden !important;
+}
 
+.cash-page,
+.page,
+.main,
+.container,
+.hall-page,
+.hall-wrap{
+  width:100vw !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:8px !important;
+}
+
+.hall-layout,
+.ticket-layout{
+  width:100% !important;
+  max-width:none !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 340px !important;
+  gap:12px !important;
+}
+
+.hall-left,
+.ticket-hall-center,
+.hall-shell{
+  width:100% !important;
+  max-width:none !important;
+}
+
+.hall-scroll,
+.mobile-hall-viewport{
+  height:calc(100vh - 120px) !important;
+  overflow:auto !important;
+}
+
+.hall-sidebar,
+.ticket-event-sidebar{
+  width:340px !important;
+  max-width:340px !important;
+}
+
+#mobile-hall-scale{
+  transform:none !important;
+  width:100% !important;
+}
+
+.hall-inner{
+  transform-origin:top left !important;
+}
     
   </style>
 </head>
