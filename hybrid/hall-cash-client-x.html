@@ -597,7 +597,76 @@ body{
 .row-price-list{
   display:none !important;
 }
-    
+ /* ===== CASH POS FINAL LAYOUT ===== */
+
+html,
+body{
+  height:100vh !important;
+  overflow:hidden !important;
+}
+
+.main,
+.container{
+  width:100vw !important;
+  max-width:none !important;
+  height:100vh !important;
+  margin:0 !important;
+  padding:10px !important;
+}
+
+.container > h1{
+  display:none !important;
+}
+
+.cash-topbar{
+  height:92px !important;
+  margin:0 0 8px !important;
+}
+
+.cash-badge{
+  height:46px !important;
+  margin:0 0 8px !important;
+}
+
+.hall-layout{
+  height:calc(100vh - 174px) !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 330px !important;
+  gap:14px !important;
+  align-items:stretch !important;
+}
+
+.hall-left{
+  height:100% !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+
+.hall-sidebar{
+  height:100% !important;
+  width:330px !important;
+  max-width:330px !important;
+  overflow:auto !important;
+}
+
+.hall-scroll{
+  height:100% !important;
+  max-height:none !important;
+  overflow:auto !important;
+  padding:8px !important;
+  background:#e5e7eb !important;
+}
+
+.hall-inner{
+  width:max-content !important;
+  min-width:max-content !important;
+  transform:none !important;
+  margin:0 auto !important;
+}
+
+.cash-zoom-panel{
+  display:none !important;
+}   
   </style>
 </head>
 
