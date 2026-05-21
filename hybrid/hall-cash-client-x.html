@@ -34,14 +34,20 @@
   padding:12px;
   overflow:auto;
   -webkit-overflow-scrolling:touch;
+  max-height:78vh;
 }
 
 .hall-inner{
   width:max-content;
   min-width:max-content;
+  height:auto;
+  min-height:auto;
   margin:0;
 }
-
+#hall-root{
+  height:auto;
+  min-height:auto;
+}
 .parter-wrap{
   width:max-content;
   display:flex;
@@ -276,7 +282,35 @@
   border-radius:12px;
   margin-bottom:12px;
 }
+.cash-zoom-panel{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin:10px 0 14px;
+}
 
+.cash-zoom-panel{
+  position:sticky;
+  top:8px;
+  z-index:20;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin:10px auto 14px;
+  width:max-content;
+  background:rgba(255,255,255,.9);
+  padding:6px 10px;
+  border-radius:999px;
+  box-shadow:0 8px 18px rgba(0,0,0,.12);
+}
+
+#hallZoomLabel{
+  min-width:54px;
+  text-align:center;
+  font-weight:800;
+}
 .cash-note{
   margin-top:0;
 }
@@ -329,6 +363,44 @@
     html.embed .hall-layout { gap: 0 !important; }
     html.embed .hall-scroll { padding: 8px !important; }
     html.embed .hall-inner { width: max(1200px, 100%) !important; }
+
+.hall-section--tables{
+  margin-top:24px;
+}
+
+.club-tables-layer{
+  position:relative;
+  width:100%;
+  min-height:700px;
+  background:rgba(255,255,255,.04);
+  border-radius:18px;
+}
+
+.club-table{
+  position:absolute !important;
+  background:#173257 !important;
+  color:#fff !important;
+  border:2px solid rgba(255,255,255,.18) !important;
+  display:flex !important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  text-align:center;
+}
+
+.club-table-title{
+  font-weight:800;
+  font-size:14px;
+}
+
+.club-table-meta,
+.club-table-price{
+  font-size:11px;
+  opacity:.9;
+}
+
+    
   </style>
 </head>
 
@@ -390,11 +462,17 @@
       
       <div class="hall-layout">
         <div class="hall-left">
+
+          <div class="cash-zoom-panel">
+  <button type="button" id="hallZoomOut">−</button>
+  <span id="hallZoomLabel">100%</span>
+  <button type="button" id="hallZoomIn">+</button>
+</div>
           <div class="hall-scroll">
             <div class="hall-inner">
 
               <section class="hall-section">
-                <div class="hall-section-title">СЦЕНА</div>
+                <div class="hall-section-title"></div>
 
                 
 
@@ -438,7 +516,47 @@
     <div class="cash-pos-total-label">Сума до оформлення</div>
     <div id="summary-amount" class="cash-pos-total-value">Сума: 0 грн</div>
   </div>
+<div class="cash-ticket-type" style="margin:16px 0;">
 
+  <label
+    for="ticketType"
+    style="
+      display:block;
+      margin-bottom:8px;
+      font-size:13px;
+      opacity:.9;
+    "
+  >
+    Тип квитка
+  </label>
+
+  <select
+    id="ticketType"
+    style="
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:#10233f;
+      color:#fff;
+      font:inherit;
+    "
+  >
+    <option value="full">Повний</option>
+  
+    <option value="discount">Пільговий</option>
+    <option value="student">Студентський</option>
+    <option value="child">Дитячий</option>
+    <option value="invite">Запрошення</option>
+    <option value="free">Безкоштовний</option>
+    <option value="promo">Акційний</option>
+    <option value="partner">Партнерський</option>
+    <option value="vip">VIP</option>
+    <option value="deposit">Депозит</option>
+    <option value="general">Без місця</option>
+  </select>
+
+</div>
   <div class="cash-actions cash-actions-premium">
     <button id="btn-sell" class="btn btn-sell" disabled>ПРОДАТИ (КАСА) + ДРУК</button>
     <button id="btn-reserve" class="btn btn-reserve" disabled>ДО РЕЗЕРВУ</button>
@@ -524,7 +642,8 @@
   </div>
 
 
-  
+  <script src="../shared/config.js"></script>
+<script src="../shared/config-helper.js"></script>
   <script>
 
 let takenSeatsOnline = new Set();
@@ -1313,7 +1432,7 @@ async function applyStatusToSelectedLocal(status){
 
 // ---- печать билетов (с QR) ----
     async function openPrintWindowOffline(tickets, meta){
-      const theatre = "Client X";
+      const theatre = "Найменування майданчика";
       const title = meta?.title || showSlug || "Квиток";
       const dt = (meta?.date && meta?.time) ? `${meta.date} ${meta.time}` : "";
       const seance = SEANCE_ID || "";
@@ -1477,16 +1596,19 @@ async function sellAndPrintOffline(){
   const op_id = genOpId();
 
   const op = {
-    op_id,
-    type: "sale",
-    seance_id: SEANCE_ID,
-    show_slug: safeShowSlug,
-    seats: keys,
-    prices,
-    total,
-    sold_at: new Date().toISOString()
-  };
+  op_id,
+  type: "sale",
 
+  // NEW CORE
+  channel: "cash",
+
+  seance_id: SEANCE_ID,
+  show_slug: safeShowSlug,
+  seats: keys,
+  prices,
+  total,
+  sold_at: new Date().toISOString()
+};
   const queue = loadQueue();
   queue.push({
     op_id,
@@ -1502,14 +1624,18 @@ async function sellAndPrintOffline(){
 
   const order_id = `CASH-${SEANCE_ID}-${op_id}`;
 
-  const tickets = keys.map(k => ({
-    op_id,
-    order_id,
-    show_slug: safeShowSlug,
-    seance_id: SEANCE_ID,
-    seat_label: k,
-    price: prices[k] || 0
-  }));
+ const tickets = keys.map(k => ({
+  op_id,
+  order_id,
+
+  // NEW CORE
+  channel: "cash",
+
+  show_slug: safeShowSlug,
+  seance_id: SEANCE_ID,
+  seat_label: k,
+  price: prices[k] || 0
+}));
 
   pushCashLog({
     ts: Date.now(),
@@ -1969,7 +2095,7 @@ function renderHorizontalGroup(group, sectionsMap){
   const row = document.createElement("div");
   row.className = "parter-wrap";
 
-  const items = Array.isArray(group.items) ? group.items : []; 
+  const items = Array.isArray(group.items) ? group.items : [];
 
   items.forEach(id => {
     const section = sectionsMap.get(id);
@@ -1988,6 +2114,70 @@ function renderHorizontalGroup(group, sectionsMap){
   return wrap;
 }
 
+function renderTablesSection(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section hall-section--tables";
+
+  if (section.title) {
+    wrap.appendChild(makeSectionTitle(section.title));
+  }
+
+  const layer = document.createElement("div");
+  layer.className = "club-tables-layer";
+
+  (section.items || []).forEach(table => {
+    const key = table.id;
+    if (!key) return;
+
+    const btn = makeSeatElement(
+      key,
+      table.title || key,
+      "",
+      Number(table.deposit || table.price_per_seat || 0),
+      {
+        zone: section.title || "Столи",
+        prefix: "T",
+        row: "0",
+        seat: 0,
+        type: "table",
+        table
+      }
+    );
+
+    btn.classList.add("club-table");
+    btn.dataset.key = key;
+    btn.dataset.type = "table";
+    btn.dataset.bookingMode = table.booking_mode || "table_only";
+    btn.dataset.capacity = String(table.capacity || 0);
+    btn.dataset.deposit = String(table.deposit || "");
+    btn.dataset.pricePerSeat = String(table.price_per_seat || "");
+
+    btn.style.position = "absolute";
+    btn.style.left = Number(table.x || 0) + "px";
+    btn.style.top = Number(table.y || 0) + "px";
+    btn.style.width = table.shape === "rect" ? "150px" : "120px";
+    btn.style.height = table.shape === "rect" ? "100px" : "120px";
+    btn.style.borderRadius = table.shape === "rect" ? "18px" : "999px";
+
+    btn.innerHTML = `
+      <div class="club-table-title">${table.title || key}</div>
+      <div class="club-table-meta">${table.capacity || 0} місць</div>
+      ${
+        table.deposit
+          ? `<div class="club-table-price">${table.deposit} грн депозит</div>`
+          : table.price_per_seat
+            ? `<div class="club-table-price">${table.price_per_seat} грн / місце</div>`
+            : ""
+      }
+    `;
+
+    layer.appendChild(btn);
+  });
+
+  wrap.appendChild(layer);
+  return wrap;
+}
+    
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -2030,6 +2220,11 @@ function renderHallSections(hallData){
       return;
     }
 
+if (section.type === "tables") {
+  root.appendChild(renderTablesSection(section));
+  return;
+}
+    
     if (section.type === "side_vertical") {
       root.appendChild(renderSideVertical(section));
       return;
@@ -2455,8 +2650,7 @@ const res = await fetch(
   `${SUPABASE_URL}/rest/v1/seances` +
   `?select=id,active,venue_id,show,date,time` +
   `&active=eq.true` +
-  `&venue_id=eq.client-x` +
-  `&order=date.asc,time.asc`,
+  `&order=created_at.desc`,
   {
     headers: {
       apikey: SUPABASE_ANON_KEY,
@@ -2475,16 +2669,16 @@ const filteredRows = Array.isArray(rows)
   : [];
       select.innerHTML = `<option value="">Оберіть сеанс…</option>`;
 
-rows.forEach(s => {
-  const opt = document.createElement("option");
-  opt.value = s.id;
-  opt.textContent = `${s.date || ""} ${s.time || ""} — ${s.show || s.id}`;
-  select.appendChild(opt);
-});
+     filteredRows.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.id;
+        select.appendChild(opt);
+      });
 
-if (SEANCE_ID) {
-  select.value = SEANCE_ID;
-}
+      if (SEANCE_ID) {
+        select.value = SEANCE_ID;
+      }
 
     } catch (e) {
       select.innerHTML = `<option value="">Помилка</option>`;
@@ -2495,14 +2689,14 @@ if (SEANCE_ID) {
   if (!val) return;
 
   location.href =
-    `hall-cash-client-x.html?show=${encodeURIComponent(showSlug)}&seance=${encodeURIComponent(val)}`;
+    `hall-cash.html?show=${encodeURIComponent(showSlug)}&seance=${encodeURIComponent(val)}`;
 });
 
   }
 
   // === ИНИЦИАЛИЗАЦИЯ ===
 
-
+await loadClientConfig();
 await loadSeancesForCash();
 await loadShowMeta();
 
@@ -2511,7 +2705,38 @@ await loadShowMeta();
 SEANCE_CONFIG = await loadSeanceConfig();
 CASH_PATCH = loadCashPatch();
 
-const hallFile = "client-x";
+let hallFile = "";
+
+// 1. Если зал указан в настройках сеанса — он главный
+if (SEANCE_CONFIG?.hall) {
+  hallFile = SEANCE_CONFIG.hall;
+}
+
+// 2. Если зал не указан, пробуем определить по venue из URL
+if (!hallFile && CLIENT_CONFIG && VENUE_ID) {
+  hallFile = VAConfigHelper.getHallNameByVenue(
+    CLIENT_CONFIG.venues || [],
+    VENUE_ID
+  );
+}
+
+// 3. Если venue в URL нет, пробуем найти venue по seance_id
+if (!hallFile && CLIENT_CONFIG && SEANCE_ID) {
+  const matchedVenue = (CLIENT_CONFIG.venues || []).find(v =>
+    String(SEANCE_ID).includes(String(v.id))
+  );
+
+  if (matchedVenue) {
+    hallFile = matchedVenue.hall || matchedVenue.id;
+  }
+}
+
+// 4. Последний fallback
+if (!hallFile) {
+  hallFile = CLIENT_CONFIG?.default_hall || "academy";
+}
+
+hallFile = String(hallFile).trim();
 
 console.log("CASH HALL:", hallFile);
 
@@ -2532,6 +2757,7 @@ if (Array.isArray(RAW_HALL?.seats)) {
 } else {
   renderSimpleRows(RAW_HALL);
 }
+
 // 🔥 первая загрузка статусов
 await loadTakenSeatsOnline();
 await loadBookingSeatsOnline();
@@ -2549,6 +2775,48 @@ setInterval(async () => {
 }, 3000);
 
 })();
+
+let hallZoom = 0.45;
+
+function applyHallZoom(){
+
+  const inner = document.querySelector(".hall-inner");
+  const label = document.getElementById("hallZoomLabel");
+
+  if (!inner) return;
+
+  inner.style.transform = `scale(${hallZoom})`;
+  inner.style.transformOrigin = "top center";
+  inner.style.width = (100 / hallZoom) + "%";
+  inner.style.height = "auto";
+
+const hallRoot = document.getElementById("hall-root");
+
+
+
+  if (label) {
+    label.textContent =
+      Math.round(hallZoom * 100) + "%";
+  }
+}
+
+document.getElementById("hallZoomOut")
+?.addEventListener("click", ()=>{
+
+  hallZoom = Math.max(0.25, hallZoom - 0.1);
+  applyHallZoom();
+});
+
+document.getElementById("hallZoomIn")
+?.addEventListener("click", ()=>{
+
+  hallZoom = Math.min(1.5, hallZoom + 0.1);
+
+  applyHallZoom();
+});
+
+applyHallZoom();
+    
   </script>
 </body>
 </html>
