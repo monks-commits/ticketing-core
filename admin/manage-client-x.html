@@ -309,6 +309,15 @@ select:focus{
   background:var(--danger-hover);
 }
 
+.btn-warning{
+  background:#f5b400;
+  color:#111827;
+}
+
+.btn-warning:hover{
+  background:#ffcc28;
+}
+  
 .btn-link{
   background:transparent;
   border:1px solid var(--line);
@@ -376,7 +385,7 @@ select:focus{
   .toggle-grid{
     grid-template-columns:1fr;
   }
-}
+
 
 @media (max-width:900px){
   .page-wrap{
@@ -413,16 +422,71 @@ select:focus{
   .toggle-actions{
     flex-direction:column;
   }
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
 }
+
+.hidden{
+  display:none;
+}
+
+.modal-content{
+  width:min(900px,90vw);
+  max-height:80vh;
+  overflow:auto;
+  background:#1e293b;
+  border-radius:18px;
+  padding:20px;
+}
+
+.audit-row{
+  padding:12px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.audit-time{
+  color:#94a3b8;
+  font-size:12px;
+}
+
+.audit-action{
+  font-weight:700;
+  margin-top:4px;
+}
+
+.audit-meta{
+  color:#cbd5e1;
+  margin-top:4px;
+}
+
+
+  
 </style>
 </head>
 
 <body>
 
+<div id="audit-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-head">
+      <h3>Audit Log</h3>
+      <button onclick="closeAudit()">✕</button>
+    </div>
+
+    <div id="audit-list"></div>
+  </div>
+</div>
+  
 <div class="page-wrap">
 
   <div class="topbar">
-    <a class="back-btn" href="./panel-client-x.html">← Назад</a>
+    <a class="back-btn" href="./panel.html">← Назад</a>
   </div>
 
   <section class="hero">
@@ -475,6 +539,15 @@ select:focus{
       </div>
 
       <div class="field">
+        <label for="venueFilter">Майданчик</label>
+        <select id="venueFilter">
+          <option value="all">Усі майданчики</option>
+          <option value="academy">Академія Руху</option>
+          <option value="shevchenko">Театр Шевченка</option>
+        </select>
+      </div>
+
+      <div class="field">
         <label for="statusFilter">Стан</label>
         <select id="statusFilter">
           <option value="all">Усі</option>
@@ -502,7 +575,8 @@ select:focus{
   </section>
 
 </div>
-
+<script src="../shared/config.js"></script>
+<script src="../shared/config-helper.js"></script>
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
@@ -513,7 +587,8 @@ const TOGGLE_LS_KEY = "va_toggle_secret_v1";
 let ALL_SEANCES = [];
 const qs = new URLSearchParams(location.search);
 
-
+let CLIENT_CONFIG = null;
+let CONFIG_VENUES = [];
 
 function getCurrentVenue(){
   return qs.get("venue") || "";
@@ -541,7 +616,7 @@ function withContext(path, extra = {}){
   return query ? `${path}?${query}` : path;
 }
 const searchInput = document.getElementById("searchInput");
-
+const venueFilter = document.getElementById("venueFilter");
 const statusFilter = document.getElementById("statusFilter");
 const toggleSecretInput = document.getElementById("toggleSecret");
 
@@ -559,6 +634,15 @@ function venueToHuman(v){
   return found?.title || v || "—";
 }
 
+function normalizeVenue(v){
+  if (!v) return "";
+
+  const found = CONFIG_VENUES.find(x =>
+    x.id === v || x.hall === v
+  );
+
+  return found?.id || v;
+}
 
 function formatDateTime(s){
   const parts = [];
@@ -571,35 +655,73 @@ function detectShowTitle(s){
   return s.show || s.title || s.name || "Без назви";
 }
 
+function renderCompensationBadge(s){
+
+  const stats = s.compensation_stats;
+
+  if (!stats || !stats.total) {
+    return "";
+  }
+
+  const used = Number(stats.used || 0);
+  const total = Number(stats.total || 0);
+
+  if (used >= total) {
+    return `
+      <span class="badge" style="background:#14532d;color:#fff;">
+        🟢 Компенсації закрито: ${used}/${total}
+      </span>
+    `;
+  }
+
+  if (used === 0) {
+    return `
+      <span class="badge" style="background:#f5b400;color:#111;">
+        🟡 Борг театру: ${used}/${total}
+      </span>
+    `;
+  }
+
+  return `
+    <span class="badge" style="background:#f97316;color:#111;">
+      🟠 Частково закрито: ${used}/${total}
+    </span>
+  `;
+}
+  
 function makeSeanceCard(s, archivedMode = false){
   const title = escapeHtml(detectShowTitle(s));
   const id = escapeHtml(s.id || "");
-  const venue = "Client X";
+  const venue = escapeHtml(venueToHuman(normalizeVenue(s.venue_id)));
   const dt = escapeHtml(formatDateTime(s));
 
   if (!archivedMode) {
-    return `
-      <div class="row">
-        <div class="meta">
-          <div class="title">${title}</div>
-          <div class="sub"><b>Seance ID:</b> ${id}</div>
-          <div class="sub">${dt}</div>
+  return `
+    <div class="row">
+      <div class="meta">
+        <div class="title">${title}</div>
+        <div class="sub"><b>Seance ID:</b> ${id}</div>
+        <div class="sub">${dt}</div>
 
-          <div class="badges">
-            <span class="badge badge-venue">${venue}</span>
-            <span class="badge badge-active">Активний</span>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn btn-primary" onclick="openCash('${id}')">Каса</button>
-          <button class="btn btn-neutral" onclick="openEditor('${id}')">Редактор</button>
-          <button class="btn btn-neutral" onclick="openReports('${id}')">Звіти</button>
-          <button class="btn btn-danger" onclick="archiveSeance('${id}')">Архівувати</button>
+        <div class="badges">
+          <span class="badge badge-venue">${venue}</span>
+          <span class="badge badge-active">Активний</span>
+          ${renderCompensationBadge(s)}
         </div>
       </div>
-    `;
-  }
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="openCash('${id}')">Каса</button>
+        <button class="btn btn-neutral" onclick="openEditor('${id}')">Редактор</button>
+        <button class="btn btn-neutral" onclick="openReports('${id}')">Звіти</button> 
+        <button class="btn btn-neutral" onclick="openAuditPage('${id}')">Audit</button>
+        <button class="btn btn-warning" onclick="activateTicketCompensation('${id}')">🟡 1 квиток</button>
+        <button class="btn btn-warning" onclick="activateCompensation('${id}')">🟡 Компенсація</button>
+        <button class="btn btn-danger" onclick="archiveSeance('${id}')">Архівувати</button>
+      </div>
+    </div>
+  `;
+}
 
   return `
     <div class="row">
@@ -623,13 +745,19 @@ function makeSeanceCard(s, archivedMode = false){
 
 function matchesFilters(s){
   const query = searchInput.value.trim().toLowerCase();
+  const venue = venueFilter.value;
   const status = statusFilter.value;
 
   const show = detectShowTitle(s).toLowerCase();
   const id = String(s.id || "").toLowerCase();
+  const seanceVenue = normalizeVenue(s.venue_id);
   const isArchived = s.archived === true;
 
   if (query && !show.includes(query) && !id.includes(query)) {
+    return false;
+  }
+
+  if (venue !== "all" && seanceVenue !== venue) {
     return false;
   }
 
@@ -643,7 +771,45 @@ function matchesFilters(s){
 
   return true;
 }
+async function loadCompensationStats(){
 
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/tickets?select=seance_id,compensation_allowed,compensation_used&compensation_allowed=eq.true`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY
+      },
+      cache:"no-store"
+    }
+  );
+
+  const rows = await res.json();
+  const map = new Map();
+
+  if (Array.isArray(rows)) {
+    rows.forEach(t => {
+      const sid = t.seance_id;
+      if (!sid) return;
+
+      if (!map.has(sid)) {
+        map.set(sid, { total:0, used:0 });
+      }
+
+      const item = map.get(sid);
+      item.total++;
+
+      if (t.compensation_used === true) {
+        item.used++;
+      }
+    });
+  }
+
+  ALL_SEANCES = ALL_SEANCES.map(s => ({
+    ...s,
+    compensation_stats: map.get(s.id) || null
+  }));
+}
 function renderLists(){
   const activeDiv = document.getElementById("active");
   const archDiv = document.getElementById("archived");
@@ -673,17 +839,14 @@ function renderLists(){
 }
 
 async function load(){
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=*&venue_id=eq.client-x`,
-    {
-      headers:{
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
-        "Cache-Control": "no-cache"
-      },
-      cache: "no-store"
-    }
-  );
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
+    headers:{
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Cache-Control": "no-cache"
+    },
+    cache: "no-store"
+  });
 
   const data = await res.json();
 
@@ -730,24 +893,22 @@ async function load(){
     );
   }
 
-  const res2 = await fetch(
-  `${SUPABASE_URL}/rest/v1/seances?select=*&venue_id=eq.client-x`,
-  {
+  const res2 = await fetch(`${SUPABASE_URL}/rest/v1/seances?select=*`, {
     headers:{
       apikey: SUPABASE_ANON_KEY,
       Authorization: "Bearer " + SUPABASE_ANON_KEY
     },
     cache: "no-store"
-  }
-);
+  });
 
   const rows2 = await res2.json();
 
 ALL_SEANCES = Array.isArray(rows2) ? rows2 : [];
-
+await loadCompensationStats();
 const currentVenue = getCurrentVenue();
+const view = qs.get("view") || "all";
 
-if (currentVenue) {
+if (currentVenue && view !== "all") {
   ALL_SEANCES = ALL_SEANCES.filter(s =>
     normalizeVenue(s.venue_id) === normalizeVenue(currentVenue)
   );
@@ -756,7 +917,164 @@ if (currentVenue) {
 renderLists();
 
 }
+async function activateCompensation(id){
 
+  const ok = confirm(
+    "Активувати компенсацію для ВСІХ квитків цього сеансу?"
+  );
+
+  if (!ok) return;
+
+  try {
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(id)}`,
+      {
+        method:"PATCH",
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization:"Bearer " + SUPABASE_ANON_KEY,
+          "Content-Type":"application/json",
+          Prefer:"return=representation"
+        },
+        body: JSON.stringify({
+          compensation_allowed: true,
+          compensation_used: false,
+          compensation_granted_at: new Date().toISOString(),
+          compensation_reason: "air_alert"
+        })
+      }
+    );
+
+    if (!res.ok) {
+      console.error(await res.text());
+      alert("Помилка активації компенсації");
+      return;
+    }
+
+    const rows = await res.json();
+
+    alert(
+      `🟡 Компенсацію активовано\nКвитків: ${rows.length}`
+    );
+
+    await load();
+
+  } catch(e){
+    console.error(e);
+    alert("Помилка");
+  }
+}
+async function activateTicketCompensation(seanceId){
+
+  const orderId = prompt("Введіть ORDER ID:");
+  if (!orderId) return;
+
+  const seatLabel = prompt("Введіть місце (P18-M6):");
+  if (!seatLabel) return;
+
+  try {
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(seanceId)}&order_id=eq.${encodeURIComponent(orderId)}&seat_label=eq.${encodeURIComponent(seatLabel)}`,
+      {
+        method:"PATCH",
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization:"Bearer " + SUPABASE_ANON_KEY,
+          "Content-Type":"application/json",
+          Prefer:"return=representation"
+        },
+        body: JSON.stringify({
+          compensation_allowed: true,
+          compensation_used: false,
+          compensation_granted_at: new Date().toISOString(),
+          compensation_reason: "manual_single_ticket"
+        })
+      }
+    );
+
+    if (!res.ok) {
+      console.error(await res.text());
+      alert("Помилка");
+      return;
+    }
+
+    const rows = await res.json();
+
+    if (!rows.length) {
+      alert("Квиток не знайдено");
+      return;
+    }
+
+    alert(
+      `🟡 Компенсацію активовано\n${rows[0].seat_label}`
+    );
+
+  } catch(e){
+    console.error(e);
+    alert("Помилка");
+  }
+}
+
+async function openAudit(seanceId){
+
+  const modal = document.getElementById("audit-modal");
+  const list = document.getElementById("audit-list");
+
+  list.innerHTML = "Завантаження...";
+
+  modal.classList.remove("hidden");
+
+  try {
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/audit_log?seance_id=eq.${encodeURIComponent(seanceId)}&select=*&order=created_at.desc`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization:"Bearer " + SUPABASE_ANON_KEY
+        }
+      }
+    );
+
+    const rows = await res.json();
+
+    if (!Array.isArray(rows) || !rows.length) {
+      list.innerHTML = "<div class='audit-row'>Подій немає</div>";
+      return;
+    }
+
+    list.innerHTML = rows.map(r => `
+      <div class="audit-row">
+
+        <div class="audit-time">
+          ${new Date(r.created_at).toLocaleString()}
+        </div>
+
+        <div class="audit-action">
+          ${r.action || "ACTION"}
+        </div>
+
+        <div class="audit-meta">
+          ${r.role_code || ""} · ${r.source || ""}
+        </div>
+
+      </div>
+    `).join("");
+
+  } catch(e){
+    console.error(e);
+    list.innerHTML = "Помилка";
+  }
+}
+
+function closeAudit(){
+  document
+    .getElementById("audit-modal")
+    .classList.add("hidden");
+}
+  
 async function archiveSeance(id){
   
   await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`, {
@@ -792,25 +1110,33 @@ async function restoreSeance(id){
 
 function openCash(id){
   window.open(
-    withContext("../hybrid/hall-cash-client-x.html", { seance:id }),
+    withContext("../hybrid/hall-cash.html", { seance:id }),
     "_blank"
   );
 }
 
 function openEditor(id){
   window.open(
-    withContext("./seance-editor-client-x.html", { seance:id, seance_id:id }),
+    withContext("./seance-editor.html", { seance:id, seance_id:id }),
     "_blank"
   );
 }
 
 function openReports(id){
   window.open(
-    `./admin/reports
-/index.html?seance=${encodeURIComponent(id)}`,
+    withContext("./reports/kg13.html", { seance:id }),
     "_blank"
   );
 }
+
+function openAuditPage(id){
+  window.open(
+    withContext("./reports/audit.html", { seance:id }),
+    "_blank"
+  );
+}
+
+
 
 function openTogglePage(){
   window.open(`../toggle/`, "_blank");
@@ -916,14 +1242,17 @@ function clearToggleSecret(){
 }
 
 searchInput.addEventListener("input", renderLists);
-
+venueFilter.addEventListener("change", renderLists);
 statusFilter.addEventListener("change", renderLists);
 
 window.addEventListener("load", async () => {
   const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
   if (saved) toggleSecretInput.value = saved;
 
-  
+  CLIENT_CONFIG = await loadVAConfig();
+CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+  ? CLIENT_CONFIG.venues
+  : [];
 
   load();
 
