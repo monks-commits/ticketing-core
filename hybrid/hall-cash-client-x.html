@@ -3011,7 +3011,7 @@ if (!hallFile && CLIENT_CONFIG && SEANCE_ID) {
 if (!hallFile) {
   hallFile = CLIENT_CONFIG?.default_hall || "academy";
 }
-
+hallFile = CLIENT_X_HALL;
 hallFile = String(hallFile).trim();
 
 console.log("CASH HALL:", hallFile);
