@@ -1,0 +1,51 @@
+<h1>VA Partner Cabinet</h1>
+<p id="venueName">Назва майданчика</p>
+
+<div class="cards">
+
+  <button onclick="openSite()">
+    🌐 Сайт / Афіша
+  </button>
+
+  <button onclick="openManage()">
+    🎭 Події / Каса
+  </button>
+
+  <button onclick="openEditor()">
+    🎛 Редактор сеансів
+  </button>
+
+  <button onclick="openReports()">
+    📊 Звіти
+  </button>
+
+  <button onclick="openScanner()">
+    📷 Сканер
+  </button>
+
+</div>
+
+<script>
+const VENUE_ID = "client-x";
+const CITY_ID = "dnipro";
+
+function openSite(){
+  location.href = `../site-project/pages/index.html?city=${CITY_ID}&venue=${VENUE_ID}`;
+}
+
+function openManage(){
+  location.href = `./manage.html?city=${CITY_ID}&venue=${VENUE_ID}`;
+}
+
+function openEditor(){
+  location.href = `./seance-editor.html?city=${CITY_ID}&venue=${VENUE_ID}`;
+}
+
+function openReports(){
+  location.href = `./reports/index.html?city=${CITY_ID}&venue=${VENUE_ID}`;
+}
+
+function openScanner(){
+  location.href = `../scanner/index.html?city=${CITY_ID}&venue=${VENUE_ID}`;
+}
+</script>
