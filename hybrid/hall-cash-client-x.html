@@ -2909,67 +2909,59 @@ function applyStatusFromBackoffice(status, seats){
 (async ()=>{
 
   // загрузка списка сеансов
-  async function loadSeancesForCash() {
+ async function loadSeancesForCash(){
 
-    const select = document.getElementById("cashSeanceSelect");
-    if (!select) return;
+  const select = document.getElementById("cashSeanceSelect");
+  if (!select) return;
 
-    try {
-      const venueFilter =
-  CLIENT_CONFIG?.default_hall
-    ? `&hall=eq.${encodeURIComponent(CLIENT_CONFIG.default_hall)}`
-    : "";
+  select.innerHTML = `
+    <option value="">Оберіть сеанс...</option>
+  `;
 
-const res = await fetch(
-  `${SUPABASE_URL}/rest/v1/seances` +
-  `?select=id,active,venue_id,show,date,time` +
-  `&active=eq.true` +
-  `&order=created_at.desc`,
-  {
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,venue_id,archived&venue_id=eq.${CLIENT_X_VENUE}&archived=eq.false&order=date.asc,time.asc`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      cache:"no-store"
     }
-  }
-);
+  );
 
-      const rows = await res.json();
-const allowedVenueIds = new Set(
-  (CLIENT_CONFIG?.venues || []).map(v => v.id)
-);
-
-const filteredRows = Array.isArray(rows)
-  ? rows.filter(s => !s.venue_id || allowedVenueIds.has(s.venue_id))
-  : [];
-      select.innerHTML = `<option value="">Оберіть сеанс…</option>`;
-
-     filteredRows
-  .filter(s => s.venue_id === CLIENT_X_VENUE)
-  .forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s.id;
-        opt.textContent = s.id;
-        select.appendChild(opt);
-      });
-
-      if (SEANCE_ID) {
-        select.value = SEANCE_ID;
-      }
-
-    } catch (e) {
-      select.innerHTML = `<option value="">Помилка</option>`;
-    }
-
-    select.addEventListener("change", () => {
-  const val = select.value;
-  if (!val) return;
-
-  location.href =
-    `hall-cash.html?show=${encodeURIComponent(showSlug)}&seance=${encodeURIComponent(val)}`;
-});
-
+  if (!res.ok) {
+    console.error("seances load error:", await res.text());
+    return;
   }
 
+  const rows = await res.json();
+
+  if (!Array.isArray(rows) || !rows.length) {
+    select.innerHTML = `
+      <option value="">Немає сеансів Client X</option>
+    `;
+    return;
+  }
+
+  rows.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.show || s.id} — ${s.date || ""} ${s.time || ""}`;
+    select.appendChild(opt);
+  });
+
+  if (SEANCE_ID && rows.some(s => s.id === SEANCE_ID)) {
+    select.value = SEANCE_ID;
+  }
+
+  select.onchange = () => {
+    const id = select.value;
+    if (!id) return;
+
+    location.href =
+      `hall-cash-client-x.html?show=&seance=${encodeURIComponent(id)}`;
+  };
+}
   // === ИНИЦИАЛИЗАЦИЯ ===
 
 await loadClientConfig();
