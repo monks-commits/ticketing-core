@@ -565,22 +565,21 @@ body{
 }
 
 .hall-scroll{
-  width:100% !important;
-  max-width:none !important;
-  height:auto !important;
-  max-height:none !important;
-  overflow:visible !important;
-  padding:8px !important;
-  background:#e5e7eb !important;
-  border-radius:16px !important;
+  width:100%;
+  height:calc(100vh - 250px);
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  background:#e5e7eb;
+  border-radius:16px;
+  padding:10px;
 }
 
 .hall-inner{
-  width:100% !important;
-  min-width:0 !important;
-  max-width:none !important;
-  transform:none !important;
-  margin:0 !important;
+  width:max-content;
+  height:max-content;
+  margin:0 auto;
 }
 
 #hall-root{
