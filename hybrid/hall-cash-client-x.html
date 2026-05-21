@@ -656,16 +656,45 @@ body{
   background:#e5e7eb !important;
 }
 
-.hall-inner{
-  width:max-content !important;
-  min-width:max-content !important;
-  transform:none !important;
-  margin:0 auto !important;
-}
+
 
 .cash-zoom-panel{
   display:none !important;
 }   
+
+/* ===== CLIENT X SMALL HALL CENTER FIX ===== */
+
+.hall-scroll{
+  overflow:hidden !important;
+  display:flex !important;
+  justify-content:center !important;
+  align-items:flex-start !important;
+}
+
+.hall-inner{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  margin:0 auto !important;
+  transform:none !important;
+}
+
+#hall-root{
+  width:auto !important;
+  min-width:0 !important;
+  margin:0 auto !important;
+}
+
+.hall-section{
+  width:max-content !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+.seats-row{
+  justify-content:center !important;
+}
+    
   </style>
 </head>
 
