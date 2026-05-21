@@ -1078,7 +1078,7 @@ async function loadSeanceConfig() {
     return {
       pricing: localCfg?.pricing || {},
       seat_overrides: localCfg?.seat_overrides || {},
-      hall: localCfg?.hall || "academy"
+      hall: CLIENT_X_HALL
     };
   } catch (e) {
     console.warn("cash loadSeanceConfig local error", e);
