@@ -539,23 +539,17 @@ label[for="venueFilter"]{
 
   <section class="toolbar">
     <div class="toolbar-grid">
-      <div class="field">
-        <label for="searchInput">Пошук</label>
-        <input id="searchInput" type="text" placeholder="Назва вистави або seance_id">
-      </div>
+      <div class="field" style="display:none;">
 
-      <div class="field">
-        <!-- <label>Майданчик</label> -->
-      <!--
-<select id="venueFilter">
-  ...
-</select>
--->
-          <option value="all">Усі майданчики</option>
-          <option value="academy">Академія Руху</option>
-          <option value="shevchenko">Театр Шевченка</option>
-        </select>
-      </div>
+  <label for="venueFilter">Майданчик</label>
+
+  <select id="venueFilter">
+    <option value="client-x" selected>
+      Client X
+    </option>
+  </select>
+
+</div>
 
       <div class="field">
         <label for="statusFilter">Стан</label>
