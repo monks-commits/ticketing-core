@@ -947,10 +947,19 @@ async function loadTakenSeatsOnline(){
 }
     
     
-    const qs = new URLSearchParams(location.search);
-    const showSlug  = (qs.get("show")   || "").trim();
-const SEANCE_ID = (qs.get("seance") || "").trim();
-    const VENUE_ID = (qs.get("venue") || "").trim();
+   const qs = new URLSearchParams(location.search);
+
+const showSlug =
+  (qs.get("show") || "").trim();
+
+const SEANCE_ID =
+  (qs.get("seance") || "").trim();
+
+const VENUE_ID =
+  (qs.get("venue") || "").trim();
+
+const CLIENT_X_VENUE = "client-x";
+const CLIENT_X_HALL = "client-x";
 
 let CLIENT_CONFIG = null;
 
