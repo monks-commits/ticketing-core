@@ -736,6 +736,7 @@ if (refCode) params.set("ref", refCode);
 
       if (seance) u.searchParams.set("seance", seance);
       if (title) u.searchParams.set("title", title);
+      if (refCode) u.searchParams.set("ref", refCode);
 
       if (seats.length) {
         u.searchParams.set("seats", seats.join(","));
@@ -755,6 +756,7 @@ if (refCode) params.set("ref", refCode);
       params.set("seats", seats.join(","));
       params.set("prices", JSON.stringify(prices));
       params.set("amount", String(calcTotal()));
+      if (refCode) params.set("ref", refCode);
 
       location.href = `checkout.html?${params.toString()}`;
     });
