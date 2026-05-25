@@ -561,7 +561,8 @@ if (refCode) {
       if (seats.length) params.set("seats", seats.join(","));
       params.set("prices", JSON.stringify(prices));
       params.set("amount", String(calcTotal()));
-
+if (refCode) params.set("ref", refCode);
+      
       history.replaceState(null, "", `order.html?${params.toString()}`);
     }
 
