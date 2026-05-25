@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>Referral Pilot Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      background:#f6f7fb;
+      margin:0;
+      padding:24px;
+      color:#111827;
+    }
+
+    h1{ margin:0 0 8px; }
+
+    .sub{
+      color:#6b7280;
+      margin-bottom:24px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:white;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 8px 24px rgba(0,0,0,.08);
+    }
+
+    th,td{
+      padding:14px 16px;
+      border-bottom:1px solid #e5e7eb;
+      text-align:left;
+    }
+
+    th{
+      background:#111827;
+      color:white;
+      font-weight:600;
+    }
+
+    tr:last-child td{
+      border-bottom:none;
+    }
+
+    .money{
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .muted{
+      color:#6b7280;
+      font-size:13px;
+    }
+
+    .empty{
+      padding:24px;
+      background:white;
+      border-radius:14px;
+      color:#6b7280;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Referral Pilot Dashboard</h1>
+<div class="sub">gorod.dp.ua / 056.ua — продажі та комісія</div>
+
+<div id="app">Завантаження...</div>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "ВАШ_ANON_KEY";
+
+function money(v){
+  return Number(v || 0).toFixed(2) + " грн";
+}
+
+async function loadDashboard(){
+  const app = document.getElementById("app");
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/referral_pilot_dashboard?select=*`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
+  );
+
+  if (!res.ok) {
+    app.innerHTML = `<div class="empty">Помилка завантаження dashboard</div>`;
+    return;
+  }
+
+  const rows = await res.json();
+
+  if (!rows.length) {
+    app.innerHTML = `<div class="empty">Поки немає реферальних продажів</div>`;
+    return;
+  }
+
+  app.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Партнер</th>
+          <th>Ref code</th>
+          <th>Продажів</th>
+          <th>Сума продажів</th>
+          <th>Комісія</th>
+          <th>Останній продаж</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td>
+              <strong>${r.referral_name || r.ref_code}</strong>
+              <div class="muted">${r.site_url || ""}</div>
+            </td>
+            <td>${r.ref_code}</td>
+            <td>${r.sales_count || 0}</td>
+            <td class="money">${money(r.total_sales)}</td>
+            <td class="money">${money(r.total_commission)}</td>
+            <td>${r.last_sale_at ? new Date(r.last_sale_at).toLocaleString("uk-UA") : "—"}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>
