@@ -527,6 +527,7 @@
       if (seats.length) params.set("seats", seats.join(","));
       params.set("prices", JSON.stringify(prices));
       params.set("amount", String(amount));
+      if (refCode) params.set("ref", refCode);
 
       location.href = `order.html?${params.toString()}`;
     });
@@ -545,16 +546,17 @@
       }
 
       const payload = {
-        idempotency_key: newIdempotencyKey(),
-        show_slug: show,
-        seance_id: seance,
-        seats,
-        amount,
-        currency: "UAH",
-        buyer_name,
-        buyer_email,
-        buyer_phone,
-      };
+  idempotency_key: newIdempotencyKey(),
+  show_slug: show,
+  seance_id: seance,
+  seats,
+  amount,
+  currency: "UAH",
+  buyer_name,
+  buyer_email,
+  buyer_phone,
+  ref_code: refCode || null
+};
 
       try {
         const r = await fetch(LIQPAY_INIT_URL, {
