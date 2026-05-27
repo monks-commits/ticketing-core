@@ -433,6 +433,7 @@
     const LIQPAY_INIT_URL = `${SUPABASE_URL}/functions/v1/liqpay-init`; 
 
     const p = new URLSearchParams(location.search);
+    const refCode = p.get("ref") || "";
 
     const seatsRaw = p.get("seats") || "";
     const amount = Number(p.get("amount") || 0);
