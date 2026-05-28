@@ -1211,17 +1211,7 @@
 }
 
 
-#hall-root{
-  position:relative;
-  z-index:2;
 
-  background-image:url("../images/client-x-hall.png");
-  background-size:900px auto;
-  background-repeat:no-repeat;
-  background-position:center 40px;
-
-  min-height:1400px;
-}  
 </style>
  
 </head>
@@ -1302,8 +1292,13 @@ min-height:1400px;
         
         <div id="mobile-hall-viewport" class="mobile-hall-viewport">
           <div id="mobile-hall-scale" class="mobile-hall-scale">
-            <div class="hall-inner">
-              <div id="hall-root" style="
+            <div class="hall-inner"
+style="
+background:url('../images/client-x-hall.png') center top / 1100px auto no-repeat;
+min-height:1400px;
+">
+  <div id="hall-root"></div>
+</div>
   min-height:1400px;
   background:red url('../images/client-x-hall.png') center 40px / 900px auto no-repeat;
 "></div>
