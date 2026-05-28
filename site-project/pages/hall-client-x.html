@@ -1234,6 +1234,54 @@
   display:inline-block !important;
   flex:0 0 14px !important;
 
+  /* ===== CLIENT X PREMIUM HALL FIX ===== */
+
+.hall-inner.client-x-stage{
+  position:relative !important;
+  width:1100px !important;
+  min-width:1100px !important;
+  min-height:1400px !important;
+  margin:0 auto !important;
+  padding:0 !important;
+  overflow:hidden !important;
+}
+
+.client-x-hall-bg{
+  position:absolute !important;
+  top:0 !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  width:900px !important;
+  max-width:none !important;
+  height:auto !important;
+  z-index:1 !important;
+  pointer-events:none !important;
+}
+
+#hall-root{
+  position:relative !important;
+  z-index:2 !important;
+  display:flex !important;
+  justify-content:center !important;
+  padding-top:520px !important;
+}
+
+/* вернуть афишу справа в нормальный размер */
+.event-poster-wrap{
+  width:100% !important;
+  max-width:320px !important;
+  overflow:hidden !important;
+  border-radius:16px !important;
+}
+
+#event-poster.event-poster{
+  display:block !important;
+  width:100% !important;
+  max-width:320px !important;
+  height:auto !important;
+  object-fit:contain !important;
+  margin:0 auto !important;
+
 
 }
 }
