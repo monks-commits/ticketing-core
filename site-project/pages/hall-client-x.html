@@ -1210,7 +1210,26 @@
   flex:0 0 14px !important;
 }
 
+.client-x-hall-visual{
+  position:relative;
+  min-height:900px;
+}
 
+.client-x-bg{
+  position:absolute;
+  left:50%;
+  top:40px;
+  transform:translateX(-50%);
+  width:900px;
+  max-width:100%;
+  z-index:1;
+  pointer-events:none;
+}
+
+#hall-root{
+  position:relative;
+  z-index:2;
+}
 
 </style>
  
@@ -1292,16 +1311,11 @@ min-height:1400px;
         
         <div id="mobile-hall-viewport" class="mobile-hall-viewport">
           <div id="mobile-hall-scale" class="mobile-hall-scale">
-            <div class="hall-inner"
-style="
-background:url('../images/client-x-hall.png') center top / 1100px auto no-repeat;
-min-height:1400px;
-">
+            
+         <div class="hall-inner client-x-hall-visual">
+  <img class="client-x-bg" src="../images/client-x-hall.png" alt="Схема залу">
   <div id="hall-root"></div>
 </div>
-  min-height:1400px;
-  background:red url('../images/client-x-hall.png') center 40px / 900px auto no-repeat;
-"></div>
             </div>
           </div>
         </div>
