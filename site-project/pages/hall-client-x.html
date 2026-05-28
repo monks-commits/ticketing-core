@@ -1030,6 +1030,31 @@
   display:none;
 }
 
+  .client-x-stage{
+  position:relative;
+  min-height:1400px;
+  overflow:hidden;
+}
+
+.client-x-hall-bg{
+  position:absolute;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:900px;
+  max-width:none;
+  z-index:1;
+  pointer-events:none;
+}
+
+#hall-root{
+  position:relative;
+  z-index:2;
+  display:flex;
+  justify-content:center;
+  padding-top:520px;
+}
+  
 @media(max-width:1100px){
   .ticket-layout{
     grid-template-columns:1fr;
@@ -1208,31 +1233,8 @@
   border-radius:999px !important;
   display:inline-block !important;
   flex:0 0 14px !important;
-}
 
-.client-x-stage{
-  position:relative;
-  min-height:1400px;
-  overflow:hidden;
-}
 
-.client-x-hall-bg{
-  position:absolute;
-  top:0;
-  left:50%;
-  transform:translateX(-50%);
-  width:900px;
-  max-width:none;
-  z-index:1;
-  pointer-events:none;
-}
-
-#hall-root{
-  position:relative;
-  z-index:2;
-  display:flex;
-  justify-content:center;
-  padding-top:520px;
 }
 }
 </style>
