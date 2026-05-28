@@ -1030,31 +1030,6 @@
   display:none;
 }
 
-  .client-x-stage{
-  position:relative;
-  min-height:1400px;
-  overflow:hidden;
-}
-
-.client-x-hall-bg{
-  position:absolute;
-  top:0;
-  left:50%;
-  transform:translateX(-50%);
-  width:900px;
-  max-width:none;
-  z-index:1;
-  pointer-events:none;
-}
-
-#hall-root{
-  position:relative;
-  z-index:2;
-  display:flex;
-  justify-content:center;
-  padding-top:520px;
-}
-  
 @media(max-width:1100px){
   .ticket-layout{
     grid-template-columns:1fr;
@@ -1233,58 +1208,10 @@
   border-radius:999px !important;
   display:inline-block !important;
   flex:0 0 14px !important;
-
-  /* ===== CLIENT X PREMIUM HALL FIX ===== */
-
-.hall-inner.client-x-stage{
-  position:relative !important;
-  width:1100px !important;
-  min-width:1100px !important;
-  min-height:1400px !important;
-  margin:0 auto !important;
-  padding:0 !important;
-  overflow:hidden !important;
 }
 
-.client-x-hall-bg{
-  position:absolute !important;
-  top:0 !important;
-  left:50% !important;
-  transform:translateX(-50%) !important;
-  width:900px !important;
-  max-width:none !important;
-  height:auto !important;
-  z-index:1 !important;
-  pointer-events:none !important;
-}
 
-#hall-root{
-  position:relative !important;
-  z-index:2 !important;
-  display:flex !important;
-  justify-content:center !important;
-  padding-top:520px !important;
-}
-
-/* вернуть афишу справа в нормальный размер */
-.event-poster-wrap{
-  width:100% !important;
-  max-width:320px !important;
-  overflow:hidden !important;
-  border-radius:16px !important;
-}
-
-#event-poster.event-poster{
-  display:block !important;
-  width:100% !important;
-  max-width:320px !important;
-  height:auto !important;
-  object-fit:contain !important;
-  margin:0 auto !important;
-
-
-}
-}
+  
 </style>
  
 </head>
@@ -1357,15 +1284,11 @@
         </div>
       </div>
 
-     <div class="hall-scroll">
-  <div id="mobile-hall-viewport" class="mobile-hall-viewport">
-    <div id="mobile-hall-scale" class="mobile-hall-scale">
-
-     <div class="hall-inner client-x-stage">
-  <img class="client-x-hall-bg" src="../images/client-x-hall.png" alt="Схема залу">
-  <div id="hall-root"></div>
-</div>
-</div>
+      <div class="hall-scroll">
+        <div id="mobile-hall-viewport" class="mobile-hall-viewport">
+          <div id="mobile-hall-scale" class="mobile-hall-scale">
+            <div class="hall-inner">
+              <div id="hall-root"></div>
             </div>
           </div>
         </div>
