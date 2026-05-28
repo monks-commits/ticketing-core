@@ -2530,7 +2530,6 @@ function renderDecor(hallData, target){
   });
 
 }
-    
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -2550,6 +2549,24 @@ function renderBuilderSeats(hallData){
   canvas.style.width = width + "px";
   canvas.style.height = height + "px";
   canvas.style.margin = "0 auto";
+  canvas.style.overflow = "hidden";
+
+  if (hallData?.background_image) {
+    const bg = document.createElement("img");
+    bg.src = hallData.background_image;
+    bg.alt = "Схема залу";
+
+    bg.style.position = "absolute";
+    bg.style.left = "0";
+    bg.style.top = "0";
+    bg.style.width = "100%";
+    bg.style.height = "100%";
+    bg.style.objectFit = "contain";
+    bg.style.zIndex = "1";
+    bg.style.pointerEvents = "none";
+
+    canvas.appendChild(bg);
+  }
 
   seats.forEach(s => {
     const meta = {
@@ -2570,14 +2587,16 @@ function renderBuilderSeats(hallData){
     btn.style.position = "absolute";
     btn.style.left = Number(s.x || 0) + "px";
     btn.style.top = Number(s.y || 0) + "px";
+    btn.style.zIndex = "3";
 
     canvas.appendChild(btn);
   });
 
   renderDecor(hallData, canvas);
+
   wrap.appendChild(canvas);
   root.appendChild(wrap);
-}
+}    
 
 function renderTablesSection(section){
   const wrap = document.createElement("section");
