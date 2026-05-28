@@ -4,8 +4,17 @@
   "title": "Назва залу",
   "width": 1000,
   "height": 1200,
+
   "background_image": "../images/client-x-hall.png",
   "background_mode": "original",
+
+  "align": {
+    "scale": 1.17,
+    "x": -15,
+    "y": 3,
+    "opacity": 1
+  },
+
   "seats": [
     {
       "id": "seat_1779912240396_3",
