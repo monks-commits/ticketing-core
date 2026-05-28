@@ -2541,6 +2541,12 @@ function renderBuilderSeats(hallData){
   const width = Number(hallData.width || 1200);
   const height = Number(hallData.height || 900);
 
+  // ===== CLIENT X ALIGN SETTINGS =====
+  const SEAT_SCALE = 1;
+  const SEAT_OFFSET_X = 0;
+  const SEAT_OFFSET_Y = 260;
+  const SEAT_OPACITY = 0.85;
+
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
 
@@ -2585,9 +2591,10 @@ function renderBuilderSeats(hallData){
     );
 
     btn.style.position = "absolute";
-    btn.style.left = Number(s.x || 0) + "px";
-    btn.style.top = Number(s.y || 0) + "px";
+    btn.style.left = (Number(s.x || 0) * SEAT_SCALE + SEAT_OFFSET_X) + "px";
+    btn.style.top = (Number(s.y || 0) * SEAT_SCALE + SEAT_OFFSET_Y) + "px";
     btn.style.zIndex = "3";
+    btn.style.opacity = String(SEAT_OPACITY);
 
     canvas.appendChild(btn);
   });
@@ -2596,7 +2603,7 @@ function renderBuilderSeats(hallData){
 
   wrap.appendChild(canvas);
   root.appendChild(wrap);
-}    
+}
 
 function renderTablesSection(section){
   const wrap = document.createElement("section");
