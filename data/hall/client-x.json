@@ -1,12 +1,10 @@
-
-"background_image": "../images/client-x-hall.png",
-
 {
   "version": 7,
   "format": "va-hall-studio-geometry-stable",
   "title": "Назва залу",
   "width": 1000,
   "height": 1200,
+  "background_image": "../images/client-x-hall.png",
   "background_mode": "original",
   "seats": [
     {
