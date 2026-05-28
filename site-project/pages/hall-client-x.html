@@ -1210,18 +1210,19 @@
   flex:0 0 14px !important;
 }
 
-.client-x-hall-visual{
+.client-x-stage{
   position:relative;
-  min-height:900px;
+  min-height:1400px;
+  overflow:hidden;
 }
 
 .client-x-bg{
   position:absolute;
+  top:0;
   left:50%;
-  top:40px;
   transform:translateX(-50%);
-  width:900px;
-  max-width:100%;
+  width:1100px;
+  max-width:none;
   z-index:1;
   pointer-events:none;
 }
@@ -1229,6 +1230,9 @@
 #hall-root{
   position:relative;
   z-index:2;
+  display:flex;
+  justify-content:center;
+  padding-top:260px;
 }
 
 </style>
@@ -1303,18 +1307,14 @@
         </div>
       </div>
 
-      <div class="hall-scroll">
-<div class="hall-scroll" style="
-background:url('../images/client-x-hall.png') center top / 1100px auto no-repeat;
-min-height:1400px;
-">
-        
-        <div id="mobile-hall-viewport" class="mobile-hall-viewport">
-          <div id="mobile-hall-scale" class="mobile-hall-scale">
-            
-         <div class="hall-inner client-x-hall-visual">
-  <img class="client-x-bg" src="../images/client-x-hall.png" alt="Схема залу">
-  <div id="hall-root"></div>
+     <div class="hall-scroll">
+  <div id="mobile-hall-viewport" class="mobile-hall-viewport">
+    <div id="mobile-hall-scale" class="mobile-hall-scale">
+
+      <div class="hall-inner client-x-stage">
+        <img class="client-x-bg" src="../images/client-x-hall.png" alt="Схема залу">
+        <div id="hall-root"></div>
+      </div>
 </div>
             </div>
           </div>
