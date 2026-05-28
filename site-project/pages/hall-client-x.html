@@ -2530,10 +2530,20 @@ function renderDecor(hallData, target){
   });
 
 }
+window.HALL_ALIGN = {
+  scale: 0.72,
+  x: 115,
+  y: 185,
+  opacity: 0.85
+};
+
+let CURRENT_HALL_DATA = null;
+
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
 
+  CURRENT_HALL_DATA = hallData;
   root.innerHTML = "";
 
   const seats = Array.isArray(hallData?.seats) ? hallData.seats : [];
@@ -2541,14 +2551,12 @@ function renderBuilderSeats(hallData){
   const width = Number(hallData.width || 1200);
   const height = Number(hallData.height || 900);
 
-  // ===== CLIENT X ALIGN SETTINGS =====
+  const A = window.HALL_ALIGN || {};
+  const SEAT_SCALE = Number(A.scale ?? 1);
+  const SEAT_OFFSET_X = Number(A.x ?? 0);
+  const SEAT_OFFSET_Y = Number(A.y ?? 0);
+  const SEAT_OPACITY = Number(A.opacity ?? 0.85);
 
-  
- const SEAT_SCALE = 0.72;
-const SEAT_OFFSET_X = 115;
-const SEAT_OFFSET_Y = 185;
-const SEAT_OPACITY = 0.85;
-  
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
 
@@ -2584,13 +2592,7 @@ const SEAT_OPACITY = 0.85;
       seat: Number(s.seat || 0)
     };
 
-    const btn = makeSeatElement(
-      seatKey(meta),
-      meta.seat,
-      "",
-      0,
-      meta
-    );
+    const btn = makeSeatElement(seatKey(meta), meta.seat, "", 0, meta);
 
     btn.style.position = "absolute";
     btn.style.left = (Number(s.x || 0) * SEAT_SCALE + SEAT_OFFSET_X) + "px";
@@ -2602,10 +2604,68 @@ const SEAT_OPACITY = 0.85;
   });
 
   renderDecor(hallData, canvas);
-
   wrap.appendChild(canvas);
   root.appendChild(wrap);
 }
+
+function initHallAlignPanel(){
+  const panel = document.createElement("div");
+  panel.id = "hallAlignPanel";
+  panel.innerHTML = `
+    <div style="font-weight:800;margin-bottom:8px;">ALIGN</div>
+
+    <label>Scale <span id="alignScaleVal"></span></label>
+    <input id="alignScale" type="range" min="0.2" max="1.5" step="0.01">
+
+    <label>X <span id="alignXVal"></span></label>
+    <input id="alignX" type="range" min="-500" max="500" step="1">
+
+    <label>Y <span id="alignYVal"></span></label>
+    <input id="alignY" type="range" min="-500" max="500" step="1">
+
+    <label>Opacity <span id="alignOpacityVal"></span></label>
+    <input id="alignOpacity" type="range" min="0.05" max="1" step="0.05">
+  `;
+
+  panel.style.cssText = `
+    position:fixed;
+    left:14px;
+    bottom:14px;
+    z-index:999999;
+    width:240px;
+    background:#111827;
+    color:#fff;
+    padding:14px;
+    border-radius:14px;
+    font-family:Arial,sans-serif;
+    font-size:13px;
+    box-shadow:0 12px 32px rgba(0,0,0,.28);
+  `;
+
+  document.body.appendChild(panel);
+
+  const bind = (key, inputId, valId) => {
+    const input = document.getElementById(inputId);
+    const val = document.getElementById(valId);
+    input.value = window.HALL_ALIGN[key];
+
+    const update = () => {
+      window.HALL_ALIGN[key] = Number(input.value);
+      val.textContent = input.value;
+      if (CURRENT_HALL_DATA) renderBuilderSeats(CURRENT_HALL_DATA);
+    };
+
+    input.addEventListener("input", update);
+    update();
+  };
+
+  bind("scale", "alignScale", "alignScaleVal");
+  bind("x", "alignX", "alignXVal");
+  bind("y", "alignY", "alignYVal");
+  bind("opacity", "alignOpacity", "alignOpacityVal");
+}
+
+document.addEventListener("DOMContentLoaded", initHallAlignPanel);
 
 function renderTablesSection(section){
   const wrap = document.createElement("section");
