@@ -2609,6 +2609,9 @@ function renderBuilderSeats(hallData){
 }
 
 function initHallAlignPanel(){
+const DEBUG_ALIGN = location.search.includes("debug=1");
+  if (!DEBUG_ALIGN) return;
+  
   const panel = document.createElement("div");
   panel.id = "hallAlignPanel";
   panel.innerHTML = `
