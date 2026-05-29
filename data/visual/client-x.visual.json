@@ -1,0 +1,11 @@
+{
+  "background": "https://monks-commits.github.io/ticketing-core/site-project/images/client-x-hall.png",
+  "backgroundAlign": {
+    "scale": 0.71,
+    "x": 16,
+    "y": -229,
+    "opacity": 1
+  },
+  "theme": "opera",
+  "preset": "theatre"
+}
