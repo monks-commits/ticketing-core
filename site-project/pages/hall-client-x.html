@@ -2531,13 +2531,47 @@ function renderDecor(hallData, target){
 
 }
 window.HALL_ALIGN = {
-  scale: 0.72,
-  x: 115,
-  y: 185,
-  opacity: 0.85
+  scale: 1,
+  x: 0,
+  y: 0,
+  opacity: 1
 };
 
 let CURRENT_HALL_DATA = null;
+let HALL_VISUAL_CONFIG = null;
+
+async function loadHallVisualConfig(hallFile){
+  HALL_VISUAL_CONFIG = null;
+
+  if (!hallFile) return null;
+
+  try {
+    const res = await fetch(`../../data/visual/${hallFile}.visual.json`, {
+      cache: "no-store"
+    });
+
+    if (!res.ok) {
+      console.warn("Visual config not found:", hallFile);
+      return null;
+    }
+
+    HALL_VISUAL_CONFIG = await res.json();
+
+    if (HALL_VISUAL_CONFIG?.backgroundAlign) {
+      window.HALL_ALIGN = {
+        ...window.HALL_ALIGN,
+        ...HALL_VISUAL_CONFIG.backgroundAlign
+      };
+    }
+
+    console.log("VISUAL CONFIG:", HALL_VISUAL_CONFIG);
+    return HALL_VISUAL_CONFIG;
+
+  } catch (e) {
+    console.warn("loadHallVisualConfig error", e);
+    return null;
+  }
+}
 
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
@@ -2552,10 +2586,10 @@ function renderBuilderSeats(hallData){
   const height = Number(hallData.height || 900);
 
   const A = window.HALL_ALIGN || {};
-  const SEAT_SCALE = Number(A.scale ?? 1);
-  const SEAT_OFFSET_X = Number(A.x ?? 0);
-  const SEAT_OFFSET_Y = Number(A.y ?? 0);
-  const SEAT_OPACITY = Number(A.opacity ?? 0.85);
+  const BG_SCALE = Number(A.scale ?? 1);
+  const BG_OFFSET_X = Number(A.x ?? 0);
+  const BG_OFFSET_Y = Number(A.y ?? 0);
+  const BG_OPACITY = Number(A.opacity ?? 1);
 
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
@@ -2567,9 +2601,14 @@ function renderBuilderSeats(hallData){
   canvas.style.margin = "0 auto";
   canvas.style.overflow = "hidden";
 
-  if (hallData?.background_image) {
+  const bgUrl =
+    HALL_VISUAL_CONFIG?.background ||
+    hallData?.background_image ||
+    "";
+
+  if (bgUrl) {
     const bg = document.createElement("img");
-    bg.src = hallData.background_image;
+    bg.src = bgUrl;
     bg.alt = "Схема залу";
 
     bg.style.position = "absolute";
@@ -2580,6 +2619,10 @@ function renderBuilderSeats(hallData){
     bg.style.objectFit = "contain";
     bg.style.zIndex = "1";
     bg.style.pointerEvents = "none";
+    bg.style.transformOrigin = "top left";
+    bg.style.transform =
+      `translate(${BG_OFFSET_X}px, ${BG_OFFSET_Y}px) scale(${BG_SCALE})`;
+    bg.style.opacity = String(BG_OPACITY);
 
     canvas.appendChild(bg);
   }
@@ -2595,10 +2638,15 @@ function renderBuilderSeats(hallData){
     const btn = makeSeatElement(seatKey(meta), meta.seat, "", 0, meta);
 
     btn.style.position = "absolute";
-    btn.style.left = (Number(s.x || 0) * SEAT_SCALE + SEAT_OFFSET_X) + "px";
-    btn.style.top = (Number(s.y || 0) * SEAT_SCALE + SEAT_OFFSET_Y) + "px";
+
+    // ВАЖНО:
+    // места больше НЕ двигаем и НЕ масштабируем
+    // они стоят строго по координатам Builder-3 JSON
+    btn.style.left = Number(s.x || 0) + "px";
+    btn.style.top = Number(s.y || 0) + "px";
+
     btn.style.zIndex = "3";
-    btn.style.opacity = String(SEAT_OPACITY);
+    btn.style.opacity = "1";
 
     canvas.appendChild(btn);
   });
