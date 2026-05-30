@@ -2588,11 +2588,12 @@ function renderBuilderSeats(hallData){
   wrap.style.display = "flex";
   wrap.style.justifyContent = "center";
 
-  const scaleBox = document.createElement("div");
-  scaleBox.style.position = "relative";
-  scaleBox.style.width = "min(100%, " + width + "px)";
-  scaleBox.style.aspectRatio = width + " / " + height;
-  scaleBox.style.overflow = "hidden";
+ const scaleBox = document.createElement("div");
+scaleBox.style.position = "relative";
+scaleBox.style.width = width + "px";
+scaleBox.style.height = height + "px";
+scaleBox.style.maxWidth = "100%";
+scaleBox.style.overflow = "hidden";
 
   const canvas = document.createElement("div");
   canvas.style.position = "absolute";
