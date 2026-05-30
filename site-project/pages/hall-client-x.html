@@ -2375,7 +2375,7 @@ function renderCoordinateHall(section){
     canvas.appendChild(el);
   }
 
-  function addSeat(group, row, seat, x, y, xPct, yPct){
+ function addSeat(group, row, seat, x, y, xPct, yPct){
   const meta = {
     zone: group.zone || "Партер",
     prefix: group.prefix || "P",
@@ -2387,6 +2387,7 @@ function renderCoordinateHall(section){
 
   const btn = makeSeatElement(seatKey(meta), seat, "", 0, meta);
   btn.classList.add("coordinate-seat");
+  btn.style.position = "absolute";
 
   if (xPct !== undefined && yPct !== undefined && xPct !== null && yPct !== null) {
     btn.style.left = Number(xPct) + "%";
