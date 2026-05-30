@@ -7,10 +7,7 @@
   "canvas": {
     "width": 1000,
     "height": 1200,
-    "background": {
-      "mode": "stretch",
-      "embedded": true
-    }
+    "background": null
   },
   "camera": {
     "zoom": 0.9
