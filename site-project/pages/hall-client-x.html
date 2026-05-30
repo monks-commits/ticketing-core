@@ -2327,9 +2327,139 @@ function renderHorizontalGroup(group, sectionsMap){
   return wrap;
 }
 
-A few days ago we reached out about multilingual support for vash-admin.com. A quick stat worth knowing: 75% of internet users prefer browsing in their native language, and 40% won't purchase from a site that isn't available in theirs.
+ function renderCoordinateHall(section){
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section hall-section--coordinate";
 
-Your site analysis is still available if you want to see the opportunity.
+  const viewport = document.createElement("div");
+  viewport.className = "coordinate-viewport";
+
+  const canvas = document.createElement("div");
+  canvas.className = "coordinate-canvas";
+
+  const width = Number(section.width || 1400);
+  const height = Number(section.height || 1200);
+  const scale = Number(section.scale || 1);
+
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+  canvas.style.transform = `scale(${scale})`;
+  canvas.style.transformOrigin = "top center";
+
+  viewport.style.height = (height * scale) + "px";
+
+  function addLabel(item){
+    const el = document.createElement("div");
+    el.className = "coordinate-label " + (item.class || "");
+    el.textContent = item.text || item.label || "";
+    el.style.left = Number(item.x || 0) + "px";
+    el.style.top = Number(item.y || 0) + "px";
+    if (item.size) el.style.fontSize = Number(item.size) + "px";
+    canvas.appendChild(el);
+  }
+
+  function addDecor(item){
+    const el = document.createElement("div");
+    el.className = "coordinate-decor " + (item.class || "");
+    el.style.left = Number(item.x || 0) + "px";
+    el.style.top = Number(item.y || 0) + "px";
+    el.style.width = Number(item.w || item.width || 0) + "px";
+    el.style.height = Number(item.h || item.height || 0) + "px";
+    if (item.style && typeof item.style === "object") {
+      Object.assign(el.style, item.style);
+    }
+    canvas.appendChild(el);
+  }
+
+  function addSeat(group, row, seat, x, y, xPct, yPct){
+    const meta = {
+      zone: group.zone || "Партер",
+      prefix: group.prefix || "P",
+      row: String(row),
+      seat: Number(seat),
+      x_pct: xPct,
+      y_pct: yPct
+    };
+
+    const btn = makeSeatElement(seatKey(meta), seat, "", 0, meta);
+    btn.classList.add("coordinate-seat");
+    btn.style.position = "absolute";
+
+    if (xPct !== undefined && yPct !== undefined && xPct !== null && yPct !== null) {
+      btn.style.left = Number(xPct) + "%";
+      btn.style.top = Number(yPct) + "%";
+    } else {
+      btn.style.left = Number(x || 0) + "px";
+      btn.style.top = Number(y || 0) + "px";
+    }
+
+    canvas.appendChild(btn);
+  }
+
+  function drawLineGroup(group){
+    const rows = Array.isArray(group.rows) ? group.rows : [];
+    const seatSize = Number(group.seat_size || 22);
+    const gap = Number(group.gap || group.seat_gap || 5);
+    const step = seatSize + gap;
+
+    const baseX = Number(group.x || 0);
+    const baseY = Number(group.y || 0);
+    const rowGap = Number(group.row_gap || 30);
+
+    rows.forEach((r, rowIndex) => {
+      const row = r.row;
+      const x = r.x !== undefined ? Number(r.x) : baseX;
+      const y = r.y !== undefined ? Number(r.y) : baseY + rowIndex * rowGap;
+
+      const start = Number(r.start || r.count || 1);
+      const count = Number(r.count || 1);
+      const reverse = r.reverse === true;
+
+      for (let i = 0; i < count; i++) {
+        const seat = reverse ? start - i : start + i;
+        addSeat(group, row, seat, x + i * step, y);
+      }
+    });
+  }
+
+  function drawPointsGroup(group){
+    const seats = Array.isArray(group.seats) ? group.seats : [];
+
+    seats.forEach(s => {
+      addSeat(
+        group,
+        s.row ?? 0,
+        s.seat ?? s.label ?? 0,
+        s.x,
+        s.y,
+        s.x_pct,
+        s.y_pct
+      );
+    });
+  }
+
+  const labels = Array.isArray(section.labels) ? section.labels : [];
+  labels.forEach(addLabel);
+
+  const decor = Array.isArray(section.decor) ? section.decor : [];
+  decor.forEach(addDecor);
+
+  const groups = Array.isArray(section.groups)
+    ? section.groups
+    : Array.isArray(section.seat_groups)
+      ? section.seat_groups
+      : [];
+
+  groups.forEach(group => {
+    if (group.type === "points") drawPointsGroup(group);
+    else drawLineGroup(group);
+  });
+
+  viewport.appendChild(canvas);
+  wrap.appendChild(viewport);
+  return wrap;
+}   
+
 function renderDecor(hallData, target){
 
   const decor = Array.isArray(hallData?.decor)
