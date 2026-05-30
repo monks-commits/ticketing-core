@@ -2579,24 +2579,27 @@ function renderBuilderSeats(hallData){
   root.innerHTML = "";
 
   const seats = Array.isArray(hallData?.seats) ? hallData.seats : [];
-
-  const width = Number(hallData.width || 1200);
-  const height = Number(hallData.height || 900);
-
-  const A = window.HALL_ALIGN || {};
-  const BG_SCALE = Number(A.scale ?? 1);
-  const BG_OFFSET_X = Number(A.x ?? 0);
-  const BG_OFFSET_Y = Number(A.y ?? 0);
-  const BG_OPACITY = Number(A.opacity ?? 1);
+  const width = Number(hallData.width || 715);
+  const height = Number(hallData.height || 840);
 
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
+  wrap.style.width = "100%";
+  wrap.style.display = "flex";
+  wrap.style.justifyContent = "center";
+
+  const scaleBox = document.createElement("div");
+  scaleBox.style.position = "relative";
+  scaleBox.style.width = "min(100%, " + width + "px)";
+  scaleBox.style.aspectRatio = width + " / " + height;
+  scaleBox.style.overflow = "hidden";
 
   const canvas = document.createElement("div");
-  canvas.style.position = "relative";
-  canvas.style.width = width + "px";
-  canvas.style.height = height + "px";
-  canvas.style.margin = "0 auto";
+  canvas.style.position = "absolute";
+  canvas.style.left = "0";
+  canvas.style.top = "0";
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
   canvas.style.overflow = "hidden";
 
   const bgUrl =
@@ -2608,7 +2611,6 @@ function renderBuilderSeats(hallData){
     const bg = document.createElement("img");
     bg.src = bgUrl;
     bg.alt = "Схема залу";
-
     bg.style.position = "absolute";
     bg.style.left = "0";
     bg.style.top = "0";
@@ -2617,11 +2619,7 @@ function renderBuilderSeats(hallData){
     bg.style.objectFit = "fill";
     bg.style.zIndex = "1";
     bg.style.pointerEvents = "none";
-    bg.style.transformOrigin = "top left";
-    bg.style.transform =
-      `translate(${BG_OFFSET_X}px, ${BG_OFFSET_Y}px) scale(${BG_SCALE})`;
-    bg.style.opacity = String(BG_OPACITY);
-
+    bg.style.opacity = "1";
     canvas.appendChild(bg);
   }
 
@@ -2634,28 +2632,27 @@ function renderBuilderSeats(hallData){
     };
 
     const btn = makeSeatElement(seatKey(meta), meta.seat, "", 0, meta);
-
     btn.style.position = "absolute";
 
-// ВАЖНО:
-// новые схемы используют проценты
-// старые схемы продолжают работать через x/y
+    if (s.x_pct !== undefined && s.y_pct !== undefined) {
+      btn.style.left = Number(s.x_pct) + "%";
+      btn.style.top = Number(s.y_pct) + "%";
+    } else {
+      btn.style.left = (Number(s.x || 0) / width * 100) + "%";
+      btn.style.top = (Number(s.y || 0) / height * 100) + "%";
+    }
 
-if (s.x_pct !== undefined && s.y_pct !== undefined) {
-  btn.style.left = Number(s.x_pct) + "%";
-  btn.style.top = Number(s.y_pct) + "%";
-} else {
-  btn.style.left = Number(s.x || 0) + "px";
-  btn.style.top = Number(s.y || 0) + "px";
-}
+    btn.style.transform = "translate(-50%, -50%)";
+    btn.style.zIndex = "3";
+    btn.style.opacity = "1";
 
-btn.style.zIndex = "3";
-btn.style.opacity = "1";
+    canvas.appendChild(btn);
+  });
 
-canvas.appendChild(btn);
-});
   renderDecor(hallData, canvas);
-  wrap.appendChild(canvas);
+
+  scaleBox.appendChild(canvas);
+  wrap.appendChild(scaleBox);
   root.appendChild(wrap);
 }
 
