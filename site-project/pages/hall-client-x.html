@@ -1713,12 +1713,15 @@ function clearPriceHighlight(){
 
   // desktop hover
   btn.addEventListener("mouseenter", () => {
-    showSeatTooltip(btn, meta, finalPrice);
-  });
+  highlightSamePrice(finalPrice);
+  showSeatTooltip(btn, meta, finalPrice);
+});
 
-  btn.addEventListener("mouseleave", () => {
-    hideSeatTooltip(); 
-  });
+
+ btn.addEventListener("mouseleave", () => {
+  clearPriceHighlight();
+  hideSeatTooltip(); 
+});
 
   // mobile / touch hint
   btn.addEventListener("touchstart", () => {
