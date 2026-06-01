@@ -1232,10 +1232,12 @@ if (hallSeats.length) {
   box.style.borderRadius = "14px";
   box.style.overflow = "hidden";
 
-  const bgUrl =
-    hall.background_image ||
-    hall.background?.src ||
-    "";
+ const bgUrl =
+  hall.background_image ||
+  hall.background?.src ||
+  hall.background?.url ||
+  hall.background ||
+  "";
 
   if (bgUrl) {
     const bg = document.createElement("img");
