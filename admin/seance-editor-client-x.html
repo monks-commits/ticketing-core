@@ -786,8 +786,90 @@ function normalizeHallNameForPreview(v){
   return v || "academy";
 }
 
+/* ===== REVISION FIX: unified seat keys / Builder-3 + Ultra preview ===== */
+
+function normalizeZoneCode(v){
+  const raw = String(v || "").trim();
+  const upper = raw.toUpperCase();
+
+  if (upper === "P" || /ПАРТЕР/i.test(raw)) return "P";
+  if (upper === "A" || /АМФ/i.test(raw)) return "A";
+  if (upper === "B" || /БАЛК/i.test(raw)) return "B";
+  if (upper === "A0" || /ЛОЖА\s*А/i.test(raw)) return "A0";
+  if (upper === "B0" || /ЛОЖА\s*Б/i.test(raw)) return "B0";
+
+  return upper || raw;
+}
+
+function normalizeSeatKey(key){
+  const raw = String(key || "").trim();
+  const lodge = raw.match(/^(A0|B0)-?M(\d+)$/i);
+  if (lodge) return `${lodge[1].toUpperCase()}-M${Number(lodge[2])}`;
+
+  const m = raw.match(/^([A-ZА-ЯІЇЄҐа-яіїєґ]+)(\d+)-?M(\d+)$/i);
+  if (!m) return raw;
+
+  const prefix = normalizeZoneCode(m[1]);
+  return `${prefix}${Number(m[2])}-M${Number(m[3])}`;
+}
+
+function seatObjToKey(s){
+  if (!s) return "";
+
+  if (s.key) return normalizeSeatKey(s.key);
+
+  const prefix = normalizeZoneCode(s.prefix || s.zone || "");
+  const row = String(s.row ?? "").trim();
+  const seat = Number(s.seat ?? 0);
+
+  if ((prefix === "A0" || prefix === "B0") && seat) {
+    return `${prefix}-M${seat}`;
+  }
+
+  return `${prefix}${row}-M${seat}`;
+}
+
+function getHallSeats(hall){
+  if (Array.isArray(hall.seats)) {
+    return hall.seats.map(s => ({
+      ...s,
+      type: s.type || "seat",
+      key: seatObjToKey(s)
+    }));
+  }
+
+  if (Array.isArray(hall.objects)) {
+    return hall.objects
+      .filter(o => o && (o.type === "seat" || o.type === "chair"))
+      .map(o => ({
+        ...o,
+        type: "seat",
+        key: seatObjToKey(o)
+      }));
+  }
+
+  return [];
+}
+
+function getHallDecor(hall){
+  if (Array.isArray(hall.decor)) return hall.decor;
+
+  if (Array.isArray(hall.objects)) {
+    return hall.objects
+      .filter(o => o && !["seat","chair"].includes(o.type))
+      .map(o => ({ ...o }));
+  }
+
+  return [];
+}
+
 function previewSeatState(key){
-  const override = data.seat_overrides[key] || null;
+  const normalizedKey = normalizeSeatKey(key);
+
+  const override =
+    data.seat_overrides[normalizedKey] ||
+    data.seat_overrides[key] ||
+    null;
 
   if (override) {
     return {
@@ -797,29 +879,45 @@ function previewSeatState(key){
     };
   }
 
-  const m = String(key).match(/^([A-Z]+)(\d+)-M(\d+)$/i);
+  const lodge = normalizedKey.match(/^(A0|B0)-M(\d+)$/i);
+  if (lodge) {
+    return { price:null, color:null, sale:true };
+  }
+
+  const m = normalizedKey.match(/^([A-Z]+)(\d+)-M(\d+)$/i);
   if (!m) {
     return { price:null, color:null, sale:true };
   }
 
-  const zoneCode = m[1].toUpperCase();
+  const zoneCode = normalizeZoneCode(m[1]);
   const row = Number(m[2]);
 
-  for (const [ruleKey, rule] of Object.entries(data.pricing)) {
-    const mm = String(ruleKey).match(/^([A-Z]+)(\d+)-(\d+)$/i);
+  let best = null;
+  let bestSpan = Infinity;
+
+  for (const [ruleKey, rule] of Object.entries(data.pricing || {})) {
+    const mm = String(ruleKey).match(/^([A-ZА-ЯІЇЄҐа-яіїєґ]+)(\d+)-(\d+)$/i);
     if (!mm) continue;
 
-    const rz = mm[1].toUpperCase();
+    const rz = normalizeZoneCode(mm[1]);
     const from = Number(mm[2]);
     const to = Number(mm[3]);
 
     if (rz === zoneCode && row >= from && row <= to) {
-      return {
-        price: rule.price ?? null,
-        color: rule.color || null,
-        sale: rule.sale !== false
-      };
+      const span = Math.abs(to - from);
+      if (span < bestSpan) {
+        bestSpan = span;
+        best = rule;
+      }
     }
+  }
+
+  if (best) {
+    return {
+      price: best.price ?? null,
+      color: best.color || null,
+      sale: best.sale !== false
+    };
   }
 
   return { price:null, color:null, sale:true };
@@ -1114,9 +1212,12 @@ async function renderPreview(){
     stage.textContent = hall.title || hall.name || "Сцена";
     previewStage.appendChild(stage);
 
-if (Array.isArray(hall.seats)) {
+const hallSeats = getHallSeats(hall);
+const hallDecor = getHallDecor(hall);
+
+if (hallSeats.length) {
   previewInfo.textContent =
-    `Builder-схема: ${hall.seats.length} місць`;
+    `Builder/Ultra-схема: ${hallSeats.length} місць`;
 
   previewStage.innerHTML = "";
 
@@ -1134,7 +1235,7 @@ if (Array.isArray(hall.seats)) {
   box.style.overflow = "hidden";
 
   // decor: сцена и подписи
-  (hall.decor || []).forEach(d => {
+  (hallDecor || []).forEach(d => {
     const el = document.createElement("div");
 
     el.style.position = "absolute";
@@ -1169,8 +1270,8 @@ if (Array.isArray(hall.seats)) {
   });
 
   // seats
-  hall.seats.forEach(s => {
-    const key = s.key || `${s.prefix || ""}${s.row}-M${s.seat}`;
+  hallSeats.forEach(s => {
+    const key = seatObjToKey(s);
     const state = previewSeatState(key);
 
     const dot = document.createElement("div");
@@ -1707,6 +1808,7 @@ applyEditorUrlParams();
 render();
 renderPreview();
 loadVenueSeances();
+console.log("VA seance-editor-client-x REVISION FIX loaded: normalized keys + Builder/Ultra preview");
 </script>
 </body>
 </html>
