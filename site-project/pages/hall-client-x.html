@@ -2612,8 +2612,8 @@ function renderBuilderSeats(hallData){
   root.innerHTML = "";
 
   const seats = Array.isArray(hallData?.seats) ? hallData.seats : [];
-  const width = Number(hallData.width || 715);
-  const height = Number(hallData.height || 840);
+  const width = Number(hallData.width || 1200);
+  const height = Number(hallData.height || 900);
 
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
@@ -2621,24 +2621,16 @@ function renderBuilderSeats(hallData){
   wrap.style.display = "flex";
   wrap.style.justifyContent = "center";
 
- const scaleBox = document.createElement("div");
-scaleBox.style.position = "relative";
-scaleBox.style.width = width + "px";
-scaleBox.style.height = height + "px";
-scaleBox.style.maxWidth = "100%";
-scaleBox.style.overflow = "hidden";
-
-  const canvas = document.createElement("div");
-  canvas.style.position = "absolute";
-  canvas.style.left = "0";
-  canvas.style.top = "0";
-  canvas.style.width = "100%";
-  canvas.style.height = "100%";
-  canvas.style.overflow = "hidden";
+  const scaleBox = document.createElement("div");
+  scaleBox.style.position = "relative";
+  scaleBox.style.width = width + "px";
+  scaleBox.style.height = height + "px";
+  scaleBox.style.overflow = "hidden";
 
   const bgUrl =
     HALL_VISUAL_CONFIG?.background ||
     hallData?.background_image ||
+    hallData?.background?.src ||
     "";
 
   if (bgUrl) {
@@ -2648,13 +2640,17 @@ scaleBox.style.overflow = "hidden";
     bg.style.position = "absolute";
     bg.style.left = "0";
     bg.style.top = "0";
-    bg.style.width = "100%";
-    bg.style.height = "100%";
+    bg.style.width = width + "px";
+    bg.style.height = height + "px";
     bg.style.objectFit = "fill";
     bg.style.zIndex = "1";
     bg.style.pointerEvents = "none";
-    bg.style.opacity = "1";
-    canvas.appendChild(bg);
+    bg.style.opacity = String(
+      HALL_VISUAL_CONFIG?.opacity ??
+      hallData?.background?.opacity ??
+      1
+    );
+    scaleBox.appendChild(bg);
   }
 
   seats.forEach(s => {
@@ -2666,30 +2662,23 @@ scaleBox.style.overflow = "hidden";
     };
 
     const btn = makeSeatElement(seatKey(meta), meta.seat, "", 0, meta);
+
     btn.style.position = "absolute";
-
-    if (s.x_pct !== undefined && s.y_pct !== undefined) {
-      btn.style.left = Number(s.x_pct) + "%";
-      btn.style.top = Number(s.y_pct) + "%";
-    } else {
-      btn.style.left = (Number(s.x || 0) / width * 100) + "%";
-      btn.style.top = (Number(s.y || 0) / height * 100) + "%";
-    }
-
+    btn.style.left = Number(s.x || 0) + "px";
+    btn.style.top = Number(s.y || 0) + "px";
     btn.style.transform = "translate(-50%, -50%)";
     btn.style.zIndex = "3";
     btn.style.opacity = "1";
 
-    canvas.appendChild(btn);
+    scaleBox.appendChild(btn);
   });
 
-  renderDecor(hallData, canvas);
+  renderDecor(hallData, scaleBox);
 
-  scaleBox.appendChild(canvas);
   wrap.appendChild(scaleBox);
   root.appendChild(wrap);
 }
-
+    
 function initHallAlignPanel(){
 const DEBUG_ALIGN = location.search.includes("debug=1");
   if (!DEBUG_ALIGN) return;
