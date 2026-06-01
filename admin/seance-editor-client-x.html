@@ -1264,6 +1264,12 @@ if (hallSeats.length) {
     bg.style.objectFit = "fill";
     bg.style.pointerEvents = "none";
     bg.style.zIndex = "1";
+bg.style.opacity = String(
+  visual?.backgroundAlign?.opacity ??
+  hall.background?.opacity ??
+  1
+);
+    
     box.appendChild(bg);
   }
 
