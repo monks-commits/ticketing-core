@@ -1226,6 +1226,27 @@ if (hallSeats.length) {
   const h = Number(hall.height || 1000);
 
   const box = document.createElement("div");
+const bgUrl =
+  hall.background_image ||
+  hall.background?.src ||
+  "";
+
+if (bgUrl) {
+  const bg = document.createElement("img");
+
+  bg.src = bgUrl;
+  bg.style.position = "absolute";
+  bg.style.left = "0";
+  bg.style.top = "0";
+  bg.style.width = "100%";
+  bg.style.height = "100%";
+  bg.style.objectFit = "fill";
+  bg.style.pointerEvents = "none";
+  bg.style.zIndex = "1";
+
+  box.appendChild(bg);
+}
+  
   box.style.position = "relative";
   box.style.width = (w * scale) + "px";
   box.style.height = (h * scale) + "px";
@@ -1283,7 +1304,8 @@ if (hallSeats.length) {
     dot.style.height = "8px";
     dot.style.borderRadius = "50%";
     dot.style.transform = "translate(-50%, -50%)";
-    dot.style.background = state.color || "#9ca3af";
+    dot.style.zIndex = "3";
+dot.style.background = state.color || "#9ca3af";
     dot.style.border = "1px solid rgba(255,255,255,.9)";
     dot.title = key;
 
