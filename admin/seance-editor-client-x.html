@@ -1197,7 +1197,19 @@ async function renderPreview(){
     }
 
     const hall = await res.json();
+let visual = null;
 
+try {
+  const visualRes = await fetch(`../data/visual/${hallName}.visual.json`, {
+    cache: "no-store"
+  });
+
+  if (visualRes.ok) {
+    visual = await visualRes.json();
+  }
+} catch (e) {
+  console.warn("Preview visual not found", e);
+}
     const stage = document.createElement("div");
     stage.style.display = "inline-flex";
     stage.style.alignItems = "center";
@@ -1233,6 +1245,8 @@ if (hallSeats.length) {
   box.style.overflow = "hidden";
 
  const bgUrl =
+ const bgUrl =
+  visual?.background ||
   hall.background_image ||
   hall.background?.src ||
   hall.background?.url ||
