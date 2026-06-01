@@ -864,12 +864,9 @@ function getHallDecor(hall){
 }
 
 function previewSeatState(key){
-  const normalizedKey = normalizeSeatKey(key);
+  key = String(key || "").trim();
 
-  const override =
-    data.seat_overrides[normalizedKey] ||
-    data.seat_overrides[key] ||
-    null;
+  const override = data.seat_overrides[key] || null;
 
   if (override) {
     return {
@@ -879,44 +876,36 @@ function previewSeatState(key){
     };
   }
 
-  const lodge = normalizedKey.match(/^(A0|B0)-M(\d+)$/i);
-  if (lodge) {
-    return { price:null, color:null, sale:true };
-  }
+  const m = key.match(/^([A-Z]+)(\d+)-M(\d+)$/i);
 
-  const m = normalizedKey.match(/^([A-Z]+)(\d+)-M(\d+)$/i);
   if (!m) {
     return { price:null, color:null, sale:true };
   }
 
-  const zoneCode = normalizeZoneCode(m[1]);
+  const zoneCode = m[1].toUpperCase();
   const row = Number(m[2]);
 
-  let best = null;
-  let bestSpan = Infinity;
+  let matched = null;
 
   for (const [ruleKey, rule] of Object.entries(data.pricing || {})) {
-    const mm = String(ruleKey).match(/^([A-ZА-ЯІЇЄҐа-яіїєґ]+)(\d+)-(\d+)$/i);
+    const mm = String(ruleKey).match(/^([A-Z]+)(\d+)-(\d+)$/i);
     if (!mm) continue;
 
-    const rz = normalizeZoneCode(mm[1]);
+    const rz = mm[1].toUpperCase();
     const from = Number(mm[2]);
     const to = Number(mm[3]);
 
-    if (rz === zoneCode && row >= from && row <= to) {
-      const span = Math.abs(to - from);
-      if (span < bestSpan) {
-        bestSpan = span;
-        best = rule;
-      }
-    }
+    if (rz !== zoneCode) continue;
+    if (row < from || row > to) continue;
+
+    matched = rule;
   }
 
-  if (best) {
+  if (matched) {
     return {
-      price: best.price ?? null,
-      color: best.color || null,
-      sale: best.sale !== false
+      price: matched.price ?? null,
+      color: matched.color || null,
+      sale: matched.sale !== false
     };
   }
 
