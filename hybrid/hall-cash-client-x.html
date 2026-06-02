@@ -2564,6 +2564,9 @@ function renderBuilderSeatsCash(hallData){
 
  const width = Number(hallData.width || 715);
 const height = Number(hallData.height || 840);
+console.log("HALL SIZE", width, height);
+console.log("FIRST SEAT", hallData.seats?.[0]);
+  
   const seats = Array.isArray(hallData.seats) ? hallData.seats : [];
   const decor = Array.isArray(hallData.decor) ? hallData.decor : [];
 
@@ -2574,6 +2577,8 @@ const height = Number(hallData.height || 840);
   canvas.style.background = "#fff";
   canvas.style.borderRadius = "14px";
   canvas.style.overflow = "hidden";
+canvas.style.margin = "-180px auto 0";
+  
 
   decor.forEach(item => {
     if (item.type === "text" || item.type === "label") {
