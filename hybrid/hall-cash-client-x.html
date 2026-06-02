@@ -2456,8 +2456,13 @@ function renderTablesSection(section){
     btn.dataset.pricePerSeat = String(table.price_per_seat || "");
 
     btn.style.position = "absolute";
-    btn.style.left = Number(table.x || 0) + "px";
-    btn.style.top = Number(table.y || 0) + "px";
+    if (s.x_pct !== undefined && s.y_pct !== undefined) {
+  btn.style.left = Number(s.x_pct) + "%";
+  btn.style.top = Number(s.y_pct) + "%";
+} else {
+  btn.style.left = Number(s.x || 0) + "px";
+  btn.style.top = Number(s.y || 0) + "px";
+}
     btn.style.width = table.shape === "rect" ? "150px" : "120px";
     btn.style.height = table.shape === "rect" ? "100px" : "120px";
     btn.style.borderRadius = table.shape === "rect" ? "18px" : "999px";
