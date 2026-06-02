@@ -2564,11 +2564,8 @@ function renderBuilderSeatsCash(hallData){
   root.innerHTML = "";
   seatButtons.clear();
 
- const width = Number(hallData.width || 715);
-const height = Number(hallData.height || 840);
-console.log("HALL SIZE", width, height);
-console.log("FIRST SEAT", hallData.seats?.[0]);
-  
+  const width = Number(hallData.width || 715);
+  const height = Number(hallData.height || 840);
   const seats = Array.isArray(hallData.seats) ? hallData.seats : [];
   const decor = Array.isArray(hallData.decor) ? hallData.decor : [];
 
@@ -2579,8 +2576,36 @@ console.log("FIRST SEAT", hallData.seats?.[0]);
   canvas.style.background = "#fff";
   canvas.style.borderRadius = "14px";
   canvas.style.overflow = "hidden";
-canvas.style.margin = "-180px auto 0";
-  
+  canvas.style.margin = "-180px auto 0";
+
+  const bgUrl =
+    HALL_VISUAL_CONFIG?.background ||
+    hallData?.background_image ||
+    hallData?.background?.src ||
+    hallData?.background?.url ||
+    hallData?.background ||
+    "";
+
+  if (bgUrl) {
+    const bg = document.createElement("img");
+    bg.src = bgUrl;
+    bg.alt = "Схема залу";
+    bg.style.position = "absolute";
+    bg.style.left = "0";
+    bg.style.top = "0";
+    bg.style.width = "100%";
+    bg.style.height = "100%";
+    bg.style.objectFit = "fill";
+    bg.style.pointerEvents = "none";
+    bg.style.zIndex = "1";
+    bg.style.opacity = String(
+      HALL_VISUAL_CONFIG?.backgroundAlign?.opacity ??
+      hallData?.background?.opacity ??
+      1
+    );
+
+    canvas.appendChild(bg);
+  }
 
   decor.forEach(item => {
     if (item.type === "text" || item.type === "label") {
@@ -2629,10 +2654,6 @@ canvas.style.margin = "-180px auto 0";
   });
 
   seats.forEach(s => {
-    const key =
-      s.key ||
-      `${s.prefix || ""}${s.row}-M${s.seat}`;
-
     const meta = {
       zone:
         s.zone ||
@@ -2642,14 +2663,16 @@ canvas.style.margin = "-180px auto 0";
          s.prefix === "LA" ? "Ложа А" :
          s.prefix === "LB" ? "Ложа Б" :
          "Партер"),
-      prefix: s.prefix || "",
+      prefix: s.prefix || "P",
       row: String(s.row || "0"),
       seat: Number(s.seat || 0)
     };
 
+    const key = seatKey(meta);
+
     const btn = makeSeatElement(
       key,
-      s.seat,
+      meta.seat,
       "",
       0,
       meta
