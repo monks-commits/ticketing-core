@@ -14,339 +14,154 @@
   window.QRCode = QRCode;
 </script>
 
-<style>
-:root{
-  --bg:#f3f4f6;
-  --panel:#ffffff;
-  --dark:#0f172a;
-  --muted:#6b7280;
-  --line:#e5e7eb;
-  --blue:#2563eb;
-  --green:#bbf7d0;
-  --red:#d32f2f;
-  --orange:#f59e0b;
-}
+  <style>
+    .hall-layout{display:flex;gap:24px;align-items:flex-start;}
+    .hall-left{flex:1 1 auto;min-width:0;}
+    .hall-sidebar{width:360px;flex:0 0 360px;}
+    .hall-card{margin-top:0;}
 
-*{ box-sizing:border-box; }
-
-html,
-body{
-  width:100%;
-  height:100vh;
-  margin:0 !important;
-  padding:0 !important;
-  overflow:hidden !important;
-  background:var(--bg);
-  font-family:Arial, sans-serif;
-}
-
-#site-header,
-#site-footer,
-.container > h1,
-.row-price-list{
-  display:none !important;
-}
-
-.main,
-.container{
-  width:100vw !important;
-  max-width:none !important;
-  height:100vh !important;
-  margin:0 !important;
-  padding:10px !important;
-  overflow:hidden !important;
-}
-
-/* top */
-
-.cash-topbar{
-  height:92px;
-  margin:0 0 8px;
-  padding:14px 16px;
-  border-radius:18px;
-  background:#111827;
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-}
-
-.cash-top-left{
-  flex:1 1 auto;
+  .hall-left {
+  display:block;
   min-width:0;
+  overflow:visible;
 }
-
-.cash-title-block{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.cash-label{
-  font-size:13px;
-  font-weight:700;
-  color:#cbd5e1;
-}
-
-.cash-seance-select{
-  width:min(520px,100%);
-  height:44px;
-  border-radius:12px;
-  border:0;
-  padding:0 14px;
-  background:#fff;
-  color:#111827;
-  font-size:16px;
-  font-weight:700;
-}
-
-.cash-top-right{
-  display:flex;
-  gap:12px;
-  flex:0 0 auto;
-}
-
-.cash-status-card{
-  width:150px;
-  min-height:60px;
-  padding:12px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(15,23,42,.55);
-}
-
-.status-title{
-  font-size:12px;
-  color:#94a3b8;
-  margin-bottom:8px;
-}
-
-.status-value{
-  font-size:16px;
-  font-weight:900;
-  color:#fff;
-}
-
-/* badge */
-
-.cash-badge{
-  height:42px;
-  margin:0 0 8px;
-  padding:7px 10px;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  overflow:hidden;
-  background:#eef2f7;
-  border:1px solid #e2e8f0;
-  border-radius:16px;
-}
-
-.pill{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:4px 10px;
-  border-radius:999px;
-  background:#e2e8f0;
-  color:#0f172a;
-  font-size:12px;
-  border:1px solid rgba(15,23,42,.08);
-  white-space:nowrap;
-}
-
-.pill.ok{ background:#bbf7d0; }
-.pill.warn{ background:#fed7aa; }
-.pill.bad{ background:#fecaca; }
-.pill.dark{ background:#111827; color:#fff; }
-
-.btn{
-  border:0;
-  border-radius:12px;
-  padding:12px 14px;
-  font-weight:900;
-  cursor:pointer;
-}
-
-.btn:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-}
-
-.btn-ghost{
-  background:#f1f5f9;
-  color:#0f172a;
-  border:1px solid #e2e8f0;
-}
-
-/* layout */
-
-.hall-layout{
-  width:100%;
-  height:calc(100vh - 160px);
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 340px;
-  gap:14px;
-  align-items:stretch;
-  overflow:hidden;
-}
-
-.hall-left{
-  min-width:0;
-  height:100%;
-  overflow:hidden;
-}
-
-.hall-sidebar{
-  width:340px;
-  max-width:340px;
-  height:100%;
-  overflow:auto;
-}
-
-/* hall viewport */
 
 .hall-scroll{
   width:100%;
-  height:100%;
-  overflow:auto;
+  max-width:100%;
+  box-sizing:border-box;
   background:#e5e7eb;
   border-radius:16px;
   padding:12px;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
+  overflow:hidden;
+  -webkit-overflow-scrolling:touch;
+  max-height:78vh;
 }
 
 .hall-inner{
-  width:max-content;
-  height:max-content;
-  min-width:0;
-  margin:0 auto;
-  transform:none;
-}
-
-.hall-section{
-  width:max-content;
-  max-width:none;
-  margin:0 auto;
-  padding:0;
-}
-
-.hall-section-title{
-  display:none;
-}
-
-#hall-root{
-  width:auto;
+  width:100% !important;
+  min-width:100% !important;
   height:auto;
-  min-width:0;
-  min-height:0;
-  overflow:visible;
+  min-height:auto;
   margin:0 auto;
 }
-
-/* seats */
-
-.row-line{
+#hall-root{
+  height:auto;
+  min-height:auto;
+}
+.parter-wrap{
+  width:100%;
   display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:4px;
+  justify-content:flex-start;
+  align-items:flex-start;
+  gap:24px;
 }
 
-.row-label{
-  width:22px;
-  text-align:right;
-  font-size:11px;
-  color:#6b7280;
-  flex:0 0 22px;
-}
 
-.seats-row{
-  display:flex;
-  gap:4px;
-  flex-wrap:nowrap;
-  justify-content:center;
-}
+    .hall-section{margin-bottom:18px;}
+    .hall-section-title{
+      text-align:center;font-size:14px;text-transform:uppercase;
+      letter-spacing:.08em;color:#6b7280;margin:4px 0 6px;
+    }
 
-.seat{
-  width:24px;
-  height:24px;
-  border-radius:6px;
-  border:1px solid #d1d5db;
-  background:#fff;
-  color:#111827;
-  font-size:11px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  padding:0;
-  user-select:none;
-}
+    .row-line{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+    .row-label{width:22px;text-align:right;font-size:11px;color:#6b7280;flex:0 0 22px;}
+    .seats-row{display:flex;gap:4px;flex-wrap:nowrap;}
 
-.seat--selected{
-  background:#2563eb !important;
-  color:#fff !important;
-  border-color:#2563eb !important;
-}
+    .seat{
+      width:24px;height:24px;border-radius:6px;border:1px solid #d1d5db;background:#fff;
+      font-size:11px;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;padding:0;user-select:none;
+    }
+  
 
-.seat--sold{
-  background:#9ca3af !important;
-  color:#fff !important;
-  border-color:#9ca3af !important;
-  cursor:not-allowed;
-}
-
-.seat--reserved{
-  background:#f59e0b !important;
-  color:#111827 !important;
-  border-color:#f59e0b !important;
-}
-
-.seat--blocked,
-.seat--hold{
-  background:#d32f2f !important;
-  color:#fff !important;
-  border-color:#d32f2f !important;
-  cursor:not-allowed;
-}
-
-.seat--no-sale{
+.seat--no-sale {
   background:#e5e7eb !important;
   color:#9ca3af !important;
   cursor:not-allowed;
 }
 
-.seat--empty{
-  visibility:hidden;
-  pointer-events:none;
-  border:none;
-  background:transparent;
+
+
+    .seat--selected{background:#2563eb !important;color:#fff;border-color:#2563eb;}
+
+   .seat--sold{
+  background:#9ca3af !important;
+  color:#fff;
+  border-color:#9ca3af;
+  cursor:not-allowed;
 }
 
-.seat--gap-right{
-  margin-right:16px;
+.seat--reserved{
+  background:#f59e0b !important;
+  color:#111827;
+  border-color:#f59e0b;
 }
 
-.amphi-gap{
-  width:24px;
-  flex:0 0 24px;
+.seat--blocked,
+.seat--hold{
+  background:#d32f2f !important;
+  color:#fff;
+  border-color:#d32f2f;
+  cursor:not-allowed;
 }
 
-/* sidebar */
+    .seat--gap-right{margin-right:16px;}
+    .amphi-gap{width:24px;flex:0 0 24px;}
 
-.card,
-.hall-card,
+    .parter-wrap{display:flex;justify-content:center;align-items:flex-start;gap:24px;}
+    .hall-lodge{display:flex;flex-direction:column;align-items:center;gap:4px;}
+    .hall-lodge-label{font-size:11px;color:#6b7280;margin-bottom:4px;}
+    .hall-lodge-seats{display:flex;flex-direction:column;gap:4px;}
+
+    .hall-summary-title{margin-top:0;margin-bottom:8px;}
+    .hall-summary-meta{font-size:14px;color:#4b5563;margin:4px 0;}
+
+    .row-price-list{
+      margin-top:14px;padding:12px 14px;background:#f7f7f8;border-radius:12px;font-size:14px;
+    }
+    .row-price{
+      display:flex;align-items:center;gap:8px;font-size:14px;color:#0f172a;
+      padding:6px 0;border-bottom:1px dotted #e5e7eb;
+    }
+    .row-price:last-child{border-bottom:0;}
+    .row-price .dots{flex:1 1 auto;border-bottom:1px dotted #e5e7eb;height:0;transform:translateY(-2px);}
+
+    .seat--empty{visibility:hidden;pointer-events:none;border:none;background:transparent;}
+
+    .cash-badge{
+      display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+      background:#f1f5f9;border:1px solid #e2e8f0;color:#0f172a;
+      padding:8px 12px;border-radius:14px;font-size:12px;margin:6px 0 14px;
+    }
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:2px 10px;border-radius:999px;background:#e2e8f0;color:#0f172a;font-size:11px;
+      border:1px solid rgba(15,23,42,.08);
+    }
+    .pill.ok{background:#bbf7d0;}
+    .pill.warn{background:#fed7aa;}
+    .pill.bad{background:#fecaca;}
+    .pill.dark{background:#111827;color:#fff;}
+
+    .cash-actions{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+    .btn{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;}
+    .btn:disabled{opacity:.45;cursor:not-allowed;}
+    .btn-sell{background:#fca5a5;color:#111827;}
+    .btn-reserve{background:#fed7aa;color:#111827;}
+    .btn-clear{background:#e5e7eb;color:#111827;}
+    .btn-sync{background:#bbf7d0;color:#111827;}
+    .btn-reset{background:#111827;color:#fff;margin-top:6px;}
+    .btn-ghost{background:#f1f5f9;color:#0f172a;border:1px solid #e2e8f0;}
+
+    .note{
+      font-size:12px;color:#6b7280;line-height:1.35;margin-top:10px;
+      background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;
+    }
+
 .cash-pos-card{
-  width:100%;
-  margin:0;
-  background:#fff;
   border-radius:20px;
   box-shadow:0 14px 36px rgba(15,23,42,.10);
-  padding:18px;
 }
 
 .cash-pos-head{
@@ -354,8 +169,8 @@ body{
 }
 
 .cash-pos-title{
-  font-size:20px;
-  font-weight:900;
+  font-size:18px;
+  font-weight:800;
   color:#0f172a;
   margin-bottom:4px;
 }
@@ -379,24 +194,28 @@ body{
   border-bottom:1px solid #eef2f7;
 }
 
+.cash-pos-row:last-child{
+  border-bottom:none;
+}
+
 .cash-pos-label{
   font-size:12px;
   text-transform:uppercase;
   letter-spacing:.04em;
   color:#6b7280;
-  font-weight:800;
+  font-weight:700;
 }
 
 .cash-pos-value{
   font-size:15px;
   color:#111827;
   line-height:1.4;
-  font-weight:700;
+  font-weight:600;
 }
 
 .cash-pos-total-box{
   margin:16px 0 14px;
-  padding:16px;
+  padding:16px 16px 14px;
   border-radius:16px;
   background:#eff6ff;
   border:1px solid #bfdbfe;
@@ -406,34 +225,21 @@ body{
   font-size:13px;
   color:#1d4ed8;
   margin-bottom:8px;
-  font-weight:800;
+  font-weight:700;
 }
 
 .cash-pos-total-value{
   font-size:28px;
   line-height:1.1;
-  font-weight:900;
+  font-weight:800;
   color:#0f172a;
 }
 
-.cash-actions{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  margin-top:10px;
-}
-
-.cash-actions .btn{
-  width:100%;
-  min-height:46px;
+.cash-actions-premium .btn{
+  min-height:48px;
   font-size:14px;
+  border-radius:14px;
 }
-
-.btn-sell{ background:#fca5a5; color:#111827; }
-.btn-reserve{ background:#fed7aa; color:#111827; }
-.btn-clear{ background:#e5e7eb; color:#111827; }
-.btn-sync{ background:#bbf7d0; color:#111827; }
-.btn-reset{ background:#111827; color:#fff; }
 
 .cash-side-sep{
   height:1px;
@@ -441,9 +247,13 @@ body{
   margin:16px 0;
 }
 
+.cash-journal-head{
+  margin-bottom:10px;
+}
+
 .cash-journal-title{
-  font-size:16px;
-  font-weight:900;
+  font-size:15px;
+  font-weight:800;
   color:#0f172a;
   margin-bottom:3px;
 }
@@ -457,59 +267,53 @@ body{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
-  margin:10px 0;
+  margin-bottom:10px;
 }
 
 .cash-mini-btn{
   padding:8px 10px;
-  min-height:36px;
+  min-height:38px;
   border-radius:10px;
 }
 
 .cash-log-wrap{
-  max-height:145px;
+  max-height:220px;
   overflow:auto;
   border:1px solid #e5e7eb;
   border-radius:12px;
   margin-bottom:12px;
 }
-
-.k-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:12px;
+.cash-zoom-panel{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin:10px 0 14px;
 }
 
-.k-table th,
-.k-table td{
-  padding:6px;
-  border-bottom:1px solid #eef2f7;
-  vertical-align:top;
+.cash-zoom-panel{
+  position:sticky;
+  top:8px;
+  z-index:20;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin:10px auto 14px;
+  width:max-content;
+  background:rgba(255,255,255,.9);
+  padding:6px 10px;
+  border-radius:999px;
+  box-shadow:0 8px 18px rgba(0,0,0,.12);
 }
 
-.k-table th{
-  text-align:left;
-  color:#6b7280;
+#hallZoomLabel{
+  min-width:54px;
+  text-align:center;
   font-weight:800;
 }
-
-.k-table td{
-  color:#0f172a;
-}
-
-.k-table .muted{
-  color:#6b7280;
-}
-
-.note{
-  font-size:12px;
-  color:#6b7280;
-  line-height:1.35;
-  margin-top:10px;
-  background:#f8fafc;
-  border:1px solid #e2e8f0;
-  border-radius:12px;
-  padding:10px 12px;
+.cash-note{
+  margin-top:0;
 }
 
 .cash-bottom-line{
@@ -520,66 +324,47 @@ body{
   font-size:12px;
   color:#6b7280;
 }
+    
+    .smallline{font-size:12px;color:#6b7280;margin-top:8px;line-height:1.35;}
+    .k-sep{height:1px;background:#e5e7eb;margin:12px 0;}
+    .k-mini{font-size:12px;color:#6b7280;}
+    .k-h3{margin:8px 0 6px;font-size:14px;}
+    .k-table{width:100%;border-collapse:collapse;font-size:12px;}
+    .k-table th,.k-table td{padding:6px 6px;border-bottom:1px solid #eef2f7;vertical-align:top;}
+    .k-table th{text-align:left;color:#6b7280;font-weight:700;}
+    .k-table td{color:#0f172a;}
+    .k-table .muted{color:#6b7280;}
 
-/* zoom */
+    /* Modal */
+    .modalBack{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50;}
+    .modal{width:min(560px,100%);background:#fff;border-radius:16px;padding:14px;border:1px solid #e5e7eb;box-shadow:0 20px 60px rgba(15,23,42,.25);}
+    .modal h2{margin:0 0 10px;}
+    .formRow{display:grid;gap:6px;margin:10px 0;}
+    .formRow label{font-size:12px;color:#6b7280;}
+    .formRow input{border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px;font-size:14px;}
+    .modalActions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;}
 
-.cash-zoom-panel{
-  display:none !important;
+.hall-left{
+  display:block !important;
+  width:100% !important;
+  max-width:none !important;
 }
 
-/* modal */
+    
+    @media (max-width:900px){
+      .hall-layout{flex-direction:column;}
+      .hall-sidebar{width:auto;}
+    }
 
-.modalBack{
-  position:fixed;
-  inset:0;
-  background:rgba(15,23,42,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:16px;
-  z-index:50;
-}
+    /* -------------------- EMBED MODE (backoffice) -------------------- */
+    html.embed .hall-sidebar { display: none !important; }
+    html.embed .cash-badge { display: none !important; }
+    html.embed .row-price-list { display: none !important; }
 
-.modal{
-  width:min(560px,100%);
-  background:#fff;
-  border-radius:16px;
-  padding:14px;
-  border:1px solid #e5e7eb;
-  box-shadow:0 20px 60px rgba(15,23,42,.25);
-}
-
-.modal h2{
-  margin:0 0 10px;
-}
-
-.formRow{
-  display:grid;
-  gap:6px;
-  margin:10px 0;
-}
-
-.formRow label{
-  font-size:12px;
-  color:#6b7280;
-}
-
-.formRow input{
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:10px 12px;
-  font-size:14px;
-}
-
-.modalActions{
-  display:flex;
-  gap:10px;
-  justify-content:flex-end;
-  margin-top:12px;
-  flex-wrap:wrap;
-}
-
-/* tables / club */
+    html.embed .container { max-width: 100% !important; }
+    html.embed .hall-layout { gap: 0 !important; }
+    html.embed .hall-scroll { padding: 8px !important; }
+    html.embed .hall-inner { width: max(1200px, 100%) !important; }
 
 .hall-section--tables{
   margin-top:24px;
@@ -607,7 +392,7 @@ body{
 }
 
 .club-table-title{
-  font-weight:900;
+  font-weight:800;
   font-size:14px;
 }
 
@@ -616,20 +401,302 @@ body{
   font-size:11px;
   opacity:.9;
 }
-
-/* responsive */
-
-@media (max-width:1100px){
-  .hall-layout{
-    grid-template-columns:1fr;
-  }
-
-  .hall-sidebar{
-    width:100%;
-    max-width:none;
-  }
+body{
+  overflow:hidden !important;
 }
-</style>
+
+.cash-page,
+.page,
+.main,
+.container,
+.hall-page,
+.hall-wrap{
+  width:100vw !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:8px !important;
+}
+
+.hall-layout,
+.ticket-layout{
+  width:100% !important;
+  max-width:none !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 340px !important;
+  gap:12px !important;
+}
+
+.hall-left,
+.ticket-hall-center,
+.hall-shell{
+  width:100% !important;
+  max-width:none !important;
+}
+
+.hall-scroll,
+.mobile-hall-viewport{
+  height:calc(100vh - 120px) !important;
+  overflow:auto !important;
+}
+
+.hall-sidebar,
+.ticket-event-sidebar{
+  width:340px !important;
+  max-width:340px !important;
+}
+
+#mobile-hall-scale{
+  transform:none !important;
+  width:100% !important;
+}
+
+.hall-inner{
+  transform-origin:top left !important;
+}
+body{
+  overflow:hidden !important;
+}
+
+main,
+.page,
+.wrapper,
+.container,
+.cash-page{
+  width:100vw !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:8px !important;
+}
+
+.hall-layout,
+.ticket-layout{
+  width:100% !important;
+  max-width:none !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 340px !important;
+  gap:14px !important;
+}
+
+.hall-left,
+.ticket-hall-center,
+.hall-shell{
+  width:100% !important;
+  max-width:none !important;
+}
+
+.hall-scroll,
+.mobile-hall-viewport,
+#hall-root{
+  width:100% !important;
+  max-width:none !important;
+  height:calc(100vh - 130px) !important;
+  overflow:auto !important;
+}
+
+.hall-sidebar,
+.ticket-event-sidebar,
+.cash-sidebar{
+  width:340px !important;
+  max-width:340px !important;
+}
+
+.hall-inner{
+  transform-origin:top center !important;
+}    
+
+/* ===== CASH FULLSCREEN STABLE FIX ===== */
+
+html,
+body{
+  width:100%;
+  min-height:100%;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:auto !important;
+}
+
+#site-header,
+#site-footer{
+  display:none !important;
+}
+
+.main,
+.container{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:12px !important;
+}
+
+.container > h1{
+  margin:0 0 12px !important;
+  font-size:26px !important;
+}
+
+.cash-topbar{
+  margin-bottom:10px !important;
+}
+
+.cash-badge{
+  margin-bottom:10px !important;
+}
+
+.hall-layout{
+  width:100% !important;
+  max-width:none !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 330px !important;
+  gap:14px !important;
+  align-items:start !important;
+}
+
+.hall-left{
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  display:block !important;
+  overflow:visible !important;
+}
+
+.hall-sidebar{
+  width:330px !important;
+  max-width:330px !important;
+  flex:none !important;
+}
+
+.hall-scroll{
+  width:100%;
+  height:calc(100vh - 250px);
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  background:#e5e7eb;
+  border-radius:16px;
+  padding:10px;
+}
+
+.hall-inner{
+  width:max-content;
+  height:max-content;
+  margin:0 auto;
+}
+
+#hall-root{
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+
+.cash-zoom-panel{
+  display:none !important;
+}
+
+.row-price-list{
+  display:none !important;
+}
+ /* ===== CASH POS FINAL LAYOUT ===== */
+
+html,
+body{
+  height:100vh !important;
+  overflow:hidden !important;
+}
+
+.main,
+.container{
+  width:100vw !important;
+  max-width:none !important;
+  height:100vh !important;
+  margin:0 !important;
+  padding:10px !important;
+}
+
+.container > h1{
+  display:none !important;
+}
+
+.cash-topbar{
+  height:92px !important;
+  margin:0 0 8px !important;
+}
+
+.cash-badge{
+  height:46px !important;
+  margin:0 0 8px !important;
+}
+
+.hall-layout{
+  height:calc(100vh - 174px) !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 330px !important;
+  gap:14px !important;
+  align-items:stretch !important;
+}
+
+.hall-left{
+  height:100% !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+
+.hall-sidebar{
+  height:100% !important;
+  width:330px !important;
+  max-width:330px !important;
+  overflow:auto !important;
+}
+
+.hall-scroll{
+  height:100% !important;
+  max-height:none !important;
+  overflow:auto !important;
+  padding:8px !important;
+  background:#e5e7eb !important;
+}
+
+
+
+.cash-zoom-panel{
+  display:none !important;
+}   
+
+/* ===== CLIENT X SMALL HALL CENTER FIX ===== */
+
+.hall-scroll{
+  overflow:hidden !important;
+  display:flex !important;
+  justify-content:center !important;
+  align-items:flex-start !important;
+}
+
+.hall-inner{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  margin:0 auto !important;
+  transform:none !important;
+}
+
+#hall-root{
+  width:auto !important;
+  min-width:0 !important;
+  margin:0 auto !important;
+}
+
+.hall-section{
+  width:max-content !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+.seats-row{
+  justify-content:center !important;
+}
+    
+  </style>
+
   
 </head>
 
