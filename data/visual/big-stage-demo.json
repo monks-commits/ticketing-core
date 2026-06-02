@@ -1,0 +1,10 @@
+{
+  "version": 7,
+  "format": "va-hall-studio-geometry-stable",
+  "title": "VA Hall Scene",
+  "width": 1280,
+  "height": 900,
+  "background_mode": "contain",
+  "seats": [],
+  "decor": []
+}
