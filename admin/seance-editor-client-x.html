@@ -816,9 +816,7 @@ function normalizeSeatKey(key){
 function seatObjToKey(s){
   if (!s) return "";
 
-  if (s.key) return normalizeSeatKey(s.key);
-
-  const prefix = normalizeZoneCode(s.prefix || s.zone || "");
+  const prefix = normalizeZoneCode(s.prefix || s.zone || "P");
   const row = String(s.row ?? "").trim();
   const seat = Number(s.seat ?? 0);
 
@@ -826,9 +824,14 @@ function seatObjToKey(s){
     return `${prefix}-M${seat}`;
   }
 
-  return `${prefix}${row}-M${seat}`;
-}
+  if (prefix && row && seat) {
+    return `${prefix}${row}-M${seat}`;
+  }
 
+  if (s.key) return normalizeSeatKey(s.key);
+
+  return "";
+}
 function getHallSeats(hall){
   if (Array.isArray(hall.seats)) {
     return hall.seats.map(s => ({
