@@ -1692,18 +1692,19 @@ publish.onclick = async () => {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        seance_id: seance,
-        venue_id: venueId,
-        hall: hall,
-        show: show,
-        date: date,
-        time: time,
-        poster_url: poster_url,
-        status: status,
-        pricing: data.pricing,
-        seat_overrides: data.seat_overrides
-      })
+    body: JSON.stringify({
+  seance_id: seance,
+  venue_id: venueId,
+  hall: hall,
+  show: show,
+  date: date,
+  time: time,
+  poster_url: poster_url,
+  status: status,
+  active: true,
+  pricing: data.pricing,
+  seat_overrides: data.seat_overrides
+})
     });
 
     const text = await res.text();
