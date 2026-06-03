@@ -2775,7 +2775,7 @@ function showLivePosterOverlay(){
   layer.style.position = "fixed";
   layer.style.inset = "0";
   layer.style.zIndex = "9998";
-  layer.style.background = "#000";
+  layer.style.background = "rgba(0,0,0,.82)";
   layer.style.display = "flex";
   layer.style.alignItems = "center";
   layer.style.justifyContent = "center";
@@ -2788,14 +2788,15 @@ function showLivePosterOverlay(){
   video.autoplay = true;
   video.muted = true;
   video.playsInline = true;
+
   video.style.width = "100vw";
   video.style.height = "100vh";
-  video.style.objectFit = "cover";
+  video.style.objectFit = "contain";
 
   layer.appendChild(video);
   document.body.appendChild(layer);
 
-  const duration = Number(HALL_VISUAL_CONFIG?.livePosterDuration || 6000);
+  const duration = Number(HALL_VISUAL_CONFIG?.livePosterDuration || 5200);
 
   setTimeout(() => {
     layer.style.opacity = "0";
