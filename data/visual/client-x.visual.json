@@ -11,3 +11,5 @@
   "theme": "rock",
   "preset": "theatre"
 }
+"audio": "https://.../storage/v1/object/public/audio/rock-01.mp3",
+"audioVolume": 0.45
