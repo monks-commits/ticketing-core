@@ -2604,6 +2604,35 @@ async function loadHallVisualConfig(hallFile){
   }
 }
 
+function renderPageVideoBackground(){
+  const videoUrl = HALL_VISUAL_CONFIG?.video || "";
+  if (!videoUrl) return;
+
+  document.querySelector("#va-theme-video-bg")?.remove();
+
+  const video = document.createElement("video");
+  video.id = "va-theme-video-bg";
+  video.src = videoUrl;
+  video.autoplay = true;
+  video.loop = true;
+  video.muted = true;
+  video.playsInline = true;
+
+  video.style.position = "fixed";
+  video.style.inset = "0";
+  video.style.width = "100vw";
+  video.style.height = "100vh";
+  video.style.objectFit = "cover";
+  video.style.pointerEvents = "none";
+  video.style.zIndex = "-2";
+  video.style.opacity = String(HALL_VISUAL_CONFIG?.videoOpacity ?? 0.65);
+  video.style.filter = "brightness(.55)";
+
+  document.body.prepend(video);
+
+  document.body.style.background = "#020617";
+}
+  renderPageVideoBackground();  
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -2654,7 +2683,8 @@ function renderBuilderSeats(hallData){
     scaleBox.appendChild(bg);
   }
 
-scaleBox.style.border = "2px solid rgba(255,255,255,.20)";
+scaleBox.style.background = "rgba(15,23,42,.18)";
+scaleBox.style.border = "1px solid rgba(255,255,255,.28)";
 scaleBox.style.borderRadius = "18px";
 scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.55)";
   
