@@ -2633,35 +2633,7 @@ function renderBuilderSeats(hallData){
     hallData?.background?.src ||
     "";
 
-function renderPageVideoBackground(){
-  const videoUrl = HALL_VISUAL_CONFIG?.video || "";
-  if (!videoUrl) return;
 
-  document.querySelector("#va-theme-video-bg")?.remove();
-
-  const video = document.createElement("video");
-  video.id = "va-theme-video-bg";
-  video.src = videoUrl;
-  video.autoplay = true;
-  video.loop = true;
-  video.muted = true;
-  video.playsInline = true;
-
-  video.style.position = "fixed";
-  video.style.inset = "0";
-  video.style.width = "100vw";
-  video.style.height = "100vh";
-  video.style.objectFit = "cover";
-  video.style.pointerEvents = "none";
-  video.style.zIndex = "-2";
-  video.style.opacity = String(HALL_VISUAL_CONFIG?.videoOpacity ?? 0.65);
-  video.style.filter = "brightness(.55)";
-
-  document.body.prepend(video);
-
-  document.body.style.background = "#020617";
-}
-  
   if (false && bgUrl) {
     const bg = document.createElement("img");
     bg.src = bgUrl;
@@ -2768,7 +2740,7 @@ const DEBUG_ALIGN = location.search.includes("debug=1");
     border-radius:14px;
     font-family:Arial,sans-serif;
     font-size:13px;
-    box-shadow:0 12px 32px rgba(0,0,0,.28);
+    box-shadow:0 12px 32px rgba(0,0,0,.28); 
   `;
 
   document.body.appendChild(panel);
