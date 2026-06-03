@@ -2826,6 +2826,17 @@ function startThemeAudioFromIndexClick(){
 
   window.VA_THEME_AUDIO = audio;
 }
+
+function armThemeAudioOnFirstClick(){
+  if (localStorage.getItem("va-theme-audio") !== "play") return;
+
+  const handler = () => {
+    startThemeAudioFromIndexClick();
+    document.removeEventListener("click", handler);
+  };
+
+  document.addEventListener("click", handler, { once:true });
+}
     
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
@@ -3430,7 +3441,7 @@ console.log("RESOLVED HALL:", hallFile);
 await loadHallVisualConfig(hallFile);
 
 renderPageVideoBackground();
-startThemeAudioFromIndexClick();
+armThemeAudioOnFirstClick();
 showLivePosterOverlay();
 
 setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
