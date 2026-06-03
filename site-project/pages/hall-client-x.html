@@ -2714,9 +2714,9 @@ function renderPageVideoBackground(){
   video.style.height = "100vh";
   video.style.objectFit = "cover";
   video.style.pointerEvents = "none";
-  video.style.zIndex = "0";
-  video.style.opacity = String(HALL_VISUAL_CONFIG?.videoOpacity ?? 0.65); 
-  video.style.filter = "brightness(.55)";
+  video.style.zIndex = "-1";
+  video.style.opacity = "1";
+  video.style.filter = "brightness(.42) contrast(1.12) saturate(1.1)";
 
   document.body.classList.add("va-theme-active");
   document.body.prepend(video);
