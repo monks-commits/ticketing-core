@@ -1,7 +1,7 @@
 {
   "video": "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/rock-01.webm",
 
-  "audio": "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/sign/audio/rock-01.mp3?token=...",
+  "audio": "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/audio/rock-01.mp3"
 
   "audioVolume": 0.35,
 
