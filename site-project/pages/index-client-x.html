@@ -355,7 +355,9 @@ async function loadSeances(){
       <div class="card-body">
         <div class="title">${s.show || "Вистава"}</div>
         <div class="date">${formatDate(s.date, s.time)}</div>
-        <a class="btn" href="hall-client-x.html?seance=${encodeURIComponent(s.id)}">
+        <a class="btn buy-ticket-btn"
+   data-seance="${s.id}"
+   href="hall-client-x.html?seance=${encodeURIComponent(s.id)}">
           Купити квитки
         </a>
       </div>
@@ -376,6 +378,13 @@ function formatDate(date, time){
 }
 
 loadSeances();
+document.addEventListener("click", e => {
+  const btn = e.target.closest(".buy-ticket-btn");
+  if (!btn) return;
+
+  localStorage.setItem("va-theme-audio", "play");
+});
+  
 </script>
 
 </body>
