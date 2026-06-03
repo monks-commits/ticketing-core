@@ -2803,6 +2803,29 @@ function showLivePosterOverlay(){
     setTimeout(() => layer.remove(), 900);
   }, duration);
 }
+
+function startThemeAudioFromIndexClick(){
+  const shouldPlay =
+    localStorage.getItem("va-theme-audio") === "play";
+
+  if (!shouldPlay) return;
+
+  localStorage.removeItem("va-theme-audio");
+
+  const audioUrl = HALL_VISUAL_CONFIG?.audio || "";
+  if (!audioUrl) return;
+
+  const audio = new Audio(audioUrl);
+
+  audio.volume = Number(HALL_VISUAL_CONFIG?.audioVolume ?? 0.35);
+  audio.loop = false;
+
+  audio.play().catch(err => {
+    console.warn("Theme audio blocked:", err);
+  });
+
+  window.VA_THEME_AUDIO = audio;
+}
     
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
@@ -3407,6 +3430,7 @@ console.log("RESOLVED HALL:", hallFile);
 await loadHallVisualConfig(hallFile);
 
 renderPageVideoBackground();
+startThemeAudioFromIndexClick();
 showLivePosterOverlay();
 
 setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
