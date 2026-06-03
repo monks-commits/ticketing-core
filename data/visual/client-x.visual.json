@@ -1,25 +1,13 @@
 {
   "background": "https://monks-commits.github.io/ticketing-core/site-project/images/client-x-hall.png",
-  "backgroundAlign": {
-    "scale": 0.4,
-    "x": 300,
-    "y": 300,
-    "opacity": 0.3
-  },
-  "theme": "opera",
-  "preset": "theatre"
-}
-{
-  "background": "https://monks-commits.github.io/ticketing-core/site-project/images/client-x-hall.png",
-
   "video": "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/rock-01.mov",
-
+  "videoOpacity": 0.25,
   "backgroundAlign": {
     "scale": 0.4,
     "x": 300,
     "y": 300,
     "opacity": 0.3
   },
-
-  "videoOpacity": 0.25
+  "theme": "rock",
+  "preset": "theatre"
 }
