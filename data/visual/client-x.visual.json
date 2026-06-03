@@ -4,7 +4,7 @@
   "video": "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/rock-01.webm",
   "videoOpacity": 0.25,
 
-  "audio": "ВАШ_MP3_URL",
+  "audio": "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/sign/audio/rock-01.mp3?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNDFlZTgzMi1iOGU2LTQ5ZGItOWVkMC0yZTg3M2E2ODBhMTEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhdWRpby9yb2NrLTAxLm1wMyIsImlhdCI6MTc4MDQ5NzkzMiwiZXhwIjoxMDQyMDQ5NzkzMn0.YrHAVGJOcTYQhXT53B4W299lvi9mJ1WIWDIfRNWXREQ",
   "audioVolume": 0.45,
 
   "backgroundAlign": {
