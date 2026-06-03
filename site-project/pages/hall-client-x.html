@@ -2633,6 +2633,30 @@ function renderBuilderSeats(hallData){
     hallData?.background?.src ||
     "";
 
+const videoUrl = HALL_VISUAL_CONFIG?.video || "";
+
+if (videoUrl) {
+  const video = document.createElement("video");
+
+  video.src = videoUrl;
+  video.autoplay = true;
+  video.loop = true;
+  video.muted = true;
+  video.playsInline = true;
+
+  video.style.position = "absolute";
+  video.style.left = "0";
+  video.style.top = "0";
+  video.style.width = "100%";
+  video.style.height = "100%";
+  video.style.objectFit = "cover";
+  video.style.pointerEvents = "none";
+  video.style.opacity = String(HALL_VISUAL_CONFIG?.videoOpacity ?? 0.25);
+  video.style.zIndex = "0";
+
+  scaleBox.appendChild(video);
+}
+  
   if (bgUrl) {
     const bg = document.createElement("img");
     bg.src = bgUrl;
