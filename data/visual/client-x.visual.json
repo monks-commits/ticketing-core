@@ -1,15 +1,19 @@
 {
   "background": "https://monks-commits.github.io/ticketing-core/site-project/images/client-x-hall.png",
+
   "video": "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/rock-01.webm",
   "videoOpacity": 0.25,
+
+  "audio": "ВАШ_MP3_URL",
+  "audioVolume": 0.45,
+
   "backgroundAlign": {
     "scale": 0.4,
     "x": 300,
     "y": 300,
     "opacity": 0.3
   },
+
   "theme": "rock",
   "preset": "theatre"
 }
-"audio": "https://.../storage/v1/object/public/audio/rock-01.mp3",
-"audioVolume": 0.45
