@@ -1310,6 +1310,23 @@ body.va-theme-active .hall-summary-help{
 body.va-theme-active .hall-summary-divider{
   background:rgba(255,255,255,.22) !important;
 }
+
+body.va-theme-active #va-theme-video-bg{
+  z-index:0 !important;
+}
+
+body.va-theme-active .main,
+body.va-theme-active .hall-page,
+body.va-theme-active .container,
+body.va-theme-active .ticket-layout,
+body.va-theme-active .hall-hero,
+body.va-theme-active .price-card,
+body.va-theme-active .hall-shell,
+body.va-theme-active .event-card{
+  position:relative !important;
+  z-index:1 !important;
+}
+  
 </style>
  
 </head>
@@ -2710,7 +2727,7 @@ function renderPageVideoBackground(){
   video.style.height = "100vh";
   video.style.objectFit = "cover";
   video.style.pointerEvents = "none";
-  video.style.zIndex = "-1";
+video.style.zIndex = "0";
   video.style.opacity = "1";
   video.style.filter = "brightness(.42) contrast(1.12) saturate(1.1)";
  
