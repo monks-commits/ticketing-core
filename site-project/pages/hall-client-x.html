@@ -1223,7 +1223,11 @@
   flex:0 0 14px !important;
 }
 
-
+body.va-theme-active .main{
+  position:relative;
+  z-index:1;
+  background:transparent !important;
+}
   
 </style>
  
@@ -2624,13 +2628,12 @@ function renderPageVideoBackground(){
   video.style.height = "100vh";
   video.style.objectFit = "cover";
   video.style.pointerEvents = "none";
-  video.style.zIndex = "-2";
+  video.style.zIndex = "0";
   video.style.opacity = String(HALL_VISUAL_CONFIG?.videoOpacity ?? 0.65);
   video.style.filter = "brightness(.55)";
 
+  document.body.classList.add("va-theme-active");
   document.body.prepend(video);
-
-  document.body.style.background = "#020617";
 }
   renderPageVideoBackground();  
 function renderBuilderSeats(hallData){
@@ -3407,6 +3410,10 @@ document.getElementById("zoomReset")?.addEventListener("click", () => {
   applyBuilderZoom();
 });
 */
+await loadHallVisualConfig(hallFile);
+renderPageVideoBackground();
+setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
+    
   </script>
 </body>
 </html>
