@@ -2688,7 +2688,7 @@ async function loadHallVisualConfig(hallFile){
   }
 }
 
-function renderPageVideoBackground(){
+// renderPageVideoBackground();
   const videoUrl = HALL_VISUAL_CONFIG?.video || "";
   if (!videoUrl) return;
 
@@ -2766,7 +2766,7 @@ function renderBuilderSeats(hallData){
     scaleBox.appendChild(bg);
   }
 
-scaleBox.style.background = "transparent";
+scaleBox.style.background = "rgba(2,6,23,.72)";
 scaleBox.style.border = "1px solid rgba(255,255,255,.28)";
 scaleBox.style.borderRadius = "18px";
 scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.55)";
