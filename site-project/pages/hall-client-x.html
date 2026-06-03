@@ -2688,7 +2688,7 @@ async function loadHallVisualConfig(hallFile){
   }
 }
 
-// renderPageVideoBackground();
+function renderPageVideoBackground(){
   const videoUrl = HALL_VISUAL_CONFIG?.video || "";
   if (!videoUrl) return;
 
@@ -2703,7 +2703,8 @@ async function loadHallVisualConfig(hallFile){
   video.playsInline = true;
 
   video.style.position = "fixed";
-  video.style.inset = "0";
+  video.style.left = "0";
+  video.style.top = "0";
   video.style.width = "100vw";
   video.style.height = "100vh";
   video.style.objectFit = "cover";
