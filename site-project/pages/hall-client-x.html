@@ -3234,8 +3234,12 @@ console.log("RESOLVED HALL:", hallFile);
   }
 
   const HALL = await hallRes.json();
+
+  
 await loadHallVisualConfig(hallFile);
-  setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
+renderPageVideoBackground();
+
+setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
 
   await loadTakenSeats();
   await loadBookingSeats();
