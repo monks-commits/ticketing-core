@@ -2762,7 +2762,47 @@ video.style.zIndex = "0";
   document.body.classList.add("va-theme-active");
   document.body.prepend(video);
 }
-   
+
+function showLivePosterOverlay(){
+  const url = HALL_VISUAL_CONFIG?.livePoster || "";
+  if (!url) return;
+
+  document.getElementById("va-live-poster")?.remove();
+
+  const layer = document.createElement("div");
+  layer.id = "va-live-poster";
+
+  layer.style.position = "fixed";
+  layer.style.inset = "0";
+  layer.style.zIndex = "9998";
+  layer.style.background = "#000";
+  layer.style.display = "flex";
+  layer.style.alignItems = "center";
+  layer.style.justifyContent = "center";
+  layer.style.opacity = "1";
+  layer.style.transition = "opacity .8s ease";
+  layer.style.pointerEvents = "none";
+
+  const video = document.createElement("video");
+  video.src = url;
+  video.autoplay = true;
+  video.muted = true;
+  video.playsInline = true;
+  video.style.width = "100vw";
+  video.style.height = "100vh";
+  video.style.objectFit = "cover";
+
+  layer.appendChild(video);
+  document.body.appendChild(layer);
+
+  const duration = Number(HALL_VISUAL_CONFIG?.livePosterDuration || 6000);
+
+  setTimeout(() => {
+    layer.style.opacity = "0";
+    setTimeout(() => layer.remove(), 900);
+  }, duration);
+}
+    
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
