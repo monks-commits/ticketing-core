@@ -3458,6 +3458,14 @@ console.log("RESOLVED HALL:", hallFile);
 await loadHallVisualConfig(hallFile);
 renderPageVideoBackground();
 
+if (HALL_VISUAL_CONFIG?.poster) {
+  const img = document.getElementById("event-poster");
+  if (img) {
+    img.src = HALL_VISUAL_CONFIG.poster;
+    img.style.display = "block";
+  }
+}
+
 setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
   startInlineLivePoster();
 
