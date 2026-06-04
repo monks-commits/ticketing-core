@@ -1980,8 +1980,10 @@ function setEventPosterFromSeance(row){
   const img = document.getElementById("event-poster");
   if (!img) return;
 
-  const url = row?.poster_url || "";
-
+  const url =
+  HALL_VISUAL_CONFIG?.poster ||
+  row?.poster_url ||
+  "";
   if (!url) {
     img.style.display = "none";
     return;
