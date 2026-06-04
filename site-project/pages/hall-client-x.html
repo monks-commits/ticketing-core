@@ -2747,41 +2747,77 @@ let HALL_VISUAL_CONFIG = null;
 async function loadHallVisualConfig(hallFile){
   HALL_VISUAL_CONFIG = null;
 
-  const candidates = [];
-
+  // 1. Главный источник: Supabase seance_visuals
   if (SEANCE_ID) {
-    candidates.push(`../../data/seances/${SEANCE_ID}.json`);
-  }
-
-  if (hallFile) {
-    candidates.push(`../../data/visual/${hallFile}.visual.json`);
-  }
-
-  for (const url of candidates) {
     try {
-      const res = await fetch(url, { cache: "no-store" });
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/seance_visuals?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&enabled=eq.true&select=*`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          cache: "no-store"
+        }
+      );
 
-      if (!res.ok) {
-        console.warn("Visual config not found:", url);
-        continue;
+      if (res.ok) {
+        const rows = await res.json();
+
+        if (Array.isArray(rows) && rows.length) {
+          const v = rows[0];
+
+          HALL_VISUAL_CONFIG = {
+            poster: v.poster_url || "",
+            livePoster: v.live_poster_url || "",
+            livePosterDuration: Number(v.live_poster_duration || 6200),
+            video: v.background_video_url || ""
+          };
+
+          console.log("VISUAL CONFIG FROM SUPABASE:", HALL_VISUAL_CONFIG);
+          return HALL_VISUAL_CONFIG;
+        }
       }
-
-      const cfg = await res.json();
-
-      HALL_VISUAL_CONFIG = cfg.visual || cfg || null;
-
-      if (HALL_VISUAL_CONFIG?.backgroundAlign) {
-        window.HALL_ALIGN = {
-          ...window.HALL_ALIGN,
-          ...HALL_VISUAL_CONFIG.backgroundAlign
-        };
-      }
-
-      console.log("VISUAL CONFIG:", url, HALL_VISUAL_CONFIG);
-      return HALL_VISUAL_CONFIG;
-
     } catch (e) {
-      console.warn("loadHallVisualConfig error:", url, e);
+      console.warn("load visual from Supabase error:", e);
+    }
+  }
+
+  // 2. Резерв: data/seances/{SEANCE_ID}.json
+  if (SEANCE_ID) {
+    try {
+      const res = await fetch(`../../data/seances/${SEANCE_ID}.json`, {
+        cache: "no-store"
+      });
+
+      if (res.ok) {
+        const cfg = await res.json();
+        HALL_VISUAL_CONFIG = cfg.visual || null;
+
+        if (HALL_VISUAL_CONFIG) {
+          console.log("VISUAL CONFIG FROM SEANCE JSON:", HALL_VISUAL_CONFIG);
+          return HALL_VISUAL_CONFIG;
+        }
+      }
+    } catch (e) {
+      console.warn("load visual from seance json error:", e);
+    }
+  }
+
+  // 3. Последний резерв: общий visual зала
+  if (hallFile) {
+    try {
+      const res = await fetch(`../../data/visual/${hallFile}.visual.json`, {
+        cache: "no-store"
+      });
+
+      if (res.ok) {
+        HALL_VISUAL_CONFIG = await res.json();
+        console.log("VISUAL CONFIG FROM HALL JSON:", HALL_VISUAL_CONFIG);
+        return HALL_VISUAL_CONFIG;
+      }
+    } catch (e) {
+      console.warn("load visual from hall json error:", e);
     }
   }
 
