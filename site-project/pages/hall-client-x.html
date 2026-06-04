@@ -2001,7 +2001,10 @@ function startInlineLivePoster(){
 
   if (!video) return;
 
-  video.src = "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/0604(1).mp4";
+  const livePosterUrl = HALL_VISUAL_CONFIG?.livePoster || "";
+if (!livePosterUrl) return;
+
+video.src = livePosterUrl;
   video.style.display = "block";
 
   if (img) img.style.display = "none";
@@ -2026,7 +2029,7 @@ function startInlineLivePoster(){
   video.onended = finish;
   video.onerror = finish;
 
-  setTimeout(finish, 6200);
+ setTimeout(finish, Number(HALL_VISUAL_CONFIG?.livePosterDuration || 6200));
 
   const p = video.play();
 
