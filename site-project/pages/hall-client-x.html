@@ -3329,7 +3329,7 @@ console.log("RESOLVED HALL:", hallFile);
 });
 
   if (!hallRes.ok) {
-    throw new Error(`Hall JSON not found: ${hallFile}.json`);
+    throw new Error(`Hall JSON not found: ${hallFile}.json`); 
   }
 
   const HALL = await hallRes.json();
