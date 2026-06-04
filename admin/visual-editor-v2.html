@@ -202,19 +202,34 @@ async function loadCurrentVisual(){
 
 function renderPreview(v){
   const posterBox = document.getElementById("posterPreview");
+  const liveBox = document.getElementById("livePosterPreview");
   const bgBox = document.getElementById("bgPreview");
 
+  const posterStatus = document.getElementById("posterStatus");
+  const liveStatus = document.getElementById("livePosterStatus");
+  const bgStatus = document.getElementById("bgStatus");
+
   posterBox.innerHTML = "";
+  liveBox.innerHTML = "";
   bgBox.innerHTML = "";
 
-  if (v?.live_poster_url) {
-    posterBox.innerHTML = `<video src="${v.live_poster_url}" controls playsinline></video>`;
-  } else if (v?.poster_url) {
+  posterStatus.textContent = "Афіша: не завантажена";
+  liveStatus.textContent = "Live Poster: не завантажено";
+  bgStatus.textContent = "Відеофон: не завантажено";
+
+  if (v?.poster_url) {
     posterBox.innerHTML = `<img src="${v.poster_url}" alt="">`;
+    posterStatus.textContent = "Афіша: завантажена";
+  }
+
+  if (v?.live_poster_url) {
+    liveBox.innerHTML = `<video src="${v.live_poster_url}" controls playsinline></video>`;
+    liveStatus.textContent = "Live Poster: завантажено";
   }
 
   if (v?.background_video_url) {
     bgBox.innerHTML = `<video src="${v.background_video_url}" controls muted loop playsinline></video>`;
+    bgStatus.textContent = "Відеофон: завантажено";
   }
 }
 
