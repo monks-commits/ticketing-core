@@ -310,6 +310,15 @@
 
 <body>
 
+<div id="va-live-poster-overlay" class="va-live-poster-overlay" hidden>
+  <video
+    id="va-live-poster-video"
+    class="va-live-poster-video"
+    playsinline
+    preload="auto"
+  ></video>
+</div>
+  
 <div class="page">
 
   <section class="hero">
@@ -403,12 +412,68 @@ function formatDate(date, time){
 }
 
 loadSeances();
+
+const VA_LIVE_POSTER_CONFIG = {
+  livePoster: "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/0604(1).mp4",
+  livePosterDuration: 6200,
+  video: "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/rock-01.webm"
+};
+
 document.addEventListener("click", e => {
   const btn = e.target.closest(".buy-ticket-btn");
   if (!btn) return;
 
+  e.preventDefault();
+
+  const targetUrl = btn.href;
+
   localStorage.setItem("va-theme-audio", "play");
+  localStorage.setItem("va-theme-video", VA_LIVE_POSTER_CONFIG.video);
+
+  startLivePosterThenGo(targetUrl);
 });
+
+function startLivePosterThenGo(targetUrl){
+  const overlay = document.getElementById("va-live-poster-overlay");
+  const video = document.getElementById("va-live-poster-video");
+
+  if (!overlay || !video || !VA_LIVE_POSTER_CONFIG.livePoster) {
+    location.href = targetUrl;
+    return;
+  }
+
+  let done = false;
+
+  function go(){
+    if (done) return;
+    done = true;
+
+    try {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    } catch(e) {}
+
+    location.href = targetUrl;
+  }
+
+  overlay.hidden = false;
+  video.src = VA_LIVE_POSTER_CONFIG.livePoster;
+  video.currentTime = 0;
+
+  video.onended = go;
+  video.onerror = go;
+
+  setTimeout(go, VA_LIVE_POSTER_CONFIG.livePosterDuration || 6200);
+
+  const playPromise = video.play();
+
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(() => {
+      go();
+    });
+  }
+}
   
 </script>
 
