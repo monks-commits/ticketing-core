@@ -391,24 +391,14 @@ function formatDate(date, time){
 
 loadSeances();
 
-const VA_LIVE_POSTER_CONFIG = {
-  livePoster: "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/0604(1).mp4",
-  livePosterDuration: 6200,
-  video: "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/rock-01.webm"
-};
+loadSeances();
 
 document.addEventListener("click", e => {
   const btn = e.target.closest(".buy-ticket-btn");
   if (!btn) return;
 
-  e.preventDefault();
-
-  const targetUrl = btn.href;
-
   localStorage.setItem("va-theme-audio", "play");
-  localStorage.setItem("va-theme-video", VA_LIVE_POSTER_CONFIG.video);
-
-  startLivePosterThenGo(targetUrl);
+  localStorage.setItem("va-theme-video", "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/rock-01.webm");
 });
 
 function startLivePosterThenGo(targetUrl){
