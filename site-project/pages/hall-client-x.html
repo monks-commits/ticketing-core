@@ -2674,34 +2674,6 @@ let CURRENT_HALL_DATA = null;
 let HALL_VISUAL_CONFIG = null;
 
 async function loadHallVisualConfig(hallFile){
-
-const shouldPlayTheme =
-  localStorage.getItem("va-theme-audio") === "play";
-
-if (shouldPlayTheme) {
-
-  localStorage.removeItem("va-theme-audio");
-
-  setTimeout(() => {
-
-    const audioUrl =
-      HALL_VISUAL_CONFIG?.audio || "";
-
-    if (!audioUrl) return;
-
-    const audio = new Audio(audioUrl);
-
-    audio.volume =
-      HALL_VISUAL_CONFIG?.audioVolume ?? 0.35;
-
-    audio.play().catch(() => {});
-
-    window.VA_THEME_AUDIO = audio;
-
-  }, 500);
-
-}
-  
   HALL_VISUAL_CONFIG = null;
 
   if (!hallFile) return null;
@@ -2738,7 +2710,7 @@ function renderPageVideoBackground(){
   const videoUrl = HALL_VISUAL_CONFIG?.video || "";
   if (!videoUrl) return;
 
-  document.querySelector("#va-theme-video-bg")?.remove(); 
+  document.querySelector("#va-theme-video-bg")?.remove();
 
   const video = document.createElement("video");
   video.id = "va-theme-video-bg";
@@ -2762,82 +2734,7 @@ video.style.zIndex = "0";
   document.body.classList.add("va-theme-active");
   document.body.prepend(video);
 }
-
-function showLivePosterOverlay(){
-  const url = HALL_VISUAL_CONFIG?.livePoster || "";
-  if (!url) return;
-
-  document.getElementById("va-live-poster")?.remove();
-
-  const layer = document.createElement("div");
-  layer.id = "va-live-poster";
-
-  layer.style.position = "fixed";
-  layer.style.inset = "0";
-  layer.style.zIndex = "9998";
-  layer.style.background = "rgba(0,0,0,.82)";
-  layer.style.display = "flex";
-  layer.style.alignItems = "center";
-  layer.style.justifyContent = "center";
-  layer.style.opacity = "1";
-  layer.style.transition = "opacity .8s ease";
-  layer.style.pointerEvents = "none";
-
-  const video = document.createElement("video");
-  video.src = url;
-  video.autoplay = true;
-  video.muted = true;
-  video.playsInline = true;
-
-  video.style.width = "100vw";
-  video.style.height = "100vh";
-  video.style.objectFit = "contain";
-
-  layer.appendChild(video);
-  document.body.appendChild(layer);
-
-  const duration = Number(HALL_VISUAL_CONFIG?.livePosterDuration || 5200);
-
-  setTimeout(() => {
-    layer.style.opacity = "0";
-    setTimeout(() => layer.remove(), 900);
-  }, duration);
-}
-
-function startThemeAudioFromIndexClick(){
-  const shouldPlay =
-    localStorage.getItem("va-theme-audio") === "play";
-
-  if (!shouldPlay) return;
-
-  localStorage.removeItem("va-theme-audio");
-
-  const audioUrl = HALL_VISUAL_CONFIG?.audio || "";
-  if (!audioUrl) return;
-
-  const audio = new Audio(audioUrl);
-
-  audio.volume = Number(HALL_VISUAL_CONFIG?.audioVolume ?? 0.35);
-  audio.loop = false;
-
-  audio.play().catch(err => {
-    console.warn("Theme audio blocked:", err);
-  });
-
-  window.VA_THEME_AUDIO = audio;
-}
-
-function armThemeAudioOnFirstClick(){
-  if (localStorage.getItem("va-theme-audio") !== "play") return;
-
-  const handler = () => {
-    startThemeAudioFromIndexClick();
-    document.removeEventListener("click", handler);
-  };
-
-  document.addEventListener("click", handler, { once:true });
-}
-    
+   
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
@@ -3439,10 +3336,7 @@ console.log("RESOLVED HALL:", hallFile);
 
   
 await loadHallVisualConfig(hallFile);
-
 renderPageVideoBackground();
-armThemeAudioOnFirstClick();
-showLivePosterOverlay();
 
 setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
 
