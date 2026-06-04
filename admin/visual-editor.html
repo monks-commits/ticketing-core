@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>VA Live Visual Editor</title>
+
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#0f172a;
+    color:#fff;
+  }
+  .page{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 16px 60px;
+  }
+  h1{margin:0 0 8px;font-size:32px}
+  .sub{color:#cbd5e1;margin-bottom:24px}
+  .grid{
+    display:grid;
+    grid-template-columns:360px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  .card{
+    background:#111827;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:18px;
+    padding:18px;
+    box-shadow:0 16px 40px rgba(0,0,0,.28);
+  }
+  label{
+    display:block;
+    font-size:13px;
+    color:#cbd5e1;
+    margin:14px 0 6px;
+  }
+  input,select,textarea{
+    width:100%;
+    background:#020617;
+    color:#fff;
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:14px;
+  }
+  textarea{
+    min-height:260px;
+    font-family:Consolas,monospace;
+    resize:vertical;
+  }
+  button{
+    border:none;
+    border-radius:12px;
+    padding:12px 14px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .btn{
+    background:#d4af37;
+    color:#111827;
+    width:100%;
+    margin-top:16px;
+  }
+  .btn2{
+    background:#334155;
+    color:#fff;
+    width:100%;
+    margin-top:10px;
+  }
+  .preview{
+    display:grid;
+    grid-template-columns:260px 1fr;
+    gap:18px;
+  }
+  .poster-box{
+    width:100%;
+    aspect-ratio:2/3;
+    background:#020617;
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.12);
+  }
+  .poster-box video,
+  .poster-box img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .bg-preview{
+    min-height:390px;
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.12);
+    background:#020617;
+    position:relative;
+  }
+  .bg-preview video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    opacity:.75;
+  }
+  .bg-label{
+    position:absolute;
+    inset:auto 16px 16px 16px;
+    background:rgba(2,6,23,.72);
+    padding:14px;
+    border-radius:14px;
+  }
+  .hint{
+    color:#94a3b8;
+    font-size:13px;
+    line-height:1.45;
+    margin-top:10px;
+  }
+  .row{
+    display:grid;
+    grid-template-columns:1fr 120px;
+    gap:10px;
+  }
+  @media(max-width:900px){
+    .grid,.preview{grid-template-columns:1fr}
+  }
+</style>
+</head>
+
+<body>
+<div class="page">
+  <h1>VA Live Visual Editor</h1>
+  <div class="sub">Загальний редактор візуалізації для будь-якого сеансу</div>
+
+  <div class="grid">
+    <div class="card">
+      <label>Сеанс</label>
+      <select id="seanceSelect">
+        <option value="">Завантаження...</option>
+      </select>
+
+      <label>Hall</label>
+      <input id="hallInput" placeholder="client-x">
+
+      <label>Live Poster mp4</label>
+      <input id="livePosterInput" placeholder="https://...mp4">
+
+      <div class="row">
+        <div>
+          <label>Відеофон</label>
+          <input id="videoInput" placeholder="https://...webm">
+        </div>
+        <div>
+          <label>Тривалість</label>
+          <input id="durationInput" type="number" value="6200">
+        </div>
+      </div>
+
+      <button class="btn" id="generateBtn">Згенерувати JSON</button>
+      <button class="btn2" id="previewBtn">Оновити preview</button>
+
+      <div class="hint">
+        Файл зберігати вручну в:<br>
+        <b>data/seances/&lt;seance_id&gt;.json</b>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="preview">
+        <div>
+          <div class="poster-box" id="posterPreview"></div>
+          <div class="hint">Live Poster / афіша сеансу</div>
+        </div>
+
+        <div class="bg-preview" id="bgPreview">
+          <div class="bg-label">
+            Відеофон події. Тут буде атмосфера сеансу за схемою залу.
+          </div>
+        </div>
+      </div>
+
+      <label>Готовий JSON</label>
+      <textarea id="jsonOutput" spellcheck="false"></textarea>
+
+      <button class="btn2" id="copyBtn">Скопіювати JSON</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const seanceSelect = document.getElementById("seanceSelect");
+const hallInput = document.getElementById("hallInput");
+const livePosterInput = document.getElementById("livePosterInput");
+const videoInput = document.getElementById("videoInput");
+const durationInput = document.getElementById("durationInput");
+const jsonOutput = document.getElementById("jsonOutput");
+
+let seances = [];
+
+async function loadSeances(){
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,venue_id,poster_url,active,status&order=date.asc`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+      },
+      cache:"no-store"
+    }
+  );
+
+  const rows = await res.json();
+
+  seances = Array.isArray(rows)
+    ? rows.filter(s => s.status !== "archived")
+    : [];
+
+  seanceSelect.innerHTML = `<option value="">Оберіть сеанс</option>`;
+
+  seances.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.show || "Подія"} — ${s.date || ""} ${s.time || ""} — ${s.id}`;
+    seanceSelect.appendChild(opt);
+  });
+}
+
+seanceSelect.addEventListener("change", () => {
+  const s = seances.find(x => x.id === seanceSelect.value);
+  if (!s) return;
+
+  hallInput.value = s.venue_id === "client-x" ? "client-x" : "";
+  generateJson();
+
+  const posterBox = document.getElementById("posterPreview");
+  if (s.poster_url) {
+    posterBox.innerHTML = `<img src="${s.poster_url}" alt="">`;
+  } else {
+    posterBox.innerHTML = "";
+  }
+});
+
+function generateJson(){
+  const seanceId = seanceSelect.value || "";
+  const hall = hallInput.value.trim() || "client-x";
+
+  const obj = {
+    hall,
+    visual:{
+      livePoster: livePosterInput.value.trim(),
+      livePosterDuration: Number(durationInput.value || 0),
+      video: videoInput.value.trim()
+    }
+  };
+
+  jsonOutput.value = JSON.stringify(obj, null, 2);
+
+  if (seanceId) {
+    jsonOutput.dataset.filename = `data/seances/${seanceId}.json`;
+  }
+}
+
+function updatePreview(){
+  const posterBox = document.getElementById("posterPreview");
+  const bgPreview = document.getElementById("bgPreview");
+
+  const livePoster = livePosterInput.value.trim();
+  const bgVideo = videoInput.value.trim();
+
+  if (livePoster) {
+    posterBox.innerHTML = `
+      <video src="${livePoster}" controls playsinline></video>
+    `;
+  }
+
+  if (bgVideo) {
+    bgPreview.innerHTML = `
+      <video src="${bgVideo}" autoplay muted loop playsinline></video>
+      <div class="bg-label">Відеофон події</div>
+    `;
+  } else {
+    bgPreview.innerHTML = `
+      <div class="bg-label">Відеофон не заданий</div>
+    `;
+  }
+}
+
+document.getElementById("generateBtn").addEventListener("click", generateJson);
+document.getElementById("previewBtn").addEventListener("click", () => {
+  generateJson();
+  updatePreview();
+});
+
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  generateJson();
+  await navigator.clipboard.writeText(jsonOutput.value);
+  alert("JSON скопійовано");
+});
+
+loadSeances();
+</script>
+</body>
+</html>
