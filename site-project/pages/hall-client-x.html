@@ -1231,6 +1231,17 @@ body.va-theme-active{
   color:#fff !important;
 }
 
+body.va-theme-active::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(80,40,160,.35), transparent 45%),
+    linear-gradient(180deg, #020617 0%, #050014 100%);
+  pointer-events:none;
+}
+  
 body.va-theme-active .main,
 body.va-theme-active .hall-page,
 body.va-theme-active .container,
@@ -1326,11 +1337,16 @@ body.va-theme-active .event-card{
   position:relative !important;
   z-index:1 !important;
 }
+
+
   
 </style>
  
 </head>
-<body>
+  
+<body class="va-theme-active">
+
+  
 <div id="refDemoBadge"></div>
   
    <div id="seat-tooltip" class="seat-tooltip" hidden></div>
