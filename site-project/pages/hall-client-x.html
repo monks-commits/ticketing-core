@@ -3334,26 +3334,13 @@ console.log("RESOLVED HALL:", hallFile);
 
   const HALL = await hallRes.json();
 
-  
 await loadHallVisualConfig(hallFile);
+
+await showLivePosterOverlay();
+
 renderPageVideoBackground();
 
 setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
-
-  await loadTakenSeats();
-  await loadBookingSeats();
-
-  if (Array.isArray(HALL?.seats)) {
-  renderBuilderSeats(HALL);
-} else if (Array.isArray(HALL?.sections)) {
-  renderHallSections(HALL);
-} else {
-  renderSimpleRows(HALL);
-}
-
-  renderPriceLegendMobile();
-  setTimeout(applyMobileHallScale, 0);
-
   if (returnSeats.length) {
     for (const key of returnSeats) {
       const btn = document.querySelector(`.seat[data-key="${key}"]`);
