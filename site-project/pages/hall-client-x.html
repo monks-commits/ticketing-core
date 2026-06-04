@@ -2020,7 +2020,8 @@ video.src = livePosterUrl;
     try {
       video.pause();
     } catch(e) {}
-
+    
+document.getElementById("skip-live-poster-btn")?.remove();
     video.style.display = "none";
 
     if (img && img.src) {
