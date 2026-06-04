@@ -2031,13 +2031,52 @@ video.src = livePosterUrl;
   video.onended = finish;
   video.onerror = finish;
 
- setTimeout(finish, Number(HALL_VISUAL_CONFIG?.livePosterDuration || 6200));
+video.controls = false;
+video.muted = false;
+video.volume = 1;
+
+addSkipLivePosterButton(finish);
 
   const p = video.play();
 
   if (p && typeof p.catch === "function") {
     p.catch(() => finish());
   }
+}
+
+function addSkipLivePosterButton(onSkip){
+  const wrap = document.getElementById("event-poster-wrap");
+  if (!wrap) return;
+
+  wrap.style.position = "relative";
+
+  document.getElementById("skip-live-poster-btn")?.remove();
+
+  const btn = document.createElement("button");
+  btn.id = "skip-live-poster-btn";
+  btn.type = "button";
+  btn.textContent = "Пропустити";
+
+  btn.style.cssText = `
+    position:absolute;
+    right:10px;
+    bottom:10px;
+    z-index:20;
+    border:0;
+    border-radius:999px;
+    padding:8px 12px;
+    background:rgba(2,6,23,.78);
+    color:#fff;
+    font-weight:800;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+  `;
+
+  btn.addEventListener("click", () => {
+    if (typeof onSkip === "function") onSkip();
+  });
+
+  wrap.appendChild(btn);
 }
     
 async function loadSeanceMeta() {
