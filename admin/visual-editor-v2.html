@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VA Live Visual Editor V2</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}
+.page{max-width:1100px;margin:0 auto;padding:28px 16px}
+.card{background:#111827;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;margin-bottom:18px}
+h1{margin:0 0 8px}
+label{display:block;margin:14px 0 6px;color:#cbd5e1;font-size:13px}
+select,input{width:100%;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:#020617;color:#fff}
+button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}
+.btn{background:#d4af37;color:#111827;width:100%;margin-top:14px}
+.btn2{background:#334155;color:#fff;width:100%;margin-top:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.preview{display:grid;grid-template-columns:260px 1fr;gap:18px}
+.box{background:#020617;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;min-height:220px}
+.posterBox{aspect-ratio:2/3}
+.box img,.box video{width:100%;height:100%;object-fit:cover;display:block}
+.small{color:#94a3b8;font-size:13px;line-height:1.4}
+.status{margin-top:12px;color:#a7f3d0;font-size:14px}
+@media(max-width:850px){.grid,.preview{grid-template-columns:1fr}}
+</style>
+</head>
+
+<body>
+<div class="page">
+  <h1>VA Live Visual Editor V2</h1>
+  <div class="small">Завантаження афіші, Live Poster і відеофону без входу в Supabase.</div>
+
+  <div class="card">
+    <label>Сеанс</label>
+    <select id="seanceSelect">
+      <option>Завантаження...</option>
+    </select>
+
+    <div class="grid">
+      <div>
+        <label>Афіша</label>
+        <input id="posterFile" type="file" accept="image/*">
+      </div>
+      <div>
+        <label>Live Poster mp4</label>
+        <input id="livePosterFile" type="file" accept="video/mp4,video/*">
+      </div>
+      <div>
+        <label>Відеофон</label>
+        <input id="bgVideoFile" type="file" accept="video/webm,video/mp4,video/*">
+      </div>
+      <div>
+        <label>Тривалість Live Poster, ms</label>
+        <input id="durationInput" type="number" value="6200">
+      </div>
+    </div>
+
+    <button class="btn" id="saveBtn">Завантажити файли і зберегти</button>
+    <button class="btn2" id="loadBtn">Завантажити поточний visual</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="preview">
+      <div>
+        <div class="box posterBox" id="posterPreview"></div>
+        <div class="small">Афіша / Live Poster</div>
+      </div>
+      <div>
+        <div class="box" id="bgPreview"></div>
+        <div class="small">Відеофон</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const seanceSelect = document.getElementById("seanceSelect");
+const posterFile = document.getElementById("posterFile");
+const livePosterFile = document.getElementById("livePosterFile");
+const bgVideoFile = document.getElementById("bgVideoFile");
+const durationInput = document.getElementById("durationInput");
+const statusEl = document.getElementById("status");
+
+let seances = [];
+let currentVisual = null;
+
+function setStatus(text){
+  statusEl.textContent = text || "";
+}
+
+function safeName(name){
+  return String(name || "file")
+    .toLowerCase()
+    .replace(/[^a-z0-9а-яіїєґ._-]+/gi, "-")
+    .replace(/-+/g, "-");
+}
+
+async function loadSeances(){
+  const { data, error } = await sb
+    .from("seances")
+    .select("id,show,date,time,venue_id,poster_url,active,status")
+    .order("date", { ascending:true });
+
+  if (error) {
+    console.error(error);
+    seanceSelect.innerHTML = `<option>Помилка завантаження</option>`;
+    return;
+  }
+
+  seances = (data || []).filter(s => s.status !== "archived");
+
+  seanceSelect.innerHTML = `<option value="">Оберіть сеанс</option>`;
+
+  seances.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.show || "Подія"} — ${s.date || ""} ${s.time || ""} — ${s.id}`;
+    seanceSelect.appendChild(opt);
+  });
+}
+
+async function uploadFile(bucket, folder, file){
+  if (!file) return "";
+
+  const seanceId = seanceSelect.value;
+  const ext = file.name.split(".").pop();
+  const path = `${folder}/${seanceId}/${Date.now()}-${safeName(file.name)}`;
+
+  const { error } = await sb.storage
+    .from(bucket)
+    .upload(path, file, {
+      cacheControl:"3600",
+      upsert:true
+    });
+
+  if (error) throw error;
+
+  const { data } = sb.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+async function loadCurrentVisual(){
+  const seanceId = seanceSelect.value;
+  if (!seanceId) return;
+
+  setStatus("Завантажую visual...");
+
+  const { data, error } = await sb
+    .from("seance_visuals")
+    .select("*")
+    .eq("seance_id", seanceId)
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+    setStatus("Помилка завантаження visual");
+    return;
+  }
+
+  currentVisual = data || null;
+
+  if (currentVisual?.live_poster_duration) {
+    durationInput.value = currentVisual.live_poster_duration;
+  }
+
+  renderPreview(currentVisual);
+  setStatus(currentVisual ? "Visual завантажено" : "Для цього сеансу visual ще не створено");
+}
+
+function renderPreview(v){
+  const posterBox = document.getElementById("posterPreview");
+  const bgBox = document.getElementById("bgPreview");
+
+  posterBox.innerHTML = "";
+  bgBox.innerHTML = "";
+
+  if (v?.live_poster_url) {
+    posterBox.innerHTML = `<video src="${v.live_poster_url}" controls playsinline></video>`;
+  } else if (v?.poster_url) {
+    posterBox.innerHTML = `<img src="${v.poster_url}" alt="">`;
+  }
+
+  if (v?.background_video_url) {
+    bgBox.innerHTML = `<video src="${v.background_video_url}" controls muted loop playsinline></video>`;
+  }
+}
+
+async function saveVisual(){
+  const seanceId = seanceSelect.value;
+  if (!seanceId) {
+    alert("Оберіть сеанс");
+    return;
+  }
+
+  try {
+    setStatus("Завантажую файли...");
+
+    const posterUrl = await uploadFile("posters", "seances", posterFile.files[0]);
+    const livePosterUrl = await uploadFile("video", "live-posters", livePosterFile.files[0]);
+    const bgVideoUrl = await uploadFile("video", "backgrounds", bgVideoFile.files[0]);
+
+    const payload = {
+      seance_id: seanceId,
+      poster_url: posterUrl || currentVisual?.poster_url || null,
+      live_poster_url: livePosterUrl || currentVisual?.live_poster_url || null,
+      live_poster_duration: Number(durationInput.value || currentVisual?.live_poster_duration || 6200),
+      background_video_url: bgVideoUrl || currentVisual?.background_video_url || null,
+      enabled: true,
+      updated_at: new Date().toISOString()
+    };
+
+    setStatus("Зберігаю visual...");
+
+    const { data, error } = await sb
+      .from("seance_visuals")
+      .upsert(payload, { onConflict:"seance_id" })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    currentVisual = data;
+    renderPreview(currentVisual);
+
+    setStatus("Готово. Visual збережено.");
+  } catch (e) {
+    console.error(e);
+    setStatus("Помилка: " + (e.message || e));
+  }
+}
+
+document.getElementById("saveBtn").addEventListener("click", saveVisual);
+document.getElementById("loadBtn").addEventListener("click", loadCurrentVisual);
+seanceSelect.addEventListener("change", loadCurrentVisual);
+
+loadSeances();
+</script>
+</body>
+</html>
