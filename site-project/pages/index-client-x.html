@@ -391,7 +391,7 @@ async function loadSeances(){
         <div class="date">${formatDate(s.date, s.time)}</div>
         <a class="btn buy-ticket-btn"
    data-seance="${s.id}"
-   href="hall-client-x.html?seance=${encodeURIComponent(s.id)}">
+  href="hall-client-x.html?seance=${encodeURIComponent(s.id)}&intro=1">
           Купити квитки
         </a>
       </div>
