@@ -2744,36 +2744,47 @@ let HALL_VISUAL_CONFIG = null;
 async function loadHallVisualConfig(hallFile){
   HALL_VISUAL_CONFIG = null;
 
-  if (!hallFile) return null;
+  const candidates = [];
 
-  try {
-    const res = await fetch(`../../data/visual/${hallFile}.visual.json`, {
-      cache: "no-store"
-    });
-
-    if (!res.ok) {
-      console.warn("Visual config not found:", hallFile);
-      return null;
-    }
-
-    HALL_VISUAL_CONFIG = await res.json();
-
-    if (HALL_VISUAL_CONFIG?.backgroundAlign) {
-      window.HALL_ALIGN = {
-        ...window.HALL_ALIGN,
-        ...HALL_VISUAL_CONFIG.backgroundAlign
-      };
-    }
-
-    console.log("VISUAL CONFIG:", HALL_VISUAL_CONFIG);
-    return HALL_VISUAL_CONFIG;
-
-  } catch (e) {
-    console.warn("loadHallVisualConfig error", e);
-    return null;
+  if (SEANCE_ID) {
+    candidates.push(`../../data/seances/${SEANCE_ID}.json`);
   }
-}
 
+  if (hallFile) {
+    candidates.push(`../../data/visual/${hallFile}.visual.json`);
+  }
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+
+      if (!res.ok) {
+        console.warn("Visual config not found:", url);
+        continue;
+      }
+
+      const cfg = await res.json();
+
+      HALL_VISUAL_CONFIG = cfg.visual || cfg || null;
+
+      if (HALL_VISUAL_CONFIG?.backgroundAlign) {
+        window.HALL_ALIGN = {
+          ...window.HALL_ALIGN,
+          ...HALL_VISUAL_CONFIG.backgroundAlign
+        };
+      }
+
+      console.log("VISUAL CONFIG:", url, HALL_VISUAL_CONFIG);
+      return HALL_VISUAL_CONFIG;
+
+    } catch (e) {
+      console.warn("loadHallVisualConfig error:", url, e);
+    }
+  }
+
+  return null;
+}
+    
 function renderPageVideoBackground(){
   const videoUrl = HALL_VISUAL_CONFIG?.video || "";
   if (!videoUrl) return;
