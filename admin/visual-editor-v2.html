@@ -281,6 +281,20 @@ document.getElementById("saveBtn").addEventListener("click", saveVisual);
 document.getElementById("loadBtn").addEventListener("click", loadCurrentVisual);
 seanceSelect.addEventListener("change", loadCurrentVisual);
 
+document.getElementById("openSeanceBtn").addEventListener("click", () => {
+  const seanceId = seanceSelect.value;
+
+  if (!seanceId) {
+    alert("Оберіть сеанс");
+    return;
+  }
+
+  window.open(
+    `../site-project/pages/hall-client-x.html?seance=${encodeURIComponent(seanceId)}&intro=1`,
+    "_blank"
+  );
+});
+  
 loadSeances();
 </script>
 </body>
