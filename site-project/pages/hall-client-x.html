@@ -3336,11 +3336,11 @@ console.log("RESOLVED HALL:", hallFile);
 
 await loadHallVisualConfig(hallFile);
 
-await showLivePosterOverlay();
-
 renderPageVideoBackground();
 
 setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
+
+  
   if (returnSeats.length) {
     for (const key of returnSeats) {
       const btn = document.querySelector(`.seat[data-key="${key}"]`);
