@@ -1,0 +1,8 @@
+{
+  "hall": "client-x",
+  "visual": {
+    "livePoster": "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/0604(1).mp4",
+    "livePosterDuration": 6200,
+    "video": "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/rock-01.webm"
+  }
+}
