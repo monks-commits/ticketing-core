@@ -1975,6 +1975,50 @@ function setEventPosterFromSeance(row){
   img.style.display = "block";
   img.src = url;
 }
+
+function startInlineLivePoster(){
+  const qs = new URLSearchParams(location.search);
+
+  if (qs.get("intro") !== "1") return;
+
+  const video = document.getElementById("event-live-poster");
+  const img = document.getElementById("event-poster");
+
+  if (!video) return;
+
+  video.src = "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/0604(1).mp4";
+  video.style.display = "block";
+
+  if (img) img.style.display = "none";
+
+  let done = false;
+
+  function finish(){
+    if (done) return;
+    done = true;
+
+    try {
+      video.pause();
+    } catch(e) {}
+
+    video.style.display = "none";
+
+    if (img && img.src) {
+      img.style.display = "block";
+    }
+  }
+
+  video.onended = finish;
+  video.onerror = finish;
+
+  setTimeout(finish, 6200);
+
+  const p = video.play();
+
+  if (p && typeof p.catch === "function") {
+    p.catch(() => finish());
+  }
+}
     
 async function loadSeanceMeta() {
   if (!SEANCE_ID) return null;
