@@ -1413,9 +1413,18 @@ body.va-theme-active .event-card{
 
   <aside class="ticket-event-sidebar">
     <div class="event-card">
-      <div class="event-poster-wrap">
-        <img id="event-poster" class="event-poster" alt="Афіша" style="display:none;">
-      </div>
+      <div class="event-poster-wrap" id="event-poster-wrap">
+  <video
+    id="event-live-poster"
+    class="event-poster"
+    playsinline
+    muted
+    preload="auto"
+    style="display:none;"
+  ></video>
+
+  <img id="event-poster" class="event-poster" alt="Афіша" style="display:none;">
+</div>
 
       <div class="event-info">
         <p id="summary-show" class="hall-summary-meta">Вистава: —</p>
