@@ -83,15 +83,18 @@ async function fetchJson(path){
       Authorization:`Bearer ${SUPABASE_ANON_KEY}`
     }
   });
+
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
 }
 
 async function loadCabinet(){
-  if (!refCode) return;
+  if (!refCode) {
+    document.getElementById("partnerInfo").textContent = "Реферальний код не задано";
+    return;
+  }
 
-  document.getElementById("partnerInfo").textContent =
-    `Партнер: ${refCode}`;
+  document.getElementById("partnerInfo").textContent = `Партнер: ${refCode}`;
 
   const rows = await fetchJson(
     `referral_pilot_dashboard?select=*&ref_code=eq.${encodeURIComponent(refCode)}`
@@ -103,86 +106,41 @@ async function loadCabinet(){
     document.getElementById("salesCount").textContent = "0";
     document.getElementById("totalSales").textContent = "0 грн";
     document.getElementById("totalCommission").textContent = "0 грн";
-
     document.getElementById("tableBox").innerHTML =
       `<div class="empty">Продажів поки немає.</div>`;
-
     return;
   }
 
-  document.getElementById("salesCount").textContent =
-    r.sales_count || 0;
+  document.getElementById("partnerInfo").textContent =
+    `Партнер: ${r.referral_name || r.ref_code}`;
 
-  document.getElementById("totalSales").textContent =
-    money(r.total_sales);
-
-  document.getElementById("totalCommission").textContent =
-    money(r.total_commission);
+  document.getElementById("salesCount").textContent = r.sales_count || 0;
+  document.getElementById("totalSales").textContent = money(r.total_sales);
+  document.getElementById("totalCommission").textContent = money(r.total_commission);
 
   document.getElementById("tableBox").innerHTML = `
     <table>
       <thead>
         <tr>
           <th>Партнер</th>
+          <th>Ref code</th>
           <th>Продажів</th>
           <th>Сума продажів</th>
           <th>Нараховано</th>
+          <th>Перший продаж</th>
+          <th>Останній продаж</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>${r.referral_name}</td>
-          <td>${r.sales_count}</td>
-          <td>${money(r.total_sales)}</td>
-          <td>${money(r.total_commission)}</td>
+          <td>${r.referral_name || r.ref_code}</td>
+          <td>${r.ref_code}</td>
+          <td>${r.sales_count || 0}</td>
+          <td class="money">${money(r.total_sales)}</td>
+          <td class="money">${money(r.total_commission)}</td>
+          <td>${r.first_sale_at ? new Date(r.first_sale_at).toLocaleString("uk-UA") : "—"}</td>
+          <td>${r.last_sale_at ? new Date(r.last_sale_at).toLocaleString("uk-UA") : "—"}</td>
         </tr>
-      </tbody>
-    </table>
-  `;
-}
-  if (from) query += `&created_at=gte.${from}T00:00:00`;
-  if (to) query += `&created_at=lte.${to}T23:59:59`;
-
-  const rows = await fetchJson(query);
-
-  const paidRows = rows.filter(r => !r.status || r.status === "paid" || r.status === "earned");
-
-  const salesCount = paidRows.length;
-  const totalSales = paidRows.reduce((s,r)=>s + Number(r.amount || r.total_amount || 0),0);
-  const totalCommission = paidRows.reduce((s,r)=>s + Number(r.commission || r.commission_amount || 0),0);
-
-  document.getElementById("salesCount").textContent = salesCount;
-  document.getElementById("totalSales").textContent = money(totalSales);
-  document.getElementById("totalCommission").textContent = money(totalCommission);
-
-  const tableBox = document.getElementById("tableBox");
-
-  if (!paidRows.length) {
-    tableBox.innerHTML = `<div class="empty">За вибраний період продажів немає.</div>`;
-    return;
-  }
-
-  tableBox.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Дата</th>
-          <th>Замовлення</th>
-          <th>Сума</th>
-          <th>Нараховано</th>
-          <th>Статус</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${paidRows.map(r => `
-          <tr>
-            <td>${r.created_at ? new Date(r.created_at).toLocaleString("uk-UA") : "—"}</td>
-            <td>${r.order_id || r.id || "—"}</td>
-            <td class="money">${money(r.amount || r.total_amount)}</td>
-            <td class="money">${money(r.commission || r.commission_amount)}</td>
-            <td>${r.status || "paid"}</td>
-          </tr>
-        `).join("")}
       </tbody>
     </table>
   `;
@@ -196,10 +154,12 @@ function logout(){
 }
 
 setDefaultDates();
+
 loadCabinet().catch(err => {
   console.error(err);
+  document.getElementById("partnerInfo").textContent = `Партнер: ${refCode || "—"}`;
   document.getElementById("tableBox").innerHTML =
-    `<div class="empty">Помилка завантаження даних. Перевірте назви полів у referral_sales.</div>`;
+    `<div class="empty">Помилка завантаження даних з referral_pilot_dashboard.</div>`;
 });
 </script>
 
