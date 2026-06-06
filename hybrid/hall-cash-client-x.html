@@ -2580,7 +2580,8 @@ function renderBuilderSeatsCash(hallData){
   canvas.style.background = "#fff";
   canvas.style.borderRadius = "14px";
   canvas.style.overflow = "hidden";
-  canvas.style.margin = "-180px auto 0";
+  canvas.style.margin = "0 auto";
+canvas.id = "hall-canvas";
 
   const bgUrl =
     HALL_VISUAL_CONFIG?.background ||
@@ -2691,7 +2692,47 @@ function renderBuilderSeatsCash(hallData){
     canvas.appendChild(btn);
   });
 
-  root.appendChild(canvas);
+ root.appendChild(canvas);
+
+setTimeout(() => {
+  fitCashCanvasToView();
+}, 50);
+}
+
+function fitCashCanvasToView(){
+  const root = document.getElementById("hall-root");
+  const canvas = document.getElementById("hall-canvas");
+
+  if (!root || !canvas) return;
+
+  const viewport =
+    document.getElementById("hall-viewport") ||
+    root.parentElement;
+
+  if (!viewport) return;
+
+  root.style.transform = "";
+  root.style.transformOrigin = "top left";
+
+  const viewportRect = viewport.getBoundingClientRect();
+
+  const canvasWidth = canvas.offsetWidth;
+  const canvasHeight = canvas.offsetHeight;
+
+  if (!viewportRect.width || !viewportRect.height || !canvasWidth || !canvasHeight) return;
+
+  const padding = 16;
+
+  const scaleX = (viewportRect.width - padding * 2) / canvasWidth;
+  const scaleY = (viewportRect.height - padding * 2) / canvasHeight;
+
+  const scale = Math.min(scaleX, scaleY);
+
+  const offsetX = Math.max((viewportRect.width - canvasWidth * scale) / 2, padding);
+  const offsetY = Math.max((viewportRect.height - canvasHeight * scale) / 2, padding);
+
+  root.style.transform =
+    `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
 }
     
 function renderSimpleRows(hallData) {
