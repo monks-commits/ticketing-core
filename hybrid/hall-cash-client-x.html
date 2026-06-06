@@ -2691,7 +2691,7 @@ canvas.id = "hall-canvas";
 
     canvas.appendChild(btn);
   });
-
+compactCashCanvas(canvas);
  root.appendChild(canvas);
 
 setTimeout(() => {
@@ -2699,6 +2699,43 @@ setTimeout(() => {
 }, 50);
 }
 
+function compactCashCanvas(canvas){
+  const items = [...canvas.children].filter(el =>
+    el.tagName !== "IMG"
+  );
+
+  if (!items.length) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  items.forEach(el => {
+    const x = parseFloat(el.style.left) || 0;
+    const y = parseFloat(el.style.top) || 0;
+    const w = el.offsetWidth || 24;
+    const h = el.offsetHeight || 24;
+
+    minX = Math.min(minX, x - w / 2);
+    minY = Math.min(minY, y - h / 2);
+    maxX = Math.max(maxX, x + w / 2);
+    maxY = Math.max(maxY, y + h / 2);
+  });
+
+  const pad = 30;
+  const newW = Math.ceil(maxX - minX + pad * 2);
+  const newH = Math.ceil(maxY - minY + pad * 2);
+
+  items.forEach(el => {
+    const x = parseFloat(el.style.left) || 0;
+    const y = parseFloat(el.style.top) || 0;
+
+    el.style.left = (x - minX + pad) + "px";
+    el.style.top = (y - minY + pad) + "px";
+  });
+
+  canvas.style.width = newW + "px";
+  canvas.style.height = newH + "px";
+}
+    
 function fitCashCanvasToView(){
   const root = document.getElementById("hall-root");
   const canvas = document.getElementById("hall-canvas");
