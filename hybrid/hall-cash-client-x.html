@@ -3237,81 +3237,55 @@ setInterval(async () => {
 
 let hallZoom = 1;
 
-// applyHallZoom();
-
+function applyHallZoom(){
   const inner = document.querySelector(".hall-inner");
   const scroll = document.querySelector(".hall-scroll");
   const label = document.getElementById("hallZoomLabel");
 
-  if(!inner || !scroll) return;
+  if (!inner || !scroll) return;
 
   inner.style.transform = "none";
   inner.style.width = "max-content";
   inner.style.height = "max-content";
 
   requestAnimationFrame(() => {
+    const scrollRect = scroll.getBoundingClientRect();
+    const contentWidth = inner.scrollWidth;
+    const contentHeight = inner.scrollHeight;
 
-    const sidebar = 340;
-    const paddingX = 40;
-    const paddingY = 30;
+    if (!scrollRect.width || !scrollRect.height || !contentWidth || !contentHeight) return;
 
-    const availableWidth =
-      window.innerWidth - sidebar - paddingX;
+    const padding = 18;
 
-    const availableHeight =
-      window.innerHeight - 190;
+    const scaleX = (scrollRect.width - padding * 2) / contentWidth;
+    const scaleY = (scrollRect.height - padding * 2) / contentHeight;
 
-    const contentWidth =
-      inner.scrollWidth;
+    hallZoom = Math.min(scaleX, scaleY, 2.2);
 
-    const contentHeight =
-      inner.scrollHeight;
+    inner.style.transform = `scale(${hallZoom})`;
+    inner.style.transformOrigin = "top center";
+    inner.style.width = contentWidth + "px";
+    inner.style.height = contentHeight + "px";
 
-    if (!contentWidth || !contentHeight) return;
-
-    const scaleX =
-      availableWidth / contentWidth;
-
-    const scaleY =
-      availableHeight / contentHeight;
-
-    hallZoom =
-      Math.min(scaleX, scaleY, 2.2);
-
-    inner.style.transform =
-      `scale(${hallZoom})`;
-
-    inner.style.transformOrigin =
-      "top center";
-
-    inner.style.width =
-      contentWidth + "px";
-
-    inner.style.height =
-      contentHeight + "px";
-
-    if(label){
-      label.textContent =
-        Math.round(hallZoom * 100) + "%";
+    if (label) {
+      label.textContent = Math.round(hallZoom * 100) + "%";
     }
   });
 }
-document.getElementById("hallZoomOut")
-?.addEventListener("click", ()=>{
 
-  hallZoom = Math.max(0.25, hallZoom - 0.1);
-  applyHallZoom();
-});
+document.getElementById("hallZoomOut")
+  ?.addEventListener("click", () => {
+    hallZoom = Math.max(0.25, hallZoom - 0.1);
+    applyHallZoom();
+  });
 
 document.getElementById("hallZoomIn")
-?.addEventListener("click", ()=>{
+  ?.addEventListener("click", () => {
+    hallZoom = Math.min(2.2, hallZoom + 0.1);
+    applyHallZoom();
+  });
 
-  hallZoom = Math.min(1.5, hallZoom + 0.1);
-
-  applyHallZoom();
-});
-
-applyHallZoom();
+// applyHallZoom();
     
   </script>
 </body>
