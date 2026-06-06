@@ -3201,25 +3201,28 @@ function applyHallZoom(){
   if(!inner || !scroll) return;
 
   inner.style.transform = "none";
+  inner.style.width = "max-content";
+  inner.style.height = "max-content";
 
   requestAnimationFrame(() => {
 
-    const sidebar = 360;
-
-    const paddingX = 60;
-    const paddingY = 40;
+    const sidebar = 340;
+    const paddingX = 40;
+    const paddingY = 30;
 
     const availableWidth =
       window.innerWidth - sidebar - paddingX;
 
     const availableHeight =
-      window.innerHeight - 250;
+      window.innerHeight - 190;
 
     const contentWidth =
       inner.scrollWidth;
 
     const contentHeight =
       inner.scrollHeight;
+
+    if (!contentWidth || !contentHeight) return;
 
     const scaleX =
       availableWidth / contentWidth;
@@ -3228,7 +3231,7 @@ function applyHallZoom(){
       availableHeight / contentHeight;
 
     hallZoom =
-      Math.min(scaleX, scaleY, 1);
+      Math.min(scaleX, scaleY, 2.2);
 
     inner.style.transform =
       `scale(${hallZoom})`;
