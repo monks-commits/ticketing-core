@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Кабінет реферала</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#08172b;color:white;padding:28px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{margin:0 0 8px;font-size:34px}
+.sub{color:#cbd5e1;margin-bottom:22px}
+.panel,.card{background:#18283e;border:1px solid #334155;border-radius:18px;padding:18px}
+.filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+input,button{padding:12px;border-radius:10px;border:1px solid #334155}
+input{background:#071325;color:white}
+button{background:#3b82f6;color:white;font-weight:700;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}
+.card .label{color:#cbd5e1}
+.card .num{font-size:30px;font-weight:800;margin-top:8px}
+table{width:100%;border-collapse:collapse;margin-top:18px;background:#102033;border-radius:14px;overflow:hidden}
+th,td{padding:12px 14px;border-bottom:1px solid #334155;text-align:left}
+th{background:#0f172a}
+.money{font-weight:700;white-space:nowrap}
+.empty{padding:20px;color:#cbd5e1}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Кабінет реферала</h1>
+  <div id="partnerInfo" class="sub">Завантаження...</div>
+
+  <div class="panel">
+    <div class="filters">
+      <input id="dateFrom" type="date">
+      <input id="dateTo" type="date">
+      <button onclick="loadCabinet()">Показати</button>
+      <button onclick="logout()">Вийти</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="label">Продажів</div>
+        <div id="salesCount" class="num">0</div>
+      </div>
+      <div class="card">
+        <div class="label">Сума продажів</div>
+        <div id="totalSales" class="num">0 грн</div>
+      </div>
+      <div class="card">
+        <div class="label">Нараховано</div>
+        <div id="totalCommission" class="num">0 грн</div>
+      </div>
+    </div>
+
+    <div id="tableBox"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const qs = new URLSearchParams(location.search);
+const refCode = qs.get("ref") || sessionStorage.getItem("va_partner_target") || "";
+
+function money(v){
+  return Number(v || 0).toFixed(2) + " грн";
+}
+
+function setDefaultDates(){
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  document.getElementById("dateFrom").value = first.toISOString().slice(0,10);
+  document.getElementById("dateTo").value = now.toISOString().slice(0,10);
+}
+
+async function fetchJson(path){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers:{
+      apikey: SUPABASE_ANON_KEY,
+      Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+    }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+}
+
+async function loadCabinet(){
+  if (!refCode) {
+    document.getElementById("partnerInfo").textContent = "Реферальний код не задано";
+    return;
+  }
+
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
+
+  document.getElementById("partnerInfo").textContent = `Партнер: ${refCode}`;
+
+  let query = `referral_sales?select=*&ref_code=eq.${encodeURIComponent(refCode)}&order=created_at.desc`;
+
+  if (from) query += `&created_at=gte.${from}T00:00:00`;
+  if (to) query += `&created_at=lte.${to}T23:59:59`;
+
+  const rows = await fetchJson(query);
+
+  const paidRows = rows.filter(r => !r.status || r.status === "paid" || r.status === "earned");
+
+  const salesCount = paidRows.length;
+  const totalSales = paidRows.reduce((s,r)=>s + Number(r.amount || r.total_amount || 0),0);
+  const totalCommission = paidRows.reduce((s,r)=>s + Number(r.commission || r.commission_amount || 0),0);
+
+  document.getElementById("salesCount").textContent = salesCount;
+  document.getElementById("totalSales").textContent = money(totalSales);
+  document.getElementById("totalCommission").textContent = money(totalCommission);
+
+  const tableBox = document.getElementById("tableBox");
+
+  if (!paidRows.length) {
+    tableBox.innerHTML = `<div class="empty">За вибраний період продажів немає.</div>`;
+    return;
+  }
+
+  tableBox.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Замовлення</th>
+          <th>Сума</th>
+          <th>Нараховано</th>
+          <th>Статус</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${paidRows.map(r => `
+          <tr>
+            <td>${r.created_at ? new Date(r.created_at).toLocaleString("uk-UA") : "—"}</td>
+            <td>${r.order_id || r.id || "—"}</td>
+            <td class="money">${money(r.amount || r.total_amount)}</td>
+            <td class="money">${money(r.commission || r.commission_amount)}</td>
+            <td>${r.status || "paid"}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function logout(){
+  sessionStorage.removeItem("va_partner_login");
+  sessionStorage.removeItem("va_partner_type");
+  sessionStorage.removeItem("va_partner_target");
+  location.href = "partner-login.html";
+}
+
+setDefaultDates();
+loadCabinet().catch(err => {
+  console.error(err);
+  document.getElementById("tableBox").innerHTML =
+    `<div class="empty">Помилка завантаження даних. Перевірте назви полів у referral_sales.</div>`;
+});
+</script>
+
+</body>
+</html>
