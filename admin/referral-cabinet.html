@@ -98,7 +98,33 @@ async function loadCabinet(){
 
   document.getElementById("partnerInfo").textContent = `Партнер: ${refCode}`;
 
-  let query = `referral_sales?select=*&ref_code=eq.${encodeURIComponent(refCode)}&order=created_at.desc`;
+  async function loadCabinet(){
+  if (!refCode) return;
+
+  document.getElementById("partnerInfo").textContent = `Партнер: ${refCode}`;
+
+  const rows = await fetchJson(
+    `referral_pilot_dashboard?select=*&ref_code=eq.${encodeURIComponent(refCode)}`
+  );
+
+  const r = rows[0];
+
+  if (!r) {
+    document.getElementById("salesCount").textContent = "0";
+    document.getElementById("totalSales").textContent = "0 грн";
+    document.getElementById("totalCommission").textContent = "0 грн";
+    document.getElementById("tableBox").innerHTML =
+      `<div class="empty">Продажів поки немає.</div>`;
+    return;
+  }
+
+  document.getElementById("salesCount").textContent = r.sales_count || 0;
+  document.getElementById("totalSales").textContent = money(r.total_sales);
+  document.getElementById("totalCommission").textContent = money(r.total_commission);
+
+  document.getElementById("tableBox").innerHTML =
+    `<div class="empty">Деталізацію продажів додамо після перевірки структури referral_sales.</div>`;
+}
 
   if (from) query += `&created_at=gte.${from}T00:00:00`;
   if (to) query += `&created_at=lte.${to}T23:59:59`;
