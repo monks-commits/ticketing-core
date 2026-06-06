@@ -1336,14 +1336,16 @@
 
     const qs = new URLSearchParams(location.search);
 
-const refCode =
-  qs.get("ref") ||
-  localStorage.getItem("va_ref_code") ||
-  "";
+const refFromUrl = qs.get("ref") || "";
+const refCode = refFromUrl;
+
+localStorage.removeItem("va_ref_code");
 
 if (refCode) {
-
-  localStorage.setItem("va_ref_code", refCode);
+  sessionStorage.setItem("va_ref_code", refCode);
+} else {
+  sessionStorage.removeItem("va_ref_code");
+}
 
   const badge = document.getElementById("refDemoBadge");
 
