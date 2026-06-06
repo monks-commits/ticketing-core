@@ -98,7 +98,7 @@ async function loadCabinet(){
 
   document.getElementById("partnerInfo").textContent = `Партнер: ${refCode}`;
 
-  async function loadCabinet(){
+async function loadCabinet(){
   if (!refCode) return;
 
   document.getElementById("partnerInfo").textContent = `Партнер: ${refCode}`;
@@ -125,7 +125,7 @@ async function loadCabinet(){
   document.getElementById("tableBox").innerHTML =
     `<div class="empty">Деталізацію продажів додамо після перевірки структури referral_sales.</div>`;
 }
-
+  
   if (from) query += `&created_at=gte.${from}T00:00:00`;
   if (to) query += `&created_at=lte.${to}T23:59:59`;
 
