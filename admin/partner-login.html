@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Вхід для партнерів</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#08172b;color:white;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.card{width:360px;background:#18283e;padding:28px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+h1{margin:0 0 18px;font-size:26px}
+label{display:block;margin:14px 0 6px;color:#cbd5e1}
+input{width:100%;box-sizing:border-box;padding:13px;border-radius:10px;border:1px solid #334155;background:#071325;color:white}
+button{width:100%;margin-top:18px;padding:14px;border:0;border-radius:12px;background:#3b82f6;color:white;font-weight:700;cursor:pointer}
+.err{margin-top:14px;color:#f87171}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Вхід для партнерів</h1>
+
+  <label>Код</label>
+  <input id="login" placeholder="gorod_dp_ua / shevchenko">
+
+  <label>Пароль</label>
+  <input id="password" type="password" placeholder="R-... або P-...">
+
+  <button onclick="loginPartner()">Увійти</button>
+
+  <div id="err" class="err"></div>
+</div>
+
+<script>
+const ACCOUNTS = {
+  gorod_dp_ua: {
+    password: "R-gorod-2026",
+    type: "referral",
+    target: "gorod_dp_ua"
+  },
+  "056_ua": {
+    password: "R-056-2026",
+    type: "referral",
+    target: "056_ua"
+  },
+  shevchenko: {
+    password: "P-shev-2026",
+    type: "venue",
+    target: "shevchenko"
+  }
+};
+
+function loginPartner(){
+  const login = document.getElementById("login").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const err = document.getElementById("err");
+
+  const acc = ACCOUNTS[login];
+
+  if (!acc || acc.password !== password) {
+    err.textContent = "Невірний код або пароль";
+    return;
+  }
+
+  sessionStorage.setItem("va_partner_login", login);
+  sessionStorage.setItem("va_partner_type", acc.type);
+  sessionStorage.setItem("va_partner_target", acc.target);
+
+  if (acc.type === "referral") {
+    location.href = `referral-cabinet.html?ref=${encodeURIComponent(acc.target)}`;
+    return;
+  }
+
+  if (acc.type === "venue") {
+    location.href = `client-panel.html?venue=${encodeURIComponent(acc.target)}`;
+    return;
+  }
+}
+</script>
+
+</body>
+</html>
