@@ -1940,11 +1940,15 @@ async function sellAndPrintOffline(){
   const prices = {};
   let total = 0;
 
-  for (const k of keys){
-    const price = Number(selected.get(k)?.price || 0);
-    prices[k] = price;
-    total += price;
-  }
+  const ticketTypeData = getTicketTypeData();
+
+for (const k of keys){
+  const basePrice = Number(selected.get(k)?.price || 0);
+  const finalPrice = calcFinalPrice(basePrice);
+
+  prices[k] = finalPrice;
+  total += finalPrice;
+}
 
   const op_id = genOpId();
 
