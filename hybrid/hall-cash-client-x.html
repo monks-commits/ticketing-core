@@ -2559,7 +2559,6 @@ if (section.type === "tables") {
 
 let HALL_VISUAL_CONFIG = null;
 
-
 async function renderBuilderSeatsCash(hallData){
 
   try {
@@ -2568,17 +2567,14 @@ async function renderBuilderSeatsCash(hallData){
       typeof loadHallVisualConfig === "function"
     ) {
       await loadHallVisualConfig(CLIENT_X_HALL);
-      console.log(
-        "CASH VISUAL:",
-        HALL_VISUAL_CONFIG
-      );
+      console.log("CASH VISUAL:", HALL_VISUAL_CONFIG);
     }
   } catch(err) {
-    console.warn(
-      "loadHallVisualConfig error:",
-      err
-    );
+    console.warn("loadHallVisualConfig error:", err);
   }
+
+  return renderBuilderSeatsCashStandard(hallData);
+}
 
 function renderBuilderSeatsCashStandard(hallData){
   const root = document.getElementById("hall-root");
