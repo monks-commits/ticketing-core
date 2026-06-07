@@ -2797,6 +2797,8 @@ scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.55)";
 }
     
 function renderBuilderSeatsCashStandard(hallData){
+  CURRENT_HALL_DATA = hallData;
+
   const root = document.getElementById("hall-root");
   if (!root) return;
 
@@ -2835,6 +2837,9 @@ function renderBuilderSeatsCashStandard(hallData){
     hallData?.background ||
     "";
 
+console.log("HALL_VISUAL_CONFIG:", HALL_VISUAL_CONFIG);
+console.log("BG URL:", bgUrl);
+  
   if (bgUrl) {
     const bg = document.createElement("img");
     bg.src = bgUrl;
