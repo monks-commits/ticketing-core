@@ -1955,6 +1955,19 @@ for (const k of keys){
   const op = {
   op_id,
   type: "sale",
+  channel: "cash",
+
+  ticket_type: ticketTypeData.ticket_type,
+  promo_mode: ticketTypeData.promo_mode,
+  promo_value: ticketTypeData.promo_value,
+
+  seance_id: SEANCE_ID,
+  show_slug: safeShowSlug,
+  seats: keys,
+  prices,
+  total,
+  sold_at: new Date().toISOString()
+};
 
   // NEW CORE
   channel: "cash",
