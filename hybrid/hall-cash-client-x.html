@@ -1876,7 +1876,7 @@ async function applyStatusToSelectedLocal(status){
 
       const txt = await res.text();
       let data = null;
-      try{ data = JSON.parse(txt); }catch(e){ data = { raw: txt }; }
+      try{ data = JSON.parse(txt); }catch(e){ data = { raw: txt }; } 
       return { ok: res.ok, status: res.status, data };
     }
 
