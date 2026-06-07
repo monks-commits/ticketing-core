@@ -2806,6 +2806,7 @@ function renderBuilderSeatsCashStandard(hallData){
   seatButtons.clear();
 
   const seats = Array.isArray(hallData?.seats) ? hallData.seats : [];
+
   const width = Number(hallData?.width || 715);
   const height = Number(hallData?.height || 840);
 
@@ -2827,8 +2828,9 @@ function renderBuilderSeatsCashStandard(hallData){
   scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.18)";
 
   const bg = document.createElement("img");
-  bg.src = "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/posters/Client-X/client-x-hall.png";
-  bg.alt = "Схема залу"; 
+  bg.src =
+    "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/posters/Client-X/client-x-hall.png";
+  bg.alt = "Схема залу";
   bg.style.position = "absolute";
   bg.style.inset = "0";
   bg.style.width = "100%";
@@ -2855,7 +2857,13 @@ function renderBuilderSeatsCashStandard(hallData){
 
     const key = seatKey(meta);
 
-    const btn = makeSeatElement(key, meta.seat, "", 0, meta);
+    const btn = makeSeatElement(
+      key,
+      meta.seat,
+      "",
+      0,
+      meta
+    );
 
     btn.style.position = "absolute";
     btn.style.left = Number(s.x || 0) + "px";
