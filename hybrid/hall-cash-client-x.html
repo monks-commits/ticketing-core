@@ -1647,6 +1647,21 @@ function getTicketTypeData(){
   return data;
 }
 
+function ticketTypeLabel(type){
+  const map = {
+    standard: "Звичайний",
+    child: "Дитячий",
+    benefit: "Пільговий",
+    invite: "Запрошення",
+    promo: "Акційний",
+    recovery: "Компенсаційний",
+    rental: "Орендний",
+    staff: "Службовий"
+  };
+
+  return map[type] || "Звичайний";
+}
+    
 function calcFinalPrice(basePrice){
   const { ticket_type, promo_mode, promo_value } = getTicketTypeData();
 
