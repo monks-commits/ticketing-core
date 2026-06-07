@@ -2027,9 +2027,10 @@ for (const k of keys){
  const tickets = keys.map(k => ({
   op_id,
   order_id,
-
-  // NEW CORE
   channel: "cash",
+
+  ticket_type: ticketTypeData.ticket_type,
+  ticket_type_label: ticketTypeLabel(ticketTypeData.ticket_type),
 
   show_slug: safeShowSlug,
   seance_id: SEANCE_ID,
