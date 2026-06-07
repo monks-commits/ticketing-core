@@ -2560,9 +2560,25 @@ if (section.type === "tables") {
 let HALL_VISUAL_CONFIG = null;
 
 
- function renderBuilderSeatsCash(hallData){
-  return renderBuilderSeatsCashStandard(hallData);
-}
+async function renderBuilderSeatsCash(hallData){
+
+  try {
+    if (
+      !HALL_VISUAL_CONFIG &&
+      typeof loadHallVisualConfig === "function"
+    ) {
+      await loadHallVisualConfig(CLIENT_X_HALL);
+      console.log(
+        "CASH VISUAL:",
+        HALL_VISUAL_CONFIG
+      );
+    }
+  } catch(err) {
+    console.warn(
+      "loadHallVisualConfig error:",
+      err
+    );
+  }
 
 function renderBuilderSeatsCashStandard(hallData){
   const root = document.getElementById("hall-root");
