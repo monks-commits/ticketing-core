@@ -2587,7 +2587,7 @@ function renderBuilderSeatsCashStandard(hallData){
   root.innerHTML = "";
   seatButtons.clear();
 
-  const seats = Array.isArray(hallData?.seats) ? hallData.seats : [];
+  const seats = Array.isArray(hallData?.seats) ? hallData.seats : []; 
   const decor = Array.isArray(hallData?.decor) ? hallData.decor : [];
 
   const width = Number(hallData.width || 1200);
