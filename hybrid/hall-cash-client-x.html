@@ -2559,6 +2559,32 @@ if (section.type === "tables") {
 
 let HALL_VISUAL_CONFIG = null;
 
+async function loadHallVisualConfig(hallFile){
+  HALL_VISUAL_CONFIG = null;
+
+  // 1. Резерв: общий visual зала
+  if (hallFile) {
+    try {
+      const res = await fetch(`../data/visual/${hallFile}.visual.json`, {
+        cache: "no-store"
+      });
+
+      if (res.ok) {
+        HALL_VISUAL_CONFIG = await res.json();
+        console.log("CASH VISUAL CONFIG FROM HALL JSON:", HALL_VISUAL_CONFIG);
+        return HALL_VISUAL_CONFIG;
+      }
+    } catch (e) {
+      console.warn("cash visual from hall json error:", e);
+    }
+  }
+
+  // 2. Фон прямо из hall json, если там есть background
+  HALL_VISUAL_CONFIG = {};
+  return HALL_VISUAL_CONFIG;
+}
+    
+
 async function renderBuilderSeatsCash(hallData){
 
   try {
