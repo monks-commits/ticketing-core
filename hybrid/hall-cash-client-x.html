@@ -2829,13 +2829,17 @@ function renderBuilderSeatsCashStandard(hallData){
   scaleBox.style.borderRadius = "18px";
   scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.35)";
 
-  const bgUrl =
-    HALL_VISUAL_CONFIG?.background ||
-    hallData?.background_image ||
-    hallData?.background?.src ||
-    hallData?.background?.url ||
-    hallData?.background ||
-    "";
+ const CLIENT_X_HALL_BG =
+  "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/posters/Client-X/client-x-hall.png";
+
+const bgUrl =
+  HALL_VISUAL_CONFIG?.background ||
+  hallData?.background_image ||
+  hallData?.background?.src ||
+  hallData?.background?.url ||
+  hallData?.background ||
+  CLIENT_X_HALL_BG ||
+  "";
 
 console.log("HALL_VISUAL_CONFIG:", HALL_VISUAL_CONFIG);
 console.log("BG URL:", bgUrl);
