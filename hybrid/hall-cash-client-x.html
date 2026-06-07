@@ -2601,7 +2601,7 @@ async function loadHallVisualConfig(hallFile){
   // 2. Резерв: data/seances/{SEANCE_ID}.json
   if (SEANCE_ID) {
     try {
-      const res = await fetch(`../../data/seances/${SEANCE_ID}.json`, {
+      const res = await fetch(`../data/seances/${SEANCE_ID}.json`, {
         cache: "no-store"
       });
 
