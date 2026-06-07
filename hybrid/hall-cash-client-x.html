@@ -2638,24 +2638,164 @@ async function loadHallVisualConfig(hallFile){
 
   return null;
 }
-    
-async function renderBuilderSeatsCash(hallData){
 
-  try {
-    if (
-      !HALL_VISUAL_CONFIG &&
-      typeof loadHallVisualConfig === "function"
-    ) {
-      await loadHallVisualConfig(CLIENT_X_HALL);
-      console.log("CASH VISUAL:", HALL_VISUAL_CONFIG);
+function renderDecor(hallData, target){
+
+  const decor = Array.isArray(hallData?.decor)
+    ? hallData.decor
+    : [];
+
+  decor.forEach(item => {
+
+    // Новый конструктор сохраняет type:"text"
+    // Старые версии могли сохранять type:"label"
+    if (item.type === "text" || item.type === "label") {
+
+      const el = document.createElement("div");
+
+      const rotate = Number(item.rotate || 0);
+
+      el.style.position = "absolute";
+      el.style.left = Number(item.x || 0) + "px";
+      el.style.top = Number(item.y || 0) + "px";
+      el.style.transform = `translate(-50%, -50%) rotate(${rotate}deg)`;
+
+      el.style.fontSize = Number(item.size || 24) + "px";
+      el.style.fontWeight = item.weight || "700";
+      el.style.letterSpacing = item.letterSpacing || "0";
+      el.style.color = item.color || "#1f2937";
+      el.style.whiteSpace = "nowrap";
+      el.style.pointerEvents = "none";
+      el.style.zIndex = "40";
+
+      el.textContent = item.text || "";
+
+      target.appendChild(el);
     }
-  } catch(err) {
-    console.warn("loadHallVisualConfig error:", err);
+
+    if (item.type === "stage") {
+
+      const stage = document.createElement("div");
+
+      stage.style.position = "absolute";
+
+      stage.style.left = Number(item.x || 0) + "px";
+      stage.style.top = Number(item.y || 0) + "px";
+
+      stage.style.width = Number(item.w || 600) + "px";
+      stage.style.height = Number(item.h || 80) + "px";
+
+      stage.style.background = item.background || "#04a9e8";
+      stage.style.color = item.color || "#fff";
+
+      stage.style.display = "flex";
+      stage.style.alignItems = "center";
+      stage.style.justifyContent = "center";
+
+      stage.style.fontSize = Number(item.size || 44) + "px";
+      stage.style.fontWeight = item.weight || "900";
+      stage.style.letterSpacing = item.letterSpacing || ".08em";
+
+      stage.style.pointerEvents = "none";
+      stage.style.zIndex = "35";
+
+      stage.textContent = item.text || "СЦЕНА";
+
+      target.appendChild(stage);
+    }
+
+  });
+
+}
+window.HALL_ALIGN = {
+  scale: 1,
+  x: 0,
+  y: 0,
+  opacity: 1
+};
+
+    
+function renderBuilderSeats(hallData){
+  const root = document.getElementById("hall-root");
+  if (!root) return;
+
+  CURRENT_HALL_DATA = hallData;
+  root.innerHTML = "";
+
+  const seats = Array.isArray(hallData?.seats) ? hallData.seats : [];
+  const width = Number(hallData.width || 1200);
+  const height = Number(hallData.height || 900);
+
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section";
+  wrap.style.width = "100%";
+  wrap.style.display = "flex";
+  wrap.style.justifyContent = "center";
+
+  const scaleBox = document.createElement("div");
+  scaleBox.style.position = "relative";
+  scaleBox.style.width = width + "px";
+  scaleBox.style.height = height + "px";
+  scaleBox.style.overflow = "hidden";
+
+  const bgUrl =
+    HALL_VISUAL_CONFIG?.background ||
+    hallData?.background_image ||
+    hallData?.background?.src ||
+    "";
+
+
+  if (false && bgUrl) {
+    const bg = document.createElement("img");
+    bg.src = bgUrl;
+    bg.alt = "Схема залу";
+    bg.style.position = "absolute";
+    bg.style.left = "0";
+    bg.style.top = "0";
+    bg.style.width = width + "px";
+    bg.style.height = height + "px";
+    bg.style.objectFit = "fill";
+    bg.style.zIndex = "1";
+    bg.style.pointerEvents = "none";
+    bg.style.opacity = String(
+      HALL_VISUAL_CONFIG?.opacity ??
+      hallData?.background?.opacity ??
+      1
+    );
+    scaleBox.appendChild(bg);
   }
 
-  return renderBuilderSeatsCashStandard(hallData);
-}
+scaleBox.style.background = "rgba(2,6,23,.72)";
+scaleBox.style.border = "1px solid rgba(255,255,255,.28)";
+scaleBox.style.borderRadius = "18px";
+scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.55)";
+  
+  seats.forEach(s => {
+    const meta = {
+      zone: s.zone || "Партер",
+      prefix: s.prefix || "P",
+      row: String(s.row || "0"),
+      seat: Number(s.seat || 0)
+    };
 
+    const btn = makeSeatElement(seatKey(meta), meta.seat, "", 0, meta);
+
+    btn.style.position = "absolute";
+    btn.style.left = Number(s.x || 0) + "px";
+    btn.style.top = Number(s.y || 0) + "px";
+    btn.style.transform = "translate(-50%, -50%)";
+    btn.style.zIndex = "3";
+    btn.style.opacity = "1";
+
+    scaleBox.appendChild(btn);
+  });
+
+  renderDecor(hallData, scaleBox);
+
+  wrap.appendChild(scaleBox);
+  root.appendChild(wrap);
+}
+    
 function renderBuilderSeatsCashStandard(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
