@@ -2622,7 +2622,7 @@ async function loadHallVisualConfig(hallFile){
   // 3. Последний резерв: общий visual зала
   if (hallFile) {
     try {
-      const res = await fetch(`../../data/visual/${hallFile}.visual.json`, {
+      const res = await fetch(`../data/visual/${hallFile}.visual.json`, {
         cache: "no-store"
       });
 
