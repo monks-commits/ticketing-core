@@ -397,10 +397,46 @@ document.addEventListener("click", e => {
   const btn = e.target.closest(".buy-ticket-btn");
   if (!btn) return;
 
-  localStorage.setItem("va-theme-audio", "play");
-  localStorage.setItem("va-theme-video", "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/rock-01.webm");
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+  if (!isMobile) {
+    return; // на компе обычный переход по href
+  }
+
+  e.preventDefault();
+
+  const targetUrl = btn.href;
+  openMobileVideoIntro(targetUrl);
 });
 
+function openMobileVideoIntro(targetUrl){
+  const videoUrl =
+    "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/0604(1).mp4";
+
+  const overlay = document.createElement("div");
+  overlay.className = "mobile-video-intro";
+  overlay.innerHTML = `
+    <video id="mobileIntroVideo" autoplay playsinline muted>
+      <source src="${videoUrl}" type="video/mp4">
+    </video>
+    <button id="skipMobileIntro">Пропустити</button>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const video = overlay.querySelector("video");
+  const skip = overlay.querySelector("#skipMobileIntro");
+
+  const go = () => {
+    location.href = targetUrl;
+  };
+
+  skip.onclick = go;
+  video.onended = go;
+
+  setTimeout(go, 7000);
+}
+  
 function startLivePosterThenGo(targetUrl){
   const overlay = document.getElementById("va-live-poster-overlay");
   const video = document.getElementById("va-live-poster-video");
