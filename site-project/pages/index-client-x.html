@@ -337,7 +337,30 @@
   font-weight:800;
   cursor:pointer;
 }
-  
+.poster-wrap{
+  position:relative;
+  overflow:hidden;
+}
+
+.live-poster-video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.skip-card-video{
+  position:absolute;
+  right:10px;
+  top:10px;
+  z-index:5;
+  border:0;
+  border-radius:999px;
+  padding:8px 12px;
+  background:rgba(15,23,42,.78);
+  color:#fff;
+  font-weight:800;
+}  
 </style>
 </head>
 
@@ -454,44 +477,46 @@ document.addEventListener("click", e => {
 
   e.preventDefault();
 
-  const targetUrl = btn.href;
-
-  openVideoIntro(targetUrl);
+  openVideoIntro(btn.href, btn);
 });
 
-function openVideoIntro(targetUrl){
+function openVideoIntro(targetUrl, btn){
+  const card = btn.closest(".card");
+  const wrap = card?.querySelector(".poster-wrap");
+  if (!wrap) {
+    location.href = targetUrl;
+    return;
+  }
+
   const videoUrl =
     "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/0604(1).mp4";
 
-  const overlay = document.createElement("div");
-  overlay.className = "va-video-intro";
-
-  overlay.innerHTML = `
-    <video id="vaIntroVideo" playsinline controls autoplay>
+  wrap.innerHTML = `
+    <video
+      class="poster live-poster-video"
+      autoplay
+      playsinline
+      controls
+    >
       <source src="${videoUrl}" type="video/mp4">
     </video>
 
-    <button class="va-video-intro__skip" type="button">
+    <button class="skip-card-video" type="button">
       Пропустити
     </button>
   `;
 
-  document.body.appendChild(overlay);
+  const video = wrap.querySelector("video");
+  const skip = wrap.querySelector(".skip-card-video");
 
-  const video = overlay.querySelector("video");
-  const skip = overlay.querySelector(".va-video-intro__skip");
-
-  const goHall = () => {
+  const go = () => {
     location.href = targetUrl;
   };
 
-  skip.addEventListener("click", goHall);
-  video.addEventListener("ended", goHall);
+  skip.onclick = go;
+  video.onended = go;
 
-  video.play().catch(() => {
-    video.muted = true;
-    video.play().catch(() => {});
-  });
+  video.play().catch(() => {});
 }
   
 function startLivePosterThenGo(targetUrl){
