@@ -823,7 +823,13 @@
 }
 
 .hall-scroll{
-  overflow:auto !important;
+  overflow:hidden;
+  position:relative;
+  cursor:grab;
+}
+
+.hall-scroll.dragging{
+  cursor:grabbing;
 }
 
 .parter-wrap{
