@@ -3074,54 +3074,26 @@ function renderBuilderSeats(hallData){
   const width = Number(hallData.width || 1200);
   const height = Number(hallData.height || 900);
 
-const viewScale = 0.45;
-  
   const wrap = document.createElement("section");
-  wrap.className = "hall-section";
+  wrap.className = "hall-section hall-viewer-section";
   wrap.style.width = "100%";
-  wrap.style.display = "flex";
-  wrap.style.justifyContent = "center";
+  wrap.style.height = "100%";
+  wrap.style.position = "relative";
+  wrap.style.overflow = "hidden";
+  wrap.style.cursor = "grab";
 
   const scaleBox = document.createElement("div");
+  scaleBox.id = "hall-viewer-canvas";
   scaleBox.style.position = "relative";
   scaleBox.style.width = width + "px";
-scaleBox.style.height = height + "px";
-scaleBox.style.overflow = "hidden";
-scaleBox.style.transform = `scale(${viewScale})`;
-scaleBox.style.transformOrigin = "top center";
+  scaleBox.style.height = height + "px";
+  scaleBox.style.overflow = "hidden";
+  scaleBox.style.background = "rgba(2,6,23,.72)";
+  scaleBox.style.border = "1px solid rgba(255,255,255,.28)";
+  scaleBox.style.borderRadius = "18px";
+  scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.55)";
+  scaleBox.style.transformOrigin = "0 0";
 
-  const bgUrl =
-    HALL_VISUAL_CONFIG?.background ||
-    hallData?.background_image ||
-    hallData?.background?.src ||
-    "";
-
-
-  if (false && bgUrl) {
-    const bg = document.createElement("img");
-    bg.src = bgUrl;
-    bg.alt = "Схема залу";
-    bg.style.position = "absolute";
-    bg.style.left = "0";
-    bg.style.top = "0";
-    bg.style.width = width + "px";
-    bg.style.height = height + "px";
-    bg.style.objectFit = "fill";
-    bg.style.zIndex = "1";
-    bg.style.pointerEvents = "none";
-    bg.style.opacity = String(
-      HALL_VISUAL_CONFIG?.opacity ??
-      hallData?.background?.opacity ??
-      1
-    );
-    scaleBox.appendChild(bg);
-  }
-
-scaleBox.style.background = "rgba(2,6,23,.72)";
-scaleBox.style.border = "1px solid rgba(255,255,255,.28)";
-scaleBox.style.borderRadius = "18px";
-scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.55)";
-  
   seats.forEach(s => {
     const meta = {
       zone: s.zone || "Партер",
@@ -3146,7 +3118,8 @@ scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.55)";
 
   wrap.appendChild(scaleBox);
   root.appendChild(wrap);
-  wrap.style.height = (height * viewScale) + "px";
+
+  enableHallViewer(wrap, scaleBox, width, height);
 }
     
 function initHallAlignPanel(){
