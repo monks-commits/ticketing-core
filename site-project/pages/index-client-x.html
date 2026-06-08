@@ -480,16 +480,36 @@ document.addEventListener("click", e => {
   openVideoIntro(btn.href, btn);
 });
 
-function openVideoIntro(targetUrl, btn){
-  const card = btn.closest(".card");
-  const wrap = card?.querySelector(".poster-wrap");
-  if (!wrap) {
+async function openVideoIntro(targetUrl, btn){
+  const seanceId = btn?.dataset?.seance || "";
+
+  let videoUrl = "";
+
+  if (seanceId) {
+    const { data, error } = await sb
+      .from("seance_visuals")
+      .select("live_poster_url")
+      .eq("seance_id", seanceId)
+      .eq("enabled", true)
+      .maybeSingle();
+
+    if (!error && data?.live_poster_url) {
+      videoUrl = data.live_poster_url;
+    }
+  }
+
+  if (!videoUrl) {
     location.href = targetUrl;
     return;
   }
 
-  const videoUrl =
-    "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/0604(1).mp4";
+  const card = btn.closest(".card");
+  const wrap = card?.querySelector(".poster-wrap");
+
+  if (!wrap) {
+    location.href = targetUrl;
+    return;
+  }
 
   wrap.innerHTML = `
     <video
