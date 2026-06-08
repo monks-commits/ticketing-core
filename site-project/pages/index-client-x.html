@@ -308,7 +308,35 @@
   font-size:15px;
 }
 
+.va-video-intro{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  background:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 
+.va-video-intro video{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:#000;
+}
+
+.va-video-intro__skip{
+  position:absolute;
+  right:16px;
+  top:16px;
+  border:0;
+  border-radius:999px;
+  padding:10px 16px;
+  background:rgba(15,23,42,.75);
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
   
 </style>
 </head>
@@ -396,7 +424,7 @@ async function loadSeances(){
         <div class="date">${formatDate(s.date, s.time)}</div>
         <a class="btn buy-ticket-btn"
    data-seance="${s.id}"
-  href="hall-client-x.html?seance=${encodeURIComponent(s.id)}"
+ href="hall-client-x.html?seance=${encodeURIComponent(s.id)}">
           Купити квитки
         </a>
       </div>
@@ -424,44 +452,46 @@ document.addEventListener("click", e => {
   const btn = e.target.closest(".buy-ticket-btn");
   if (!btn) return;
 
-  const isMobile = window.matchMedia("(max-width: 768px)").matches;
-
-  if (!isMobile) {
-    return; // на компе обычный переход по href
-  }
-
   e.preventDefault();
 
   const targetUrl = btn.href;
-  openMobileVideoIntro(targetUrl);
+
+  openVideoIntro(targetUrl);
 });
 
-function openMobileVideoIntro(targetUrl){
+function openVideoIntro(targetUrl){
   const videoUrl =
     "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/video/0604(1).mp4";
 
   const overlay = document.createElement("div");
-  overlay.className = "mobile-video-intro";
+  overlay.className = "va-video-intro";
+
   overlay.innerHTML = `
-    <video id="mobileIntroVideo" autoplay playsinline muted>
+    <video id="vaIntroVideo" playsinline controls autoplay>
       <source src="${videoUrl}" type="video/mp4">
     </video>
-    <button id="skipMobileIntro">Пропустити</button>
+
+    <button class="va-video-intro__skip" type="button">
+      Пропустити
+    </button>
   `;
 
   document.body.appendChild(overlay);
 
   const video = overlay.querySelector("video");
-  const skip = overlay.querySelector("#skipMobileIntro");
+  const skip = overlay.querySelector(".va-video-intro__skip");
 
-  const go = () => {
+  const goHall = () => {
     location.href = targetUrl;
   };
 
-  skip.onclick = go;
-  video.onended = go;
+  skip.addEventListener("click", goHall);
+  video.addEventListener("ended", goHall);
 
-  setTimeout(go, 7000);
+  video.play().catch(() => {
+    video.muted = true;
+    video.play().catch(() => {});
+  });
 }
   
 function startLivePosterThenGo(targetUrl){
