@@ -2750,11 +2750,12 @@ function renderHorizontalGroup(group, sectionsMap){
   const height = Number(section.height || 1200);
   const scale = Number(section.scale || 0.72);
 
-  canvas.style.width = width + "px";
-  canvas.style.height = height + "px";
-  canvas.style.transform = `scale(${scale})`;
-  canvas.style.transformOrigin = "top center";
+ const viewScale = 0.55;
 
+canvas.style.width = (width * viewScale) + "px";
+canvas.style.height = (height * viewScale) + "px";
+canvas.style.transform = `scale(${viewScale})`;
+canvas.style.transformOrigin = "top left";
   viewport.style.height = (height * scale) + "px";
 
   function addLabel(item){
