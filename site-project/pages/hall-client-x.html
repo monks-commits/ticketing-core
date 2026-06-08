@@ -3186,12 +3186,14 @@ const hallInner = document.querySelector(".hall-inner");
   function fit(){
     const r = viewport.getBoundingClientRect();
 
-    scale = Math.min(
-      r.width / hallWidth,
-      r.height / hallHeight
-    ) * 0.92;
+    const isMobile = window.innerWidth <= 768;
 
-    scale = Math.max(0.06, Math.min(1.2, scale));
+scale = Math.min(
+  r.width / hallWidth,
+  r.height / hallHeight
+) * (isMobile ? 0.55 : 0.92);
+
+scale = Math.max(0.02, Math.min(isMobile ? 0.5 : 1.2, scale));
 
     panX = (r.width - hallWidth * scale) / 2;
     panY = (r.height - hallHeight * scale) / 2;
@@ -3210,7 +3212,8 @@ const hallInner = document.querySelector(".hall-inner");
     const beforeY = (my - panY) / scale;
 
     const factor = e.deltaY < 0 ? 1.12 : 0.88;
-    scale = Math.max(0.06, Math.min(3, scale * factor));
+    const isMobile = window.innerWidth <= 768;
+scale = Math.max(0.02, Math.min(isMobile ? 1.5 : 3, scale * factor));
 
     panX = mx - beforeX * scale;
     panY = my - beforeY * scale;
