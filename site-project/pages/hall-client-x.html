@@ -1338,7 +1338,13 @@ body.va-theme-active .event-card{
   z-index:1 !important;
 }
 
+@media (max-width:768px){
 
+  .legend-status-info{
+    display:none;
+  }
+
+}
   
 </style>
  
@@ -1380,7 +1386,7 @@ body.va-theme-active .event-card{
 
       <div id="priceLegendDesktop" class="price-legend-desktop"></div>
 
-      <div style="margin-top:22px;display:grid;gap:10px;font-size:14px;color:#475569;">
+      <div class="legend-status-info">
 
   <div style="display:flex;align-items:center;gap:10px;">
     <span style="width:14px;height:14px;border-radius:4px;background:#fff;border:1px solid #cbd5e1;display:inline-block;flex:0 0 14px;"></span>
