@@ -3183,81 +3183,34 @@ const hallInner = document.querySelector(".hall-inner");
     canvas.style.transformOrigin = "0 0";
   }
 
-  function fit(){
-    const r = viewport.getBoundingClientRect();
+ function fit(){
+  const r = viewport.getBoundingClientRect();
+  const isMobile = window.innerWidth <= 768;
 
-    const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    scale = Math.min(
+      r.width / hallWidth,
+      r.height / hallHeight
+    ) * 0.38;
 
-scale = Math.min(
-  r.width / hallWidth,
-  r.height / hallHeight
-) * (isMobile ? 0.55 : 0.92);
+    scale = Math.max(0.015, Math.min(0.35, scale));
+  } else {
+    scale = Math.min(
+      r.width / hallWidth,
+      r.height / hallHeight
+    ) * 0.92;
 
-scale = Math.max(0.02, Math.min(isMobile ? 0.5 : 1.2, scale));
-
-    panX = (r.width - hallWidth * scale) / 2;
-    panY = (r.height - hallHeight * scale) / 2;
-
-    update();
+    scale = Math.max(0.06, Math.min(1.2, scale));
   }
 
-  viewport.addEventListener("wheel", e => {
-    e.preventDefault();
+  panX = (r.width - hallWidth * scale) / 2;
+  panY = (r.height - hallHeight * scale) / 2;
 
-    const r = viewport.getBoundingClientRect();
-    const mx = e.clientX - r.left;
-    const my = e.clientY - r.top;
-
-    const beforeX = (mx - panX) / scale;
-    const beforeY = (my - panY) / scale;
-
-    const factor = e.deltaY < 0 ? 1.12 : 0.88;
-    const isMobile = window.innerWidth <= 768;
-scale = Math.max(0.02, Math.min(isMobile ? 1.5 : 3, scale * factor));
-
-    panX = mx - beforeX * scale;
-    panY = my - beforeY * scale;
-
-    update();
-  }, { passive:false });
-
-  viewport.addEventListener("mousedown", e => {
-    if (e.button !== 0) return;
-
-    dragging = true;
-    viewport.classList.add("dragging");
-
-    startX = e.clientX;
-    startY = e.clientY;
-    startPanX = panX;
-    startPanY = panY;
-  });
-
-  window.addEventListener("mousemove", e => {
-    if (!dragging) return;
-
-    panX = startPanX + (e.clientX - startX);
-    panY = startPanY + (e.clientY - startY);
-
-    update();
-  });
-
-  window.addEventListener("mouseup", () => {
-    dragging = false;
-    viewport.classList.remove("dragging");
-  });
-
-  viewport.addEventListener("dblclick", e => {
-    e.preventDefault();
-    fit();
-  });
-
-  window.addEventListener("resize", fit);
-
-  fit();
+  update();
 }
-    
-    
+requestAnimationFrame(fit);
+
+  
 function initHallAlignPanel(){
 const DEBUG_ALIGN = location.search.includes("debug=1");
   if (!DEBUG_ALIGN) return;
