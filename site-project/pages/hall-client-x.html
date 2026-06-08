@@ -3265,6 +3265,102 @@ function renderTablesSection(section){
   return wrap;
 }
 
+function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
+  if (!viewport || !canvas) return;
+
+  viewport.style.overflow = "hidden";
+  viewport.style.position = "relative";
+  viewport.style.cursor = "grab";
+
+  const outer = document.querySelector(".hall-scroll");
+  if (outer) outer.style.overflow = "hidden";
+
+  let scale = 0.1;
+  let panX = 0;
+  let panY = 0;
+
+  let dragging = false;
+  let startX = 0;
+  let startY = 0;
+  let startPanX = 0;
+  let startPanY = 0;
+
+  function update(){
+    canvas.style.transform =
+      `translate(${panX}px, ${panY}px) scale(${scale})`;
+    canvas.style.transformOrigin = "0 0";
+  }
+
+  function fit(){
+    const r = viewport.getBoundingClientRect();
+
+    scale = Math.min(
+      r.width / hallWidth,
+      r.height / hallHeight
+    ) * 0.92;
+
+    scale = Math.max(0.06, Math.min(1.2, scale));
+
+    panX = (r.width - hallWidth * scale) / 2;
+    panY = (r.height - hallHeight * scale) / 2;
+
+    update();
+  }
+
+  viewport.addEventListener("wheel", e => {
+    e.preventDefault();
+
+    const r = viewport.getBoundingClientRect();
+    const mx = e.clientX - r.left;
+    const my = e.clientY - r.top;
+
+    const beforeX = (mx - panX) / scale;
+    const beforeY = (my - panY) / scale;
+
+    const factor = e.deltaY < 0 ? 1.12 : 0.88;
+    scale = Math.max(0.06, Math.min(3, scale * factor));
+
+    panX = mx - beforeX * scale;
+    panY = my - beforeY * scale;
+
+    update();
+  }, { passive:false });
+
+  viewport.addEventListener("mousedown", e => {
+    if (e.button !== 0) return;
+
+    dragging = true;
+    viewport.classList.add("dragging");
+
+    startX = e.clientX;
+    startY = e.clientY;
+    startPanX = panX;
+    startPanY = panY;
+  });
+
+  window.addEventListener("mousemove", e => {
+    if (!dragging) return;
+
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+
+    update();
+  });
+
+  window.addEventListener("mouseup", () => {
+    dragging = false;
+    viewport.classList.remove("dragging");
+  });
+
+  viewport.addEventListener("dblclick", e => {
+    e.preventDefault();
+    fit();
+  });
+
+  window.addEventListener("resize", fit);
+
+  fit();
+}
     
 function renderHallSections(hallData){
   const root = document.getElementById("hall-root");
