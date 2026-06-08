@@ -3068,6 +3068,8 @@ function renderBuilderSeats(hallData){
   const width = Number(hallData.width || 1200);
   const height = Number(hallData.height || 900);
 
+const viewScale = 0.55;
+  
   const wrap = document.createElement("section");
   wrap.className = "hall-section";
   wrap.style.width = "100%";
@@ -3077,8 +3079,10 @@ function renderBuilderSeats(hallData){
   const scaleBox = document.createElement("div");
   scaleBox.style.position = "relative";
   scaleBox.style.width = width + "px";
-  scaleBox.style.height = height + "px";
-  scaleBox.style.overflow = "hidden";
+scaleBox.style.height = height + "px";
+scaleBox.style.overflow = "hidden";
+scaleBox.style.transform = `scale(${viewScale})`;
+scaleBox.style.transformOrigin = "top center";
 
   const bgUrl =
     HALL_VISUAL_CONFIG?.background ||
@@ -3136,6 +3140,7 @@ scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.55)";
 
   wrap.appendChild(scaleBox);
   root.appendChild(wrap);
+  wrap.style.height = (height * viewScale) + "px";
 }
     
 function initHallAlignPanel(){
