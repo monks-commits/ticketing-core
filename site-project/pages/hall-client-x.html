@@ -1338,6 +1338,80 @@ body.va-theme-active .event-card{
   z-index:1 !important;
 }
 
+@media (max-width: 768px){
+
+  .price-legend,
+  .legend-card,
+  .price-card{
+    position: fixed !important;
+    left: 8px !important;
+    top: 42vh !important;
+    z-index: 50 !important;
+
+    width: 46px !important;
+    padding: 0 !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: 0 10px 28px rgba(0,0,0,.28) !important;
+  }
+
+  .price-legend h2,
+  .price-legend h3,
+  .legend-card h2,
+  .legend-card h3,
+  .price-card h2,
+  .price-card h3{
+    display:none !important;
+  }
+
+  .price-legend .legend-status,
+  .legend-card .legend-status,
+  .price-card .legend-status{
+    display:none !important;
+  }
+
+  .price-legend .legend-item,
+  .legend-card .legend-item,
+  .price-card .legend-item{
+    width:46px !important;
+    height:46px !important;
+    margin:0 !important;
+    padding:0 !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    font-size:15px !important;
+    font-weight:900 !important;
+    color:#fff !important;
+  }
+
+  .price-legend .legend-dot,
+  .legend-card .legend-dot,
+  .price-card .legend-dot{
+    display:none !important;
+  }
+
+@media (max-width: 768px){
+
+  .hall-wrap,
+  .hall-stage,
+  .hall-canvas-wrap{
+    overflow:auto !important;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  #hall-root{
+    transform:scale(1.8);
+    transform-origin:top center;
+    margin-top:20px;
+    margin-bottom:360px;
+  }
+ 
 @media (max-width:768px){
 
   .legend-status-info{
