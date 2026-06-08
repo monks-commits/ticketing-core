@@ -3140,6 +3140,16 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
   const outer = document.querySelector(".hall-scroll");
   if (outer) outer.style.overflow = "hidden";
 
+const mobileViewport = document.getElementById("mobile-hall-viewport");
+const mobileScale = document.getElementById("mobile-hall-scale");
+const hallInner = document.querySelector(".hall-inner");
+
+[mobileViewport, mobileScale, hallInner].forEach(el => {
+  if (!el) return;
+  el.style.overflow = "hidden";
+  el.style.transform = "none";
+});
+  
   let scale = 0.1;
   let panX = 0;
   let panY = 0;
