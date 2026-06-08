@@ -1497,20 +1497,38 @@ body.va-theme-active .event-card{
     border-right:0 !important;
   }
 
- .hall-scroll,
-.mobile-hall-viewport,
-.mobile-hall-scale,
-.hall-inner{
-  overflow:hidden !important;
-}
-
 .hall-scroll{
-  height:720px !important;
-}
-
-#hall-root{
   overflow:hidden !important;
 }
+
+@media (min-width:769px){
+  .hall-scroll{
+    height:720px !important;
+  }
+
+  .mobile-hall-viewport,
+  .mobile-hall-scale,
+  .hall-inner{
+    overflow:visible !important;
+  }
+
+
+@media (max-width:768px){
+  .hall-scroll{
+    overflow:hidden !important;
+    height:calc(100vh - 150px) !important;
+  }
+
+  .mobile-hall-viewport{
+    overflow:hidden !important;
+    height:100% !important;
+  }
+
+  .mobile-hall-scale,
+  .hall-inner{
+    overflow:visible !important;
+  }
+
 
   
 </style>
@@ -3146,8 +3164,7 @@ const hallInner = document.querySelector(".hall-inner");
 
 [mobileViewport, mobileScale, hallInner].forEach(el => {
   if (!el) return;
-  el.style.overflow = "hidden";
-  el.style.transform = "none";
+ 
 });
   
   let scale = 0.1;
