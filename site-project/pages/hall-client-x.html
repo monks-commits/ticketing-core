@@ -3151,22 +3151,18 @@ function renderBuilderSeats(hallData){
 function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
   if (!viewport || !canvas) return;
 
+  const outer = document.querySelector(".hall-scroll");
+  if (outer) {
+    outer.style.overflow = "hidden";
+  }
+
   viewport.style.overflow = "hidden";
   viewport.style.position = "relative";
   viewport.style.cursor = "grab";
+  viewport.style.touchAction = "none";
 
-  const outer = document.querySelector(".hall-scroll");
-  if (outer) outer.style.overflow = "hidden";
+  canvas.style.transformOrigin = "0 0";
 
-const mobileViewport = document.getElementById("mobile-hall-viewport");
-const mobileScale = document.getElementById("mobile-hall-scale");
-const hallInner = document.querySelector(".hall-inner");
-
-[mobileViewport, mobileScale, hallInner].forEach(el => {
-  if (!el) return;
- 
-});
-  
   let scale = 0.1;
   let panX = 0;
   let panY = 0;
@@ -3180,36 +3176,93 @@ const hallInner = document.querySelector(".hall-inner");
   function update(){
     canvas.style.transform =
       `translate(${panX}px, ${panY}px) scale(${scale})`;
-    canvas.style.transformOrigin = "0 0";
   }
 
- function fit(){
-  const r = viewport.getBoundingClientRect();
-  const isMobile = window.innerWidth <= 768;
+  function fit(){
+    const r = viewport.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
 
-  if (isMobile) {
-    scale = Math.min(
+    const base = Math.min(
       r.width / hallWidth,
       r.height / hallHeight
-    ) * 0.38;
+    );
 
-    scale = Math.max(0.015, Math.min(0.35, scale));
-  } else {
-    scale = Math.min(
-      r.width / hallWidth,
-      r.height / hallHeight
-    ) * 0.92;
+    scale = base * (isMobile ? 0.9 : 0.92);
+    scale = Math.max(0.03, Math.min(isMobile ? 0.45 : 1.2, scale));
 
-    scale = Math.max(0.06, Math.min(1.2, scale));
+    panX = (r.width - hallWidth * scale) / 2;
+    panY = (r.height - hallHeight * scale) / 2;
+
+    update();
   }
 
-  panX = (r.width - hallWidth * scale) / 2;
-  panY = (r.height - hallHeight * scale) / 2;
+  viewport.addEventListener("wheel", e => {
+    e.preventDefault();
 
-  update();
+    const r = viewport.getBoundingClientRect();
+    const mx = e.clientX - r.left;
+    const my = e.clientY - r.top;
+
+    const beforeX = (mx - panX) / scale;
+    const beforeY = (my - panY) / scale;
+
+    const factor = e.deltaY < 0 ? 1.12 : 0.88;
+    const isMobile = window.innerWidth <= 768;
+
+    scale = Math.max(
+      0.03,
+      Math.min(isMobile ? 1.4 : 3, scale * factor)
+    );
+
+    panX = mx - beforeX * scale;
+    panY = my - beforeY * scale;
+
+    update();
+  }, { passive:false });
+
+  viewport.addEventListener("pointerdown", e => {
+    if (e.button !== undefined && e.button !== 0) return;
+
+    dragging = true;
+    viewport.classList.add("dragging");
+
+    startX = e.clientX;
+    startY = e.clientY;
+    startPanX = panX;
+    startPanY = panY;
+
+    viewport.setPointerCapture?.(e.pointerId);
+  });
+
+  viewport.addEventListener("pointermove", e => {
+    if (!dragging) return;
+
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+
+    update();
+  });
+
+  viewport.addEventListener("pointerup", e => {
+    dragging = false;
+    viewport.classList.remove("dragging");
+    viewport.releasePointerCapture?.(e.pointerId);
+  });
+
+  viewport.addEventListener("pointercancel", () => {
+    dragging = false;
+    viewport.classList.remove("dragging");
+  });
+
+  viewport.addEventListener("dblclick", e => {
+    e.preventDefault();
+    fit();
+  });
+
+  window.addEventListener("resize", fit);
+
+  requestAnimationFrame(fit);
 }
-requestAnimationFrame(fit);
-
   
 function initHallAlignPanel(){
 const DEBUG_ALIGN = location.search.includes("debug=1");
