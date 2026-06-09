@@ -1695,6 +1695,7 @@ publish.onclick = async () => {
   if (!seance) return alert("Вкажи Seance ID");
 
   const show = showName.value.trim();
+const event_type = eventType.value || null;
   const date = showDate.value || null;
   const time = showTime.value || null;
   const poster_url = posterUrl.value.trim() || null;
