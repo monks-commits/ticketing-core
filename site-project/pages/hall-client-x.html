@@ -3221,18 +3221,25 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
   }, { passive:false });
 
   viewport.addEventListener("pointerdown", e => {
-    if (e.button !== undefined && e.button !== 0) return;
 
-    dragging = true;
-    viewport.classList.add("dragging");
+  if (e.target.closest(".seat")) {
+    return;
+  }
 
-    startX = e.clientX;
-    startY = e.clientY;
-    startPanX = panX;
-    startPanY = panY;
+  if (e.button !== undefined && e.button !== 0) {
+    return;
+  }
 
-    viewport.setPointerCapture?.(e.pointerId);
-  });
+  dragging = true;
+  viewport.classList.add("dragging");
+
+  startX = e.clientX;
+  startY = e.clientY;
+  startPanX = panX;
+  startPanY = panY;
+
+  viewport.setPointerCapture?.(e.pointerId);
+});
 
   viewport.addEventListener("pointermove", e => {
     if (!dragging) return;
