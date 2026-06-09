@@ -3103,7 +3103,9 @@ function renderBuilderSeats(hallData){
   const wrap = document.createElement("section");
   wrap.className = "hall-section hall-viewer-section";
   wrap.style.width = "100%";
-  wrap.style.height = "100%";
+wrap.style.height = window.innerWidth <= 768
+  ? "calc(100vh - 170px)"
+  : "720px";
   wrap.style.position = "relative";
   wrap.style.overflow = "hidden";
   wrap.style.cursor = "grab";
@@ -3144,7 +3146,7 @@ function renderBuilderSeats(hallData){
 
   wrap.appendChild(scaleBox);
   root.appendChild(wrap);
-
+root.style.height = wrap.style.height;
   enableHallViewer(wrap, scaleBox, width, height);
 }
 
