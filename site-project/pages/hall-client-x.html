@@ -1648,6 +1648,15 @@ body.va-theme-active .event-card{
   .event-poster{
     display:none !important;
   }
+@media (max-width:768px){
+  .ticket-event-sidebar,
+  .ticket-sidebar-right,
+  .event-card,
+  .event-poster-wrap,
+  .event-poster,
+  [class*="poster"]{
+    display:none !important;
+  }
 
   
 </style>
@@ -3317,7 +3326,7 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
     );
 
     if (isMobile()) {
-      minScale = base * 0.96;
+      minScale = base * 0.55;
       maxScale = Math.max(1.8, minScale * 8);
       scale = minScale;
 
