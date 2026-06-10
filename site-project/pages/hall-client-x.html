@@ -2297,23 +2297,40 @@ function clearPriceHighlight(){
       }
     }
 
+function isMobileHall(){
+  return window.matchMedia("(max-width: 768px)").matches;
+}
+    
 function setEventPosterFromSeance(row){
   const img = document.getElementById("event-poster");
+  const video = document.getElementById("event-live-poster");
+  const wrap = document.getElementById("event-poster-wrap");
+  const sidebar = document.querySelector(".ticket-event-sidebar");
+
+  if (isMobileHall()) {
+    if (img) img.style.display = "none";
+    if (video) video.style.display = "none";
+    if (wrap) wrap.style.display = "none";
+    if (sidebar) sidebar.style.display = "none";
+    return;
+  }
+
   if (!img) return;
 
   const url =
-  HALL_VISUAL_CONFIG?.poster ||
-  row?.poster_url ||
-  "";
+    HALL_VISUAL_CONFIG?.poster ||
+    row?.poster_url ||
+    "";
+
   if (!url) {
     img.style.display = "none";
     return;
   }
 
-  img.style.display = "block";
   img.src = url;
+  img.style.display = "block";
 }
-
+    
 function startInlineLivePoster(){
   const qs = new URLSearchParams(location.search);
 
