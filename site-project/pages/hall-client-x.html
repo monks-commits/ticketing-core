@@ -3326,27 +3326,25 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
     );
 
     if (isMobile()) {
-      minScale = base * 0.96;
-      maxScale = Math.max(1.8, minScale * 8);
-      scale = minScale;
+  const realW = canvas.offsetWidth || hallWidth;
+  const realH = canvas.offsetHeight || hallHeight;
 
-      panX = (r.width - hallWidth * scale) / 2;
-      panY = (r.height - hallHeight * scale) / 2;
+  const fitScale = Math.min(
+    r.width / realW,
+    r.height / realH
+  ) * 0.88;
 
-      update();
-      return;
-    }
+  minScale = fitScale * 0.55;
+  maxScale = fitScale * 8;
 
-    minScale = Math.max(0.03, base * 0.92);
-    maxScale = 3;
-    scale = minScale;
+  scale = fitScale;
 
-    panX = (r.width - hallWidth * scale) / 2;
-    panY = (r.height - hallHeight * scale) / 2;
+  panX = (r.width - realW * scale) / 2;
+  panY = (r.height - realH * scale) / 2;
 
-    update();
-  }
-
+  update();
+  return;
+}
   function zoomAt(clientX, clientY, newScale){
     const r = viewport.getBoundingClientRect();
 
