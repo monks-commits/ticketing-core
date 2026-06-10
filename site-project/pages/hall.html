@@ -2619,6 +2619,52 @@ function renderDecor(hallData, target){
   });
 
 }
+
+function renderPriceLegendMobile() {
+  const desktop = document.getElementById("priceLegendDesktop");
+  const mobile = document.getElementById("priceLegendMobile");
+
+  const byPrice = new Map();
+
+  const addCfg = (cfg) => {
+    if (!cfg || cfg.price == null || !cfg.color) return;
+
+    const price = Number(cfg.price);
+    const color = String(cfg.color).trim();
+
+    if (!Number.isFinite(price) || !color) return;
+    if (!byPrice.has(price)) byPrice.set(price, color);
+  };
+
+  Object.values(SEANCE_CONFIG?.pricing || {}).forEach(addCfg);
+  Object.values(SEANCE_CONFIG?.seat_overrides || {}).forEach(addCfg);
+
+  const items = [...byPrice.entries()].sort((a, b) => a[0] - b[0]);
+
+  const desktopHtml = items.length
+    ? items.map(([price, color]) => `
+        <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+          <span style="width:14px;height:14px;border-radius:50%;background:${color};display:inline-block;flex:0 0 14px;"></span>
+          <span>${price} грн</span>
+        </div>
+      `).join("")
+    : `<div class="price-legend-empty">Ціни не задані</div>`;
+
+  const mobileHtml = items.length
+    ? `
+      <div class="price-legend-mobile__stack">
+        ${items.map(([price, color]) => `
+          <div class="price-legend-mobile__item" style="background:${color}">
+            ${price}
+          </div>
+        `).join("")}
+      </div>
+    `
+    : "";
+
+  if (desktop) desktop.innerHTML = desktopHtml;
+  if (mobile) mobile.innerHTML = window.innerWidth <= 640 ? mobileHtml : "";
+}
     
 function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root"); 
