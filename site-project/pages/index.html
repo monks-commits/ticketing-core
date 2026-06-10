@@ -871,6 +871,83 @@ async function boot(){
 }
 
 boot();
+
+boot();
+
+document.addEventListener("click", e => {
+  const btn = e.target.closest(".buy-ticket-btn");
+  if (!btn) return;
+
+  e.preventDefault();
+  openVideoIntro(btn.href, btn);
+});
+
+async function openVideoIntro(targetUrl, btn){
+  const seanceId = btn?.dataset?.seance || "";
+  let videoUrl = "";
+
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seance_visuals?select=live_poster_url&seance_id=eq.${seanceId}&enabled=eq.true`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const rows = await res.json();
+
+    if (Array.isArray(rows) && rows[0]?.live_poster_url){
+      videoUrl = rows[0].live_poster_url;
+    }
+  }catch(e){
+    console.error(e);
+  }
+
+  if (!videoUrl){
+    location.href = targetUrl;
+    return;
+  }
+
+  const card = btn.closest(".card");
+  const wrap = card?.querySelector(".poster-wrap");
+
+  if (!wrap){
+    location.href = targetUrl;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <video
+      class="poster live-poster-video"
+      autoplay
+      playsinline
+      controls
+    >
+      <source src="${videoUrl}" type="video/mp4">
+    </video>
+
+    <button class="skip-card-video" type="button">
+      Пропустити
+    </button>
+  `;
+
+  const video = wrap.querySelector("video");
+  const skip = wrap.querySelector(".skip-card-video");
+
+  const go = () => {
+    location.href = targetUrl;
+  };
+
+  skip.onclick = go;
+  video.onended = go;
+
+  video.play().catch(() => {});
+}
+</script>
+  
 </script>
 
 </body>
