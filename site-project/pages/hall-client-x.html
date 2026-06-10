@@ -3996,7 +3996,7 @@ console.log("RESOLVED HALL:", hallFile);
 await loadHallVisualConfig(hallFile);
 renderPageVideoBackground();
 
-if (HALL_VISUAL_CONFIG?.poster) {
+if (HALL_VISUAL_CONFIG?.poster && !isMobileHall()) {
   const img = document.getElementById("event-poster");
   if (img) {
     img.src = HALL_VISUAL_CONFIG.poster;
