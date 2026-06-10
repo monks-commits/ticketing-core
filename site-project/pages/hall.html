@@ -1833,6 +1833,92 @@ function setEventPosterFromSeance(row){
   img.style.display = "block";
   img.src = url;
 }
+
+async function loadHallVisualConfig(hallFile){
+  HALL_VISUAL_CONFIG = null;
+
+  if (SEANCE_ID) {
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/seance_visuals?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&enabled=eq.true&select=*`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          cache: "no-store"
+        }
+      );
+
+      if (res.ok) {
+        const rows = await res.json();
+
+        if (Array.isArray(rows) && rows.length) {
+          const v = rows[0];
+
+          HALL_VISUAL_CONFIG = {
+            poster: v.poster_url || "",
+            livePoster: v.live_poster_url || "",
+            livePosterDuration: Number(v.live_poster_duration || 6200),
+            video: v.background_video_url || ""
+          };
+
+          console.log("VISUAL CONFIG FROM SUPABASE:", HALL_VISUAL_CONFIG);
+          return HALL_VISUAL_CONFIG;
+        }
+      }
+    } catch (e) {
+      console.warn("load visual from Supabase error:", e);
+    }
+  }
+
+  if (hallFile) {
+    try {
+      const res = await fetch(`../../data/visual/${hallFile}.visual.json`, {
+        cache: "no-store"
+      });
+
+      if (res.ok) {
+        HALL_VISUAL_CONFIG = await res.json();
+        console.log("VISUAL CONFIG FROM HALL JSON:", HALL_VISUAL_CONFIG);
+        return HALL_VISUAL_CONFIG;
+      }
+    } catch (e) {
+      console.warn("load visual from hall json error:", e);
+    }
+  }
+
+  return null;
+}
+
+function renderPageVideoBackground(){
+  const videoUrl = HALL_VISUAL_CONFIG?.video || "";
+  if (!videoUrl) return;
+
+  document.querySelector("#va-theme-video-bg")?.remove();
+
+  const video = document.createElement("video");
+  video.id = "va-theme-video-bg";
+  video.src = videoUrl;
+  video.autoplay = true;
+  video.loop = true;
+  video.muted = true;
+  video.playsInline = true;
+
+  video.style.position = "fixed";
+  video.style.left = "0";
+  video.style.top = "0";
+  video.style.width = "100vw";
+  video.style.height = "100vh";
+  video.style.objectFit = "cover";
+  video.style.pointerEvents = "none";
+  video.style.zIndex = "0";
+  video.style.opacity = "1";
+  video.style.filter = "brightness(.42) contrast(1.12) saturate(1.1)";
+
+  document.body.classList.add("va-theme-active");
+  document.body.prepend(video);
+}
     
 async function loadSeanceMeta() {
   if (!SEANCE_ID) return null;
