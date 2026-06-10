@@ -3221,11 +3221,11 @@ function renderBuilderSeats(hallData){
 
   const wrap = document.createElement("section");
   wrap.className = "hall-section hall-viewer-section";
-  wrap.style.width = "100%";
-  wrap.style.height = "100%";
-  wrap.style.position = "relative";
-  wrap.style.overflow = "hidden";
-  wrap.style.cursor = "grab";
+ wrap.style.width = width + "px";
+wrap.style.height = height + "px";
+wrap.style.position = "relative";
+wrap.style.overflow = "visible";
+wrap.style.cursor = "grab";
 
   const scaleBox = document.createElement("div");
   scaleBox.id = "hall-viewer-canvas";
@@ -3261,10 +3261,18 @@ function renderBuilderSeats(hallData){
 
   renderDecor(hallData, scaleBox);
 
-  wrap.appendChild(scaleBox);
-  root.appendChild(wrap);
+ wrap.appendChild(scaleBox);
+root.appendChild(wrap);
 
-  enableHallViewer(wrap, scaleBox, width, height);
+const viewport =
+  document.querySelector(".mobile-hall-viewport") ||
+  document.querySelector(".hall-scroll") ||
+  wrap;
+
+enableHallViewer(viewport, scaleBox, width, height);
+
+if (window.VA_HALL_VIEWER) {
+  window.VA_HALL_VIEWER.refit();
 }
 
 function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
