@@ -1575,7 +1575,72 @@ body.va-theme-active .event-card{
     margin-bottom: 0 !important;
   }
 
-  
+/* ===== VA MOBILE ONE SCREEN FINAL ===== */
+
+@media (max-width: 768px) {
+  html,
+  body {
+    overflow: hidden !important;
+    height: 100% !important;
+  }
+
+  .hall-hero,
+  .ticket-event-sidebar,
+  .event-card,
+  .event-poster-wrap,
+  .event-poster {
+    display: none !important;
+  }
+
+  .ticket-layout {
+    display: block !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  .ticket-hall-center,
+  .hall-shell,
+  .hall-scroll {
+    width: 100vw !important;
+    height: calc(100vh - 96px) !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .mobile-hall-viewport {
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    touch-action: none !important;
+  }
+
+  .mobile-hall-scale {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    transform-origin: 0 0 !important;
+    will-change: transform !important;
+  }
+
+  .hall-inner {
+    margin: 0 !important;
+    width: max-content !important;
+    min-width: max-content !important;
+    padding: 30px 50px !important;
+  }
+
+  .ticket-price-sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 96px !important;
+    z-index: 999 !important;
+  }
+ 
 </style>
  
 </head>
