@@ -3358,16 +3358,6 @@ function fit(){
 panX = (r.width - realW * scale) / 2;
 panY = (r.height - realH * scale) / 2;
 
-panX = Math.max(
-  Math.min(panX, 20),
-  r.width - realW * scale - 20
-);
-
-panY = Math.max(
-  Math.min(panY, 20),
-  r.height - realH * scale - 20
-);
-
 update();
   
   function zoomAt(clientX, clientY, newScale){
