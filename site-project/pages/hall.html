@@ -3090,7 +3090,8 @@ if (!hallFile) {
 hallFile = String(hallFile).trim();
 
 console.log("RESOLVED HALL:", hallFile);
-
+await loadHallVisualConfig(hallFile);
+renderPageVideoBackground();
   const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
   cache: "no-store"
 });
