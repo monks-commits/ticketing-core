@@ -750,11 +750,12 @@ function renderSeances(){
         </div>
 
         <a
-          class="btn"
-          href="hall.html?seance=${encodeURIComponent(s.id)}"
-        >
-          Купити квитки
-        </a>
+  class="btn buy-ticket-btn"
+  data-seance="${s.id}"
+  href="hall.html?seance=${encodeURIComponent(s.id)}"
+>
+  Купити квитки
+</a>
       </div>
     `;
 
