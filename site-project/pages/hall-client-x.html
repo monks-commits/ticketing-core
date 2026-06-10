@@ -3266,8 +3266,9 @@ root.appendChild(wrap);
 
 enableHallViewer(wrap, scaleBox, width, height);
 
-if (window.VA_HALL_VIEWER) {
-  window.VA_HALL_VIEWER.refit();
+ if (window.VA_HALL_VIEWER) {
+    window.VA_HALL_VIEWER.refit();
+  }
 }
 function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
   if (!viewport || !canvas) return;
