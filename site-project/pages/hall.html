@@ -3355,7 +3355,7 @@ renderPageVideoBackground();
 }
 
   renderPriceLegendMobile();
-  setTimeout(applyMobileHallScale, 0);
+  // setTimeout(applyMobileHallScale, 0);
 
   if (returnSeats.length) {
     for (const key of returnSeats) {
@@ -3447,7 +3447,7 @@ renderPageVideoBackground();
     
    window.addEventListener("resize", () => {
   setTimeout(() => {
-    applyMobileHallScale();
+    // applyMobileHallScale();
     renderPriceLegendMobile();
   }, 0);
 });
