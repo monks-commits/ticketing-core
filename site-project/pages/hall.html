@@ -2623,21 +2623,31 @@ function renderBuilderSeats(hallData){
   const root = document.getElementById("hall-root");
   if (!root) return;
 
+  CURRENT_HALL_DATA = hallData;
   root.innerHTML = "";
 
   const seats = Array.isArray(hallData?.seats) ? hallData.seats : [];
-
   const width = Number(hallData.width || 1200);
   const height = Number(hallData.height || 900);
 
   const wrap = document.createElement("section");
-  wrap.className = "hall-section";
+  wrap.className = "hall-section hall-viewer-section";
+  wrap.style.width = "100%";
+  wrap.style.height = "100%";
+  wrap.style.position = "relative";
+  wrap.style.overflow = "hidden";
+  wrap.style.cursor = "grab";
 
-  const canvas = document.createElement("div");
-  canvas.style.position = "relative";
-  canvas.style.width = width + "px";
-  canvas.style.height = height + "px";
-  canvas.style.margin = "0 auto";
+  const scaleBox = document.createElement("div");
+  scaleBox.id = "hall-viewer-canvas";
+  scaleBox.style.position = "relative";
+  scaleBox.style.width = width + "px";
+  scaleBox.style.height = height + "px";
+  scaleBox.style.overflow = "hidden";
+  scaleBox.style.background = "rgba(2,6,23,.72)";
+  scaleBox.style.border = "1px solid rgba(255,255,255,.28)";
+  scaleBox.style.borderRadius = "18px";
+  scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.55)";
 
   seats.forEach(s => {
     const meta = {
@@ -2647,24 +2657,28 @@ function renderBuilderSeats(hallData){
       seat: Number(s.seat || 0)
     };
 
-    const btn = makeSeatElement(
-      seatKey(meta),
-      meta.seat,
-      "",
-      0,
-      meta
-    );
+    const btn = makeSeatElement(seatKey(meta), meta.seat, "", 0, meta);
 
     btn.style.position = "absolute";
     btn.style.left = Number(s.x || 0) + "px";
     btn.style.top = Number(s.y || 0) + "px";
+    btn.style.transform = "translate(-50%, -50%)";
+    btn.style.zIndex = "3";
+    btn.style.opacity = "1";
 
-    canvas.appendChild(btn);
+    scaleBox.appendChild(btn);
   });
 
-  renderDecor(hallData, canvas);
-  wrap.appendChild(canvas);
+  renderDecor(hallData, scaleBox);
+
+  wrap.appendChild(scaleBox);
   root.appendChild(wrap);
+
+  enableHallViewer(wrap, scaleBox, width, height);
+
+  if (window.VA_HALL_VIEWER) {
+    window.VA_HALL_VIEWER.refit();
+  }
 }
 
 function renderTablesSection(section){
