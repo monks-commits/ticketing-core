@@ -13,7 +13,8 @@
   window.QRCode = QRCode;
 </script>
 
-  <style>
+
+ <style>
     .hall-layout{display:flex;gap:24px;align-items:flex-start;}
     .hall-left{flex:1 1 auto;min-width:0;}
     .hall-sidebar{width:360px;flex:0 0 360px;}
@@ -32,24 +33,24 @@
   background:#e5e7eb;
   border-radius:16px;
   padding:12px;
-  overflow:auto;
+  overflow:hidden;
   -webkit-overflow-scrolling:touch;
   max-height:78vh;
 }
 
 .hall-inner{
-  width:max-content;
-  min-width:max-content;
+  width:100% !important;
+  min-width:100% !important;
   height:auto;
   min-height:auto;
-  margin:0;
+  margin:0 auto;
 }
 #hall-root{
   height:auto;
   min-height:auto;
 }
 .parter-wrap{
-  width:max-content;
+  width:100%;
   display:flex;
   justify-content:flex-start;
   align-items:flex-start;
@@ -343,9 +344,10 @@
     .formRow input{border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px;font-size:14px;}
     .modalActions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;}
 
-.hall-left {
-  display: flex;
-  justify-content: center;
+.hall-left{
+  display:block !important;
+  width:100% !important;
+  max-width:none !important;
 }
 
     
@@ -399,11 +401,410 @@
   font-size:11px;
   opacity:.9;
 }
+body{
+  overflow:hidden !important;
+}
 
- .cash-zoom-panel{
+.cash-page,
+.page,
+.main,
+.container,
+.hall-page,
+.hall-wrap{
+  width:100vw !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:8px !important;
+}
+
+.hall-layout,
+.ticket-layout{
+  width:100% !important;
+  max-width:none !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 340px !important;
+  gap:12px !important;
+}
+
+.hall-left,
+.ticket-hall-center,
+.hall-shell{
+  width:100% !important;
+  max-width:none !important;
+}
+
+.hall-scroll,
+.mobile-hall-viewport{
+  height:calc(100vh - 120px) !important;
+  overflow:auto !important;
+}
+
+.hall-sidebar,
+.ticket-event-sidebar{
+  width:340px !important;
+  max-width:340px !important;
+}
+
+#mobile-hall-scale{
+  transform:none !important;
+  width:100% !important;
+}
+
+.hall-inner{
+  transform-origin:top left !important;
+}
+body{
+  overflow:hidden !important;
+}
+
+main,
+.page,
+.wrapper,
+.container,
+.cash-page{
+  width:100vw !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:8px !important;
+}
+
+.hall-layout,
+.ticket-layout{
+  width:100% !important;
+  max-width:none !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 340px !important;
+  gap:14px !important;
+}
+
+.hall-left,
+.ticket-hall-center,
+.hall-shell{
+  width:100% !important;
+  max-width:none !important;
+}
+
+.hall-scroll,
+.mobile-hall-viewport,
+#hall-root{
+  width:100% !important;
+  max-width:none !important;
+  height:calc(100vh - 130px) !important;
+  overflow:auto !important;
+}
+
+.hall-sidebar,
+.ticket-event-sidebar,
+.cash-sidebar{
+  width:340px !important;
+  max-width:340px !important;
+}
+
+.hall-inner{
+  transform-origin:top center !important;
+}    
+
+/* ===== CASH FULLSCREEN STABLE FIX ===== */
+
+html,
+body{
+  width:100%;
+  min-height:100%;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:auto !important;
+}
+
+#site-header,
+#site-footer{
+  display:none !important;
+}
+
+.main,
+.container{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:12px !important;
+}
+
+.container > h1{
+  margin:0 0 12px !important;
+  font-size:26px !important;
+}
+
+.cash-topbar{
+  margin-bottom:10px !important;
+}
+
+.cash-badge{
+  margin-bottom:10px !important;
+}
+
+.hall-layout{
+  width:100% !important;
+  max-width:none !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 330px !important;
+  gap:14px !important;
+  align-items:start !important;
+}
+
+.hall-left{
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  display:block !important;
+  overflow:visible !important;
+}
+
+.hall-sidebar{
+  width:330px !important;
+  max-width:330px !important;
+  flex:none !important;
+}
+
+.hall-scroll{
+  width:100%;
+  height:calc(100vh - 250px);
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  background:#e5e7eb;
+  border-radius:16px;
+  padding:10px;
+}
+
+.hall-inner{
+  width:max-content;
+  height:max-content;
+  margin:0 auto;
+}
+
+#hall-root{
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+
+.cash-zoom-panel{
+  display:none !important;
+}
+
+.row-price-list{
+  display:none !important;
+}
+ /* ===== CASH POS FINAL LAYOUT ===== */
+
+html,
+body{
+  height:100vh !important;
+  overflow:hidden !important;
+}
+
+.main,
+.container{
+  width:100vw !important;
+  max-width:none !important;
+  height:100vh !important;
+  margin:0 !important;
+  padding:10px !important;
+}
+
+.container > h1{
+  display:none !important;
+}
+
+.cash-topbar{
+  height:92px !important;
+  margin:0 0 8px !important;
+}
+
+.cash-badge{
+  height:46px !important;
+  margin:0 0 8px !important;
+}
+
+.hall-layout{
+  height:calc(100vh - 174px) !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 330px !important;
+  gap:14px !important;
+  align-items:stretch !important;
+}
+
+.hall-left{
+  height:100% !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+
+.hall-sidebar{
+  height:100% !important;
+  width:330px !important;
+  max-width:330px !important;
+  overflow:auto !important;
+}
+
+.hall-scroll{
+  height:100% !important;
+  max-height:none !important;
+  overflow:auto !important;
+  padding:8px !important;
+  background:#e5e7eb !important;
+}
+
+
+
+.cash-zoom-panel{
   display:none !important;
 }   
+
+/* ===== CLIENT X SMALL HALL CENTER FIX ===== */
+
+.hall-scroll{
+  overflow:hidden !important;
+  display:flex !important;
+  justify-content:center !important;
+  align-items:flex-start !important;
+}
+
+.hall-inner{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  margin:0 auto !important;
+  transform:none !important;
+}
+
+#hall-root{
+  width:auto !important;
+  min-width:0 !important;
+  margin:0 auto !important;
+}
+
+.hall-section{
+  width:max-content !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+.seats-row{
+  justify-content:center !important;
+/* ===== CASH CLIENT-X CLEAN WORKSPACE ===== */
+
+html,
+body{
+  margin:0 !important;
+  padding:0 !important;
+  height:100vh !important;
+  overflow:hidden !important;
+  background:#f3f4f6 !important;
+}
+
+#site-header,
+#site-footer,
+.container > h1,
+.cash-zoom-panel,
+.row-price-list{
+  display:none !important;
+}
+
+.main,
+.container{
+  width:100vw !important;
+  max-width:none !important;
+  height:100vh !important;
+  margin:0 !important;
+  padding:8px !important;
+  box-sizing:border-box !important;
+}
+
+.cash-topbar{
+  height:72px !important;
+  margin:0 0 6px !important;
+}
+
+.cash-badge{
+  height:34px !important;
+  margin:0 0 6px !important;
+}
+
+.hall-layout{
+  height:calc(100vh - 126px) !important;
+  width:100% !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 360px !important;
+  gap:10px !important;
+  align-items:stretch !important;
+}
+
+.hall-left{
+  width:100% !important;
+  height:100% !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+  display:block !important;
+  background:#fff !important;
+  border-radius:14px !important;
+}
+
+.hall-scroll{
+  width:100% !important;
+  height:100% !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  background:#fff !important;
+  border-radius:14px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+.hall-inner{
+  width:max-content !important;
+  min-width:0 !important;
+  max-width:none !important;
+  height:max-content !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  transform:none !important;
+}
+
+.hall-section{
+  width:max-content !important;
+  margin:0 !important;
+}
+
+#hall-root{
+  width:max-content !important;
+  height:max-content !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  overflow:visible !important;
+}
+
+.hall-sidebar{
+  width:360px !important;
+  max-width:360px !important;
+  height:100% !important;
+  overflow:auto !important;
+}
+
+.cash-pos-card{
+  height:auto !important;
+  min-height:100% !important;
+  box-sizing:border-box !important;
+}
+    
   </style>
+  
 </head>
 
 <body>
