@@ -2925,6 +2925,183 @@ window.HALL_ALIGN = {
   opacity: 1
 };
 
+ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
+  if (!viewport || !canvas) return;
+
+  const outer = document.querySelector(".hall-scroll");
+  if (outer) outer.style.overflow = "hidden";
+
+  viewport.style.overflow = "hidden";
+  viewport.style.position = "relative";
+  viewport.style.cursor = "grab";
+  viewport.style.touchAction = "none";
+
+  canvas.style.transformOrigin = "0 0";
+
+  const isMobile = () => window.innerWidth <= 768;
+
+  let scale = 1;
+  let minScale = 0.03;
+  let maxScale = 3;
+  let panX = 0;
+  let panY = 0;
+
+  const pointers = new Map();
+
+  let dragging = false;
+  let startX = 0;
+  let startY = 0;
+  let startPanX = 0;
+  let startPanY = 0;
+
+  let pinchStartDist = 0;
+  let pinchStartScale = 1;
+
+  function update(){
+    canvas.style.transform =
+      `translate(${panX}px, ${panY}px) scale(${scale})`;
+  }
+
+function fit(){
+  const r = viewport.getBoundingClientRect();
+  if (!r.width || !r.height || !hallWidth || !hallHeight) return;
+
+  const realW = canvas.offsetWidth || hallWidth;
+  const realH = canvas.offsetHeight || hallHeight;
+
+  const fitScale = Math.min(
+    r.width / realW,
+    r.height / realH
+  ) * (isMobile() ? 0.65 : 0.92);
+
+  if (isMobile()) {
+    minScale = fitScale * 0.25;
+    maxScale = fitScale * 8;
+  } else {
+    minScale = fitScale;
+    maxScale = 3;
+  }
+
+  scale = fitScale;
+
+panX = (r.width - realW * scale) / 2;
+panY = (r.height - realH * scale) / 2;
+
+update();
+  } 
+  function zoomAt(clientX, clientY, newScale){
+    const r = viewport.getBoundingClientRect();
+
+    const mx = clientX - r.left;
+    const my = clientY - r.top;
+
+    const beforeX = (mx - panX) / scale;
+    const beforeY = (my - panY) / scale;
+
+    scale = Math.max(minScale, Math.min(maxScale, newScale));
+
+    panX = mx - beforeX * scale;
+    panY = my - beforeY * scale;
+
+    update();
+  }
+
+  function getDistance(a, b){
+    const dx = a.clientX - b.clientX;
+    const dy = a.clientY - b.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  viewport.addEventListener("wheel", e => {
+    e.preventDefault();
+
+    const factor = e.deltaY < 0 ? 1.12 : 0.88;
+    zoomAt(e.clientX, e.clientY, scale * factor);
+  }, { passive:false });
+
+  viewport.addEventListener("pointerdown", e => {
+    pointers.set(e.pointerId, e);
+
+    if (pointers.size === 2) {
+      const arr = Array.from(pointers.values());
+      pinchStartDist = getDistance(arr[0], arr[1]);
+      pinchStartScale = scale;
+      dragging = false;
+      return;
+    }
+
+    if (e.target.closest(".seat")) return;
+    if (e.button !== undefined && e.button !== 0) return;
+
+    dragging = true;
+    viewport.classList.add("dragging");
+
+    startX = e.clientX;
+    startY = e.clientY;
+    startPanX = panX;
+    startPanY = panY;
+
+    viewport.setPointerCapture?.(e.pointerId);
+  });
+
+  viewport.addEventListener("pointermove", e => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, e);
+
+    if (pointers.size === 2) {
+      const arr = Array.from(pointers.values());
+      const dist = getDistance(arr[0], arr[1]);
+
+      if (!pinchStartDist) return;
+
+      const centerX = (arr[0].clientX + arr[1].clientX) / 2;
+      const centerY = (arr[0].clientY + arr[1].clientY) / 2;
+
+      zoomAt(centerX, centerY, pinchStartScale * (dist / pinchStartDist));
+      return;
+    }
+
+    if (!dragging) return;
+
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+
+    update();
+  });
+
+  function endPointer(e){
+    pointers.delete(e.pointerId);
+    dragging = false;
+    pinchStartDist = 0;
+    viewport.classList.remove("dragging");
+    viewport.releasePointerCapture?.(e.pointerId);
+  }
+
+  viewport.addEventListener("pointerup", endPointer);
+  viewport.addEventListener("pointercancel", endPointer);
+
+  viewport.addEventListener("dblclick", e => {
+    e.preventDefault();
+    fit();
+  });
+
+  window.addEventListener("resize", fit);
+
+  window.VA_HALL_VIEWER = {
+    fit,
+    refit(){
+      requestAnimationFrame(() => {
+        fit();
+        requestAnimationFrame(fit);
+        setTimeout(fit, 100);
+        setTimeout(fit, 300);
+      });
+    }
+  };
+
+  window.VA_HALL_VIEWER.refit();
+}
+     
     
 function renderBuilderSeatsCash(hallData){
   return renderBuilderSeatsCashStandard(hallData);
@@ -3019,7 +3196,7 @@ function renderBuilderSeatsCashStandard(hallData){
     if (typeof fitCashHallStandard === "function") {
       fitCashHallStandard();
     }
-  });
+
 }
     
 function fitCashHallStandard(){
