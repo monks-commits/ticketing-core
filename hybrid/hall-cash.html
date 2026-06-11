@@ -2181,7 +2181,8 @@ async function sellAndPrintOffline(){
       const arr = loadCashLog();
       const last = arr.find(x=>x && x.type==="SALE" && Array.isArray(x.tickets) && x.tickets.length) || null;
       if (!last){ alert("Немає збереженої останньої продажі для друку."); return; }
-      await openPrintWindowOffline(last.tickets, SHOW_META);
+      await openPrintWindowOffline(tickets, {
+  title: document.getElementById("summary-show")?.textContent?.replace("Вистава:", "").trim() || safeShowSlug
     }
 
 function makeSectionTitle(text){
