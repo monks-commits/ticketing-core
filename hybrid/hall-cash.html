@@ -1937,6 +1937,7 @@ async function applyStatusToSelectedLocal(status){
               <div class="muted">Order: ${t.order_id}</div>
             </div>
             <div class="price">Ціна: ${t.price} грн</div>
+<div class="type">Тип квитка: ${t.ticket_type_label || ticketTypeLabel(t.ticket_type)}</div>
 
             ${qrDataUrl ? `<img class="qr" src="${qrDataUrl}" alt="QR"/>` : `<div class="qr-miss">QR не згенеровано</div>`}
 
