@@ -1210,7 +1210,132 @@
   flex:0 0 14px !important;
 }
 
+/* ===== VA MOBILE HALL FINAL CLEAN ===== */
 
+@media (max-width:768px){
+
+  html,
+  body{
+    width:100%;
+    height:100%;
+    overflow:hidden !important;
+  }
+
+  .hall-hero{
+    display:none !important;
+  }
+
+  .ticket-layout{
+    display:block !important;
+    width:100vw !important;
+    height:100vh !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+  }
+
+  .ticket-price-sidebar{
+    display:block !important;
+    position:fixed !important;
+    left:0 !important;
+    top:50% !important;
+    transform:translateY(-50%) !important;
+    width:46px !important;
+    z-index:9998 !important;
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+    padding:0 !important;
+  }
+
+  .ticket-price-sidebar h3,
+  .legend-status-info{
+    display:none !important;
+  }
+
+  #priceLegendDesktop{
+    display:block !important;
+    width:46px !important;
+  }
+
+  .ticket-hall-center{
+  height:calc(100vh - 150px) !important;
+    height:calc(100vh - 96px) !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+  }
+
+  .hall-shell,
+  .hall-scroll,
+  #mobile-hall-viewport{
+    width:100vw !important;
+    height:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    touch-action:none !important;
+  }
+
+  .hall-shell-head{
+    display:none !important;
+  }
+
+  #mobile-hall-scale{
+    position:absolute !important;
+    left:0 !important;
+    top:0 !important;
+    transform-origin:0 0 !important;
+    will-change:transform !important;
+  }
+
+  .hall-inner{
+    width:max-content !important;
+    min-width:max-content !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+  }
+
+  #hall-root{
+    transform:none !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  #event-poster-wrap,
+  #event-poster,
+  #event-live-poster,
+  .event-poster{
+    display:none !important;
+  }
+
+  .ticket-event-sidebar{
+  display:block !important;
+  position:fixed !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  top:auto !important;
+  height:150px !important;
+  z-index:9999 !important;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
+  background:rgba(2,6,23,.92) !important;
+}
+
+  .event-card{
+    display:block !important;
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+    padding:0 !important;
+  }
+
+  .event-info{
+    display:block !important;
+  }
+}
+  
   
 </style>
  
