@@ -2918,7 +2918,7 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
     const fitScale = Math.min(
       r.width / realW,
       r.height / realH
-    ) * (isMobile() ? 0.65 : 0.92);
+    ) * (isMobile() ? 1.15 : 0.92);
 
     if (isMobile()) {
       minScale = fitScale * 0.25;
