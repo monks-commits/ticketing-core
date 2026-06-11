@@ -693,6 +693,114 @@ body{
 
 .seats-row{
   justify-content:center !important;
+/* ===== CASH CLIENT-X CLEAN WORKSPACE ===== */
+
+html,
+body{
+  margin:0 !important;
+  padding:0 !important;
+  height:100vh !important;
+  overflow:hidden !important;
+  background:#f3f4f6 !important;
+}
+
+#site-header,
+#site-footer,
+.container > h1,
+.cash-zoom-panel,
+.row-price-list{
+  display:none !important;
+}
+
+.main,
+.container{
+  width:100vw !important;
+  max-width:none !important;
+  height:100vh !important;
+  margin:0 !important;
+  padding:8px !important;
+  box-sizing:border-box !important;
+}
+
+.cash-topbar{
+  height:72px !important;
+  margin:0 0 6px !important;
+}
+
+.cash-badge{
+  height:34px !important;
+  margin:0 0 6px !important;
+}
+
+.hall-layout{
+  height:calc(100vh - 126px) !important;
+  width:100% !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 360px !important;
+  gap:10px !important;
+  align-items:stretch !important;
+}
+
+.hall-left{
+  width:100% !important;
+  height:100% !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+  display:block !important;
+  background:#fff !important;
+  border-radius:14px !important;
+}
+
+.hall-scroll{
+  width:100% !important;
+  height:100% !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  background:#fff !important;
+  border-radius:14px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+.hall-inner{
+  width:max-content !important;
+  min-width:0 !important;
+  max-width:none !important;
+  height:max-content !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  transform:none !important;
+}
+
+.hall-section{
+  width:max-content !important;
+  margin:0 !important;
+}
+
+#hall-root{
+  width:max-content !important;
+  height:max-content !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  overflow:visible !important;
+}
+
+.hall-sidebar{
+  width:360px !important;
+  max-width:360px !important;
+  height:100% !important;
+  overflow:auto !important;
+}
+
+.cash-pos-card{
+  height:auto !important;
+  min-height:100% !important;
+  box-sizing:border-box !important;
 }
     
   </style>
