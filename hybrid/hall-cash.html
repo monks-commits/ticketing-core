@@ -2254,18 +2254,31 @@ function renderBuilderSeatsCash(hallData){
   root.innerHTML = "";
   seatButtons.clear();
 
-  const width = Number(hallData.width || 1600);
-  const height = Number(hallData.height || 1000);
   const seats = Array.isArray(hallData.seats) ? hallData.seats : [];
-  const decor = Array.isArray(hallData.decor) ? hallData.decor : [];
+
+  const width = 1200;
+  const height = 900;
+
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section hall-section--builder";
+  wrap.style.width = "100%";
+  wrap.style.height = "100%";
+  wrap.style.position = "relative";
+  wrap.style.overflow = "hidden";
+  wrap.style.cursor = "grab";
+  wrap.style.margin = "0";
 
   const canvas = document.createElement("div");
+  canvas.id = "hall-viewer-canvas";
   canvas.style.position = "relative";
   canvas.style.width = width + "px";
   canvas.style.height = height + "px";
-  canvas.style.background = "#fff";
-  canvas.style.borderRadius = "14px";
   canvas.style.overflow = "hidden";
+  canvas.style.background = "transparent";
+  canvas.style.borderRadius = "0";
+  canvas.style.boxShadow = "none";
+
+  const decor = Array.isArray(hallData.decor) ? hallData.decor : [];
 
   decor.forEach(item => {
     if (item.type === "text" || item.type === "label") {
@@ -2278,7 +2291,7 @@ function renderBuilderSeatsCash(hallData){
         `translate(-50%, -50%) rotate(${Number(item.rotate || 0)}deg)`;
       el.style.fontSize = Number(item.size || 24) + "px";
       el.style.fontWeight = item.weight || "700";
-      el.style.color = "#111827";
+      el.style.color = item.color || "#111827";
       el.style.whiteSpace = "nowrap";
       el.style.pointerEvents = "none";
       el.style.zIndex = "40";
@@ -2349,7 +2362,12 @@ function renderBuilderSeatsCash(hallData){
     canvas.appendChild(btn);
   });
 
-  root.appendChild(canvas);
+  wrap.appendChild(canvas);
+  root.appendChild(wrap);
+
+  if (typeof enableHallViewer === "function") {
+    enableHallViewer(wrap, canvas, width, height);
+  }
 }
     
 function renderSimpleRows(hallData) {
