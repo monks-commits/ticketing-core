@@ -1713,37 +1713,7 @@ btn.dataset.baseColor = (cfg && cfg.color) ? "#fff" : "";
   }
 }
 
-function getTicketTypeData(){
-  const type = document.getElementById("ticketType")?.value || "standard";
 
-  const data = {
-    ticket_type: type,
-    promo_mode: null,
-    promo_value: null
-  };
-
-  if (type === "promo") {
-    data.promo_mode = document.getElementById("promoMode")?.value || "percent";
-    data.promo_value = Number(document.getElementById("promoValue")?.value || 0);
-  }
-
-  return data;
-}
-
-function ticketTypeLabel(type){
-  const map = {
-    standard: "Звичайний",
-    child: "Дитячий",
-    benefit: "Пільговий",
-    invite: "Запрошення",
-    promo: "Акційний",
-    recovery: "Компенсаційний",
-    rental: "Орендний",
-    staff: "Службовий"
-  };
-
-  return map[type] || "Звичайний";
-}
     
 function calcFinalPrice(basePrice){
   const { ticket_type, promo_mode, promo_value } = getTicketTypeData();
@@ -2045,6 +2015,48 @@ async function applyStatusToSelectedLocal(status){
       reapplyAllStatuses();
     }
 
+function getTicketTypeData(){
+  const type = document.getElementById("ticketType")?.value || "standard";
+
+  const data = {
+    ticket_type: type,
+    promo_mode: null,
+    promo_value: null
+  };
+
+  if (type === "promo") {
+    data.promo_mode = document.getElementById("promoMode")?.value || "percent";
+    data.promo_value = Number(document.getElementById("promoValue")?.value || 0);
+  }
+
+  return data;
+}
+
+function ticketTypeLabel(type){
+  const map = {
+    standard: "Звичайний",
+    child: "Дитячий",
+    benefit: "Пільговий",
+    invite: "Запрошення",
+    promo: "Акційний",
+    recovery: "Компенсаційний",
+    rental: "Орендний",
+    staff: "Службовий"
+  };
+
+  return map[type] || "Звичайний";
+}
+
+function calcFinalPrice(basePrice){
+  const type = document.getElementById("ticketType")?.value || "standard";
+
+  if (["benefit","invite","recovery","staff"].includes(type)) {
+    return 0;
+  }
+
+  return basePrice;
+}
+    
     // ---- ПРОДАЖА (офлайн) ----
 
 async function sellAndPrintOffline(){
