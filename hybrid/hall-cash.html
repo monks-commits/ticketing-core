@@ -1713,6 +1713,73 @@ btn.dataset.baseColor = (cfg && cfg.color) ? "#fff" : "";
   }
 }
 
+function getTicketTypeData(){
+  const type = document.getElementById("ticketType")?.value || "standard";
+
+  const data = {
+    ticket_type: type,
+    promo_mode: null,
+    promo_value: null
+  };
+
+  if (type === "promo") {
+    data.promo_mode = document.getElementById("promoMode")?.value || "percent";
+    data.promo_value = Number(document.getElementById("promoValue")?.value || 0);
+  }
+
+  return data;
+}
+
+function ticketTypeLabel(type){
+  const map = {
+    standard: "Звичайний",
+    child: "Дитячий",
+    benefit: "Пільговий",
+    invite: "Запрошення",
+    promo: "Акційний",
+    recovery: "Компенсаційний",
+    rental: "Орендний",
+    staff: "Службовий"
+  };
+
+  return map[type] || "Звичайний";
+}
+    
+function calcFinalPrice(basePrice){
+  const { ticket_type, promo_mode, promo_value } = getTicketTypeData();
+
+  if (["benefit", "invite", "recovery", "staff"].includes(ticket_type)) {
+    return 0;
+  }
+
+  if (ticket_type === "promo") {
+    if (promo_mode === "percent") {
+      return Math.max(0, Math.round(basePrice * (100 - promo_value) / 100));
+    }
+
+    if (promo_mode === "fixed") {
+      return Math.max(0, promo_value);
+    }
+  }
+
+  return basePrice;
+}
+
+document.getElementById("ticketType")?.addEventListener("change", () => {
+  const type = document.getElementById("ticketType")?.value;
+  const promoBox = document.getElementById("promoBox");
+
+  if (promoBox) {
+    promoBox.style.display = type === "promo" ? "block" : "none";
+  }
+
+  updateSummary();
+});
+
+document.getElementById("promoMode")?.addEventListener("change", updateSummary);
+document.getElementById("promoValue")?.addEventListener("input", updateSummary);
+    
+    
 async function applyStatusToSelectedLocal(status){
   const keys = Array.from(selected.keys());
   if (!keys.length) return;
