@@ -1365,6 +1365,72 @@
   font-weight:900 !important;
   margin:6px 0 8px !important;
 }
+/* ===== VA HALL DESKTOP FINAL OVERRIDE ===== */
+@media (min-width:769px){
+
+  .hall-page .container{
+    max-width:none !important;
+    width:100% !important;
+    padding-left:40px !important;
+    padding-right:40px !important;
+  }
+
+  .ticket-layout{
+    display:grid !important;
+    grid-template-columns:170px minmax(0,1fr) 300px !important;
+    gap:24px !important;
+    align-items:start !important;
+  }
+
+  .ticket-hall-center{
+    min-width:0 !important;
+    width:100% !important;
+  }
+
+  .hall-shell,
+  .hall-scroll,
+  .hall-inner{
+    background:transparent !important;
+  }
+
+  .hall-scroll{
+    width:100% !important;
+    height:82vh !important;
+    overflow:hidden !important;
+    border:none !important;
+    border-radius:18px !important;
+  }
+
+  .hall-inner{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .price-card,
+  .event-card{
+    background:rgba(2,6,23,.62) !important;
+    color:#fff !important;
+    border:1px solid rgba(255,255,255,.16) !important;
+    box-shadow:0 24px 70px rgba(0,0,0,.35) !important;
+    backdrop-filter:blur(8px) !important;
+  }
+
+  .price-card h3,
+  .hall-summary-total{
+    color:#fff !important;
+  }
+
+  .hall-summary-meta,
+  .hall-summary-help{
+    color:rgba(255,255,255,.82) !important;
+  }
+
+  .hall-summary-divider{
+    background:rgba(255,255,255,.22) !important;
+  }
 }
   
   
