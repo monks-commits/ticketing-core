@@ -2183,8 +2183,10 @@ async function sellAndPrintOffline(){
       if (!last){ alert("Немає збереженої останньої продажі для друку."); return; }
       await openPrintWindowOffline(tickets, {
   title: document.getElementById("summary-show")?.textContent?.replace("Вистава:", "").trim() || safeShowSlug
-   
-}); 
+   }); 
+
+ }     
+    
 function makeSectionTitle(text){
   const el = document.createElement("div");
   el.className = "hall-section-title";
