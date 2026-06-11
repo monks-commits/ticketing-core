@@ -7,7 +7,6 @@
 
  <link rel="stylesheet" href="../../styles/styles.css" />
 
-
 <style>
   :root{
     --bg:#f3f4f6;
@@ -165,13 +164,15 @@
   .hall-legend-dot--taken{ background:#bfc5ce; border-color:#bfc5ce; }
   .hall-legend-dot--reserved{ background:#f59e0b; border-color:#f59e0b; }
 
- .hall-scroll{
-  position:relative;
-  padding:18px;
-  overflow:auto;
-  -webkit-overflow-scrolling:touch;
-  background:transparent;
-}
+  .hall-scroll{
+    position:relative;
+    padding:18px;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    background:
+      linear-gradient(to right, rgba(243,244,246,1), rgba(243,244,246,0)) left center/28px 100% no-repeat,
+      linear-gradient(to left, rgba(243,244,246,1), rgba(243,244,246,0)) right center/28px 100% no-repeat;
+  }
 
   .mobile-hall-viewport{
     position:relative;
@@ -179,15 +180,15 @@
   }
 
   .mobile-hall-scale{
-    transform-origin: top center;
-    will-change: transform;
-  }
+  transform:none !important;
+  transform-origin:0 0 !important;
+}
 
   .hall-inner{
   min-width:max-content;
   width:max-content;
   margin:0 auto;
-  padding:10px 20px;
+  padding:40px 80px;
 }
 
   .stage-wrap{
@@ -812,10 +813,8 @@
   margin-left:24px;
 }
 .hall-page .container{
-  max-width:none !important;
-  width:100% !important;
-  padding-left:80px !important;
-  padding-right:80px !important;
+  max-width:1600px !important;
+  width:100%;
 }
 
 .hall-inner{
@@ -823,7 +822,13 @@
 }
 
 .hall-scroll{
-  overflow:auto !important;
+  overflow:hidden;
+  position:relative;
+  cursor:grab;
+}
+
+.hall-scroll.dragging{
+  cursor:grabbing;
 }
 
 .parter-wrap{
@@ -1034,7 +1039,7 @@
 }
 
 .hall-scroll{
-  background:transparent;
+  background:#fff;
   border-radius:18px;
   overflow:auto;
 }
@@ -1156,7 +1161,7 @@
 }
 
 .hall-scroll{
-  overflow:hidden !important;
+  overflow:auto !important;
   border:none !important;
   background:transparent !important;
 }
@@ -1165,7 +1170,7 @@
   width:max-content !important;
   min-width:max-content !important;
   margin:0 auto !important;
-  padding:10px 20px !important;
+  padding:40px 80px !important;
 }
 
 .hall-status-row{
@@ -1221,6 +1226,121 @@
   border-radius:999px !important;
   display:inline-block !important;
   flex:0 0 14px !important;
+}
+}
+}
+/* ===== VA ROCK FULLSCREEN FINAL ===== */
+
+body.va-theme-active{
+  background:#020617 !important;
+  color:#fff !important;
+}
+
+body.va-theme-active::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(80,40,160,.35), transparent 45%),
+    linear-gradient(180deg, #020617 0%, #050014 100%);
+  pointer-events:none;
+}
+  
+body.va-theme-active .main,
+body.va-theme-active .hall-page,
+body.va-theme-active .container,
+body.va-theme-active .ticket-layout,
+body.va-theme-active .ticket-hall-center,
+body.va-theme-active .hall-inner,
+body.va-theme-active .mobile-hall-viewport,
+body.va-theme-active .mobile-hall-scale{
+  background:transparent !important;
+}
+
+body.va-theme-active .hall-hero{
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  color:#fff !important;
+}
+
+body.va-theme-active .hall-title,
+body.va-theme-active .hall-subtitle,
+body.va-theme-active .hall-eyebrow,
+body.va-theme-active .hall-shell-title,
+body.va-theme-active .hall-shell-meta{
+  color:#fff !important;
+}
+
+body.va-theme-active .hall-badge{
+  background:rgba(15,23,42,.55) !important;
+  color:#fff !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+}
+
+body.va-theme-active .hall-shell{
+  background:rgba(15,23,42,.22) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  border-radius:22px !important;
+  box-shadow:0 24px 80px rgba(0,0,0,.45) !important;
+  backdrop-filter:blur(8px);
+  overflow:visible !important;
+}
+
+body.va-theme-active .hall-shell-head{
+  background:transparent !important;
+  border-bottom:none !important;
+}
+
+body.va-theme-active .hall-scroll{
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  overflow:auto !important;
+}
+
+body.va-theme-active .hall-section{
+  background:transparent !important;
+}
+
+body.va-theme-active .price-card,
+body.va-theme-active .event-card{
+  background:rgba(15,23,42,.62) !important;
+  color:#fff !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  box-shadow:0 24px 70px rgba(0,0,0,.45) !important;
+  backdrop-filter:blur(10px);
+}
+
+body.va-theme-active .price-card h3,
+body.va-theme-active .hall-summary-total{
+  color:#fff !important;
+}
+
+body.va-theme-active .hall-summary-meta,
+body.va-theme-active .hall-summary-help{
+  color:rgba(255,255,255,.82) !important;
+}
+
+body.va-theme-active .hall-summary-divider{
+  background:rgba(255,255,255,.22) !important;
+}
+
+body.va-theme-active #va-theme-video-bg{
+  z-index:0 !important;
+}
+
+body.va-theme-active .main,
+body.va-theme-active .hall-page,
+body.va-theme-active .container,
+body.va-theme-active .ticket-layout,
+body.va-theme-active .hall-hero,
+body.va-theme-active .price-card,
+body.va-theme-active .hall-shell,
+body.va-theme-active .event-card{
+  position:relative !important;
+  z-index:1 !important;
 }
 
 /* ===== VA MOBILE HALL FINAL CLEAN ===== */
@@ -1330,7 +1450,7 @@
   right:0 !important;
   bottom:0 !important;
   top:auto !important;
-  height:220px !important;
+  height:150px !important;
   z-index:9999 !important;
   padding:8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
   background:rgba(2,6,23,.92) !important;
@@ -1347,95 +1467,10 @@
   .event-info{
     display:block !important;
   }
-
-  .ticket-event-sidebar .hall-summary-meta,
-.ticket-event-sidebar .hall-summary-total,
-.ticket-event-sidebar .hall-summary-help,
-.ticket-event-sidebar #summary-show,
-.ticket-event-sidebar #summary-places,
-.ticket-event-sidebar #summary-amount{
-  display:block !important;
-  opacity:1 !important;
-  visibility:visible !important;
-  color:#fff !important;
 }
-
-.ticket-event-sidebar #summary-amount{
-  font-size:24px !important;
-  font-weight:900 !important;
-  margin:6px 0 8px !important;
-}
-/* ===== VA HALL DESKTOP FINAL OVERRIDE ===== */
-@media (min-width:769px){
-
-  .hall-page .container{
-    max-width:none !important;
-    width:100% !important;
-    padding-left:40px !important;
-    padding-right:40px !important;
-  }
-
-  .ticket-layout{
-    display:grid !important;
-    grid-template-columns:170px minmax(0,1fr) 300px !important;
-    gap:24px !important;
-    align-items:start !important;
-  }
-
-  .ticket-hall-center{
-    min-width:0 !important;
-    width:100% !important;
-  }
-
-  .hall-shell,
-  .hall-scroll,
-  .hall-inner{
-    background:transparent !important;
-  }
-
-  .hall-scroll{
-    width:100% !important;
-    height:82vh !important;
-    overflow:hidden !important;
-    border:none !important;
-    border-radius:18px !important;
-  }
-
-  .hall-inner{
-    width:100% !important;
-    min-width:0 !important;
-    min-height:0 !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-
-  .price-card,
-  .event-card{
-    background:rgba(2,6,23,.62) !important;
-    color:#fff !important;
-    border:1px solid rgba(255,255,255,.16) !important;
-    box-shadow:0 24px 70px rgba(0,0,0,.35) !important;
-    backdrop-filter:blur(8px) !important;
-  }
-
-  .price-card h3,
-  .hall-summary-total{
-    color:#fff !important;
-  }
-
-  .hall-summary-meta,
-  .hall-summary-help{
-    color:rgba(255,255,255,.82) !important;
-  }
-
-  .hall-summary-divider{
-    background:rgba(255,255,255,.22) !important;
-  }
-}
-  
   
 </style>
- 
+
 </head>
 <body>
 <div id="refDemoBadge"></div>
