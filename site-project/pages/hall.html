@@ -329,6 +329,19 @@
     cursor:not-allowed;
   }
 
+.seat--same-price:not(:disabled){
+  box-shadow:0 0 0 3px rgba(255,215,0,.75),0 0 18px rgba(255,215,0,.65);
+  transform:scale(1.12);
+  z-index:50 !important;
+}
+
+.seat--selected,
+.seat.selected{
+  box-shadow:0 0 0 3px rgba(255,255,255,.95),0 0 22px rgba(255,215,0,.85);
+  transform:scale(1.18);
+  z-index:70 !important;
+}
+  
   .parter-wrap{
     display:flex;
     justify-content:center;
