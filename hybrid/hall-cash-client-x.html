@@ -3119,8 +3119,8 @@ function renderBuilderSeatsCashStandard(hallData){
 
   const seats = Array.isArray(hallData?.seats) ? hallData.seats : [];
 
-  const width = 1200;
-const height = 900;
+  const width = Number(hallData?.width || 715);
+const height = Number(hallData?.height || 840);
 
   const wrap = document.createElement("section");
   wrap.className = "hall-section hall-section--builder";
@@ -3134,9 +3134,9 @@ const height = 900;
   scaleBox.style.width = width + "px";
   scaleBox.style.height = height + "px";
   scaleBox.style.overflow = "hidden";
-  scaleBox.style.background = "#fff";
-  scaleBox.style.borderRadius = "18px";
-  scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.18)";
+ scaleBox.style.background = "transparent";
+scaleBox.style.borderRadius = "0";
+scaleBox.style.boxShadow = "none";
 
   seats.forEach(s => {
 
