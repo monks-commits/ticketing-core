@@ -2047,7 +2047,6 @@ async function sellAndPrintOffline(){
 
   if (!keys.length) return;
 
-  // ❌ нельзя продавать места, выбранные для снятия резерва
   if (entries.some(([, v]) => v?.reservedRemove === true)) {
     alert("Спочатку зніміть резерв кнопкою «Очистити - скасувати вибір - зняти резерв».");
     return;
@@ -2059,32 +2058,41 @@ async function sellAndPrintOffline(){
   }
 
   const safeShowSlug = showSlug || "test";
+  const ticketTypeData = getTicketTypeData();
 
   const prices = {};
   let total = 0;
 
   for (const k of keys){
-    const price = Number(selected.get(k)?.price || 0);
-    prices[k] = price;
-    total += price;
+    const basePrice = Number(selected.get(k)?.price || 0);
+    const finalPrice = typeof calcFinalPrice === "function"
+      ? calcFinalPrice(basePrice)
+      : basePrice;
+
+    prices[k] = finalPrice;
+    total += finalPrice;
   }
 
   const op_id = genOpId();
 
   const op = {
-  op_id,
-  type: "sale",
+    op_id,
+    type: "sale",
+    channel: "cash",
 
-  // NEW CORE
-  channel: "cash",
+    ticket_type: ticketTypeData.ticket_type,
+    ticket_type_label: ticketTypeData.ticket_type_label,
+    promo_mode: ticketTypeData.promo_mode || null,
+    promo_value: ticketTypeData.promo_value || null,
 
-  seance_id: SEANCE_ID,
-  show_slug: safeShowSlug,
-  seats: keys,
-  prices,
-  total,
-  sold_at: new Date().toISOString()
-};
+    seance_id: SEANCE_ID,
+    show_slug: safeShowSlug,
+    seats: keys,
+    prices,
+    total,
+    sold_at: new Date().toISOString()
+  };
+
   const queue = loadQueue();
   queue.push({
     op_id,
@@ -2100,18 +2108,19 @@ async function sellAndPrintOffline(){
 
   const order_id = `CASH-${SEANCE_ID}-${op_id}`;
 
- const tickets = keys.map(k => ({
-  op_id,
-  order_id,
+  const tickets = keys.map(k => ({
+    op_id,
+    order_id,
+    channel: "cash",
 
-  // NEW CORE
-  channel: "cash",
+    ticket_type: ticketTypeData.ticket_type,
+    ticket_type_label: ticketTypeData.ticket_type_label,
 
-  show_slug: safeShowSlug,
-  seance_id: SEANCE_ID,
-  seat_label: k,
-  price: prices[k] || 0
-}));
+    show_slug: safeShowSlug,
+    seance_id: SEANCE_ID,
+    seat_label: k,
+    price: prices[k] || 0
+  }));
 
   pushCashLog({
     ts: Date.now(),
@@ -2124,6 +2133,7 @@ async function sellAndPrintOffline(){
   if (typeof reapplyAllStatuses === "function"){
     reapplyAllStatuses();
   }
+
   if (typeof clearSelection === "function"){
     clearSelection();
   }
@@ -2147,7 +2157,6 @@ async function sellAndPrintOffline(){
     console.warn("sync error", e);
   }
 }
-    
     // ---- reprint last sale ----
     async function reprintLastSale(){
       const arr = loadCashLog();
