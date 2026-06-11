@@ -2162,8 +2162,6 @@ async function sellAndPrintOffline(){
      await openPrintWindowOffline(tickets, {
   title: document.getElementById("summary-show")?.textContent?.replace("Вистава:", "").trim() || safeShowSlug
 });
-        title: safeShowSlug
-      });
     }
   }catch(e){
     console.warn("print error", e);
