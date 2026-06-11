@@ -2159,7 +2159,9 @@ async function sellAndPrintOffline(){
 
   try{
     if (typeof openPrintWindowOffline === "function"){
-      await openPrintWindowOffline(tickets, {
+     await openPrintWindowOffline(tickets, {
+  title: document.getElementById("summary-show")?.textContent?.replace("Вистава:", "").trim() || safeShowSlug
+});
         title: safeShowSlug
       });
     }
