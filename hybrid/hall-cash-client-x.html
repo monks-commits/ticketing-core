@@ -3108,6 +3108,7 @@ function renderBuilderSeatsCash(hallData){
 }
     
 function renderBuilderSeatsCashStandard(hallData){
+
   CURRENT_HALL_DATA = hallData;
 
   const root = document.getElementById("hall-root");
@@ -3129,7 +3130,6 @@ function renderBuilderSeatsCashStandard(hallData){
   wrap.style.margin = "0";
 
   const scaleBox = document.createElement("div");
-  scaleBox.id = "hall-canvas";
   scaleBox.style.position = "relative";
   scaleBox.style.width = width + "px";
   scaleBox.style.height = height + "px";
@@ -3138,38 +3138,17 @@ function renderBuilderSeatsCashStandard(hallData){
   scaleBox.style.borderRadius = "18px";
   scaleBox.style.boxShadow = "0 20px 60px rgba(0,0,0,.18)";
 
-  const bg = document.createElement("img");
-  bg.src =
-    "https://fhusjlkneckbvnrdhbil.supabase.co/storage/v1/object/public/posters/Client-X/client-x-hall.png";
-  bg.alt = "Схема залу";
-  bg.style.position = "absolute";
-  bg.style.inset = "0";
-  bg.style.width = "100%";
-  bg.style.height = "100%";
-  bg.style.objectFit = "fill";
-  bg.style.pointerEvents = "none";
-  bg.style.zIndex = "1";
- // scaleBox.appendChild(bg);
-
   seats.forEach(s => {
+
     const meta = {
-      zone:
-        s.zone ||
-        (s.prefix === "P" ? "Партер" :
-         s.prefix === "A" ? "Амфітеатр" :
-         s.prefix === "B" ? "Балкон" :
-         s.prefix === "LA" ? "Ложа А" :
-         s.prefix === "LB" ? "Ложа Б" :
-         "Партер"),
+      zone: s.zone || "Партер",
       prefix: s.prefix || "P",
       row: String(s.row || "0"),
       seat: Number(s.seat || 0)
     };
 
-    const key = seatKey(meta);
-
     const btn = makeSeatElement(
-      key,
+      seatKey(meta),
       meta.seat,
       "",
       0,
@@ -3183,6 +3162,7 @@ function renderBuilderSeatsCashStandard(hallData){
     btn.style.zIndex = "20";
 
     scaleBox.appendChild(btn);
+
   });
 
   if (typeof renderDecor === "function") {
@@ -3192,6 +3172,17 @@ function renderBuilderSeatsCashStandard(hallData){
   wrap.appendChild(scaleBox);
   root.appendChild(wrap);
 
+  console.log("CASH VIEWER START");
+
+  if (typeof enableHallViewer === "function") {
+    enableHallViewer(
+      wrap,
+      scaleBox,
+      width,
+      height
+    );
+  }
+}
   requestAnimationFrame(() => {
     if (typeof fitCashHallStandard === "function") {
       fitCashHallStandard();
@@ -3200,6 +3191,7 @@ function renderBuilderSeatsCashStandard(hallData){
 }
     
 function fitCashHallStandard(){
+  return;
   const scroll = document.querySelector(".hall-scroll");
   const inner = document.querySelector(".hall-inner");
   const canvas = document.getElementById("hall-canvas");
