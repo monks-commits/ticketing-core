@@ -1797,6 +1797,23 @@ function showSeatTooltipTemporarily(btn, meta, price, ms = 1400){
     hideSeatTooltip(true);
   }, ms);
 }
+
+function highlightSamePrice(price){
+  const p = Number(price || 0);
+
+  document.querySelectorAll(".seat").forEach(el => {
+    if (el.disabled) return;
+    if (Number(el.dataset.price || 0) === p) {
+      el.classList.add("seat--same-price");
+    }
+  });
+}
+
+function clearPriceHighlight(){
+  document.querySelectorAll(".seat--same-price").forEach(el => {
+    el.classList.remove("seat--same-price");
+  });
+}
     
     function makeSeatElement(key, label, extraClass, price, meta){
   let finalPrice = price;
@@ -1839,13 +1856,15 @@ function showSeatTooltipTemporarily(btn, meta, price, ms = 1400){
   }
 
   // desktop hover
-  btn.addEventListener("mouseenter", () => {
-    showSeatTooltip(btn, meta, finalPrice);
-  });
+ btn.addEventListener("mouseenter", () => {
+  highlightSamePrice(finalPrice);
+  showSeatTooltip(btn, meta, finalPrice);
+});
 
-  btn.addEventListener("mouseleave", () => {
-    hideSeatTooltip(); 
-  });
+btn.addEventListener("mouseleave", () => {
+  clearPriceHighlight();
+  hideSeatTooltip(); 
+});
 
   // mobile / touch hint
   btn.addEventListener("touchstart", () => {
