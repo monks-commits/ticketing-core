@@ -1952,7 +1952,7 @@ async function applyStatusToSelectedLocal(status){
 </body>
 </html>`;
 
-      const w = window.open("", "_blank");
+      const w = window.open("", "_blank"); 
       if (!w){ alert("Браузер заблокував pop-up. Дозволь відкриття вікон для друку."); return; }
       w.document.open();
       w.document.write(html);
