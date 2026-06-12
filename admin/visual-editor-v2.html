@@ -205,15 +205,8 @@ async function loadCurrentVisual(){
 const ticketTextEl = document.getElementById("ticketText");
 
 if (ticketTextEl) {
-  const { data: seanceData, error: seanceError } = await sb
-    .from("seances")
-    .select("ticket_text")
-    .eq("id", seanceId)
-    .maybeSingle();
-
-  if (!seanceError) {
-    ticketTextEl.value = seanceData?.ticket_text || "";
-  }
+  ticketTextEl.value =
+    currentVisual?.ticket_text || "";
 }
   
   if (currentVisual?.live_poster_duration) {
@@ -271,15 +264,19 @@ async function saveVisual(){
     const livePosterUrl = await uploadFile("video", "live-posters", livePosterFile.files[0]);
     const bgVideoUrl = await uploadFile("video", "backgrounds", bgVideoFile.files[0]);
 
-    const payload = {
-      seance_id: seanceId,
-      poster_url: posterUrl || currentVisual?.poster_url || null,
-      live_poster_url: livePosterUrl || currentVisual?.live_poster_url || null,
-      live_poster_duration: Number(durationInput.value || currentVisual?.live_poster_duration || 6200),
-      background_video_url: bgVideoUrl || currentVisual?.background_video_url || null,
-      enabled: true,
-      updated_at: new Date().toISOString()
-    };
+   const payload = {
+  seance_id: seanceId,
+  poster_url: posterUrl || currentVisual?.poster_url || null,
+  live_poster_url: livePosterUrl || currentVisual?.live_poster_url || null,
+  live_poster_duration: Number(durationInput.value || currentVisual?.live_poster_duration || 6200),
+  background_video_url: bgVideoUrl || currentVisual?.background_video_url || null,
+
+  ticket_text:
+    document.getElementById("ticketText")?.value.trim() || "",
+
+  enabled: true,
+  updated_at: new Date().toISOString()
+};
 
     setStatus("Зберігаю visual...");
 
@@ -291,18 +288,7 @@ async function saveVisual(){
 
    if (error) throw error;
 
-/* save ticket text into seances */
-const ticketTextEl = document.getElementById("ticketText");
-const ticketText = ticketTextEl ? ticketTextEl.value.trim() : "";
 
-const { error: ticketTextError } = await sb
-  .from("seances")
-  .update({
-    ticket_text: ticketText
-  })
-  .eq("id", seanceId);
-
-if (ticketTextError) throw ticketTextError;
 
 currentVisual = data;
 renderPreview(currentVisual);
