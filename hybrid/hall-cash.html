@@ -2817,6 +2817,24 @@ function fit(){
 
   update();
 }
+
+function zoomAt(clientX, clientY, newScale){
+  const r = viewport.getBoundingClientRect();
+
+  const mx = clientX - r.left;
+  const my = clientY - r.top;
+
+  const beforeX = (mx - panX) / scale;
+  const beforeY = (my - panY) / scale;
+
+  scale = Math.max(minScale, Math.min(maxScale, newScale));
+
+  panX = mx - beforeX * scale;
+  panY = my - beforeY * scale;
+
+  update();
+}
+  
   function getDistance(a, b){
     const dx = a.clientX - b.clientX;
     const dy = a.clientY - b.clientY;
