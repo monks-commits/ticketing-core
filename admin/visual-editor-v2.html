@@ -289,12 +289,25 @@ async function saveVisual(){
       .select()
       .single();
 
-    if (error) throw error;
+   if (error) throw error;
 
-    currentVisual = data;
-    renderPreview(currentVisual);
+/* save ticket text into seances */
+const ticketTextEl = document.getElementById("ticketText");
+const ticketText = ticketTextEl ? ticketTextEl.value.trim() : "";
 
-    setStatus("Готово. Visual збережено.");
+const { error: ticketTextError } = await sb
+  .from("seances")
+  .update({
+    ticket_text: ticketText
+  })
+  .eq("id", seanceId);
+
+if (ticketTextError) throw ticketTextError;
+
+currentVisual = data;
+renderPreview(currentVisual);
+
+setStatus("Готово. Visual і опис події збережено.");
   } catch (e) {
     console.error(e);
     setStatus("Помилка: " + (e.message || e));
