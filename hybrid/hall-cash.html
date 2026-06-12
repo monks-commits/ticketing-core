@@ -2941,8 +2941,8 @@ function renderBuilderSeatsCash(hallData){
 
   const seats = Array.isArray(hallData.seats) ? hallData.seats : [];
 
-  const width = 1200;
-  const height = 900;
+ const width = Number(hallData.width || 1200);
+const height = Number(hallData.height || 900);
 
   const wrap = document.createElement("section");
   wrap.className = "hall-section hall-section--builder";
