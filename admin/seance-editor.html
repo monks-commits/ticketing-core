@@ -1370,7 +1370,7 @@ async function loadVenueSeances(){
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/seances` +
       `?venue_id=eq.${encodeURIComponent(venueId)}` +
-      `&select=id,show,date,time,active` +
+     `&select=id,show,date,time,active,event_type` +
       `&order=date.asc,time.asc`,
       {
         headers:{
