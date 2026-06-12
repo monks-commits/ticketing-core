@@ -1663,12 +1663,13 @@ publish.onclick = async () => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        seance_id: seance,
-        venue_id: venueId,
-        hall: hall,
-        show: show,
-        date: date,
-        time: time,
+  seance_id: seance,
+  venue_id: venueId,
+  hall: hall,
+  show: show,
+  event_type: eventType.value || null,
+  date: date,
+  time: time,
         poster_url: poster_url,
         status: status,
 
