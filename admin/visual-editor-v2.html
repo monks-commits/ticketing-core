@@ -267,7 +267,7 @@ async function saveVisual(){
    const payload = {
   seance_id: seanceId,
   poster_url: posterUrl || currentVisual?.poster_url || null,
-  live_poster_url: livePosterUrl || currentVisual?.live_poster_url || null,
+  live_poster_url: livePosterUrl || currentVisual?.live_poster_url || null, 
   live_poster_duration: Number(durationInput.value || currentVisual?.live_poster_duration || 6200),
   background_video_url: bgVideoUrl || currentVisual?.background_video_url || null,
 
