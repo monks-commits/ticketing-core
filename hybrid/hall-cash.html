@@ -3569,38 +3569,46 @@ applyHallZoom();*/
     
 </script>
 
+<!-- ===== VA DIRECTOR MODE ===== -->
 <script>
-(function initDirectorMode() {
-  const params = new URLSearchParams(location.search);
-  const isDirectorMode = params.get("director") === "1";
-
-  if (!isDirectorMode) return;
-
-  document.body.classList.add("director-mode");
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("director") !== "1") return;
 
   const card = document.createElement("div");
-  card.className = "director-card-overlay";
+  card.style.cssText = `
+    position: fixed;
+    top: 140px;
+    right: 20px;
+    width: 360px;
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
+    z-index: 999999;
+    background: #111b2f;
+    color: #fff;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.45);
+    font-family: Arial, sans-serif;
+  `;
+
   card.innerHTML = `
-    <h2>Карточка директора</h2>
-
-    <div class="director-metric">
-      <div class="director-metric-title">Продано</div>
-      <div class="director-metric-value" id="director-sold">—</div>
+    <h2 style="margin:0 0 16px;font-size:22px;">Карточка директора</h2>
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Продано</div>
+      <div style="font-size:24px;font-weight:800;">—</div>
     </div>
-
-    <div class="director-metric">
-      <div class="director-metric-title">Бронь</div>
-      <div class="director-metric-value" id="director-reserved">—</div>
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Бронь</div>
+      <div style="font-size:24px;font-weight:800;">—</div>
     </div>
-
-    <div class="director-metric">
-      <div class="director-metric-title">Свободно</div>
-      <div class="director-metric-value" id="director-free">—</div>
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Свободно</div>
+      <div style="font-size:24px;font-weight:800;">—</div>
     </div>
-
-    <div class="director-metric">
-      <div class="director-metric-title">Выручка</div>
-      <div class="director-metric-value" id="director-revenue">—</div>
+    <div style="background:#1a2740;border-radius:12px;padding:12px;">
+      <div style="color:#9fb0cb;font-size:13px;">Выручка</div>
+      <div style="font-size:24px;font-weight:800;">—</div>
     </div>
   `;
 
