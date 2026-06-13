@@ -206,17 +206,40 @@
     };
 
     function getStartAt(s) {
-      return s.start_at || s.starts_at || s.datetime || s.date_time || s.date || null;
-    }
+  if (s.date && s.time) {
+    return `${s.date}T${s.time}:00`;
+  }
 
-    function getTitle(s) {
-      return s.title || s.name || s.code || "Без названия";
-    }
+  return (
+    s.starts_at ||
+    s.start_at ||
+    s.datetime ||
+    s.date_time ||
+    s.date ||
+    null
+  );
+}
 
-    function getHall(s) {
-      return s.hall || s.hall_name || s.venue || "";
-    }
+function getTitle(s) {
+  return (
+    s.show ||
+    s.title ||
+    s.name ||
+    s.code ||
+    s.id ||
+    "Без названия"
+  );
+}
 
+function getHall(s) {
+  return (
+    s.venue_id ||
+    s.hall ||
+    s.hall_name ||
+    s.venue ||
+    ""
+  );
+}
     function classifySeance(s) {
       const rawStatus = String(s.status || "").toLowerCase();
 
