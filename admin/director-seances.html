@@ -341,9 +341,10 @@ function getHall(s) {
       }).join("");
     }
 
-    function openSeance(id) {
-      alert("Следующий шаг: открыть схему зала + карточку директора\\nseance_id = " + id);
-    }
+   function openSeance(id) {
+  location.href =
+    `/ticketing-core/hybrid/hall-cash.html?show=&seance=${encodeURIComponent(id)}&director=1`;
+}
 
     document.querySelectorAll(".status-btn").forEach(btn => {
       btn.addEventListener("click", () => {
