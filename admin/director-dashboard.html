@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VA Director Dashboard</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f4f1ee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .director-home {
+      width: min(900px, 92vw);
+      min-height: 520px;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18);
+      padding: 56px;
+      text-align: center;
+    }
+
+    .title {
+      font-size: 34px;
+      font-weight: 800;
+      color: #5b0d16;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 60px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 36px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .director-btn {
+      width: 280px;
+      height: 150px;
+      border: none;
+      border-radius: 20px;
+      background: #5b0d16;
+      color: white;
+      font-size: 28px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 26px rgba(91,13,22,.32);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .director-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 34px rgba(91,13,22,.42);
+    }
+
+    .director-btn.secondary {
+      background: #222;
+      box-shadow: 0 10px 26px rgba(0,0,0,.25);
+    }
+
+    .note {
+      margin-top: 48px;
+      color: #888;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="director-home">
+    <div class="title">VA Director Dashboard</div>
+    <div class="subtitle">Директорская ложа управления театром</div>
+
+    <div class="buttons">
+      <button class="director-btn" onclick="openSeances()">
+        СЕАНСЫ
+      </button>
+
+      <button class="director-btn secondary" onclick="openClients()">
+        КЛИЕНТСКАЯ<br>БАЗА
+      </button>
+    </div>
+
+    <div class="note">
+      V1: входная страница. Дальше подключаем раздел «Сеансы».
+    </div>
+  </main>
+
+  <script>
+    function openSeances() {
+      // следующий файл сделаем следующим шагом
+      window.location.href = "./director-seances.html";
+    }
+
+    function openClients() {
+      // пока заглушка
+      alert("Клиентская база будет подключена следующим этапом.");
+    }
+  </script>
+</body>
+</html>
