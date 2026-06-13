@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VA Director — Сеансы</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -11,146 +13,150 @@
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: #f4f1ee;
-      color: #222;
+      background: #0d1728;
+      color: #fff;
     }
 
     .topbar {
-      height: 64px;
-      background: #5b0d16;
-      color: #fff;
+      height: 70px;
+      background: #0b1222;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 22px;
+      padding: 0 28px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
 
     .topbar h1 {
-      font-size: 22px;
+      font-size: 26px;
+      font-weight: 900;
     }
 
     .back {
-      background: rgba(255,255,255,.14);
+      background: #5b0d16;
       color: #fff;
-      border: 1px solid rgba(255,255,255,.35);
-      border-radius: 10px;
-      padding: 9px 14px;
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 20px;
+      font-weight: 900;
       cursor: pointer;
-      font-weight: 700;
     }
 
     .wrap {
-      padding: 22px;
+      height: calc(100vh - 70px);
+      padding: 24px;
       display: grid;
       grid-template-columns: 320px 1fr;
-      gap: 20px;
-      height: calc(100vh - 64px);
+      gap: 22px;
     }
 
     .panel {
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      background: #1d2a3d;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
       overflow: hidden;
     }
 
     .panel-head {
-      padding: 18px 20px;
-      font-size: 20px;
-      font-weight: 800;
-      color: #5b0d16;
-      border-bottom: 1px solid #eee;
+      padding: 22px;
+      font-size: 24px;
+      font-weight: 900;
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
 
     .status-list {
-      padding: 12px;
+      padding: 16px;
     }
 
     .status-btn {
       width: 100%;
       border: 0;
-      background: #fafafa;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
-      text-align: left;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      background: #26364f;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 900;
       cursor: pointer;
-      font-size: 16px;
-      font-weight: 800;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .status-btn:hover,
     .status-btn.active {
       background: #5b0d16;
-      color: white;
     }
 
     .content {
-      padding: 18px;
+      padding: 24px;
       overflow: auto;
+      height: 100%;
     }
 
     .content-title {
-      font-size: 24px;
+      font-size: 30px;
       font-weight: 900;
-      color: #5b0d16;
-      margin-bottom: 16px;
+      margin-bottom: 22px;
     }
 
     .seance-list {
       display: grid;
-      gap: 12px;
+      gap: 14px;
     }
 
     .seance-row {
-      border: 1px solid #e6e0dc;
-      border-radius: 14px;
-      padding: 14px 16px;
-      background: #fff;
+      background: #121d32;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 18px 20px;
       cursor: pointer;
       display: grid;
-      grid-template-columns: 110px 1fr 90px 90px;
-      gap: 12px;
+      grid-template-columns: 150px 1fr 160px;
+      gap: 16px;
       align-items: center;
     }
 
     .seance-row:hover {
-      border-color: #5b0d16;
-      box-shadow: 0 8px 20px rgba(91,13,22,.12);
+      border-color: #8b1a28;
+      box-shadow: 0 10px 30px rgba(139,26,40,.26);
     }
 
     .date {
-      font-weight: 800;
-      color: #5b0d16;
+      color: #f0c36a;
+      font-weight: 900;
+      font-size: 18px;
     }
 
     .name {
-      font-weight: 800;
-      font-size: 17px;
+      font-weight: 900;
+      font-size: 20px;
     }
 
     .small {
-      color: #777;
-      font-size: 13px;
-      margin-top: 3px;
+      color: #aeb9ca;
+      margin-top: 4px;
+      font-size: 14px;
     }
 
     .badge {
-      background: #f1eeee;
-      padding: 7px 9px;
-      border-radius: 10px;
+      background: #26364f;
+      border-radius: 14px;
+      padding: 12px;
       text-align: center;
-      font-weight: 800;
+      font-weight: 900;
     }
 
-    .empty {
-      color: #777;
-      padding: 20px;
-      background: #fafafa;
-      border-radius: 14px;
+    .empty, .error {
+      background: #121d32;
+      border-radius: 18px;
+      padding: 22px;
+      color: #c4cede;
+    }
+
+    .error {
+      color: #ffb4b4;
     }
   </style>
 </head>
@@ -158,60 +164,37 @@
 <body>
   <header class="topbar">
     <h1>VA Director — Сеансы</h1>
-    <button class="back" onclick="location.href='./director-dashboard.html'">
-      ← Главная
-    </button>
+    <button class="back" onclick="location.href='./director-dashboard.html'">← Главная</button>
   </header>
 
   <main class="wrap">
     <aside class="panel">
       <div class="panel-head">Разделы</div>
-
       <div class="status-list">
-        <button class="status-btn active" data-status="presale">
-          <span>Предпродажа</span><b id="count-presale">0</b>
-        </button>
-
-        <button class="status-btn" data-status="current">
-          <span>Текущий</span><b id="count-current">0</b>
-        </button>
-
-        <button class="status-btn" data-status="done">
-          <span>Состоявшиеся</span><b id="count-done">0</b>
-        </button>
-
-        <button class="status-btn" data-status="postponed">
-          <span>Перенесённые</span><b id="count-postponed">0</b>
-        </button>
-
-        <button class="status-btn" data-status="cancelled">
-          <span>Отменённые</span><b id="count-cancelled">0</b>
-        </button>
-
-        <button class="status-btn" data-status="archive">
-          <span>Архив</span><b id="count-archive">0</b>
-        </button>
+        <button class="status-btn active" data-status="presale">Предпродажа <b id="count-presale">0</b></button>
+        <button class="status-btn" data-status="current">Текущий <b id="count-current">0</b></button>
+        <button class="status-btn" data-status="done">Состоявшиеся <b id="count-done">0</b></button>
+        <button class="status-btn" data-status="postponed">Перенесённые <b id="count-postponed">0</b></button>
+        <button class="status-btn" data-status="cancelled">Отменённые <b id="count-cancelled">0</b></button>
+        <button class="status-btn" data-status="archive">Архив <b id="count-archive">0</b></button>
       </div>
     </aside>
 
     <section class="panel">
       <div class="content">
         <div class="content-title" id="content-title">Предпродажа</div>
-        <div class="seance-list" id="seance-list"></div>
+        <div class="seance-list" id="seance-list">Загрузка...</div>
       </div>
     </section>
   </main>
 
   <script>
-    const mockSeances = [
-      { id: "acdc", title: "AC/DC", hall: "Client X", start_at: "2026-06-15T18:00:00", status: "presale", fill: 72, sold: 415 },
-      { id: "jazz", title: "Jazz вечір", hall: "Client X", start_at: "2026-06-16T19:00:00", status: "presale", fill: 44, sold: 180 },
-      { id: "show1", title: "Балбесы", hall: "Шевченко", start_at: "2026-06-13T18:00:00", status: "current", fill: 91, sold: 620 },
-      { id: "old1", title: "Ревизор", hall: "Шевченко", start_at: "2026-06-10T18:00:00", status: "done", fill: 83, sold: 540 },
-      { id: "move1", title: "Лісова пісня", hall: "Академія руху", start_at: "2026-06-20T17:00:00", status: "postponed", fill: 65, sold: 300 },
-      { id: "cancel1", title: "Концерт", hall: "Опера", start_at: "2026-06-12T18:00:00", status: "cancelled", fill: 50, sold: 250 }
-    ];
+    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allSeances = [];
     let activeStatus = "presale";
 
     const titles = {
@@ -223,25 +206,91 @@
       archive: "Архив"
     };
 
-    function formatDate(iso) {
-      const d = new Date(iso);
-      return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) +
-        " " +
-        d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    function getStartAt(s) {
+      return s.start_at || s.starts_at || s.datetime || s.date_time || s.date || null;
+    }
+
+    function getTitle(s) {
+      return s.title || s.name || s.code || "Без названия";
+    }
+
+    function getHall(s) {
+      return s.hall || s.hall_name || s.venue || "";
+    }
+
+    function classifySeance(s) {
+      const rawStatus = (s.status || "").toLowerCase();
+
+      if (rawStatus === "postponed" || rawStatus === "перенесённый") return "postponed";
+      if (rawStatus === "cancelled" || rawStatus === "canceled" || rawStatus === "отменённый") return "cancelled";
+      if (rawStatus === "archive" || rawStatus === "archived" || s.archived === true) return "archive";
+
+      const startRaw = getStartAt(s);
+      if (!startRaw) return "presale";
+
+      const now = new Date();
+      const start = new Date(startRaw);
+      const currentFrom = new Date(start.getTime() - 60 * 60 * 1000);
+
+      const durationHours = Number(s.duration_hours || 4);
+      const end = new Date(start.getTime() + durationHours * 60 * 60 * 1000);
+
+      if (now < currentFrom) return "presale";
+      if (now >= currentFrom && now <= end) return "current";
+      return "done";
+    }
+
+    function formatDate(value) {
+      if (!value) return "—";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return "—";
+
+      return d.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit"
+      }) + " " + d.toLocaleTimeString("ru-RU", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    async function loadSeances() {
+      const list = document.getElementById("seance-list");
+
+      const { data, error } = await supabase
+        .from("seances")
+        .select("*")
+        .order("start_at", { ascending: true });
+
+      if (error) {
+        list.innerHTML = `<div class="error">Ошибка загрузки seances:<br>${error.message}</div>`;
+        console.error(error);
+        return;
+      }
+
+      allSeances = (data || []).map(s => ({
+        ...s,
+        director_status: classifySeance(s)
+      }));
+
+      updateCounts();
+      renderList();
     }
 
     function updateCounts() {
-      for (const key of Object.keys(titles)) {
+      Object.keys(titles).forEach(key => {
         const el = document.getElementById("count-" + key);
-        if (el) el.textContent = mockSeances.filter(s => s.status === key).length;
-      }
+        if (el) {
+          el.textContent = allSeances.filter(s => s.director_status === key).length;
+        }
+      });
     }
 
     function renderList() {
       document.getElementById("content-title").textContent = titles[activeStatus];
 
       const list = document.getElementById("seance-list");
-      const rows = mockSeances.filter(s => s.status === activeStatus);
+      const rows = allSeances.filter(s => s.director_status === activeStatus);
 
       if (!rows.length) {
         list.innerHTML = `<div class="empty">Сеансов в этом разделе нет.</div>`;
@@ -250,20 +299,18 @@
 
       list.innerHTML = rows.map(s => `
         <div class="seance-row" onclick="openSeance('${s.id}')">
-          <div class="date">${formatDate(s.start_at)}</div>
+          <div class="date">${formatDate(getStartAt(s))}</div>
           <div>
-            <div class="name">${s.title}</div>
-            <div class="small">${s.hall}</div>
+            <div class="name">${getTitle(s)}</div>
+            <div class="small">${getHall(s)}</div>
           </div>
-          <div class="badge">${s.fill}%</div>
-          <div class="badge">${s.sold}</div>
+          <div class="badge">${s.code || s.id}</div>
         </div>
       `).join("");
     }
 
     function openSeance(id) {
-      // следующим шагом сделаем director-seance-view.html
-      location.href = `./director-seance-view.html?seance_id=${encodeURIComponent(id)}`;
+      alert("Следующий шаг: открыть схему зала + карточку директора\\nseance_id = " + id);
     }
 
     document.querySelectorAll(".status-btn").forEach(btn => {
@@ -275,8 +322,7 @@
       });
     });
 
-    updateCounts();
-    renderList();
+    loadSeances();
   </script>
 </body>
 </html>
