@@ -18,7 +18,7 @@
     }
 
     .topbar {
-      height: 70px;
+      height: 72px;
       background: #0b1222;
       display: flex;
       align-items: center;
@@ -28,7 +28,7 @@
     }
 
     .topbar h1 {
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 900;
     }
 
@@ -36,48 +36,46 @@
       background: #5b0d16;
       color: #fff;
       border: 0;
-      border-radius: 14px;
-      padding: 12px 20px;
+      border-radius: 16px;
+      padding: 13px 22px;
       font-weight: 900;
       cursor: pointer;
     }
 
     .wrap {
-      height: calc(100vh - 70px);
-      padding: 24px;
+      min-height: calc(100vh - 72px);
+      padding: 26px;
       display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 22px;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
     }
 
     .panel {
       background: #1d2a3d;
-      border-radius: 24px;
+      border-radius: 26px;
       border: 1px solid rgba(255,255,255,.08);
       box-shadow: 0 20px 60px rgba(0,0,0,.35);
       overflow: hidden;
     }
 
     .panel-head {
-      padding: 22px;
-      font-size: 24px;
+      padding: 24px;
+      font-size: 26px;
       font-weight: 900;
       border-bottom: 1px solid rgba(255,255,255,.08);
     }
 
-    .status-list {
-      padding: 16px;
-    }
+    .status-list { padding: 18px; }
 
     .status-btn {
       width: 100%;
       border: 0;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
+      border-radius: 18px;
+      padding: 17px 18px;
+      margin-bottom: 13px;
       background: #26364f;
       color: #fff;
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 900;
       cursor: pointer;
       display: flex;
@@ -85,20 +83,18 @@
       align-items: center;
     }
 
-    .status-btn.active {
-      background: #5b0d16;
-    }
+    .status-btn.active { background: #5b0d16; }
 
     .content {
-      padding: 24px;
+      padding: 26px;
       overflow: auto;
       height: 100%;
     }
 
     .content-title {
-      font-size: 30px;
+      font-size: 32px;
       font-weight: 900;
-      margin-bottom: 22px;
+      margin-bottom: 24px;
     }
 
     .seance-list {
@@ -109,18 +105,18 @@
     .seance-row {
       background: #121d32;
       border: 1px solid rgba(255,255,255,.08);
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 18px 20px;
       cursor: pointer;
       display: grid;
-      grid-template-columns: 150px 1fr 160px;
-      gap: 16px;
+      grid-template-columns: 150px 1fr 180px;
+      gap: 18px;
       align-items: center;
     }
 
     .seance-row:hover {
       border-color: #8b1a28;
-      box-shadow: 0 10px 30px rgba(139,26,40,.26);
+      box-shadow: 0 10px 30px rgba(139,26,40,.28);
     }
 
     .date {
@@ -131,12 +127,12 @@
 
     .name {
       font-weight: 900;
-      font-size: 20px;
+      font-size: 21px;
     }
 
     .small {
       color: #aeb9ca;
-      margin-top: 4px;
+      margin-top: 5px;
       font-size: 14px;
     }
 
@@ -146,6 +142,9 @@
       padding: 12px;
       text-align: center;
       font-weight: 900;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .empty, .error {
@@ -153,11 +152,10 @@
       border-radius: 18px;
       padding: 22px;
       color: #c4cede;
+      line-height: 1.45;
     }
 
-    .error {
-      color: #ffb4b4;
-    }
+    .error { color: #ffb4b4; }
   </style>
 </head>
 
@@ -170,6 +168,7 @@
   <main class="wrap">
     <aside class="panel">
       <div class="panel-head">Разделы</div>
+
       <div class="status-list">
         <button class="status-btn active" data-status="presale">Предпродажа <b id="count-presale">0</b></button>
         <button class="status-btn" data-status="current">Текущий <b id="count-current">0</b></button>
@@ -192,7 +191,7 @@
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const vaDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allSeances = [];
     let activeStatus = "presale";
@@ -219,10 +218,10 @@
     }
 
     function classifySeance(s) {
-      const rawStatus = (s.status || "").toLowerCase();
+      const rawStatus = String(s.status || "").toLowerCase();
 
-      if (rawStatus === "postponed" || rawStatus === "перенесённый") return "postponed";
-      if (rawStatus === "cancelled" || rawStatus === "canceled" || rawStatus === "отменённый") return "cancelled";
+      if (rawStatus === "postponed") return "postponed";
+      if (rawStatus === "cancelled" || rawStatus === "canceled") return "cancelled";
       if (rawStatus === "archive" || rawStatus === "archived" || s.archived === true) return "archive";
 
       const startRaw = getStartAt(s);
@@ -230,13 +229,16 @@
 
       const now = new Date();
       const start = new Date(startRaw);
-      const currentFrom = new Date(start.getTime() - 60 * 60 * 1000);
 
+      if (Number.isNaN(start.getTime())) return "presale";
+
+      const currentFrom = new Date(start.getTime() - 60 * 60 * 1000);
       const durationHours = Number(s.duration_hours || 4);
       const end = new Date(start.getTime() + durationHours * 60 * 60 * 1000);
 
       if (now < currentFrom) return "presale";
       if (now >= currentFrom && now <= end) return "current";
+
       return "done";
     }
 
@@ -257,21 +259,26 @@
     async function loadSeances() {
       const list = document.getElementById("seance-list");
 
-      const { data, error } = await supabase
+      const { data, error } = await vaDb
         .from("seances")
-        .select("*")
-        .order("start_at", { ascending: true });
+        .select("*");
 
       if (error) {
-        list.innerHTML = `<div class="error">Ошибка загрузки seances:<br>${error.message}</div>`;
+        list.innerHTML = `<div class="error">Ошибка загрузки таблицы seances:<br>${error.message}</div>`;
         console.error(error);
         return;
       }
 
-      allSeances = (data || []).map(s => ({
-        ...s,
-        director_status: classifySeance(s)
-      }));
+      allSeances = (data || [])
+        .map(s => ({
+          ...s,
+          director_status: classifySeance(s)
+        }))
+        .sort((a, b) => {
+          const da = new Date(getStartAt(a) || 0).getTime();
+          const db = new Date(getStartAt(b) || 0).getTime();
+          return da - db;
+        });
 
       updateCounts();
       renderList();
@@ -280,9 +287,8 @@
     function updateCounts() {
       Object.keys(titles).forEach(key => {
         const el = document.getElementById("count-" + key);
-        if (el) {
-          el.textContent = allSeances.filter(s => s.director_status === key).length;
-        }
+        if (!el) return;
+        el.textContent = allSeances.filter(s => s.director_status === key).length;
       });
     }
 
@@ -297,16 +303,19 @@
         return;
       }
 
-      list.innerHTML = rows.map(s => `
-        <div class="seance-row" onclick="openSeance('${s.id}')">
-          <div class="date">${formatDate(getStartAt(s))}</div>
-          <div>
-            <div class="name">${getTitle(s)}</div>
-            <div class="small">${getHall(s)}</div>
+      list.innerHTML = rows.map(s => {
+        const id = String(s.id);
+        return `
+          <div class="seance-row" onclick="openSeance('${id}')">
+            <div class="date">${formatDate(getStartAt(s))}</div>
+            <div>
+              <div class="name">${getTitle(s)}</div>
+              <div class="small">${getHall(s)}</div>
+            </div>
+            <div class="badge">${s.code || id}</div>
           </div>
-          <div class="badge">${s.code || s.id}</div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
     }
 
     function openSeance(id) {
