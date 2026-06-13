@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VA Director — Сеансы</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f4f1ee;
+      color: #222;
+    }
+
+    .topbar {
+      height: 64px;
+      background: #5b0d16;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+    }
+
+    .topbar h1 {
+      font-size: 22px;
+    }
+
+    .back {
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .wrap {
+      padding: 22px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      height: calc(100vh - 64px);
+    }
+
+    .panel {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 18px 20px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #5b0d16;
+      border-bottom: 1px solid #eee;
+    }
+
+    .status-list {
+      padding: 12px;
+    }
+
+    .status-btn {
+      width: 100%;
+      border: 0;
+      background: #fafafa;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-btn:hover,
+    .status-btn.active {
+      background: #5b0d16;
+      color: white;
+    }
+
+    .content {
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .content-title {
+      font-size: 24px;
+      font-weight: 900;
+      color: #5b0d16;
+      margin-bottom: 16px;
+    }
+
+    .seance-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .seance-row {
+      border: 1px solid #e6e0dc;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fff;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 110px 1fr 90px 90px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .seance-row:hover {
+      border-color: #5b0d16;
+      box-shadow: 0 8px 20px rgba(91,13,22,.12);
+    }
+
+    .date {
+      font-weight: 800;
+      color: #5b0d16;
+    }
+
+    .name {
+      font-weight: 800;
+      font-size: 17px;
+    }
+
+    .small {
+      color: #777;
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    .badge {
+      background: #f1eeee;
+      padding: 7px 9px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .empty {
+      color: #777;
+      padding: 20px;
+      background: #fafafa;
+      border-radius: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <h1>VA Director — Сеансы</h1>
+    <button class="back" onclick="location.href='./director-dashboard.html'">
+      ← Главная
+    </button>
+  </header>
+
+  <main class="wrap">
+    <aside class="panel">
+      <div class="panel-head">Разделы</div>
+
+      <div class="status-list">
+        <button class="status-btn active" data-status="presale">
+          <span>Предпродажа</span><b id="count-presale">0</b>
+        </button>
+
+        <button class="status-btn" data-status="current">
+          <span>Текущий</span><b id="count-current">0</b>
+        </button>
+
+        <button class="status-btn" data-status="done">
+          <span>Состоявшиеся</span><b id="count-done">0</b>
+        </button>
+
+        <button class="status-btn" data-status="postponed">
+          <span>Перенесённые</span><b id="count-postponed">0</b>
+        </button>
+
+        <button class="status-btn" data-status="cancelled">
+          <span>Отменённые</span><b id="count-cancelled">0</b>
+        </button>
+
+        <button class="status-btn" data-status="archive">
+          <span>Архив</span><b id="count-archive">0</b>
+        </button>
+      </div>
+    </aside>
+
+    <section class="panel">
+      <div class="content">
+        <div class="content-title" id="content-title">Предпродажа</div>
+        <div class="seance-list" id="seance-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const mockSeances = [
+      { id: "acdc", title: "AC/DC", hall: "Client X", start_at: "2026-06-15T18:00:00", status: "presale", fill: 72, sold: 415 },
+      { id: "jazz", title: "Jazz вечір", hall: "Client X", start_at: "2026-06-16T19:00:00", status: "presale", fill: 44, sold: 180 },
+      { id: "show1", title: "Балбесы", hall: "Шевченко", start_at: "2026-06-13T18:00:00", status: "current", fill: 91, sold: 620 },
+      { id: "old1", title: "Ревизор", hall: "Шевченко", start_at: "2026-06-10T18:00:00", status: "done", fill: 83, sold: 540 },
+      { id: "move1", title: "Лісова пісня", hall: "Академія руху", start_at: "2026-06-20T17:00:00", status: "postponed", fill: 65, sold: 300 },
+      { id: "cancel1", title: "Концерт", hall: "Опера", start_at: "2026-06-12T18:00:00", status: "cancelled", fill: 50, sold: 250 }
+    ];
+
+    let activeStatus = "presale";
+
+    const titles = {
+      presale: "Предпродажа",
+      current: "Текущий",
+      done: "Состоявшиеся",
+      postponed: "Перенесённые",
+      cancelled: "Отменённые",
+      archive: "Архив"
+    };
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }) +
+        " " +
+        d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function updateCounts() {
+      for (const key of Object.keys(titles)) {
+        const el = document.getElementById("count-" + key);
+        if (el) el.textContent = mockSeances.filter(s => s.status === key).length;
+      }
+    }
+
+    function renderList() {
+      document.getElementById("content-title").textContent = titles[activeStatus];
+
+      const list = document.getElementById("seance-list");
+      const rows = mockSeances.filter(s => s.status === activeStatus);
+
+      if (!rows.length) {
+        list.innerHTML = `<div class="empty">Сеансов в этом разделе нет.</div>`;
+        return;
+      }
+
+      list.innerHTML = rows.map(s => `
+        <div class="seance-row" onclick="openSeance('${s.id}')">
+          <div class="date">${formatDate(s.start_at)}</div>
+          <div>
+            <div class="name">${s.title}</div>
+            <div class="small">${s.hall}</div>
+          </div>
+          <div class="badge">${s.fill}%</div>
+          <div class="badge">${s.sold}</div>
+        </div>
+      `).join("");
+    }
+
+    function openSeance(id) {
+      // следующим шагом сделаем director-seance-view.html
+      location.href = `./director-seance-view.html?seance_id=${encodeURIComponent(id)}`;
+    }
+
+    document.querySelectorAll(".status-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".status-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeStatus = btn.dataset.status;
+        renderList();
+      });
+    });
+
+    updateCounts();
+    renderList();
+  </script>
+</body>
+</html>
