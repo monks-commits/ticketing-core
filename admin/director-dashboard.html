@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,70 +15,75 @@
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: #f4f1ee;
+      background: #0d1728;
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .director-home {
-      width: min(900px, 92vw);
-      min-height: 520px;
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.18);
-      padding: 56px;
+      width: min(760px, 92vw);
+      background: #1d2a3d;
+      border-radius: 26px;
+      padding: 58px 48px;
       text-align: center;
+      box-shadow: 0 24px 70px rgba(0,0,0,.42);
+      border: 1px solid rgba(255,255,255,.08);
     }
 
     .title {
-      font-size: 34px;
-      font-weight: 800;
-      color: #5b0d16;
+      font-size: 36px;
+      font-weight: 900;
       margin-bottom: 12px;
+      letter-spacing: .2px;
     }
 
     .subtitle {
       font-size: 18px;
-      color: #666;
-      margin-bottom: 60px;
+      color: #b9c3d5;
+      margin-bottom: 48px;
     }
 
     .buttons {
       display: flex;
-      gap: 36px;
-      justify-content: center;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 18px;
+      align-items: center;
     }
 
     .director-btn {
-      width: 280px;
-      height: 150px;
-      border: none;
-      border-radius: 20px;
-      background: #5b0d16;
-      color: white;
-      font-size: 28px;
-      font-weight: 800;
+      width: min(360px, 100%);
+      height: 72px;
+      border: 0;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 900;
       cursor: pointer;
-      box-shadow: 0 10px 26px rgba(91,13,22,.32);
-      transition: transform .15s ease, box-shadow .15s ease;
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
     }
 
     .director-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 14px 34px rgba(91,13,22,.42);
+      transform: translateY(-2px);
+      opacity: .96;
     }
 
-    .director-btn.secondary {
-      background: #222;
-      box-shadow: 0 10px 26px rgba(0,0,0,.25);
+    .director-btn.seances {
+      background: #5b0d16;
+      box-shadow: 0 12px 28px rgba(91,13,22,.42);
+    }
+
+    .director-btn.clients {
+      background: #26364f;
+      box-shadow: 0 12px 28px rgba(0,0,0,.28);
+      border: 1px solid rgba(255,255,255,.08);
     }
 
     .note {
-      margin-top: 48px;
-      color: #888;
-      font-size: 14px;
+      margin-top: 36px;
+      color: #7f8da5;
+      font-size: 13px;
     }
   </style>
 </head>
@@ -89,28 +94,26 @@
     <div class="subtitle">Директорская ложа управления театром</div>
 
     <div class="buttons">
-      <button class="director-btn" onclick="openSeances()">
+      <button class="director-btn seances" onclick="openSeances()">
         СЕАНСЫ
       </button>
 
-      <button class="director-btn secondary" onclick="openClients()">
-        КЛИЕНТСКАЯ<br>БАЗА
+      <button class="director-btn clients" onclick="openClients()">
+        КЛИЕНТСКАЯ БАЗА
       </button>
     </div>
 
     <div class="note">
-      V1: входная страница. Дальше подключаем раздел «Сеансы».
+      VA Director V1
     </div>
   </main>
 
   <script>
     function openSeances() {
-      // следующий файл сделаем следующим шагом
       window.location.href = "./director-seances.html";
     }
 
     function openClients() {
-      // пока заглушка
       alert("Клиентская база будет подключена следующим этапом.");
     }
   </script>
