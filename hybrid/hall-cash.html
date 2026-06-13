@@ -3568,5 +3568,45 @@ document.getElementById("hallZoomIn")
 applyHallZoom();*/
     
   </script>
+
+<script>
+(function initDirectorMode() {
+  const params = new URLSearchParams(location.search);
+  const isDirectorMode = params.get("director") === "1";
+
+  if (!isDirectorMode) return;
+
+  document.body.classList.add("director-mode");
+
+  const card = document.createElement("div");
+  card.className = "director-card-overlay";
+  card.innerHTML = `
+    <h2>Карточка директора</h2>
+
+    <div class="director-metric">
+      <div class="director-metric-title">Продано</div>
+      <div class="director-metric-value" id="director-sold">—</div>
+    </div>
+
+    <div class="director-metric">
+      <div class="director-metric-title">Бронь</div>
+      <div class="director-metric-value" id="director-reserved">—</div>
+    </div>
+
+    <div class="director-metric">
+      <div class="director-metric-title">Свободно</div>
+      <div class="director-metric-value" id="director-free">—</div>
+    </div>
+
+    <div class="director-metric">
+      <div class="director-metric-title">Выручка</div>
+      <div class="director-metric-value" id="director-revenue">—</div>
+    </div>
+  `;
+
+  document.body.appendChild(card);
+})();
+</script>
+  
 </body>
 </html>
