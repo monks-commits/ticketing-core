@@ -3575,12 +3575,7 @@ applyHallZoom();*/
   const params = new URLSearchParams(location.search);
   if (params.get("director") !== "1") return;
 
-  const seanceId = params.get("seance") || params.get("seance_id");
-  if (!seanceId) return;
-
-  const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-  const vaDirectorDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const seanceId = params.get("seance") || params.get("seance_id") || "";
 
   const card = document.createElement("div");
   card.style.cssText = `
@@ -3593,97 +3588,69 @@ applyHallZoom();*/
 
   card.innerHTML = `
     <h2 style="margin:0 0 16px;font-size:22px;">Карточка директора</h2>
+    <div style="color:#9fb0cb;font-size:12px;margin-bottom:12px;">${seanceId}</div>
 
-    <div class="director-line">Сеанс: <b>${seanceId}</b></div>
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Продано</div>
+      <div id="director-sold" style="font-size:26px;font-weight:900;">—</div>
+    </div>
 
-    <div class="director-box"><span>Продано</span><b id="director-sold">—</b></div>
-    <div class="director-box"><span>Бронь</span><b id="director-booked">—</b></div>
-    <div class="director-box"><span>Временная бронь</span><b id="director-hold">—</b></div>
-    <div class="director-box"><span>Выручка</span><b id="director-revenue">—</b></div>
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Бронь</div>
+      <div id="director-booked" style="font-size:26px;font-weight:900;">—</div>
+    </div>
 
-    <div style="margin-top:12px;color:#9fb0cb;font-size:12px;" id="director-updated">
-      обновление...
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Выручка</div>
+      <div id="director-revenue" style="font-size:26px;font-weight:900;">—</div>
+    </div>
+
+    <div id="director-status" style="margin-top:12px;color:#9fb0cb;font-size:12px;">
+      карточка загружена
     </div>
   `;
 
   document.body.appendChild(card);
 
-  const style = document.createElement("style");
-  style.textContent = `
-    .director-line{
-      font-size:13px;color:#9fb0cb;margin-bottom:12px;word-break:break-all;
+  try {
+    if (!window.supabase) {
+      document.getElementById("director-status").textContent =
+        "Supabase client не найден в этом файле";
+      return;
     }
-    .director-box{
-      background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;
-      display:flex;justify-content:space-between;align-items:center;gap:12px;
-    }
-    .director-box span{color:#9fb0cb;font-size:14px;}
-    .director-box b{font-size:24px;}
-  `;
-  document.head.appendChild(style);
 
-  async function fetchBySeance(table) {
-    let res = await vaDirectorDb.from(table).select("*").eq("seance_id", seanceId);
-    if (!res.error) return res.data || [];
+    const db = window.supabase.createClient(
+      "https://fhusjlkneckbvnrdhbil.supabase.co",
+      "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS"
+    );
 
-    res = await vaDirectorDb.from(table).select("*").eq("seance", seanceId);
-    if (!res.error) return res.data || [];
+    const { data: tickets } = await db
+      .from("tickets")
+      .select("*")
+      .eq("seance_id", seanceId);
 
-    return [];
-  }
+    const { data: bookings } = await db
+      .from("bookings")
+      .select("*")
+      .eq("seance_id", seanceId);
 
-  function money(v) {
-    return Number(v || 0).toLocaleString("ru-RU") + " грн";
-  }
+    document.getElementById("director-sold").textContent =
+      tickets ? tickets.length : 0;
 
-  function sumRows(rows) {
-    return rows.reduce((sum, r) => {
-      return sum + Number(
-        r.amount ||
-        r.total ||
-        r.total_amount ||
-        r.price ||
-        r.sum ||
-        0
-      );
-    }, 0);
-  }
+    document.getElementById("director-booked").textContent =
+      bookings ? bookings.length : 0;
 
-  async function loadDirectorCard() {
-    const tickets = await fetchBySeance("tickets");
-    const bookings = await fetchBySeance("bookings");
-    const orders = await fetchBySeance("orders");
+    document.getElementById("director-revenue").textContent =
+      "0 грн";
 
-    const soldTickets = tickets.filter(t => {
-      const st = String(t.status || "").toLowerCase();
-      return !["cancelled", "canceled", "refunded", "void"].includes(st);
-    });
-
-    const longBookings = bookings.filter(b => {
-      const st = String(b.status || "").toLowerCase();
-      return st === "reserved" || st === "booked" || st === "active";
-    });
-
-    const holdBookings = bookings.filter(b => {
-      const st = String(b.status || "").toLowerCase();
-      return st === "hold" || st === "temporary";
-    });
-
-    const paidOrders = orders.filter(o => {
-      const st = String(o.status || o.payment_status || "").toLowerCase();
-      return st === "paid" || st === "success" || st === "completed";
-    });
-
-    document.getElementById("director-sold").textContent = soldTickets.length;
-    document.getElementById("director-booked").textContent = longBookings.length;
-    document.getElementById("director-hold").textContent = holdBookings.length;
-    document.getElementById("director-revenue").textContent = money(sumRows(paidOrders));
-    document.getElementById("director-updated").textContent =
+    document.getElementById("director-status").textContent =
       "Обновлено: " + new Date().toLocaleTimeString("ru-RU");
-  }
 
-  await loadDirectorCard();
-  setInterval(loadDirectorCard, 10000);
+  } catch (e) {
+    console.error("Director card error:", e);
+    document.getElementById("director-status").textContent =
+      "Ошибка загрузки данных: " + e.message;
+  }
 })();
 </script>
   
