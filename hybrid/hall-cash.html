@@ -3571,48 +3571,119 @@ applyHallZoom();*/
 
 <!-- ===== VA DIRECTOR MODE ===== -->
 <script>
-(function () {
-  const params = new URLSearchParams(window.location.search);
+(async function initDirectorMode() {
+  const params = new URLSearchParams(location.search);
   if (params.get("director") !== "1") return;
+
+  const seanceId = params.get("seance") || params.get("seance_id");
+  if (!seanceId) return;
+
+  const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+  const vaDirectorDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const card = document.createElement("div");
   card.style.cssText = `
-    position: fixed;
-    top: 140px;
-    right: 20px;
-    width: 360px;
-    max-height: calc(100vh - 170px);
-    overflow-y: auto;
-    z-index: 999999;
-    background: #111b2f;
-    color: #fff;
-    border-radius: 18px;
-    padding: 18px;
-    box-shadow: 0 20px 50px rgba(0,0,0,.45);
+    position: fixed; top: 120px; right: 20px; width: 360px;
+    z-index: 999999; background: #111b2f; color: #fff;
+    padding: 20px; border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.55);
     font-family: Arial, sans-serif;
   `;
 
   card.innerHTML = `
     <h2 style="margin:0 0 16px;font-size:22px;">Карточка директора</h2>
-    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-      <div style="color:#9fb0cb;font-size:13px;">Продано</div>
-      <div style="font-size:24px;font-weight:800;">—</div>
-    </div>
-    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-      <div style="color:#9fb0cb;font-size:13px;">Бронь</div>
-      <div style="font-size:24px;font-weight:800;">—</div>
-    </div>
-    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-      <div style="color:#9fb0cb;font-size:13px;">Свободно</div>
-      <div style="font-size:24px;font-weight:800;">—</div>
-    </div>
-    <div style="background:#1a2740;border-radius:12px;padding:12px;">
-      <div style="color:#9fb0cb;font-size:13px;">Выручка</div>
-      <div style="font-size:24px;font-weight:800;">—</div>
+
+    <div class="director-line">Сеанс: <b>${seanceId}</b></div>
+
+    <div class="director-box"><span>Продано</span><b id="director-sold">—</b></div>
+    <div class="director-box"><span>Бронь</span><b id="director-booked">—</b></div>
+    <div class="director-box"><span>Временная бронь</span><b id="director-hold">—</b></div>
+    <div class="director-box"><span>Выручка</span><b id="director-revenue">—</b></div>
+
+    <div style="margin-top:12px;color:#9fb0cb;font-size:12px;" id="director-updated">
+      обновление...
     </div>
   `;
 
   document.body.appendChild(card);
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .director-line{
+      font-size:13px;color:#9fb0cb;margin-bottom:12px;word-break:break-all;
+    }
+    .director-box{
+      background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+    }
+    .director-box span{color:#9fb0cb;font-size:14px;}
+    .director-box b{font-size:24px;}
+  `;
+  document.head.appendChild(style);
+
+  async function fetchBySeance(table) {
+    let res = await vaDirectorDb.from(table).select("*").eq("seance_id", seanceId);
+    if (!res.error) return res.data || [];
+
+    res = await vaDirectorDb.from(table).select("*").eq("seance", seanceId);
+    if (!res.error) return res.data || [];
+
+    return [];
+  }
+
+  function money(v) {
+    return Number(v || 0).toLocaleString("ru-RU") + " грн";
+  }
+
+  function sumRows(rows) {
+    return rows.reduce((sum, r) => {
+      return sum + Number(
+        r.amount ||
+        r.total ||
+        r.total_amount ||
+        r.price ||
+        r.sum ||
+        0
+      );
+    }, 0);
+  }
+
+  async function loadDirectorCard() {
+    const tickets = await fetchBySeance("tickets");
+    const bookings = await fetchBySeance("bookings");
+    const orders = await fetchBySeance("orders");
+
+    const soldTickets = tickets.filter(t => {
+      const st = String(t.status || "").toLowerCase();
+      return !["cancelled", "canceled", "refunded", "void"].includes(st);
+    });
+
+    const longBookings = bookings.filter(b => {
+      const st = String(b.status || "").toLowerCase();
+      return st === "reserved" || st === "booked" || st === "active";
+    });
+
+    const holdBookings = bookings.filter(b => {
+      const st = String(b.status || "").toLowerCase();
+      return st === "hold" || st === "temporary";
+    });
+
+    const paidOrders = orders.filter(o => {
+      const st = String(o.status || o.payment_status || "").toLowerCase();
+      return st === "paid" || st === "success" || st === "completed";
+    });
+
+    document.getElementById("director-sold").textContent = soldTickets.length;
+    document.getElementById("director-booked").textContent = longBookings.length;
+    document.getElementById("director-hold").textContent = holdBookings.length;
+    document.getElementById("director-revenue").textContent = money(sumRows(paidOrders));
+    document.getElementById("director-updated").textContent =
+      "Обновлено: " + new Date().toLocaleTimeString("ru-RU");
+  }
+
+  await loadDirectorCard();
+  setInterval(loadDirectorCard, 10000);
 })();
 </script>
   
