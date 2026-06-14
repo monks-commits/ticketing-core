@@ -3676,13 +3676,13 @@ applyHallZoom();*/
 
     async function loadDirectorData() {
       const { data: tickets, error: ticketsError } = await db
-        .from("tickets")
-        .select("id, price, status, seance_id")
+       .from("tickets")
+.select("id, price, seance_id")
         .eq("seance_id", seanceId);
 
       const { data: bookings, error: bookingsError } = await db
         .from("bookings")
-        .select("id, status, seance_id")
+        .select("id, seance_id")
         .eq("seance_id", seanceId);
 
       if (ticketsError) throw ticketsError;
