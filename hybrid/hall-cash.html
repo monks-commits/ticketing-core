@@ -3567,11 +3567,10 @@ document.getElementById("hallZoomIn")
 
 applyHallZoom();*/
 
-    
+    </script>
+
 
   
-</script>
-
 <!-- ===== VA DIRECTOR MODE ===== -->
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
   
@@ -3584,16 +3583,52 @@ applyHallZoom();*/
 
   const card = document.createElement("div");
   card.style.cssText = `
-    position: fixed; top: 120px; right: 20px; width: 360px;
-    z-index: 999999; background: #111b2f; color: #fff;
-    padding: 20px; border-radius: 18px;
+    position: fixed;
+    top: 95px;
+    right: 20px;
+    width: 380px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    z-index: 999999;
+    background: #111b2f;
+    color: #ffffff;
+    padding: 18px;
+    border-radius: 18px;
     box-shadow: 0 20px 60px rgba(0,0,0,.55);
     font-family: Arial, sans-serif;
   `;
 
   card.innerHTML = `
-    <h2 style="margin:0 0 16px;font-size:22px;">Карточка директора</h2>
-    <div style="color:#9fb0cb;font-size:12px;margin-bottom:12px;">${seanceId}</div>
+    <div style="
+      background:#5b0d16;
+      margin:-18px -18px 16px;
+      padding:14px 18px;
+      border-radius:18px 18px 0 0;
+    ">
+      <div style="font-size:12px;color:#f0c6cc;font-weight:800;">
+        VA DIRECTOR MODE
+      </div>
+      <div style="font-size:21px;font-weight:900;margin-top:4px;">
+        Режим просмотра
+      </div>
+      <div style="font-size:12px;color:#f0c6cc;margin-top:4px;word-break:break-all;">
+        ${seanceId}
+      </div>
+    </div>
+
+    <button onclick="location.href='../admin/director-seances.html'" style="
+      width:100%;
+      border:0;
+      border-radius:12px;
+      padding:11px 12px;
+      margin-bottom:14px;
+      background:#26364f;
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+    ">
+      ← К списку сеансов
+    </button>
 
     <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
       <div style="color:#9fb0cb;font-size:13px;">Продано</div>
@@ -3611,16 +3646,26 @@ applyHallZoom();*/
     </div>
 
     <div id="director-status" style="margin-top:12px;color:#9fb0cb;font-size:12px;">
-      карточка загружена
+      загрузка...
     </div>
   `;
 
   document.body.appendChild(card);
 
+  // Защита от случайных действий кассы в режиме директора
+  document.querySelectorAll(
+    "button, select, input, textarea"
+  ).forEach(el => {
+    if (card.contains(el)) return;
+    el.disabled = true;
+    el.style.pointerEvents = "none";
+    el.style.opacity = "0.35";
+  });
+
   try {
     if (!window.supabase) {
       document.getElementById("director-status").textContent =
-        "Supabase client не найден в этом файле";
+        "Supabase client не найден";
       return;
     }
 
@@ -3629,27 +3674,41 @@ applyHallZoom();*/
       "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS"
     );
 
-    const { data: tickets } = await db
-      .from("tickets")
-      .select("*")
-      .eq("seance_id", seanceId);
+    async function loadDirectorData() {
+      const { data: tickets, error: ticketsError } = await db
+        .from("tickets")
+        .select("id, price, status, seance_id")
+        .eq("seance_id", seanceId);
 
-    const { data: bookings } = await db
-      .from("bookings")
-      .select("*")
-      .eq("seance_id", seanceId);
+      const { data: bookings, error: bookingsError } = await db
+        .from("bookings")
+        .select("id, status, seance_id")
+        .eq("seance_id", seanceId);
 
-    document.getElementById("director-sold").textContent =
-      tickets ? tickets.length : 0;
+      if (ticketsError) throw ticketsError;
+      if (bookingsError) throw bookingsError;
 
-    document.getElementById("director-booked").textContent =
-      bookings ? bookings.length : 0;
+      const sold = tickets || [];
+      const activeBookings = (bookings || []).filter(b => {
+        const st = String(b.status || "").toLowerCase();
+        return st === "hold" || st === "reserved" || st === "booked";
+      });
 
-    document.getElementById("director-revenue").textContent =
-      "0 грн";
+      const revenue = sold.reduce((sum, t) => {
+        return sum + Number(t.price || 0);
+      }, 0);
 
-    document.getElementById("director-status").textContent =
-      "Обновлено: " + new Date().toLocaleTimeString("ru-RU");
+      document.getElementById("director-sold").textContent = sold.length;
+      document.getElementById("director-booked").textContent = activeBookings.length;
+      document.getElementById("director-revenue").textContent =
+        revenue.toLocaleString("ru-RU") + " грн";
+
+      document.getElementById("director-status").textContent =
+        "Обновлено: " + new Date().toLocaleTimeString("ru-RU");
+    }
+
+    await loadDirectorData();
+    setInterval(loadDirectorData, 10000);
 
   } catch (e) {
     console.error("Director card error:", e);
