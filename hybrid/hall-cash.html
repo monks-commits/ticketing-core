@@ -3732,6 +3732,7 @@ document.getElementById("director-revenue").textContent =
 
 document.getElementById("director-status").textContent =
   "Обновлено: " + new Date().toLocaleTimeString("ru-RU");
+      }
     await loadDirectorData();
     setInterval(loadDirectorData, 10000);
 
