@@ -3721,6 +3721,18 @@ const revenue = soldTickets.reduce((sum, t) => {
   return sum + Number(t.price || 0);
 }, 0);
 
+const capacity = Number(seanceRow?.capacity || 0);
+
+const occupied = soldTickets.length + longBookings.length + holdBookings.length;
+
+const free = capacity > 0
+  ? Math.max(capacity - occupied, 0)
+  : null;
+
+const fill = capacity > 0
+  ? Math.round((occupied / capacity) * 100)
+  : null;
+      
 document.getElementById("director-sold").textContent = soldTickets.length;
 document.getElementById("director-booked").textContent = longBookings.length;
 
@@ -3730,6 +3742,16 @@ if (holdEl) holdEl.textContent = holdBookings.length;
 document.getElementById("director-revenue").textContent =
   revenue.toLocaleString("ru-RU") + " грн";
 
+const freeEl = document.getElementById("director-free");
+if (freeEl) {
+  freeEl.textContent = free === null ? "—" : free;
+}
+
+const fillEl = document.getElementById("director-fill");
+if (fillEl) {
+  fillEl.textContent = fill === null ? "—" : fill + "%";
+}
+      
 document.getElementById("director-status").textContent =
   "Обновлено: " + new Date().toLocaleTimeString("ru-RU");
       }
