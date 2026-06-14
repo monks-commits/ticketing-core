@@ -3670,7 +3670,7 @@ applyHallZoom();*/
 
       const { data: seanceRow, error: seanceError } = await db
         .from("seances")
-        .select("id, capacity")
+        .select("*")
         .eq("id", seanceId)
         .maybeSingle();
 
