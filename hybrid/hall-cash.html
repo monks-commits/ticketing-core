@@ -3705,18 +3705,25 @@ applyHallZoom();*/
       if (ticketsError) throw ticketsError;
       if (bookingsError) throw bookingsError;
 
-      const sold = tickets || [];
-      const activeBookings = (bookings || []).filter(b => {
-        const st = String(b.status || "").toLowerCase();
-        return st === "hold" || st === "reserved" || st === "booked";
-      });
+      const holdBookings = (bookings || []).filter(b => {
+  const st = String(b.status || "").toLowerCase();
+  return st === "hold";
+});
+
+const longBookings = (bookings || []).filter(b => {
+  const st = String(b.status || "").toLowerCase();
+  return st === "reserved" || st === "booked";
+});
 
       const revenue = sold.reduce((sum, t) => {
         return sum + Number(t.price || 0);
       }, 0);
 
       document.getElementById("director-sold").textContent = sold.length;
-      document.getElementById("director-booked").textContent = activeBookings.length;
+      document.getElementById("director-booked").textContent = longBookings.length;
+
+const holdEl = document.getElementById("director-hold");
+if (holdEl) holdEl.textContent = holdBookings.length;
       document.getElementById("director-revenue").textContent =
         revenue.toLocaleString("ru-RU") + " грн";
 
