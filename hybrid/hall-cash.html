@@ -3682,7 +3682,7 @@ applyHallZoom();*/
 
       const { data: bookings, error: bookingsError } = await db
         .from("bookings")
-        .select("id, seance_id")
+        .select("id, status, seance_id")
         .eq("seance_id", seanceId);
 
       if (ticketsError) throw ticketsError;
