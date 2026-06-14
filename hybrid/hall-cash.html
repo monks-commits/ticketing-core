@@ -3599,34 +3599,13 @@ applyHallZoom();*/
   `;
 
   card.innerHTML = `
-    <div style="
-      background:#5b0d16;
-      margin:-18px -18px 16px;
-      padding:14px 18px;
-      border-radius:18px 18px 0 0;
-    ">
-      <div style="font-size:12px;color:#f0c6cc;font-weight:800;">
-        VA DIRECTOR MODE
-      </div>
-      <div style="font-size:21px;font-weight:900;margin-top:4px;">
-        Режим просмотра
-      </div>
-      <div style="font-size:12px;color:#f0c6cc;margin-top:4px;word-break:break-all;">
-        ${seanceId}
-      </div>
+    <div style="background:#5b0d16;margin:-18px -18px 16px;padding:14px 18px;border-radius:18px 18px 0 0;">
+      <div style="font-size:12px;color:#f0c6cc;font-weight:800;">VA DIRECTOR MODE</div>
+      <div style="font-size:21px;font-weight:900;margin-top:4px;">Режим просмотра</div>
+      <div style="font-size:12px;color:#f0c6cc;margin-top:4px;word-break:break-all;">${seanceId}</div>
     </div>
 
-    <button onclick="location.href='../admin/director-seances.html'" style="
-      width:100%;
-      border:0;
-      border-radius:12px;
-      padding:11px 12px;
-      margin-bottom:14px;
-      background:#26364f;
-      color:#fff;
-      font-weight:900;
-      cursor:pointer;
-    ">
+    <button onclick="location.href='../admin/director-seances.html'" style="width:100%;border:0;border-radius:12px;padding:11px 12px;margin-bottom:14px;background:#26364f;color:#fff;font-weight:900;cursor:pointer;">
       ← К списку сеансов
     </button>
 
@@ -3640,39 +3619,32 @@ applyHallZoom();*/
       <div id="director-booked" style="font-size:26px;font-weight:900;">—</div>
     </div>
 
-<div class="director-metric">
-  <div class="director-metric-title">Временная бронь</div>
-  <div class="director-metric-value" id="director-hold">—</div>
-</div>
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Временная бронь</div>
+      <div id="director-hold" style="font-size:26px;font-weight:900;">—</div>
+    </div>
 
     <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
       <div style="color:#9fb0cb;font-size:13px;">Выручка</div>
       <div id="director-revenue" style="font-size:26px;font-weight:900;">—</div>
     </div>
 
-
-
-<div class="director-metric">
-  <div class="director-metric-title">Свободно</div>
-  <div class="director-metric-value" id="director-free">—</div>
-</div>
-
-<div class="director-metric">
-  <div class="director-metric-title">Заполнение</div>
-  <div class="director-metric-value" id="director-fill">—</div>
-</div>
-
-    <div id="director-status" style="margin-top:12px;color:#9fb0cb;font-size:12px;">
-      загрузка...
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Свободно</div>
+      <div id="director-free" style="font-size:26px;font-weight:900;">—</div>
     </div>
+
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Заполнение</div>
+      <div id="director-fill" style="font-size:26px;font-weight:900;">—</div>
+    </div>
+
+    <div id="director-status" style="margin-top:12px;color:#9fb0cb;font-size:12px;">загрузка...</div>
   `;
 
   document.body.appendChild(card);
 
-  // Защита от случайных действий кассы в режиме директора
-  document.querySelectorAll(
-    "button, select, input, textarea"
-  ).forEach(el => {
+  document.querySelectorAll("button, select, input, textarea").forEach(el => {
     if (card.contains(el)) return;
     el.disabled = true;
     el.style.pointerEvents = "none";
@@ -3680,12 +3652,6 @@ applyHallZoom();*/
   });
 
   try {
-    if (!window.supabase) {
-      document.getElementById("director-status").textContent =
-        "Supabase client не найден";
-      return;
-    }
-
     const db = window.supabase.createClient(
       "https://fhusjlkneckbvnrdhbil.supabase.co",
       "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS"
@@ -3693,8 +3659,8 @@ applyHallZoom();*/
 
     async function loadDirectorData() {
       const { data: tickets, error: ticketsError } = await db
-       .from("tickets")
-.select("id, price, seance_id")
+        .from("tickets")
+        .select("id, price, seance_id")
         .eq("seance_id", seanceId);
 
       const { data: bookings, error: bookingsError } = await db
@@ -3702,59 +3668,55 @@ applyHallZoom();*/
         .select("id, status, seance_id")
         .eq("seance_id", seanceId);
 
+      const { data: seanceRow, error: seanceError } = await db
+        .from("seances")
+        .select("id, capacity")
+        .eq("id", seanceId)
+        .maybeSingle();
+
       if (ticketsError) throw ticketsError;
       if (bookingsError) throw bookingsError;
+      if (seanceError) throw seanceError;
 
-     const soldTickets = tickets || [];
+      const soldTickets = tickets || [];
 
-const holdBookings = (bookings || []).filter(b => {
-  const st = String(b.status || "").toLowerCase();
-  return st === "hold";
-});
+      const holdBookings = (bookings || []).filter(b => {
+        const st = String(b.status || "").toLowerCase();
+        return st === "hold";
+      });
 
-const longBookings = (bookings || []).filter(b => {
-  const st = String(b.status || "").toLowerCase();
-  return st === "reserved" || st === "booked";
-});
+      const longBookings = (bookings || []).filter(b => {
+        const st = String(b.status || "").toLowerCase();
+        return st === "reserved" || st === "booked";
+      });
 
-const revenue = soldTickets.reduce((sum, t) => {
-  return sum + Number(t.price || 0);
-}, 0);
+      const revenue = soldTickets.reduce((sum, t) => {
+        return sum + Number(t.price || 0);
+      }, 0);
 
-const capacity = Number(seanceRow?.capacity || 0);
+      const capacity = Number(seanceRow?.capacity || 0);
+      const occupied = soldTickets.length + longBookings.length + holdBookings.length;
 
-const occupied = soldTickets.length + longBookings.length + holdBookings.length;
+      const free = capacity > 0 ? Math.max(capacity - occupied, 0) : null;
+      const fill = capacity > 0 ? Math.round((occupied / capacity) * 100) : null;
 
-const free = capacity > 0
-  ? Math.max(capacity - occupied, 0)
-  : null;
+      document.getElementById("director-sold").textContent = soldTickets.length;
+      document.getElementById("director-booked").textContent = longBookings.length;
+      document.getElementById("director-hold").textContent = holdBookings.length;
 
-const fill = capacity > 0
-  ? Math.round((occupied / capacity) * 100)
-  : null;
-      
-document.getElementById("director-sold").textContent = soldTickets.length;
-document.getElementById("director-booked").textContent = longBookings.length;
+      document.getElementById("director-revenue").textContent =
+        revenue.toLocaleString("ru-RU") + " грн";
 
-const holdEl = document.getElementById("director-hold");
-if (holdEl) holdEl.textContent = holdBookings.length;
+      document.getElementById("director-free").textContent =
+        free === null ? "—" : free;
 
-document.getElementById("director-revenue").textContent =
-  revenue.toLocaleString("ru-RU") + " грн";
+      document.getElementById("director-fill").textContent =
+        fill === null ? "—" : fill + "%";
 
-const freeEl = document.getElementById("director-free");
-if (freeEl) {
-  freeEl.textContent = free === null ? "—" : free;
-}
+      document.getElementById("director-status").textContent =
+        "Обновлено: " + new Date().toLocaleTimeString("ru-RU");
+    }
 
-const fillEl = document.getElementById("director-fill");
-if (fillEl) {
-  fillEl.textContent = fill === null ? "—" : fill + "%";
-}
-      
-document.getElementById("director-status").textContent =
-  "Обновлено: " + new Date().toLocaleTimeString("ru-RU");
-      }
     await loadDirectorData();
     setInterval(loadDirectorData, 10000);
 
