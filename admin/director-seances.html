@@ -195,6 +195,7 @@
     const vaDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allSeances = [];
+    let recoveryEvents = [];
     let activeStatus = "sale";
 
    const sections = [
@@ -287,33 +288,53 @@ function getHall(s) {
     }
 
     async function loadSeances() {
-      const list = document.getElementById("seance-list");
+  const list = document.getElementById("seance-list");
 
-      const { data, error } = await vaDb
-        .from("seances")
-        .select("*");
+  const seancesReq = vaDb
+    .from("seances")
+    .select("*");
 
-      if (error) {
-        list.innerHTML = `<div class="error">Помилка завантаження таблиці seances:<br>${error.message}</div>`;
-        console.error(error);
-        return;
-      }
+  const recoveryReq = vaDb
+    .from("recovery_events")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-      allSeances = (data || [])
-        .map(s => ({
-          ...s,
-          director_status: classifySeance(s)
-        }))
-        .sort((a, b) => {
-          const da = new Date(getStartAt(a) || 0).getTime();
-          const db = new Date(getStartAt(b) || 0).getTime();
-          return da - db;
-        });
+  const [
+    { data: seances, error: seancesError },
+    { data: recovery, error: recoveryError }
+  ] = await Promise.all([seancesReq, recoveryReq]);
 
-      updateCounts();
-      renderList();
-    }
+  if (seancesError) {
+    list.innerHTML = `<div class="error">Помилка завантаження seances:<br>${seancesError.message}</div>`;
+    console.error(seancesError);
+    return;
+  }
 
+  if (recoveryError) {
+    list.innerHTML = `<div class="error">Помилка завантаження recovery_events:<br>${recoveryError.message}</div>`;
+    console.error(recoveryError);
+    return;
+  }
+
+  allSeances = (seances || [])
+    .map(s => ({
+      ...s,
+      director_status: classifySeance(s)
+    }))
+    .sort((a, b) => {
+      const da = new Date(getStartAt(a) || 0).getTime();
+      const db = new Date(getStartAt(b) || 0).getTime();
+      return da - db;
+    });
+
+  recoveryEvents = (recovery || []).filter(e => {
+    const type = String(e.incident_type || "").toLowerCase();
+    return type === "postponed";
+  });
+
+  updateCounts();
+  renderList();
+}
     function updateCounts() {
       Object.keys(titles).forEach(key => {
         const el = document.getElementById("count-" + key);
