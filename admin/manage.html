@@ -717,6 +717,10 @@ function makeSeanceCard(s, archivedMode = false){
         <button class="btn btn-neutral" onclick="openAuditPage('${id}')">Audit</button>
         <button class="btn btn-warning" onclick="activateTicketCompensation('${id}')">🟡 1 квиток</button>
         <button class="btn btn-warning" onclick="activateCompensation('${id}')">🟡 Компенсація</button>
+        <button class="btn btn-warning"
+onclick="postponeSeance('${id}')">
+📅 Перенести
+</button>
         <button class="btn btn-danger" onclick="archiveSeance('${id}')">Архівувати</button>
       </div>
     </div>
