@@ -3607,8 +3607,8 @@ applyHallZoom();*/
 
   
 <!-- ===== VA DIRECTOR MODE ===== -->
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
-  
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 (async function initDirectorMode() {
   const params = new URLSearchParams(location.search);
@@ -3636,12 +3636,12 @@ applyHallZoom();*/
   card.innerHTML = `
     <div style="background:#5b0d16;margin:-18px -18px 16px;padding:14px 18px;border-radius:18px 18px 0 0;">
       <div style="font-size:12px;color:#f0c6cc;font-weight:800;">VA DIRECTOR MODE</div>
-      <div style="font-size:21px;font-weight:900;margin-top:4px;">Режим просмотра</div>
+      <div style="font-size:21px;font-weight:900;margin-top:4px;">Режим перегляду</div>
       <div style="font-size:12px;color:#f0c6cc;margin-top:4px;word-break:break-all;">${seanceId}</div>
     </div>
 
     <button onclick="location.href='../admin/director-seances.html'" style="width:100%;border:0;border-radius:12px;padding:11px 12px;margin-bottom:14px;background:#26364f;color:#fff;font-weight:900;cursor:pointer;">
-      ← К списку сеансов
+      ← До списку сеансів
     </button>
 
     <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
@@ -3655,64 +3655,46 @@ applyHallZoom();*/
     </div>
 
     <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-      <div style="color:#9fb0cb;font-size:13px;">Временная бронь</div>
+      <div style="color:#9fb0cb;font-size:13px;">Тимчасова бронь</div>
       <div id="director-hold" style="font-size:26px;font-weight:900;">—</div>
     </div>
 
     <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-      <div style="color:#9fb0cb;font-size:13px;">Выручка</div>
+      <div style="color:#9fb0cb;font-size:13px;">Виручка</div>
       <div id="director-revenue" style="font-size:26px;font-weight:900;">—</div>
     </div>
 
-<div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-  <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">Типы билетов</div>
-  <div id="director-ticket-types" style="font-size:14px;line-height:1.6;">—</div>
-</div>
-
-<div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-  <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">
-    Канали продаж
-  </div>
-
-  <div id="director-channels"
-       style="font-size:14px;line-height:1.6;">
-    —
-  </div>
-</div>
-
-<div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-  <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">
-    Контроль доступу
-  </div>
-
-<div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-  <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">
-    Контроль доступу за типами
-  </div>
-
-  <div id="director-access-types"
-       style="font-size:14px;line-height:1.8;">
-    —
-  </div>
-</div>
-
-  <div id="director-access"
-       style="font-size:14px;line-height:1.8;">
-    —
-  </div>
-</div>
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">Типи квитків</div>
+      <div id="director-ticket-types" style="font-size:14px;line-height:1.6;">—</div>
+    </div>
 
     <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-      <div style="color:#9fb0cb;font-size:13px;">Свободно</div>
+      <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">Канали продажу</div>
+      <div id="director-channels" style="font-size:14px;line-height:1.6;">—</div>
+    </div>
+
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">Контроль доступу</div>
+      <div id="director-access" style="font-size:14px;line-height:1.8;">—</div>
+    </div>
+
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">Контроль доступу за типами</div>
+      <div id="director-access-types" style="font-size:14px;line-height:1.8;">—</div>
+    </div>
+
+    <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#9fb0cb;font-size:13px;">Вільно</div>
       <div id="director-free" style="font-size:26px;font-weight:900;">—</div>
     </div>
 
     <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
-      <div style="color:#9fb0cb;font-size:13px;">Заполнение</div>
+      <div style="color:#9fb0cb;font-size:13px;">Заповнення</div>
       <div id="director-fill" style="font-size:26px;font-weight:900;">—</div>
     </div>
 
-    <div id="director-status" style="margin-top:12px;color:#9fb0cb;font-size:12px;">загрузка...</div>
+    <div id="director-status" style="margin-top:12px;color:#9fb0cb;font-size:12px;">завантаження...</div>
   `;
 
   document.body.appendChild(card);
@@ -3734,20 +3716,20 @@ applyHallZoom();*/
       const { data: tickets, error: ticketsError } = await db
         .from("tickets")
         .select(`
-  id,
-  price,
-  seance_id,
-  ticket_type,
-  channel,
-  checked_in_at,
-  checked_in_by
-`)
+          id,
+          price,
+          seance_id,
+          ticket_type,
+          channel,
+          checked_in_at,
+          checked_in_by
+        `)
         .eq("seance_id", seanceId);
 
       const { data: bookings, error: bookingsError } = await db
-  .from("bookings")
-  .select("id, status, seance_id, expires_at")
-  .eq("seance_id", seanceId);
+        .from("bookings")
+        .select("id, status, seance_id, expires_at")
+        .eq("seance_id", seanceId);
 
       const { data: seanceRow, error: seanceError } = await db
         .from("seances")
@@ -3760,29 +3742,14 @@ applyHallZoom();*/
       if (seanceError) throw seanceError;
 
       const soldTickets = tickets || [];
+      const now = new Date();
 
-const checkedIn = soldTickets.filter(t => t.checked_in_at);
-const checkedCount = checkedIn.length;
-
-const absentCount =
-  Math.max(soldTickets.length - checkedCount, 0);
-
-const attendance =
-  soldTickets.length
-    ? Math.round((checkedCount / soldTickets.length) * 100)
-    : 0;
-      
-     const now = new Date();
-
-const holdBookings = (bookings || []).filter(b => {
-  const st = String(b.status || "").toLowerCase();
-  if (st !== "hold") return false;
-
-  if (!b.expires_at) return true;
-
-  const expires = new Date(b.expires_at);
-  return expires > now;
-});
+      const holdBookings = (bookings || []).filter(b => {
+        const st = String(b.status || "").toLowerCase();
+        if (st !== "hold") return false;
+        if (!b.expires_at) return true;
+        return new Date(b.expires_at) > now;
+      });
 
       const longBookings = (bookings || []).filter(b => {
         const st = String(b.status || "").toLowerCase();
@@ -3793,146 +3760,141 @@ const holdBookings = (bookings || []).filter(b => {
         return sum + Number(t.price || 0);
       }, 0);
 
-const typeLabels = {
-  full: "Звичайний",
-  child: "Дитячий",
-  discount: "Пільговий",
-  invite: "Запрошення",
-  promo: "Акційний",
-  rental: "Орендний",
-  service: "Службовий",
-  compensation: "Компенсаційний",
-  vip: "VIP"
-};
+      const typeLabels = {
+        full: "Звичайний",
+        child: "Дитячий",
+        discount: "Пільговий",
+        invite: "Запрошення",
+        promo: "Акційний",
+        rental: "Орендний",
+        service: "Службовий",
+        compensation: "Компенсаційний",
+        vip: "VIP"
+      };
 
-const typeStats = {};
+      const typeStats = {};
+      soldTickets.forEach(t => {
+        const type = t.ticket_type || "full";
+        typeStats[type] = (typeStats[type] || 0) + 1;
+      });
 
-soldTickets.forEach(t => {
-  const type = t.ticket_type || "full";
-  typeStats[type] = (typeStats[type] || 0) + 1;
-});
+      const typeHtml = Object.entries(typeStats)
+        .map(([type, count]) => {
+          const label = typeLabels[type] || type;
+          return `
+            <div style="display:flex;justify-content:space-between;">
+              <span>${label}</span>
+              <b>${count}</b>
+            </div>
+          `;
+        })
+        .join("");
 
-const typeHtml = Object.entries(typeStats)
-  .map(([type, count]) => {
-    const label = typeLabels[type] || type;
-    return `<div style="display:flex;justify-content:space-between;">
-      <span>${label}</span><b>${count}</b>
-    </div>`;
-  })
-  .join("");
+      const channelLabels = {
+        online: "Онлайн",
+        cash: "Каса"
+      };
 
-const channelStats = {};
+      const channelStats = {};
+      soldTickets.forEach(t => {
+        const ch = t.channel || "unknown";
+        channelStats[ch] = (channelStats[ch] || 0) + 1;
+      });
 
-soldTickets.forEach(t => {
-  const ch = t.channel || "unknown";
-  channelStats[ch] = (channelStats[ch] || 0) + 1;
-});
+      const channelHtml = Object.entries(channelStats)
+        .map(([ch, count]) => `
+          <div style="display:flex;justify-content:space-between;">
+            <span>${channelLabels[ch] || ch}</span>
+            <b>${count}</b>
+          </div>
+        `)
+        .join("");
 
-const channelLabels = {
-  online: "Онлайн",
-  cash: "Каса"
-};
+      const checkedIn = soldTickets.filter(t => t.checked_in_at);
+      const checkedCount = checkedIn.length;
+      const absentCount = Math.max(soldTickets.length - checkedCount, 0);
+      const attendance = soldTickets.length
+        ? Math.round((checkedCount / soldTickets.length) * 100)
+        : 0;
 
-const channelHtml = Object.entries(channelStats)
-  .map(([ch, count]) => `
-    <div style="display:flex;justify-content:space-between;">
-      <span>${channelLabels[ch] || ch}</span>
-      <b>${count}</b>
-    </div>
-  `)
-  .join("");
+      const accessHtml = `
+        <div style="display:flex;justify-content:space-between;">
+          <span>Пройшли</span>
+          <b>${checkedCount}</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span>Не прийшли</span>
+          <b>${absentCount}</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span>Явка</span>
+          <b>${attendance}%</b>
+        </div>
+      `;
 
-const accessHtml = `
+      const accessTypeStats = {};
+      soldTickets.forEach(t => {
+        const type = t.ticket_type || "full";
 
-const accessTypeStats = {};
+        if (!accessTypeStats[type]) {
+          accessTypeStats[type] = {
+            sold: 0,
+            checked: 0
+          };
+        }
 
-soldTickets.forEach(t => {
-  const type = t.ticket_type || "full";
+        accessTypeStats[type].sold++;
 
-  if (!accessTypeStats[type]) {
-    accessTypeStats[type] = {
-      sold: 0,
-      checked: 0
-    };
-  }
+        if (t.checked_in_at) {
+          accessTypeStats[type].checked++;
+        }
+      });
 
-  accessTypeStats[type].sold++;
+      const accessTypesHtml = Object.entries(accessTypeStats)
+        .map(([type, stat]) => {
+          const label = typeLabels[type] || type;
+          return `
+            <div style="display:flex;justify-content:space-between;">
+              <span>${label}</span>
+              <b>${stat.checked} / ${stat.sold}</b>
+            </div>
+          `;
+        })
+        .join("");
 
-  if (t.checked_in_at) {
-    accessTypeStats[type].checked++;
-  }
-});
-
-<div style="display:flex;justify-content:space-between;">
-  <span>Пройшли</span>
-  <b>${checkedCount}</b>
-</div>
-
-<div style="display:flex;justify-content:space-between;">
-  <span>Не прийшли</span>
-  <b>${absentCount}</b>
-</div>
-
-<div style="display:flex;justify-content:space-between;">
-  <span>Явка</span>
-  <b>${attendance}%</b>
-</div>
-`;
-
-
-const accessTypesHtml = Object.entries(accessTypeStats)
-  .map(([type, stat]) => {
-    const label = typeLabels[type] || type;
-
-    return `
-      <div style="display:flex;justify-content:space-between;">
-        <span>${label}</span>
-        <b>${stat.checked} / ${stat.sold}</b>
-      </div>
-    `;
-  })
-  .join("");
-
-
-      
       const capacity = Number(seanceRow?.capacity || 0);
-      const occupied = soldTickets.length + longBookings.length + holdBookings.length;
+      const occupied =
+        soldTickets.length +
+        longBookings.length +
+        holdBookings.length;
 
-      const free = capacity > 0 ? Math.max(capacity - occupied, 0) : null;
-      const fill = capacity > 0 ? Math.round((occupied / capacity) * 100) : null;
+      const free = capacity > 0
+        ? Math.max(capacity - occupied, 0)
+        : null;
+
+      const fill = capacity > 0
+        ? Math.round((occupied / capacity) * 100)
+        : null;
 
       document.getElementById("director-sold").textContent = soldTickets.length;
       document.getElementById("director-booked").textContent = longBookings.length;
       document.getElementById("director-hold").textContent = holdBookings.length;
 
       document.getElementById("director-revenue").textContent =
-        revenue.toLocaleString("ru-RU") + " грн";
+        revenue.toLocaleString("uk-UA") + " грн";
 
-const typesEl = document.getElementById("director-ticket-types");
-if (typesEl) {
-  typesEl.innerHTML = typeHtml || "—";
-}
-const channelsEl =
-  document.getElementById("director-channels");
+      document.getElementById("director-ticket-types").innerHTML =
+        typeHtml || "—";
 
-if (channelsEl) {
-  channelsEl.innerHTML = channelHtml || "—";
-}
+      document.getElementById("director-channels").innerHTML =
+        channelHtml || "—";
 
-const accessEl =
-  document.getElementById("director-access");
+      document.getElementById("director-access").innerHTML =
+        accessHtml;
 
-if (accessEl) {
-  accessEl.innerHTML = accessHtml;
-}
+      document.getElementById("director-access-types").innerHTML =
+        accessTypesHtml || "—";
 
-const accessTypesEl =
-  document.getElementById("director-access-types");
-
-if (accessTypesEl) {
-  accessTypesEl.innerHTML = accessTypesHtml || "—";
-}
-      
       document.getElementById("director-free").textContent =
         free === null ? "—" : free;
 
@@ -3940,7 +3902,7 @@ if (accessTypesEl) {
         fill === null ? "—" : fill + "%";
 
       document.getElementById("director-status").textContent =
-        "Обновлено: " + new Date().toLocaleTimeString("ru-RU");
+        "Оновлено: " + new Date().toLocaleTimeString("uk-UA");
     }
 
     await loadDirectorData();
@@ -3949,7 +3911,7 @@ if (accessTypesEl) {
   } catch (e) {
     console.error("Director card error:", e);
     document.getElementById("director-status").textContent =
-      "Ошибка загрузки данных: " + e.message;
+      "Помилка завантаження даних: " + e.message;
   }
 })();
 </script>
