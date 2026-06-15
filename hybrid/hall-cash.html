@@ -3662,6 +3662,11 @@ applyHallZoom();*/
       <div id="director-revenue" style="font-size:26px;font-weight:900;">—</div>
     </div>
 
+<div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+  <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">Типы билетов</div>
+  <div id="director-ticket-types" style="font-size:14px;line-height:1.6;">—</div>
+</div>
+
     <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
       <div style="color:#9fb0cb;font-size:13px;">Свободно</div>
       <div id="director-free" style="font-size:26px;font-weight:900;">—</div>
@@ -3693,7 +3698,7 @@ applyHallZoom();*/
     async function loadDirectorData() {
       const { data: tickets, error: ticketsError } = await db
         .from("tickets")
-        .select("id, price, seance_id")
+        .select("id, price, seance_id, ticket_type")
         .eq("seance_id", seanceId);
 
       const { data: bookings, error: bookingsError } = await db
@@ -3727,6 +3732,34 @@ applyHallZoom();*/
         return sum + Number(t.price || 0);
       }, 0);
 
+const typeLabels = {
+  full: "Звичайний",
+  child: "Дитячий",
+  discount: "Пільговий",
+  invite: "Запрошення",
+  promo: "Акційний",
+  rental: "Орендний",
+  service: "Службовий",
+  compensation: "Компенсаційний",
+  vip: "VIP"
+};
+
+const typeStats = {};
+
+soldTickets.forEach(t => {
+  const type = t.ticket_type || "full";
+  typeStats[type] = (typeStats[type] || 0) + 1;
+});
+
+const typeHtml = Object.entries(typeStats)
+  .map(([type, count]) => {
+    const label = typeLabels[type] || type;
+    return `<div style="display:flex;justify-content:space-between;">
+      <span>${label}</span><b>${count}</b>
+    </div>`;
+  })
+  .join("");
+      
       const capacity = Number(seanceRow?.capacity || 0);
       const occupied = soldTickets.length + longBookings.length + holdBookings.length;
 
