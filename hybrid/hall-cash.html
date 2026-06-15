@@ -1737,7 +1737,9 @@ btn.dataset.baseColor = (cfg && cfg.color) ? "#fff" : "";
     return;
   }
 
-  const total = entries.reduce((s, [,x]) => s + (x.price || 0), 0);
+ const total = entries.reduce((s, [, x]) => {
+  return s + calcFinalPrice(Number(x.price || 0));
+}, 0);
 
   if (placesEl) placesEl.textContent = "Обрані місця: " + placesStr;
   if (amountEl) amountEl.textContent = "Сума: " + total + " грн";
