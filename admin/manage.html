@@ -1119,6 +1119,39 @@ function openCash(id){
   );
 }
 
+async function postponeSeance(seanceId) {
+
+  const newDate = prompt(
+    "Нова дата (YYYY-MM-DD)"
+  );
+
+  if (!newDate) return;
+
+  const newTime = prompt(
+    "Новий час (HH:MM)"
+  );
+
+  if (!newTime) return;
+
+  const reason = prompt(
+    "Причина перенесення"
+  ) || "";
+
+  console.log({
+    seanceId,
+    newDate,
+    newTime,
+    reason
+  });
+
+  alert(
+    "Перенесення підготовлено.\n\n" +
+    "Сеанс: " + seanceId + "\n" +
+    "Дата: " + newDate + "\n" +
+    "Час: " + newTime
+  );
+}
+  
 function openEditor(id){
   window.open(
     withContext("./seance-editor.html", { seance:id, seance_id:id }),
