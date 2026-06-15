@@ -1121,64 +1121,70 @@ function openCash(id){
 
 async function postponeSeance(seanceId) {
 
-  const newDate = prompt(
-    "Нова дата (YYYY-MM-DD)"
-  );
-
+  const newDate = prompt("Нова дата (YYYY-MM-DD)");
   if (!newDate) return;
 
-  const newTime = prompt(
-    "Новий час (HH:MM)"
-  );
-
+  const newTime = prompt("Новий час (HH:MM)");
   if (!newTime) return;
 
-  const reason = prompt(
-    "Причина перенесення"
-  ) || "Не вказано";
+  const reason = prompt("Причина перенесення") || "Не вказано";
 
   try {
 
-    const { data: current, error: loadError } = await vaDb
-      .from("seances")
-      .select("*")
-      .eq("id", seanceId)
-      .single();
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seanceId)}&select=*`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
 
-    if (loadError) throw loadError;
+    const rows = await res.json();
+
+    if (!rows.length) {
+      throw new Error("Сеанс не знайдено");
+    }
+
+    const current = rows[0];
 
     const oldDateTime =
       current.date && current.time
-        ? `${current.date}T${current.time}:00` 
+        ? `${current.date}T${current.time}:00`
         : null;
 
     const newDateTime =
       `${newDate}T${newTime}:00`;
 
-    const { error: updateError } = await vaDb
-      .from("seances")
-      .update({
-
-        date: newDate,
-        time: newTime,
-
-        status: "postponed",
-
-        postponed_from_at: oldDateTime,
-        postponed_to_at: newDateTime,
-
-        postponed_reason: reason,
-        postponed_at: new Date().toISOString()
-
-      })
-      .eq("id", seanceId);
-
-    if (updateError) throw updateError;
-
-    alert(
-      "Сеанс успішно перенесено."
+    const updateRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seanceId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({
+          date: newDate,
+          time: newTime,
+          status: "postponed",
+          postponed_from_at: oldDateTime,
+          postponed_to_at: newDateTime,
+          postponed_reason: reason,
+          postponed_at: new Date().toISOString()
+        })
+      }
     );
 
+    if (!updateRes.ok) {
+      const txt = await updateRes.text();
+      throw new Error(txt);
+    }
+
+    alert("Сеанс успішно перенесено");
     location.reload();
 
   } catch (e) {
