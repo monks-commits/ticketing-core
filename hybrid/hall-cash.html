@@ -3674,6 +3674,17 @@ applyHallZoom();*/
     Канали продаж
   </div>
 
+<div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+  <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">
+    Контроль доступу
+  </div>
+
+  <div id="director-access"
+       style="font-size:14px;line-height:1.8;">
+    —
+  </div>
+</div>
+
   <div id="director-channels"
        style="font-size:14px;line-height:1.6;">
     —
@@ -3711,7 +3722,15 @@ applyHallZoom();*/
     async function loadDirectorData() {
       const { data: tickets, error: ticketsError } = await db
         .from("tickets")
-        .select("id, price, seance_id, ticket_type, channel")
+        .select(`
+  id,
+  price,
+  seance_id,
+  ticket_type,
+  channel,
+  checked_in_at,
+  checked_in_by
+`)
         .eq("seance_id", seanceId);
 
       const { data: bookings, error: bookingsError } = await db
@@ -3731,6 +3750,17 @@ applyHallZoom();*/
 
       const soldTickets = tickets || [];
 
+const checkedIn = soldTickets.filter(t => t.checked_in_at);
+const checkedCount = checkedIn.length;
+
+const absentCount =
+  Math.max(soldTickets.length - checkedCount, 0);
+
+const attendance =
+  soldTickets.length
+    ? Math.round((checkedCount / soldTickets.length) * 100)
+    : 0;
+      
      const now = new Date();
 
 const holdBookings = (bookings || []).filter(b => {
@@ -3800,6 +3830,23 @@ const channelHtml = Object.entries(channelStats)
     </div>
   `)
   .join("");
+
+const accessHtml = `
+<div style="display:flex;justify-content:space-between;">
+  <span>Пройшли</span>
+  <b>${checkedCount}</b>
+</div>
+
+<div style="display:flex;justify-content:space-between;">
+  <span>Не прийшли</span>
+  <b>${absentCount}</b>
+</div>
+
+<div style="display:flex;justify-content:space-between;">
+  <span>Явка</span>
+  <b>${attendance}%</b>
+</div>
+`;
       
       const capacity = Number(seanceRow?.capacity || 0);
       const occupied = soldTickets.length + longBookings.length + holdBookings.length;
@@ -3823,6 +3870,13 @@ const channelsEl =
 
 if (channelsEl) {
   channelsEl.innerHTML = channelHtml || "—";
+}
+
+const accessEl =
+  document.getElementById("director-access");
+
+if (accessEl) {
+  accessEl.innerHTML = accessHtml;
 }
       
       document.getElementById("director-free").textContent =
