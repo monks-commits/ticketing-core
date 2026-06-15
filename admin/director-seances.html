@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VA Director — Сеансы</title>
+  <title>VA Director — Сеанси</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -161,13 +161,13 @@
 
 <body>
   <header class="topbar">
-    <h1>VA Director — Сеансы</h1>
+    <h1>VA Director — Сеанси</h1>
     <button class="back" onclick="location.href='./director-dashboard.html'">← Главная</button>
   </header>
 
   <main class="wrap">
     <aside class="panel">
-      <div class="panel-head">Разделы</div>
+      <div class="panel-head">Розділи</div>
 
       <div class="status-list">
         <button class="status-btn active" data-status="presale">В продажі <b id="count-presale">0</b></button>
@@ -180,8 +180,8 @@
 
     <section class="panel">
       <div class="content">
-        <div class="content-title" id="content-title">Предпродажа</div>
-        <div class="seance-list" id="seance-list">Загрузка...</div>
+        <div class="content-title" id="content-title">В продажі</div>
+        <div class="seance-list" id="seance-list">Завантаження...</div>
       </div>
     </section>
   </main>
@@ -285,7 +285,7 @@ function getHall(s) {
         .select("*");
 
       if (error) {
-        list.innerHTML = `<div class="error">Ошибка загрузки таблицы seances:<br>${error.message}</div>`;
+        list.innerHTML = `<div class="error">Помилка завантаження таблиці seances:<br>${error.message}</div>`;
         console.error(error);
         return;
       }
@@ -320,7 +320,7 @@ function getHall(s) {
       const rows = allSeances.filter(s => s.director_status === activeStatus);
 
       if (!rows.length) {
-        list.innerHTML = `<div class="empty">Сеансов в этом разделе нет.</div>`;
+        list.innerHTML = `<div class="empty">Сеансів у цьому розділі немає.</div>`;
         return;
       }
 
