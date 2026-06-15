@@ -2062,11 +2062,24 @@ async function applyStatusToSelectedLocal(status){
       reapplyAllStatuses();
     }
 
-function getTicketTypeData(){
-  const type = document.getElementById("ticketType")?.value || "standard";
+function normalizeTicketType(type) {
+  const map = {
+    standard: "full",
+    benefit: "discount",
+    recovery: "compensation",
+    staff: "service"
+  };
+
+  return map[type] || type || "full";
+}
+
+function getTicketTypeData() {
+  const rawType = document.getElementById("ticketType")?.value || "full";
+  const type = normalizeTicketType(rawType);
 
   const data = {
     ticket_type: type,
+    ticket_type_label: ticketTypeLabel(type),
     promo_mode: null,
     promo_value: null
   };
@@ -2079,26 +2092,44 @@ function getTicketTypeData(){
   return data;
 }
 
-function ticketTypeLabel(type){
+function ticketTypeLabel(type) {
+  const normalized = normalizeTicketType(type);
+
   const map = {
-    standard: "Звичайний",
+    full: "Звичайний",
     child: "Дитячий",
-    benefit: "Пільговий",
+    discount: "Пільговий",
     invite: "Запрошення",
     promo: "Акційний",
-    recovery: "Компенсаційний",
+    compensation: "Компенсаційний",
     rental: "Орендний",
+    service: "Службовий",
+    vip: "VIP",
+
+    // старые коды для совместимости
+    standard: "Звичайний",
+    benefit: "Пільговий",
+    recovery: "Компенсаційний",
     staff: "Службовий"
   };
 
-  return map[type] || "Звичайний";
+  return map[normalized] || map[type] || "Звичайний";
 }
+function calcFinalPrice(basePrice) {
+  const { ticket_type, promo_mode, promo_value } = getTicketTypeData();
 
-function calcFinalPrice(basePrice){
-  const type = document.getElementById("ticketType")?.value || "standard";
-
-  if (["benefit","invite","recovery","staff"].includes(type)) {
+  if (["discount", "invite", "compensation", "service"].includes(ticket_type)) {
     return 0;
+  }
+
+  if (ticket_type === "promo") {
+    if (promo_mode === "percent") {
+      return Math.max(0, Math.round(basePrice * (100 - promo_value) / 100));
+    }
+
+    if (promo_mode === "fixed") {
+      return Math.max(0, promo_value);
+    }
   }
 
   return basePrice;
