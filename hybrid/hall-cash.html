@@ -3773,6 +3773,11 @@ const typeHtml = Object.entries(typeStats)
       document.getElementById("director-revenue").textContent =
         revenue.toLocaleString("ru-RU") + " грн";
 
+const typesEl = document.getElementById("director-ticket-types");
+if (typesEl) {
+  typesEl.innerHTML = typeHtml || "—";
+}
+      
       document.getElementById("director-free").textContent =
         free === null ? "—" : free;
 
