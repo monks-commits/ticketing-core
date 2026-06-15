@@ -348,9 +348,9 @@ function getHall(s) {
       }).join("");
     }
 
-   function openSeance(id) {
+  function openSeance(id) {
   location.href =
-    `/ticketing-core/hybrid/hall-cash.html?show=&seance=${encodeURIComponent(id)}&director=1`;
+    `/ticketing-core/hybrid/hall-cash.html?show=&seance=${encodeURIComponent(id)}&director=1&mode=${encodeURIComponent(activeStatus)}`;
 }
 
     document.querySelectorAll(".status-btn").forEach(btn => {
