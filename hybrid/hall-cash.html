@@ -3685,6 +3685,17 @@ applyHallZoom();*/
     Контроль доступу
   </div>
 
+<div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+  <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">
+    Контроль доступу за типами
+  </div>
+
+  <div id="director-access-types"
+       style="font-size:14px;line-height:1.8;">
+    —
+  </div>
+</div>
+
   <div id="director-access"
        style="font-size:14px;line-height:1.8;">
     —
@@ -3832,6 +3843,39 @@ const channelHtml = Object.entries(channelStats)
   .join("");
 
 const accessHtml = `
+
+const accessTypeStats = {};
+
+soldTickets.forEach(t => {
+  const type = t.ticket_type || "full";
+
+  if (!accessTypeStats[type]) {
+    accessTypeStats[type] = {
+      sold: 0,
+      checked: 0
+    };
+  }
+
+  accessTypeStats[type].sold++;
+
+  if (t.checked_in_at) {
+    accessTypeStats[type].checked++;
+  }
+});
+
+const accessTypesHtml = Object.entries(accessTypeStats)
+  .map(([type, stat]) => {
+    const label = typeLabels[type] || type;
+
+    return `
+      <div style="display:flex;justify-content:space-between;">
+        <span>${label}</span>
+        <b>${stat.checked} / ${stat.sold}</b>
+      </div>
+    `;
+  })
+  .join("");
+
 <div style="display:flex;justify-content:space-between;">
   <span>Пройшли</span>
   <b>${checkedCount}</b>
@@ -3877,6 +3921,13 @@ const accessEl =
 
 if (accessEl) {
   accessEl.innerHTML = accessHtml;
+}
+
+const accessTypesEl =
+  document.getElementById("director-access-types");
+
+if (accessTypesEl) {
+  accessTypesEl.innerHTML = accessTypesHtml || "—";
 }
       
       document.getElementById("director-free").textContent =
