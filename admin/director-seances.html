@@ -193,7 +193,7 @@
     const vaDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allSeances = [];
-    let activeStatus = "presale";
+    let activeStatus = "sale";
 
    const sections = [
   { key: "sale", label: "В продажі" },
@@ -202,6 +202,14 @@
   { key: "cancelled", label: "Скасовані" },
   { key: "archive", label: "Архів" }
 ];
+
+const titles = {
+  sale: "В продажі",
+  done: "Відбулися",
+  postponed: "Перенесені",
+  cancelled: "Скасовані",
+  archive: "Архів"
+};
 
     function getStartAt(s) {
   if (s.date && s.time) {
