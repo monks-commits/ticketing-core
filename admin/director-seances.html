@@ -195,13 +195,13 @@
     let allSeances = [];
     let activeStatus = "presale";
 
-    const titles = {
-      { key: "sale", label: "В продажі" },
+   const sections = [
+  { key: "sale", label: "В продажі" },
   { key: "done", label: "Відбулися" },
   { key: "postponed", label: "Перенесені" },
   { key: "cancelled", label: "Скасовані" },
   { key: "archive", label: "Архів" }
-    };
+];
 
     function getStartAt(s) {
   if (s.date && s.time) {
