@@ -170,12 +170,11 @@
       <div class="panel-head">Разделы</div>
 
       <div class="status-list">
-        <button class="status-btn active" data-status="presale">Предпродажа <b id="count-presale">0</b></button>
-        <button class="status-btn" data-status="current">Текущий <b id="count-current">0</b></button>
-        <button class="status-btn" data-status="done">Состоявшиеся <b id="count-done">0</b></button>
-        <button class="status-btn" data-status="postponed">Перенесённые <b id="count-postponed">0</b></button>
-        <button class="status-btn" data-status="cancelled">Отменённые <b id="count-cancelled">0</b></button>
-        <button class="status-btn" data-status="archive">Архив <b id="count-archive">0</b></button>
+        <button class="status-btn active" data-status="presale">В продажі <b id="count-presale">0</b></button>
+         <button class="status-btn" data-status="done">"Відбулися" <b id="count-done">0</b></button>
+        <button class="status-btn" data-status="postponed">Перенесені <b id="count-postponed">0</b></button>
+        <button class="status-btn" data-status="cancelled">Скасовані <b id="count-cancelled">0</b></button>
+        <button class="status-btn" data-status="archive">Архів <b id="count-archive">0</b></button>
       </div>
     </aside>
 
@@ -197,12 +196,11 @@
     let activeStatus = "presale";
 
     const titles = {
-      presale: "Предпродажа",
-      current: "Текущий",
-      done: "Состоявшиеся",
-      postponed: "Перенесённые",
-      cancelled: "Отменённые",
-      archive: "Архив"
+      { key: "sale", label: "В продажі" },
+  { key: "done", label: "Відбулися" },
+  { key: "postponed", label: "Перенесені" },
+  { key: "cancelled", label: "Скасовані" },
+  { key: "archive", label: "Архів" }
     };
 
     function getStartAt(s) {
