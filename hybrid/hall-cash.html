@@ -3616,6 +3616,9 @@ applyHallZoom();*/
 
   const seanceId = params.get("seance") || params.get("seance_id") || "";
 
+  const directorMode =
+  params.get("mode") || "sale";
+
   const card = document.createElement("div");
   card.style.cssText = `
     position: fixed;
