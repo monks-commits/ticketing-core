@@ -247,29 +247,28 @@ function getHall(s) {
   );
 }
     function classifySeance(s) {
-      const rawStatus = String(s.status || "").toLowerCase();
+  const rawStatus = String(s.status || "").toLowerCase();
 
-      if (rawStatus === "postponed") return "postponed";
-      if (rawStatus === "cancelled" || rawStatus === "canceled") return "cancelled";
-      if (rawStatus === "archive" || rawStatus === "archived" || s.archived === true) return "archive";
+  if (rawStatus === "postponed") return "postponed";
+  if (rawStatus === "cancelled" || rawStatus === "canceled") return "cancelled";
+  if (rawStatus === "archive" || rawStatus === "archived" || s.archived === true) return "archive";
 
-      const startRaw = getStartAt(s);
-      if (!startRaw) return "presale";
+  const startRaw = getStartAt(s);
 
-      const now = new Date();
-      const start = new Date(startRaw);
+  if (!startRaw) return "sale";
 
-      if (Number.isNaN(start.getTime())) return "presale";
+  const now = new Date();
+  const start = new Date(startRaw);
 
-      const currentFrom = new Date(start.getTime() - 60 * 60 * 1000);
-      const durationHours = Number(s.duration_hours || 4);
-      const end = new Date(start.getTime() + durationHours * 60 * 60 * 1000);
+  if (Number.isNaN(start.getTime())) return "sale";
 
-      if (now < currentFrom) return "presale";
-      if (now >= currentFrom && now <= end) return "current";
+  const durationHours = Number(s.duration_hours || 4);
+  const end = new Date(start.getTime() + durationHours * 60 * 60 * 1000);
 
-      return "done";
-    }
+  if (now <= end) return "sale";
+
+  return "done";
+}
 
     function formatDate(value) {
       if (!value) return "—";
