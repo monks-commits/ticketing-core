@@ -3863,19 +3863,6 @@ soldTickets.forEach(t => {
   }
 });
 
-const accessTypesHtml = Object.entries(accessTypeStats)
-  .map(([type, stat]) => {
-    const label = typeLabels[type] || type;
-
-    return `
-      <div style="display:flex;justify-content:space-between;">
-        <span>${label}</span>
-        <b>${stat.checked} / ${stat.sold}</b>
-      </div>
-    `;
-  })
-  .join("");
-
 <div style="display:flex;justify-content:space-between;">
   <span>Пройшли</span>
   <b>${checkedCount}</b>
@@ -3891,6 +3878,22 @@ const accessTypesHtml = Object.entries(accessTypeStats)
   <b>${attendance}%</b>
 </div>
 `;
+
+
+const accessTypesHtml = Object.entries(accessTypeStats)
+  .map(([type, stat]) => {
+    const label = typeLabels[type] || type;
+
+    return `
+      <div style="display:flex;justify-content:space-between;">
+        <span>${label}</span>
+        <b>${stat.checked} / ${stat.sold}</b>
+      </div>
+    `;
+  })
+  .join("");
+
+
       
       const capacity = Number(seanceRow?.capacity || 0);
       const occupied = soldTickets.length + longBookings.length + holdBookings.length;
