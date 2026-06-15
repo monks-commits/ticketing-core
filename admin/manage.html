@@ -1135,21 +1135,61 @@ async function postponeSeance(seanceId) {
 
   const reason = prompt(
     "Причина перенесення"
-  ) || "";
+  ) || "Не вказано";
 
-  console.log({
-    seanceId,
-    newDate,
-    newTime,
-    reason
-  });
+  try {
 
-  alert(
-    "Перенесення підготовлено.\n\n" +
-    "Сеанс: " + seanceId + "\n" +
-    "Дата: " + newDate + "\n" +
-    "Час: " + newTime
-  );
+    const { data: current, error: loadError } = await vaDb
+      .from("seances")
+      .select("*")
+      .eq("id", seanceId)
+      .single();
+
+    if (loadError) throw loadError;
+
+    const oldDateTime =
+      current.date && current.time
+        ? `${current.date}T${current.time}:00`
+        : null;
+
+    const newDateTime =
+      `${newDate}T${newTime}:00`;
+
+    const { error: updateError } = await vaDb
+      .from("seances")
+      .update({
+
+        date: newDate,
+        time: newTime,
+
+        status: "postponed",
+
+        postponed_from_at: oldDateTime,
+        postponed_to_at: newDateTime,
+
+        postponed_reason: reason,
+        postponed_at: new Date().toISOString()
+
+      })
+      .eq("id", seanceId);
+
+    if (updateError) throw updateError;
+
+    alert(
+      "Сеанс успішно перенесено."
+    );
+
+    location.reload();
+
+  } catch (e) {
+
+    console.error(e);
+
+    alert(
+      "Помилка перенесення:\n\n" +
+      e.message
+    );
+  }
 }
   
 function openEditor(id){
