@@ -3704,9 +3704,9 @@ applyHallZoom();*/
         .eq("seance_id", seanceId);
 
       const { data: bookings, error: bookingsError } = await db
-        .from("bookings")
-        .select("id, status, seance_id")
-        .eq("seance_id", seanceId);
+  .from("bookings")
+  .select("id, status, seance_id, expires_at")
+  .eq("seance_id", seanceId);
 
       const { data: seanceRow, error: seanceError } = await db
         .from("seances")
@@ -3720,10 +3720,17 @@ applyHallZoom();*/
 
       const soldTickets = tickets || [];
 
-      const holdBookings = (bookings || []).filter(b => {
-        const st = String(b.status || "").toLowerCase();
-        return st === "hold";
-      });
+     const now = new Date();
+
+const holdBookings = (bookings || []).filter(b => {
+  const st = String(b.status || "").toLowerCase();
+  if (st !== "hold") return false;
+
+  if (!b.expires_at) return true;
+
+  const expires = new Date(b.expires_at);
+  return expires > now;
+});
 
       const longBookings = (bookings || []).filter(b => {
         const st = String(b.status || "").toLowerCase();
