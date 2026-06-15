@@ -3939,9 +3939,13 @@ async function loadDirectorData() {
 
   if (isDoneMode) {
     document.getElementById("director-booked").parentElement.style.display = "none";
-    document.getElementById("director-hold").parentElement.style.display = "none";
-    document.getElementById("director-free").parentElement.style.display = "none";
-    document.getElementById("director-fill").parentElement.style.display = "none";
+  document.getElementById("director-hold").parentElement.style.display = "none";
+  document.getElementById("director-free").parentElement.style.display = "none";
+  document.getElementById("director-fill").parentElement.style.display = "none";
+
+  document.getElementById("director-sold").parentElement.style.display = "none";
+
+  document.getElementById("director-access").parentElement.style.display = "none";
   }
 
   document.getElementById("director-status").textContent =
