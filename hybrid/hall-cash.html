@@ -1765,9 +1765,9 @@ btn.dataset.baseColor = (cfg && cfg.color) ? "#fff" : "";
 function calcFinalPrice(basePrice){
   const { ticket_type, promo_mode, promo_value } = getTicketTypeData();
 
-  if (["benefit", "invite", "recovery", "staff"].includes(ticket_type)) {
-    return 0;
-  }
+  if (["discount", "invite", "compensation", "service"].includes(ticket_type)) {
+  return 0;
+}
 
   if (ticket_type === "promo") {
     if (promo_mode === "percent") {
