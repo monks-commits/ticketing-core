@@ -1738,11 +1738,24 @@ btn.dataset.baseColor = (cfg && cfg.color) ? "#fff" : "";
   }
 }
 
-function getTicketTypeData(){
-  const type = document.getElementById("ticketType")?.value || "standard";
+function normalizeTicketType(type) {
+  const map = {
+    standard: "full",
+    benefit: "discount",
+    recovery: "compensation",
+    staff: "service"
+  };
+
+  return map[type] || type || "full";
+}
+
+function getTicketTypeData() {
+  const rawType = document.getElementById("ticketType")?.value || "full";
+  const type = normalizeTicketType(rawType);
 
   const data = {
     ticket_type: type,
+    ticket_type_label: ticketTypeLabel(type),
     promo_mode: null,
     promo_value: null
   };
@@ -1755,25 +1768,33 @@ function getTicketTypeData(){
   return data;
 }
 
-function ticketTypeLabel(type){
+function ticketTypeLabel(type) {
+  const normalized = normalizeTicketType(type);
+
   const map = {
-    standard: "Звичайний",
+    full: "Звичайний",
     child: "Дитячий",
-    benefit: "Пільговий",
+    discount: "Пільговий",
     invite: "Запрошення",
     promo: "Акційний",
-    recovery: "Компенсаційний",
+    compensation: "Компенсаційний",
     rental: "Орендний",
+    service: "Службовий",
+    vip: "VIP",
+
+    // старые коды для совместимости
+    standard: "Звичайний",
+    benefit: "Пільговий",
+    recovery: "Компенсаційний",
     staff: "Службовий"
   };
 
-  return map[type] || "Звичайний";
+  return map[normalized] || map[type] || "Звичайний";
 }
-    
-function calcFinalPrice(basePrice){
+function calcFinalPrice(basePrice) {
   const { ticket_type, promo_mode, promo_value } = getTicketTypeData();
 
-  if (["benefit", "invite", "recovery", "staff"].includes(ticket_type)) {
+  if (["discount", "invite", "compensation", "service"].includes(ticket_type)) {
     return 0;
   }
 
@@ -1789,7 +1810,6 @@ function calcFinalPrice(basePrice){
 
   return basePrice;
 }
-
 document.getElementById("ticketType")?.addEventListener("change", () => {
   const type = document.getElementById("ticketType")?.value;
   const promoBox = document.getElementById("promoBox");
