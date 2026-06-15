@@ -3712,199 +3712,237 @@ applyHallZoom();*/
       "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS"
     );
 
-    async function loadDirectorData() {
-      const { data: tickets, error: ticketsError } = await db
-        .from("tickets")
-        .select(`
-          id,
-          price,
-          seance_id,
-          ticket_type,
-          channel,
-          checked_in_at,
-          checked_in_by
-        `)
-        .eq("seance_id", seanceId);
+async function loadDirectorData() {
+  const { data: tickets, error: ticketsError } = await db
+    .from("tickets")
+    .select(`
+      id,
+      price,
+      seance_id,
+      ticket_type,
+      channel,
+      checked_in_at,
+      checked_in_by
+    `)
+    .eq("seance_id", seanceId);
 
-      const { data: bookings, error: bookingsError } = await db
-        .from("bookings")
-        .select("id, status, seance_id, expires_at")
-        .eq("seance_id", seanceId);
+  const { data: bookings, error: bookingsError } = await db
+    .from("bookings")
+    .select("id, status, seance_id, expires_at")
+    .eq("seance_id", seanceId);
 
-      const { data: seanceRow, error: seanceError } = await db
-        .from("seances")
-        .select("*")
-        .eq("id", seanceId)
-        .maybeSingle();
+  const { data: seanceRow, error: seanceError } = await db
+    .from("seances")
+    .select("*")
+    .eq("id", seanceId)
+    .maybeSingle();
 
-      if (ticketsError) throw ticketsError;
-      if (bookingsError) throw bookingsError;
-      if (seanceError) throw seanceError;
+  if (ticketsError) throw ticketsError;
+  if (bookingsError) throw bookingsError;
+  if (seanceError) throw seanceError;
 
-      const soldTickets = tickets || [];
-      const now = new Date();
+  const soldTickets = tickets || [];
+  const now = new Date();
 
-      const holdBookings = (bookings || []).filter(b => {
-        const st = String(b.status || "").toLowerCase();
-        if (st !== "hold") return false;
-        if (!b.expires_at) return true;
-        return new Date(b.expires_at) > now;
-      });
+  const holdBookings = (bookings || []).filter(b => {
+    const st = String(b.status || "").toLowerCase();
+    if (st !== "hold") return false;
+    if (!b.expires_at) return true;
+    return new Date(b.expires_at) > now;
+  });
 
-      const longBookings = (bookings || []).filter(b => {
-        const st = String(b.status || "").toLowerCase();
-        return st === "reserved" || st === "booked";
-      });
+  const longBookings = (bookings || []).filter(b => {
+    const st = String(b.status || "").toLowerCase();
+    return st === "reserved" || st === "booked";
+  });
 
-      const revenue = soldTickets.reduce((sum, t) => {
-        return sum + Number(t.price || 0);
-      }, 0);
+  const revenue = soldTickets.reduce((sum, t) => {
+    return sum + Number(t.price || 0);
+  }, 0);
 
-      const typeLabels = {
-        full: "Звичайний",
-        child: "Дитячий",
-        discount: "Пільговий",
-        invite: "Запрошення",
-        promo: "Акційний",
-        rental: "Орендний",
-        service: "Службовий",
-        compensation: "Компенсаційний",
-        vip: "VIP"
-      };
+  const typeLabels = {
+    full: "Звичайний",
+    child: "Дитячий",
+    discount: "Пільговий",
+    invite: "Запрошення",
+    promo: "Акційний",
+    rental: "Орендний",
+    service: "Службовий",
+    compensation: "Компенсаційний",
+    vip: "VIP"
+  };
 
-      const typeStats = {};
-      soldTickets.forEach(t => {
-        const type = t.ticket_type || "full";
-        typeStats[type] = (typeStats[type] || 0) + 1;
-      });
+  const typeStats = {};
+  soldTickets.forEach(t => {
+    const type = t.ticket_type || "full";
+    typeStats[type] = (typeStats[type] || 0) + 1;
+  });
 
-      const typeHtml = Object.entries(typeStats)
-        .map(([type, count]) => {
-          const label = typeLabels[type] || type;
-          return `
-            <div style="display:flex;justify-content:space-between;">
-              <span>${label}</span>
-              <b>${count}</b>
-            </div>
-          `;
-        })
-        .join("");
+  const typeHtml = Object.entries(typeStats)
+    .map(([type, count]) => {
+      const label = typeLabels[type] || type;
+      return `
+        <div style="display:flex;justify-content:space-between;">
+          <span>${label}</span>
+          <b>${count}</b>
+        </div>
+      `;
+    })
+    .join("");
 
-      const channelLabels = {
-        online: "Онлайн",
-        cash: "Каса"
-      };
+  const channelLabels = {
+    online: "Онлайн",
+    cash: "Каса"
+  };
 
-      const channelStats = {};
-      soldTickets.forEach(t => {
-        const ch = t.channel || "unknown";
-        channelStats[ch] = (channelStats[ch] || 0) + 1;
-      });
+  const channelStats = {};
+  soldTickets.forEach(t => {
+    const ch = t.channel || "unknown";
+    channelStats[ch] = (channelStats[ch] || 0) + 1;
+  });
 
-      const channelHtml = Object.entries(channelStats)
-        .map(([ch, count]) => `
-          <div style="display:flex;justify-content:space-between;">
-            <span>${channelLabels[ch] || ch}</span>
-            <b>${count}</b>
-          </div>
-        `)
-        .join("");
+  const channelHtml = Object.entries(channelStats)
+    .map(([ch, count]) => `
+      <div style="display:flex;justify-content:space-between;">
+        <span>${channelLabels[ch] || ch}</span>
+        <b>${count}</b>
+      </div>
+    `)
+    .join("");
 
-      const checkedIn = soldTickets.filter(t => t.checked_in_at);
-      const checkedCount = checkedIn.length;
-      const absentCount = Math.max(soldTickets.length - checkedCount, 0);
-      const attendance = soldTickets.length
-        ? Math.round((checkedCount / soldTickets.length) * 100)
-        : 0;
+  const checkedIn = soldTickets.filter(t => t.checked_in_at);
+  const checkedCount = checkedIn.length;
+  const absentCount = Math.max(soldTickets.length - checkedCount, 0);
+  const attendance = soldTickets.length
+    ? Math.round((checkedCount / soldTickets.length) * 100)
+    : 0;
 
-      const accessHtml = `
+  const accessHtml = `
+    <div style="display:flex;justify-content:space-between;">
+      <span>Пройшли</span>
+      <b>${checkedCount}</b>
+    </div>
+    <div style="display:flex;justify-content:space-between;">
+      <span>Не прийшли</span>
+      <b>${absentCount}</b>
+    </div>
+    <div style="display:flex;justify-content:space-between;">
+      <span>Явка</span>
+      <b>${attendance}%</b>
+    </div>
+  `;
+
+  const accessTypeStats = {};
+  soldTickets.forEach(t => {
+    const type = t.ticket_type || "full";
+
+    if (!accessTypeStats[type]) {
+      accessTypeStats[type] = { sold: 0, checked: 0 };
+    }
+
+    accessTypeStats[type].sold++;
+
+    if (t.checked_in_at) {
+      accessTypeStats[type].checked++;
+    }
+  });
+
+  const accessTypesHtml = Object.entries(accessTypeStats)
+    .map(([type, stat]) => {
+      const label = typeLabels[type] || type;
+      return `
+        <div style="display:flex;justify-content:space-between;">
+          <span>${label}</span>
+          <b>${stat.checked} / ${stat.sold}</b>
+        </div>
+      `;
+    })
+    .join("");
+
+  const capacity = Number(seanceRow?.capacity || 0);
+
+  const occupied =
+    soldTickets.length +
+    longBookings.length +
+    holdBookings.length;
+
+  const free = capacity > 0
+    ? Math.max(capacity - occupied, 0)
+    : null;
+
+  const fill = capacity > 0
+    ? Math.round((occupied / capacity) * 100)
+    : null;
+
+  const isDoneMode = directorMode === "done";
+
+  const summaryEl = document.getElementById("director-summary-final");
+  if (summaryEl) {
+    summaryEl.innerHTML = isDoneMode ? `
+      <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+        <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">
+          ПІДСУМКИ СЕАНСУ
+        </div>
+
+        <div style="display:flex;justify-content:space-between;">
+          <span>Продано</span>
+          <b>${soldTickets.length}</b>
+        </div>
+
         <div style="display:flex;justify-content:space-between;">
           <span>Пройшли</span>
           <b>${checkedCount}</b>
         </div>
+
         <div style="display:flex;justify-content:space-between;">
           <span>Не прийшли</span>
           <b>${absentCount}</b>
         </div>
+
         <div style="display:flex;justify-content:space-between;">
           <span>Явка</span>
           <b>${attendance}%</b>
         </div>
-      `;
+      </div>
+    ` : "";
+  }
 
-      const accessTypeStats = {};
-      soldTickets.forEach(t => {
-        const type = t.ticket_type || "full";
+  document.getElementById("director-sold").textContent = soldTickets.length;
+  document.getElementById("director-booked").textContent = longBookings.length;
+  document.getElementById("director-hold").textContent = holdBookings.length;
 
-        if (!accessTypeStats[type]) {
-          accessTypeStats[type] = {
-            sold: 0,
-            checked: 0
-          };
-        }
+  document.getElementById("director-revenue").textContent =
+    revenue.toLocaleString("uk-UA") + " грн";
 
-        accessTypeStats[type].sold++;
+  document.getElementById("director-ticket-types").innerHTML =
+    typeHtml || "—";
 
-        if (t.checked_in_at) {
-          accessTypeStats[type].checked++;
-        }
-      });
+  document.getElementById("director-channels").innerHTML =
+    channelHtml || "—";
 
-      const accessTypesHtml = Object.entries(accessTypeStats)
-        .map(([type, stat]) => {
-          const label = typeLabels[type] || type;
-          return `
-            <div style="display:flex;justify-content:space-between;">
-              <span>${label}</span>
-              <b>${stat.checked} / ${stat.sold}</b>
-            </div>
-          `;
-        })
-        .join("");
+  document.getElementById("director-access").innerHTML =
+    accessHtml;
 
-      const capacity = Number(seanceRow?.capacity || 0);
-      const occupied =
-        soldTickets.length +
-        longBookings.length +
-        holdBookings.length;
+  document.getElementById("director-access-types").innerHTML =
+    accessTypesHtml || "—";
 
-      const free = capacity > 0
-        ? Math.max(capacity - occupied, 0)
-        : null;
+  document.getElementById("director-free").textContent =
+    free === null ? "—" : free;
 
-      const fill = capacity > 0
-        ? Math.round((occupied / capacity) * 100)
-        : null;
+  document.getElementById("director-fill").textContent =
+    fill === null ? "—" : fill + "%";
 
-      document.getElementById("director-sold").textContent = soldTickets.length;
-      document.getElementById("director-booked").textContent = longBookings.length;
-      document.getElementById("director-hold").textContent = holdBookings.length;
+  if (isDoneMode) {
+    document.getElementById("director-booked").parentElement.style.display = "none";
+    document.getElementById("director-hold").parentElement.style.display = "none";
+    document.getElementById("director-free").parentElement.style.display = "none";
+    document.getElementById("director-fill").parentElement.style.display = "none";
+  }
 
-      document.getElementById("director-revenue").textContent =
-        revenue.toLocaleString("uk-UA") + " грн";
-
-      document.getElementById("director-ticket-types").innerHTML =
-        typeHtml || "—";
-
-      document.getElementById("director-channels").innerHTML =
-        channelHtml || "—";
-
-      document.getElementById("director-access").innerHTML =
-        accessHtml;
-
-      document.getElementById("director-access-types").innerHTML =
-        accessTypesHtml || "—";
-
-      document.getElementById("director-free").textContent =
-        free === null ? "—" : free;
-
-      document.getElementById("director-fill").textContent =
-        fill === null ? "—" : fill + "%";
-
-      document.getElementById("director-status").textContent =
-        "Оновлено: " + new Date().toLocaleTimeString("uk-UA");
-    }
-
+  document.getElementById("director-status").textContent =
+    "Оновлено: " + new Date().toLocaleTimeString("uk-UA");
+}
+    
     await loadDirectorData();
     setInterval(loadDirectorData, 10000);
 
