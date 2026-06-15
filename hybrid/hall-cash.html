@@ -2037,7 +2037,7 @@ async function applyStatusToSelectedLocal(status){
 
       const cashier_id = getCashierId();
       setSyncPill("SYNC: відправка…", "warn");
-
+console.log("SYNC QUEUE", JSON.stringify(queue, null, 2));
       const r = await postCashSync(cashier_id, queue);
 
       if (!r.ok){
