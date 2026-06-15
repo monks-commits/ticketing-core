@@ -3669,6 +3669,17 @@ applyHallZoom();*/
   <div id="director-ticket-types" style="font-size:14px;line-height:1.6;">—</div>
 </div>
 
+<div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
+  <div style="color:#9fb0cb;font-size:13px;margin-bottom:8px;">
+    Канали продаж
+  </div>
+
+  <div id="director-channels"
+       style="font-size:14px;line-height:1.6;">
+    —
+  </div>
+</div>
+
     <div style="background:#1a2740;border-radius:12px;padding:12px;margin-bottom:10px;">
       <div style="color:#9fb0cb;font-size:13px;">Свободно</div>
       <div id="director-free" style="font-size:26px;font-weight:900;">—</div>
@@ -3700,7 +3711,7 @@ applyHallZoom();*/
     async function loadDirectorData() {
       const { data: tickets, error: ticketsError } = await db
         .from("tickets")
-        .select("id, price, seance_id, ticket_type")
+        .select("id, price, seance_id, ticket_type, channel")
         .eq("seance_id", seanceId);
 
       const { data: bookings, error: bookingsError } = await db
@@ -3768,6 +3779,27 @@ const typeHtml = Object.entries(typeStats)
     </div>`;
   })
   .join("");
+
+const channelStats = {};
+
+soldTickets.forEach(t => {
+  const ch = t.channel || "unknown";
+  channelStats[ch] = (channelStats[ch] || 0) + 1;
+});
+
+const channelLabels = {
+  online: "Онлайн",
+  cash: "Каса"
+};
+
+const channelHtml = Object.entries(channelStats)
+  .map(([ch, count]) => `
+    <div style="display:flex;justify-content:space-between;">
+      <span>${channelLabels[ch] || ch}</span>
+      <b>${count}</b>
+    </div>
+  `)
+  .join("");
       
       const capacity = Number(seanceRow?.capacity || 0);
       const occupied = soldTickets.length + longBookings.length + holdBookings.length;
@@ -3785,6 +3817,12 @@ const typeHtml = Object.entries(typeStats)
 const typesEl = document.getElementById("director-ticket-types");
 if (typesEl) {
   typesEl.innerHTML = typeHtml || "—";
+}
+const channelsEl =
+  document.getElementById("director-channels");
+
+if (channelsEl) {
+  channelsEl.innerHTML = channelHtml || "—";
 }
       
       document.getElementById("director-free").textContent =
