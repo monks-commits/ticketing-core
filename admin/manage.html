@@ -1192,11 +1192,12 @@ postponed_at: new Date().toISOString()
 
     console.log("POSTPONE CHECK", updated);
 
-    if (!updated || !updated.postponed_at) {
-      throw new Error(
-        "PATCH пройшов, але статус не змінився. SeanceId = " + seanceId
-      );
-    }
+   if (!updated || !updated.postponed_at) {
+  throw new Error(
+    "Перенесення не записалося.\n\n" +
+    JSON.stringify(updated, null, 2)
+  );
+}
 
     alert("Сеанс успішно перенесено");
     load();
