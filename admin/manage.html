@@ -1179,12 +1179,28 @@ async function postponeSeance(seanceId) {
       }
     );
 
-    if (!updateRes.ok) {
-      const txt = await updateRes.text();
-      throw new Error(txt);
-    }
+   const updateText = await updateRes.text();
 
-    alert("Сеанс успішно перенесено");
+if (!updateRes.ok) {
+  throw new Error(updateText);
+}
+
+let updatedRows = [];
+try {
+  updatedRows = JSON.parse(updateText);
+} catch (e) {
+  updatedRows = [];
+}
+
+if (!updatedRows.length) {
+  throw new Error(
+    "Supabase не оновив жодного рядка. Перевірте seanceId: " + seanceId
+  );
+}
+
+console.log("POSTPONE UPDATED", updatedRows);
+
+alert("Сеанс успішно перенесено");
     location.reload();
 
   } catch (e) {
