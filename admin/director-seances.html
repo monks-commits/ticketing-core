@@ -400,14 +400,15 @@ function renderPostponedList() {
         <div class="date">${formatDate(s.postponed_at)}</div>
 
         <div>
-          <div class="name">${getTitle(s)}</div>
-          <div class="small">
-            Було: ${formatDate(s.postponed_from_at)}
-            <br>
-            Стало: ${formatDate(s.postponed_to_at)}
-            <br>
-            Причина: ${s.postponed_reason || "не вказано"}
-          </div>
+         <div class="small">
+  Було: ${formatDate(s.postponed_from_at)}
+  <br>
+  Стало: ${formatDate(s.postponed_to_at)}
+  <br>
+  Причина: ${s.postponed_reason || "не вказано"}
+  <br>
+  Місць: ${s.capacity || 0}
+</div>
         </div>
 
         <div class="badge">Перенесено</div>
