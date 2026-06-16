@@ -1166,12 +1166,11 @@ async function postponeSeance(seanceId) {
       },
       body: JSON.stringify({
         date: newDate,
-        time: newTime,
-        status: "postponed",
-        postponed_from_at: oldDateTime,
-        postponed_to_at: newDateTime,
-        postponed_reason: reason,
-        postponed_at: new Date().toISOString()
+time: newTime,
+postponed_from_at: oldDateTime,
+postponed_to_at: newDateTime,
+postponed_reason: reason,
+postponed_at: new Date().toISOString()
       })
     });
 
@@ -1193,7 +1192,7 @@ async function postponeSeance(seanceId) {
 
     console.log("POSTPONE CHECK", updated);
 
-    if (!updated || updated.status !== "postponed") {
+    if (!updated || !updated.postponed_at) {
       throw new Error(
         "PATCH пройшов, але статус не змінився. SeanceId = " + seanceId
       );
