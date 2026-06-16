@@ -250,14 +250,15 @@ function getHall(s) {
   );
 }
     function classifySeance(s) {
+  if (s.archived === true) return "archive";
+
+  if (s.postponed_at) return "postponed";
+
   const rawStatus = String(s.status || "").toLowerCase();
 
-  if (rawStatus === "postponed") return "postponed";
   if (rawStatus === "cancelled" || rawStatus === "canceled") return "cancelled";
-  if (rawStatus === "archive" || rawStatus === "archived" || s.archived === true) return "archive";
 
   const startRaw = getStartAt(s);
-
   if (!startRaw) return "sale";
 
   const now = new Date();
@@ -272,7 +273,6 @@ function getHall(s) {
 
   return "done";
 }
-
     function formatDate(value) {
       if (!value) return "—";
       const d = new Date(value);
