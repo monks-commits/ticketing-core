@@ -711,6 +711,14 @@ const venueSelect = document.getElementById("venueSelect");
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];
 
+CONFIG_VENUES = [
+  { id: "academy", title: "Академія руху" },
+  { id: "shevchenko", title: "Театр Шевченка" },
+  { id: "filarmoniya", title: "Філармонія" },
+  { id: "opera", title: "Дніпровська опера" },
+  { id: "client-x", title: "Client X" }
+];
+  
 function fillVenueSelectFromConfig(){
   if (!venueSelect) return;
 
