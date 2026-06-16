@@ -506,10 +506,13 @@ function openPostponedReport(id) {
     return;
   }
 
-  const capacity = Number(s.capacity || 0);
-
-  const compensated = 0;
-  const left = capacity;
+  const st = postponedTicketStats[id] || {
+    sold: 0,
+    amount: 0,
+    checked: 0,
+    checkedAmount: 0,
+    notChecked: 0
+  };
 
   alert(
     "ЗВІТ ПЕРЕНЕСЕННЯ\n\n" +
@@ -517,9 +520,17 @@ function openPostponedReport(id) {
     "Було: " + formatDate(s.postponed_from_at) + "\n" +
     "Стало: " + formatDate(s.postponed_to_at) + "\n" +
     "Причина: " + (s.postponed_reason || "не вказано") + "\n\n" +
-    "Місць при перенесенні: " + capacity + "\n" +
-    "Компенсовано: " + compensated + "\n" +
-    "Залишилось: " + left
+
+    "На момент перенесення:\n" +
+    "Квитків: " + st.sold + "\n" +
+    "Сума: " + st.amount.toLocaleString("uk-UA") + " грн\n\n" +
+
+    "Потребує компенсації:\n" +
+    "Погашених квитків: " + st.checked + "\n" +
+    "Сума: " + st.checkedAmount.toLocaleString("uk-UA") + " грн\n\n" +
+
+    "Не погашені / залишаються дійсними:\n" +
+    "Квитків: " + st.notChecked
   );
 }
     
