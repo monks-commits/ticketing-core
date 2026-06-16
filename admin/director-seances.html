@@ -427,13 +427,13 @@ function renderPostponedList() {
 
   list.innerHTML = rows.map(s => {
     const id = String(s.id);
-
-    const capacity = Number(s.capacity || 0);
-
-    // Пока компенсации не подключены — считаем 0.
-    // Следующим шагом подтянем recovery_tokens.
-    const compensated = 0;
-    const left = capacity;
+    const st = postponedTicketStats[id] || {
+      sold: 0,
+      amount: 0,
+      checked: 0,
+      checkedAmount: 0,
+      notChecked: 0
+    };
 
     return `
       <div class="seance-row" onclick="openPostponedReport('${id}')">
@@ -441,7 +441,6 @@ function renderPostponedList() {
 
         <div>
           <div class="name">${getTitle(s)}</div>
-
           <div class="small">
             Було: ${formatDate(s.postponed_from_at)}
             <br>
@@ -449,14 +448,15 @@ function renderPostponedList() {
             <br>
             Причина: ${s.postponed_reason || "не вказано"}
             <br>
-            Місць при перенесенні: ${capacity}
+            Квитків: ${st.sold}
+            · Сума: ${st.amount.toLocaleString("uk-UA")} грн
           </div>
         </div>
 
         <div class="badge">
-          Компенсовано: ${compensated}
+          До компенсації: ${st.checked}
           <br>
-          Залишилось: ${left}
+          ${st.checkedAmount.toLocaleString("uk-UA")} грн
         </div>
       </div>
     `;
