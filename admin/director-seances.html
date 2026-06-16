@@ -195,6 +195,7 @@
     const vaDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allSeances = [];
+    let postponedTicketStats = {};
     let recoveryEvents = [];
     let activeStatus = "sale";
 
@@ -287,36 +288,20 @@ function getHall(s) {
       });
     }
 
-    async function loadSeances() {
+   async function loadSeances() {
   const list = document.getElementById("seance-list");
 
-  const seancesReq = vaDb
+  const { data, error } = await vaDb
     .from("seances")
     .select("*");
 
-  const recoveryReq = vaDb
-    .from("recovery_events")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  const [
-    { data: seances, error: seancesError },
-    { data: recovery, error: recoveryError }
-  ] = await Promise.all([seancesReq, recoveryReq]);
-
-  if (seancesError) {
-    list.innerHTML = `<div class="error">Помилка завантаження seances:<br>${seancesError.message}</div>`;
-    console.error(seancesError);
+  if (error) {
+    list.innerHTML = `<div class="error">Помилка завантаження seances:<br>${error.message}</div>`;
+    console.error(error);
     return;
   }
 
-  if (recoveryError) {
-    list.innerHTML = `<div class="error">Помилка завантаження recovery_events:<br>${recoveryError.message}</div>`;
-    console.error(recoveryError);
-    return;
-  }
-
-  allSeances = (seances || [])
+  allSeances = (data || [])
     .map(s => ({
       ...s,
       director_status: classifySeance(s)
@@ -327,14 +312,62 @@ function getHall(s) {
       return da - db;
     });
 
-  recoveryEvents = (recovery || []).filter(e => {
-    const type = String(e.incident_type || "").toLowerCase();
-    return type === "postponed";
-  });
+  await loadPostponedTicketStats();
 
   updateCounts();
   renderList();
 }
+
+async function loadPostponedTicketStats() {
+  const postponedIds = allSeances
+    .filter(s => s.postponed_at)
+    .map(s => String(s.id));
+
+  postponedTicketStats = {};
+
+  postponedIds.forEach(id => {
+    postponedTicketStats[id] = {
+      sold: 0,
+      amount: 0,
+      checked: 0,
+      checkedAmount: 0,
+      notChecked: 0
+    };
+  });
+
+  if (!postponedIds.length) return;
+
+  const { data, error } = await vaDb
+    .from("tickets")
+    .select("seance_id, price, checked_in_at")
+    .in("seance_id", postponedIds);
+
+  if (error) {
+    console.error("postponed ticket stats error:", error);
+    return;
+  }
+
+  (data || []).forEach(t => {
+    const id = String(t.seance_id || "");
+    if (!postponedTicketStats[id]) return;
+
+    const price = Number(t.price || 0);
+
+    postponedTicketStats[id].sold++;
+    postponedTicketStats[id].amount += price;
+
+    if (t.checked_in_at) {
+      postponedTicketStats[id].checked++;
+      postponedTicketStats[id].checkedAmount += price;
+    }
+  });
+
+  Object.keys(postponedTicketStats).forEach(id => {
+    const st = postponedTicketStats[id];
+    st.notChecked = Math.max(st.sold - st.checked, 0);
+  });
+}
+    
   function updateCounts() {
   Object.keys(titles).forEach(key => {
     const el = document.getElementById("count-" + key);
