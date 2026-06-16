@@ -1131,8 +1131,10 @@ async function postponeSeance(seanceId) {
 
   try {
 
+    console.log("POSTPONE seanceId =", seanceId);
+
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seanceId)}&select=*`,
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${seanceId}&select=*`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -1143,8 +1145,12 @@ async function postponeSeance(seanceId) {
 
     const rows = await res.json();
 
+    console.log("FOUND ROWS", rows);
+
     if (!rows.length) {
-      throw new Error("Сеанс не знайдено");
+      throw new Error(
+        "Сеанс не знайдено: " + seanceId
+      );
     }
 
     const current = rows[0];
@@ -1158,7 +1164,7 @@ async function postponeSeance(seanceId) {
       `${newDate}T${newTime}:00`;
 
     const updateRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seanceId)}`,
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${seanceId}`,
       {
         method: "PATCH",
         headers: {
@@ -1179,28 +1185,25 @@ async function postponeSeance(seanceId) {
       }
     );
 
-   const updateText = await updateRes.text();
+    const updatedRows = await updateRes.json();
 
-if (!updateRes.ok) {
-  throw new Error(updateText);
-}
+    console.log("UPDATED ROWS", updatedRows);
 
-let updatedRows = [];
-try {
-  updatedRows = JSON.parse(updateText);
-} catch (e) {
-  updatedRows = [];
-}
+    if (!updateRes.ok) {
+      throw new Error(JSON.stringify(updatedRows));
+    }
 
-if (!updatedRows.length) {
-  throw new Error(
-    "Supabase не оновив жодного рядка. Перевірте seanceId: " + seanceId
-  );
-}
+    if (!updatedRows.length) {
+      throw new Error(
+        "Supabase не оновив жодного рядка. SeanceId = " +
+        seanceId
+      );
+    }
 
-console.log("POSTPONE UPDATED", updatedRows);
-alert(JSON.stringify(updatedRows[0], null, 2));
-alert("Сеанс успішно перенесено");
+    alert(
+      "Сеанс успішно перенесено"
+    );
+
     location.reload();
 
   } catch (e) {
