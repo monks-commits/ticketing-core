@@ -335,13 +335,13 @@ function getHall(s) {
   updateCounts();
   renderList();
 }
-    function updateCounts() {
+  function updateCounts() {
   Object.keys(titles).forEach(key => {
     const el = document.getElementById("count-" + key);
     if (!el) return;
 
     if (key === "postponed") {
-      el.textContent = recoveryEvents.length;
+      el.textContent = allSeances.filter(s => s.postponed_at).length;
       return;
     }
 
@@ -349,13 +349,12 @@ function getHall(s) {
       allSeances.filter(s => s.director_status === key).length;
   });
 }
-
     function renderList() {
   document.getElementById("content-title").textContent =
     titles[activeStatus];
 
   if (activeStatus === "postponed") {
-    renderRecoveryList();
+    renderPostponedList();
     return;
   }
 
@@ -383,6 +382,40 @@ function getHall(s) {
   }).join("");
 }
 
+function renderPostponedList() {
+  const list = document.getElementById("seance-list");
+
+  const rows = allSeances.filter(s => s.postponed_at);
+
+  if (!rows.length) {
+    list.innerHTML = `<div class="empty">Перенесених сеансів немає.</div>`;
+    return;
+  }
+
+  list.innerHTML = rows.map(s => {
+    const id = String(s.id);
+
+    return `
+      <div class="seance-row" onclick="openPostponedReport('${id}')">
+        <div class="date">${formatDate(s.postponed_at)}</div>
+
+        <div>
+          <div class="name">${getTitle(s)}</div>
+          <div class="small">
+            Було: ${formatDate(s.postponed_from_at)}
+            <br>
+            Стало: ${formatDate(s.postponed_to_at)}
+            <br>
+            Причина: ${s.postponed_reason || "не вказано"}
+          </div>
+        </div>
+
+        <div class="badge">Перенесено</div>
+      </div>
+    `;
+  }).join("");
+}
+    
 function renderRecoveryList() {
   const list = document.getElementById("seance-list");
 
