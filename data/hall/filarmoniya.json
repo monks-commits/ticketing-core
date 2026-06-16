@@ -11911,5 +11911,82 @@
       "rotate": 0
     }
   ],
-  "decor": []
+  "decor": [
+    {
+      "id": "stage_1781631132581_862",
+      "type": "stage",
+      "x": 605,
+      "y": 47,
+      "w": 607,
+      "h": 36,
+      "rotate": 0,
+      "z": 30,
+      "size": 22,
+      "opacity": 1,
+      "glow": 0,
+      "text": "СЦЕНА",
+      "fill": "#beb9cb",
+      "borderColor": "#ffffff",
+      "textColor": "#ffffff",
+      "mediaFit": "cover",
+      "layerId": "architecture"
+    },
+    {
+      "id": "text_1781631317329_863",
+      "type": "text",
+      "x": 600,
+      "y": 102,
+      "w": 0,
+      "h": 0,
+      "rotate": 0,
+      "z": 30,
+      "size": 19,
+      "opacity": 1,
+      "glow": 0,
+      "text": "партер",
+      "fill": "#908e95",
+      "borderColor": "#ffffff",
+      "textColor": "#e9ecf1",
+      "mediaFit": "cover",
+      "layerId": "text"
+    },
+    {
+      "id": "text_1781631344759_864",
+      "type": "text",
+      "x": 609,
+      "y": 375,
+      "w": 0,
+      "h": 0,
+      "rotate": 0,
+      "z": 30,
+      "size": 17,
+      "opacity": 1,
+      "glow": 0,
+      "text": "прохiд",
+      "fill": "#b0adb8",
+      "borderColor": "#ffffff",
+      "textColor": "#f1f2f3",
+      "mediaFit": "cover",
+      "layerId": "text"
+    },
+    {
+      "id": "text_1781631426851_865",
+      "type": "text",
+      "x": 612,
+      "y": 594,
+      "w": 0,
+      "h": 0,
+      "rotate": 0,
+      "z": 30,
+      "size": 16,
+      "opacity": 1,
+      "glow": 0,
+      "text": "балкон",
+      "fill": "#97939f",
+      "borderColor": "#ffffff",
+      "textColor": "#eceff3",
+      "mediaFit": "cover",
+      "layerId": "text"
+    }
+  ]
 }
