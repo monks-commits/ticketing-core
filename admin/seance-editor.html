@@ -712,14 +712,26 @@ let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];
 
 CONFIG_VENUES = [
-  { id: "academy", title: "Академія руху" },
-  { id: "shevchenko", title: "Театр Шевченка" },
-  { id: "filarmoniya", title: "Філармонія" },
-  { id: "opera", title: "Дніпровська опера" },
-  { id: "client-x", title: "Client X" }
-];
+  
   
 function fillVenueSelectFromConfig(){
+
+  const forcedVenues = [
+    { id: "academy", title: "Академія руху" },
+    { id: "shevchenko", title: "Театр Шевченка" },
+    { id: "filarmoniya", title: "Філармонія" },
+    { id: "opera", title: "Дніпровська опера" },
+    { id: "client-x", title: "Client X" },
+    { id: "big-stage-demo", title: "Велика сцена Demo" },
+    { id: "club-demo", title: "Club Demo" }
+  ];
+
+  forcedVenues.forEach(v => {
+    if (!CONFIG_VENUES.some(x => x.id === v.id)) {
+      CONFIG_VENUES.push(v);
+    }
+  });
+
   if (!venueSelect) return;
 
   venueSelect.innerHTML = CONFIG_VENUES.map(v => `
