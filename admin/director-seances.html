@@ -465,13 +465,29 @@ function openRecoveryEvent(id) {
   alert("Картку перенесення підключимо наступним кроком: " + id);
 }
 
-function openPostponedReport(id){
+function openPostponedReport(id) {
+  const s = allSeances.find(x => String(x.id) === String(id));
+
+  if (!s) {
+    alert("Сеанс не знайдено:\n" + id);
+    return;
+  }
+
+  const capacity = Number(s.capacity || 0);
+
+  const compensated = 0;
+  const left = capacity;
 
   alert(
-    "Звіт перенесення\n\n" +
-    "Сеанс: " + id
+    "ЗВІТ ПЕРЕНЕСЕННЯ\n\n" +
+    "Сеанс: " + getTitle(s) + "\n\n" +
+    "Було: " + formatDate(s.postponed_from_at) + "\n" +
+    "Стало: " + formatDate(s.postponed_to_at) + "\n" +
+    "Причина: " + (s.postponed_reason || "не вказано") + "\n\n" +
+    "Місць при перенесенні: " + capacity + "\n" +
+    "Компенсовано: " + compensated + "\n" +
+    "Залишилось: " + left
   );
-
 }
     
   function openSeance(id) {
