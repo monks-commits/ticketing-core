@@ -1120,7 +1120,6 @@ function openCash(id){
 }
 
 async function postponeSeance(seanceId) {
-
   const newDate = prompt("Нова дата (YYYY-MM-DD)");
   if (!newDate) return;
 
@@ -1130,27 +1129,20 @@ async function postponeSeance(seanceId) {
   const reason = prompt("Причина перенесення") || "Не вказано";
 
   try {
+    const loadUrl =
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${seanceId}&select=*`;
 
-    console.log("POSTPONE seanceId =", seanceId);
-
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?id=eq.${seanceId}&select=*`,
-      {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
+    const res = await fetch(loadUrl, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
       }
-    );
+    });
 
     const rows = await res.json();
 
-    console.log("FOUND ROWS", rows);
-
     if (!rows.length) {
-      throw new Error(
-        "Сеанс не знайдено: " + seanceId
-      );
+      throw new Error("Сеанс не знайдено: " + seanceId);
     }
 
     const current = rows[0];
@@ -1160,60 +1152,59 @@ async function postponeSeance(seanceId) {
         ? `${current.date}T${current.time}:00`
         : null;
 
-    const newDateTime =
-      `${newDate}T${newTime}:00`;
+    const newDateTime = `${newDate}T${newTime}:00`;
 
-    const updateRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?id=eq.${seanceId}`,
-      {
-        method: "PATCH",
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify({
-          date: newDate,
-          time: newTime,
-          status: "postponed",
-          postponed_from_at: oldDateTime,
-          postponed_to_at: newDateTime,
-          postponed_reason: reason,
-          postponed_at: new Date().toISOString()
-        })
-      }
-    );
+    const patchUrl =
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${seanceId}`;
 
-    const updatedRows = await updateRes.json();
+    const updateRes = await fetch(patchUrl, {
+      method: "PATCH",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        date: newDate,
+        time: newTime,
+        status: "postponed",
+        postponed_from_at: oldDateTime,
+        postponed_to_at: newDateTime,
+        postponed_reason: reason,
+        postponed_at: new Date().toISOString()
+      })
+    });
 
-    console.log("UPDATED ROWS", updatedRows);
+    const updateText = await updateRes.text();
 
     if (!updateRes.ok) {
-      throw new Error(JSON.stringify(updatedRows));
+      throw new Error(updateText);
     }
 
-    if (!updatedRows.length) {
+    const checkRes = await fetch(loadUrl, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+
+    const checkRows = await checkRes.json();
+    const updated = checkRows[0];
+
+    console.log("POSTPONE CHECK", updated);
+
+    if (!updated || updated.status !== "postponed") {
       throw new Error(
-        "Supabase не оновив жодного рядка. SeanceId = " +
-        seanceId
+        "PATCH пройшов, але статус не змінився. SeanceId = " + seanceId
       );
     }
 
-    alert(
-      "Сеанс успішно перенесено"
-    );
-
-    location.reload();
+    alert("Сеанс успішно перенесено");
+    load();
 
   } catch (e) {
-
     console.error(e);
-
-    alert(
-      "Помилка перенесення:\n\n" +
-      e.message
-    );
+    alert("Помилка перенесення:\n\n" + e.message);
   }
 }
   
