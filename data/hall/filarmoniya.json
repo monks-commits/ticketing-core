@@ -11305,25 +11305,6 @@
   ],
   "decor": [
     {
-      "id": "stage_1781631132581_862",
-      "type": "stage",
-      "x": 564,
-      "y": 43,
-      "w": 607,
-      "h": 36,
-      "rotate": 0,
-      "z": 30,
-      "size": 22,
-      "opacity": 1,
-      "glow": 0,
-      "text": "СЦЕНА",
-      "fill": "#beb9cb",
-      "borderColor": "#ffffff",
-      "textColor": "#ffffff",
-      "mediaFit": "cover",
-      "layerId": "architecture"
-    },
-    {
       "id": "text_1781631317329_863",
       "type": "text",
       "x": 600,
