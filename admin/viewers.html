@@ -363,16 +363,24 @@ async function loadViewers() {
       fetchAll("seances", "*")
     ]);
 
-    const seanceById = new Map();
+    const seanceByKey = new Map();
+
     for (const s of seances) {
-      seanceById.set(String(s.id), s);
+      [
+        s.id,
+        s.seance_id,
+        s.slug,
+        s.show_slug,
+        s.code
+      ].forEach(k => {
+        if (k) seanceByKey.set(String(k), s);
+      });
     }
 
     const ticketsByOrderId = new Map();
 
     for (const t of tickets) {
       const oid = String(t.order_id || "");
-
       if (!oid) continue;
 
       if (!ticketsByOrderId.has(oid)) {
@@ -418,7 +426,8 @@ async function loadViewers() {
       const orderTickets = ticketsByOrderId.get(publicOrderId) || [];
 
       for (const ticket of orderTickets) {
-        const seance = seanceById.get(String(ticket.seance_id || order.seance_id || "")) || {};
+        const seanceKey = String(ticket.seance_id || order.seance_id || "");
+        const seance = seanceByKey.get(seanceKey) || {};
 
         const checkedAt = ticket.checked_in_at || null;
 
@@ -448,17 +457,20 @@ async function loadViewers() {
       }
     }
 
-    CLIENTS = Array.from(clients.values());
+    CLIENTS = Array.from(clients.values()).sort((a, b) => {
+      const av = a.lastVisit ? new Date(a.lastVisit).getTime() : 0;
+      const bv = b.lastVisit ? new Date(b.lastVisit).getTime() : 0;
+      return bv - av;
+    });
 
     renderStats();
     renderList();
 
   } catch (err) {
     console.error(err);
-    body.innerHTML = `<tr><td colspan="8">Помилка: ${err.message}</td></tr>`;
+    body.innerHTML = `<tr><td colspan="8">Помилка: ${esc(err.message)}</td></tr>`;
   }
 }
-
   
 function renderStats() {
   document.getElementById("statClients").textContent = CLIENTS.length;
