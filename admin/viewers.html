@@ -406,16 +406,25 @@ async function loadViewers() {
       if (!clients.has(key)) {
         clients.set(key, {
           key,
-          name: order.buyer_name || "Без імені",
-          email: order.buyer_email || "",
-          phone: order.buyer_phone || "",
-          ticketsCount: 0,
-          totalAmount: 0,
-          visited: 0,
-          unused: 0,
-          lastVisit: null,
-          ordersCount: 0,
-          events: []
+  name: order.buyer_name || "Без імені",
+  email: order.buyer_email || "",
+  phone: order.buyer_phone || "",
+
+  ticketsCount: 0,
+  totalAmount: 0,
+
+  visited: 0,
+  unused: 0,
+
+  ordersCount: 0,
+
+  firstOrder: null,
+  lastOrder: null,
+
+  firstVisit: null,
+  lastVisit: null,
+
+  events: []
         });
       }
 
