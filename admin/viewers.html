@@ -648,6 +648,11 @@ function renderList() {
   return true;
 });
 
+.filter(c => {
+  if (!ACTIVE_LOST_DAYS) return true;
+  return isLostClient(c, ACTIVE_LOST_DAYS);
+});
+  
   if (!list.length) {
     body.innerHTML = `<tr><td colspan="8" class="muted">Нічого не знайдено</td></tr>`;
     return;
@@ -763,6 +768,27 @@ document
     });
 
     });
+
+document
+  .querySelectorAll("[data-lost-days]")
+  .forEach(btn => {
+    btn.addEventListener("click", () => {
+      const days = Number(btn.dataset.lostDays);
+
+      ACTIVE_LOST_DAYS =
+        ACTIVE_LOST_DAYS === days ? null : days;
+
+      document
+        .querySelectorAll(".lost-card")
+        .forEach(x => x.classList.remove("active"));
+
+      if (ACTIVE_LOST_DAYS) {
+        btn.classList.add("active");
+      }
+
+      renderList();
+    });
+  });
   
 document.addEventListener("DOMContentLoaded", loadViewers);
 </script>
