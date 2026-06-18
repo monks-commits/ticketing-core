@@ -594,6 +594,19 @@ function renderStats() {
     countLostClients(365);
 }
 
+  function countLostClients(daysLimit) {
+  return CLIENTS.filter(c => isLostClient(c, daysLimit)).length;
+}
+
+function isLostClient(client, daysLimit) {
+  if (!client.lastOrder) return false;
+
+  const days =
+    (Date.now() - new Date(client.lastOrder).getTime()) / 86400000;
+
+  return days >= daysLimit;
+}
+
 function renderList() {
   const q = document.getElementById("searchInput").value.trim().toLowerCase();
   const body = document.getElementById("clientsBody");
