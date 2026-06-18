@@ -433,6 +433,25 @@ async function loadViewers() {
       client.ordersCount++;
       client.totalAmount += Number(order.amount || 0);
 
+const orderDate = order.created_at || null;
+
+if (orderDate) {
+
+  if (
+    !client.firstOrder ||
+    new Date(orderDate) < new Date(client.firstOrder)
+  ) {
+    client.firstOrder = orderDate;
+  }
+
+  if (
+    !client.lastOrder ||
+    new Date(orderDate) > new Date(client.lastOrder)
+  ) {
+    client.lastOrder = orderDate;
+  }
+}
+      
       const orderTickets = ticketsByOrderId.get(publicOrderId) || [];
 
       for (const ticket of orderTickets) {
