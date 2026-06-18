@@ -351,6 +351,114 @@ async function fetchAll(table, select = "*") {
 // orders.id = uuid
 // orders.order_id = ORD-... / CASH-...
 // tickets.order_id = ORD-... / CASH-...
+
+async function loadViewers() {
+  const body = document.getElementById("clientsBody");
+  body.innerHTML = `<tr><td colspan="8" class="muted">Завантаження...</td></tr>`;
+
+  try {
+    const [orders, tickets, seances] = await Promise.all([
+      fetchAll("orders", "id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,ref_code,status"),
+      fetchAll("tickets", "id,order_id,seance_id,seat_label,price,buyer_name,buyer_email,checked_in_at,checked_in_by,channel,ticket_type"),
+      fetchAll("seances", "*")
+    ]);
+
+    const seanceById = new Map();
+    for (const s of seances) {
+      seanceById.set(String(s.id), s);
+    }
+
+    const ticketsByOrderId = new Map();
+
+    for (const t of tickets) {
+      const oid = String(t.order_id || "");
+
+      if (!oid) continue;
+
+      if (!ticketsByOrderId.has(oid)) {
+        ticketsByOrderId.set(oid, []);
+      }
+
+      ticketsByOrderId.get(oid).push(t);
+    }
+
+    const clients = new Map();
+
+    for (const order of orders) {
+      const status = String(order.status || "").toLowerCase();
+
+      if (status && !["paid", "success", "completed", "approved"].includes(status)) {
+        continue;
+      }
+
+      const key = clientKeyFromOrder(order);
+      const publicOrderId = String(order.order_id || "");
+
+      if (!clients.has(key)) {
+        clients.set(key, {
+          key,
+          name: order.buyer_name || "Без імені",
+          email: order.buyer_email || "",
+          phone: order.buyer_phone || "",
+          ticketsCount: 0,
+          totalAmount: 0,
+          visited: 0,
+          unused: 0,
+          lastVisit: null,
+          ordersCount: 0,
+          events: []
+        });
+      }
+
+      const client = clients.get(key);
+
+      client.ordersCount++;
+      client.totalAmount += Number(order.amount || 0);
+
+      const orderTickets = ticketsByOrderId.get(publicOrderId) || [];
+
+      for (const ticket of orderTickets) {
+        const seance = seanceById.get(String(ticket.seance_id || order.seance_id || "")) || {};
+
+        const checkedAt = ticket.checked_in_at || null;
+
+        client.ticketsCount++;
+
+        if (checkedAt) {
+          client.visited++;
+
+          if (!client.lastVisit || new Date(checkedAt) > new Date(client.lastVisit)) {
+            client.lastVisit = checkedAt;
+          }
+        } else {
+          client.unused++;
+        }
+
+        client.events.push({
+          date: getSeanceDate(seance, order),
+          title: getSeanceTitle(seance),
+          seat: ticket.seat_label || "—",
+          price: Number(ticket.price || 0),
+          channel: ticket.channel || order.channel || "—",
+          ticketType: ticket.ticket_type || order.ticket_type || "—",
+          checkedAt,
+          checkedBy: ticket.checked_in_by || "",
+          status: checkedAt ? "Відвідано" : "Не використано"
+        });
+      }
+    }
+
+    CLIENTS = Array.from(clients.values());
+
+    renderStats();
+    renderList();
+
+  } catch (err) {
+    console.error(err);
+    body.innerHTML = `<tr><td colspan="8">Помилка: ${err.message}</td></tr>`;
+  }
+}
+
   
 function renderStats() {
   document.getElementById("statClients").textContent = CLIENTS.length;
