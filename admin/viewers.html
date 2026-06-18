@@ -574,12 +574,24 @@ if (orderDate) {
   
 function renderStats() {
   document.getElementById("statClients").textContent = CLIENTS.length;
+
   document.getElementById("statTickets").textContent =
     CLIENTS.reduce((s, c) => s + c.ticketsCount, 0);
+
   document.getElementById("statVisited").textContent =
     CLIENTS.reduce((s, c) => s + c.visited, 0);
+
   document.getElementById("statAmount").textContent =
     money(CLIENTS.reduce((s, c) => s + c.totalAmount, 0));
+
+  document.getElementById("lost90").textContent =
+    countLostClients(90);
+
+  document.getElementById("lost180").textContent =
+    countLostClients(180);
+
+  document.getElementById("lost365").textContent =
+    countLostClients(365);
 }
 
 function renderList() {
