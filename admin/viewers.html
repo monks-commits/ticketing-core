@@ -539,10 +539,42 @@ function renderList() {
   const q = document.getElementById("searchInput").value.trim().toLowerCase();
   const body = document.getElementById("clientsBody");
 
-  const list = CLIENTS.filter(c => {
-    const hay = `${c.name} ${c.phone} ${c.email}`.toLowerCase();
-    return !q || hay.includes(q);
-  });
+  const list = CLIENTS
+.filter(c => {
+  const hay =
+    `${c.name} ${c.phone} ${c.email}`.toLowerCase();
+
+  return !q || hay.includes(q);
+})
+.filter(c => {
+
+  if (ACTIVE_SEGMENT === "all") return true;
+
+  if (ACTIVE_SEGMENT === "new")
+    return c.ordersCount === 1;
+
+  if (ACTIVE_SEGMENT === "returned")
+    return c.ordersCount >= 2;
+
+  if (ACTIVE_SEGMENT === "regular")
+    return c.ordersCount >= 5;
+
+  if (ACTIVE_SEGMENT === "vip")
+    return c.ordersCount >= 10;
+
+  if (ACTIVE_SEGMENT === "lost") {
+
+    if (!c.lastOrder) return false;
+
+    const days =
+      (Date.now() - new Date(c.lastOrder))
+      / 86400000;
+
+    return days > 90;
+  }
+
+  return true;
+});
 
   if (!list.length) {
     body.innerHTML = `<tr><td colspan="8" class="muted">Нічого не знайдено</td></tr>`;
@@ -639,6 +671,27 @@ document.getElementById("clientModal").addEventListener("click", function(e) {
   if (e.target.id === "clientModal") closeViewer();
 });
 
+document
+  .querySelectorAll("[data-segment]")
+  .forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+      document
+        .querySelectorAll(".seg-btn")
+        .forEach(x => x.classList.remove("active"));
+
+      btn.classList.add("active");
+
+      ACTIVE_SEGMENT =
+        btn.dataset.segment;
+
+      renderList();
+
+    });
+
+    });
+  
 document.addEventListener("DOMContentLoaded", loadViewers);
 </script>
 </body>
