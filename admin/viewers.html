@@ -308,6 +308,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let CLIENTS = [];
 
 let ACTIVE_SEGMENT = "all";
+ let ACTIVE_LOST_DAYS = null; 
   
 function esc(v) {
   return String(v ?? "")
