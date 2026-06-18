@@ -307,6 +307,7 @@ function getSeanceDate(seance, order) {
 
 function getSeanceTitle(seance) {
   return (
+    seance?.show ||
     seance?.title ||
     seance?.name ||
     seance?.event_title ||
