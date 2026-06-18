@@ -463,15 +463,28 @@ if (orderDate) {
         client.ticketsCount++;
 
         if (checkedAt) {
-          client.visited++;
 
-          if (!client.lastVisit || new Date(checkedAt) > new Date(client.lastVisit)) {
-            client.lastVisit = checkedAt;
-          }
-        } else {
-          client.unused++;
-        }
+  client.visited++;
 
+  if (
+    !client.firstVisit ||
+    new Date(checkedAt) < new Date(client.firstVisit)
+  ) {
+    client.firstVisit = checkedAt;
+  }
+
+  if (
+    !client.lastVisit ||
+    new Date(checkedAt) > new Date(client.lastVisit)
+  ) {
+    client.lastVisit = checkedAt;
+  }
+
+} else {
+
+  client.unused++;
+
+}
         client.events.push({
           date: getSeanceDate(seance, order),
           title: getSeanceTitle(seance),
