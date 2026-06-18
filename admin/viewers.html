@@ -261,6 +261,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let CLIENTS = [];
 
+let ACTIVE_SEGMENT = "all";
+  
 function esc(v) {
   return String(v ?? "")
     .replaceAll("&", "&amp;")
