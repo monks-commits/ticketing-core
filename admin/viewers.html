@@ -775,7 +775,7 @@ if (ACTIVE_VIP_SORT === "visits") {
 }
   
   if (!list.length) {
-    body.innerHTML = `<tr><td colspan="8" class="muted">Нічого не знайдено</td></tr>`;
+    body.innerHTML = `<tr><td colspan="6" class="muted">Нічого не знайдено</td></tr>`;
     return;
   }
 
@@ -789,7 +789,9 @@ if (ACTIVE_VIP_SORT === "visits") {
   <td>${fmtDate(c.lastVisit)}</td>
 </tr>
 `).join("");
+}
 
+  
 function openViewer(key) {
   const client = CLIENTS.find(c => c.key === key);
   if (!client) return;
