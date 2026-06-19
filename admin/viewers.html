@@ -287,6 +287,12 @@
   <button class="lost-btn" data-lost-days="180">Не були 180 днів <span id="lost180">0</span></button>
   <button class="lost-btn" data-lost-days="365">Не були 365 днів <span id="lost365">0</span></button>
 </div>
+
+<div id="vipFilters" class="vip-subfilters" style="display:none;">
+  <button class="vip-btn" data-vip-sort="tickets">ТОП за квитками</button>
+  <button class="vip-btn" data-vip-sort="amount">ТОП за сумою</button>
+  <button class="vip-btn" data-vip-sort="visits">ТОП за відвідуваннями</button>
+</div>
       
       <table>
         <thead>
@@ -353,6 +359,8 @@ let CLIENTS = [];
 let ACTIVE_SEGMENT = "all";
 
   let ACTIVE_LOST_DAYS = 0;
+
+let ACTIVE_VIP_SORT = "";
   
 function esc(v) {
   return String(v ?? "")
@@ -861,6 +869,17 @@ document
       document.getElementById("lostFilters").style.display =
         ACTIVE_SEGMENT === "lost" ? "flex" : "none";
 
+document.getElementById("vipFilters").style.display =
+  ACTIVE_SEGMENT === "vip" ? "flex" : "none";
+
+if (ACTIVE_SEGMENT !== "vip") {
+  ACTIVE_VIP_SORT = "";
+
+  document
+    .querySelectorAll(".vip-btn")
+    .forEach(x => x.classList.remove("active"));
+}
+      
       renderList();
 
     });
