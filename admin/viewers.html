@@ -695,6 +695,28 @@ function isLostClient(client, daysLimit) {
   return days >= daysLimit;
 }
 
+function getClientStatus(client) {
+  let status = "Новий";
+
+  if (client.ordersCount >= 10) {
+    status = "VIP";
+  } else if (client.ordersCount >= 5) {
+    status = "Постійний";
+  } else if (client.ordersCount >= 2) {
+    status = "Повернувся";
+  }
+
+  const lostDays = client.lastOrder
+    ? Math.floor((Date.now() - new Date(client.lastOrder)) / 86400000)
+    : 9999;
+
+  if (lostDays > 90) {
+    status = "Втрачений";
+  }
+
+  return status;
+}
+  
 function renderList() {
   const q = document.getElementById("searchInput").value.trim().toLowerCase();
   const body = document.getElementById("clientsBody");
@@ -762,8 +784,9 @@ if (ACTIVE_VIP_SORT === "visits") {
     <tr class="client-row" onclick="openViewer('${esc(c.key)}')">
       <td><b>${esc(c.name)}</b></td>
       <td>${esc(c.phone || "—")}</td>
-      <td>${esc(c.email || "—")}</td>
-      <td>${c.ticketsCount}</td>
+    <td>${esc(c.email || "—")}</td>
+<td>${getClientStatus(c)}</td>
+<td>${c.ticketsCount}</td>
       <td>${money(c.totalAmount)}</td>
       <td><span class="badge ok">${c.visited}</span></td>
       <td><span class="badge no">${c.unused}</span></td> 
