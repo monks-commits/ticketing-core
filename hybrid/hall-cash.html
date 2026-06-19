@@ -2174,12 +2174,27 @@ async function sellAndPrintOffline(){
     total += finalPrice;
   }
 
+const buyer_name =
+  document.getElementById("cash-buyer-name")?.value?.trim() || "КАСА";
+
+const buyer_phone =
+  document.getElementById("cash-buyer-phone")?.value?.trim() || "";
+
+const buyer_email =
+  document.getElementById("cash-buyer-email")?.value?.trim() || "";
+  
   const op_id = genOpId();
 
-  const op = {
-    op_id,
-    type: "sale",
-    channel: "cash",
+ const op = {
+  op_id,
+  type: "sale",
+  channel: "cash",
+
+  buyer_name,
+  buyer_phone,
+  buyer_email,
+
+  ticket_type: ticketTypeData.ticket_type,
 
     ticket_type: ticketTypeData.ticket_type,
     ticket_type_label: ticketTypeData.ticket_type_label,
