@@ -226,7 +226,27 @@
   background:#14315f;
 }
 
+.lost-subfilters {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 16px;
+  padding-left: 6px;
+}
 
+.lost-subfilters button {
+  border: 1px solid #35527c;
+  background: #10294f;
+  color: #dce8ff;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.lost-subfilters button.active {
+  background: #7d3434;
+  border-color: #7d3434;
+  color: #fff;
+}
     
   </style>
 </head>
@@ -798,6 +818,17 @@ document
       ACTIVE_SEGMENT =
         btn.dataset.segment;
 
+document.getElementById("lostFilters").style.display =
+  ACTIVE_SEGMENT === "lost" ? "flex" : "none";
+
+if (ACTIVE_SEGMENT !== "lost") {
+  ACTIVE_LOST_DAYS = 0;
+
+  document
+    .querySelectorAll(".lost-card, .lost-btn")
+    .forEach(x => x.classList.remove("active"));
+}
+      
 if (ACTIVE_SEGMENT !== "lost") {
   ACTIVE_LOST_DAYS = 0;
 }
