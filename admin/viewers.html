@@ -805,6 +805,11 @@ function openViewer(key) {
       : 0;
 
   document.getElementById("viewerMeta").innerHTML = `
+ Телефон: ${esc(client.phone || "—")}
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  Email: ${esc(client.email || "—")}
+  <br>
+  
     Перша покупка: ${fmtDate(client.firstOrder)}
     &nbsp;&nbsp;|&nbsp;&nbsp;
     Остання покупка: ${fmtDate(client.lastOrder)}
