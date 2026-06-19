@@ -797,6 +797,14 @@ document
       ACTIVE_SEGMENT =
         btn.dataset.segment;
 
+const lostPanel =
+  document.getElementById("lostFilters");
+
+lostPanel.style.display =
+  ACTIVE_SEGMENT === "lost"
+    ? "block"
+    : "none";
+      
       renderList();
 
     });
