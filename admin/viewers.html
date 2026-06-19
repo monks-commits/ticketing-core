@@ -775,40 +775,85 @@ function openViewer(key) {
   const client = CLIENTS.find(c => c.key === key);
   if (!client) return;
 
-  document.getElementById("viewerName").textContent = client.name || "Без імені";
+  document.getElementById("viewerName").textContent =
+    client.name || "Без імені";
+
   const attendance =
-  client.ticketsCount
-    ? Math.round((client.visited / client.ticketsCount) * 100)
-    : 0;
+    client.ticketsCount
+      ? Math.round((client.visited / client.ticketsCount) * 100)
+      : 0;
 
-document.getElementById("viewerMeta").innerHTML = `
-  Перша покупка: ${fmtDate(client.firstOrder)}
-  &nbsp;&nbsp;|&nbsp;&nbsp;
-  Остання покупка: ${fmtDate(client.lastOrder)}
+  document.getElementById("viewerMeta").innerHTML = `
+    Перша покупка: ${fmtDate(client.firstOrder)}
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    Остання покупка: ${fmtDate(client.lastOrder)}
+    <br>
+    Перше відвідування: ${fmtDate(client.firstVisit)}
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    Останнє відвідування: ${fmtDate(client.lastVisit)}
+    <br>
+    Замовлень: ${client.ordersCount}
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    Відвідуваність: ${attendance}%
+  `;
 
-  <br>
+  let status = "Новий";
 
-  Перше відвідування: ${fmtDate(client.firstVisit)}
-  &nbsp;&nbsp;|&nbsp;&nbsp;
-  Останнє відвідування: ${fmtDate(client.lastVisit)}
+  if (client.ordersCount >= 10) {
+    status = "VIP";
+  } else if (client.ordersCount >= 5) {
+    status = "Постійний";
+  } else if (client.ordersCount >= 2) {
+    status = "Повернувся";
+  }
 
-  <br>
+  const lostDays = client.lastOrder
+    ? Math.floor((Date.now() - new Date(client.lastOrder)) / 86400000)
+    : 9999;
 
-  Замовлень: ${client.ordersCount}
-  &nbsp;&nbsp;|&nbsp;&nbsp;
-  Відвідуваність: ${attendance}%
-`;
+  if (lostDays > 90) {
+    status = "Втрачений";
+  }
 
-  document.getElementById("vTickets").textContent = client.ticketsCount;
-  document.getElementById("vAmount").textContent = money(client.totalAmount);
-  document.getElementById("vVisited").textContent = client.visited;
-  document.getElementById("vUnused").textContent = client.unused;
+  const rankTickets =
+    [...CLIENTS]
+      .sort((a, b) => b.ticketsCount - a.ticketsCount)
+      .findIndex(x => x.key === client.key) + 1;
+
+  const rankAmount =
+    [...CLIENTS]
+      .sort((a, b) => b.totalAmount - a.totalAmount)
+      .findIndex(x => x.key === client.key) + 1;
+
+  const rankVisits =
+    [...CLIENTS]
+      .sort((a, b) => b.visited - a.visited)
+      .findIndex(x => x.key === client.key) + 1;
+
+  document.getElementById("viewerStatus").innerHTML = `
+    <b>Статус:</b> ${status}<br>
+    <b>Рейтинг:</b>
+    #${rankTickets} за квитками ·
+    #${rankAmount} за сумою ·
+    #${rankVisits} за відвідуваннями
+  `;
+
+  document.getElementById("vTickets").textContent =
+    client.ticketsCount;
+
+  document.getElementById("vAmount").textContent =
+    money(client.totalAmount);
+
+  document.getElementById("vVisited").textContent =
+    client.visited;
+
+  document.getElementById("vUnused").textContent =
+    client.unused;
 
   loadViewerEvents(client);
 
   document.getElementById("clientModal").classList.add("show");
 }
-
 function closeViewer() {
   document.getElementById("clientModal").classList.remove("show");
 }
