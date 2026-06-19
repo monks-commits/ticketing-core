@@ -343,6 +343,7 @@ let CLIENTS = [];
 
 let ACTIVE_SEGMENT = "all";
  let ACTIVE_LOST_DAYS = null; 
+  let ACTIVE_LOST_DAYS = 0;
   
 function esc(v) {
   return String(v ?? "")
@@ -797,6 +798,10 @@ document
       ACTIVE_SEGMENT =
         btn.dataset.segment;
 
+if (ACTIVE_SEGMENT !== "lost") {
+  ACTIVE_LOST_DAYS = 0;
+}
+      
 const lostPanel =
   document.getElementById("lostFilters");
 
