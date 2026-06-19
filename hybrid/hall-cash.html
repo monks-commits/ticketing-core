@@ -2225,26 +2225,32 @@ const buyer_email =
   const order_id = `CASH-${SEANCE_ID}-${op_id}`;
 
   const tickets = keys.map(k => ({
-    op_id,
-    order_id,
-    channel: "cash",
+  op_id,
+  order_id,
+  channel: "cash",
 
-    ticket_type: ticketTypeData.ticket_type,
-    ticket_type_label: ticketTypeData.ticket_type_label,
+  buyer_name,
+  buyer_email,
 
-    show_slug: safeShowSlug,
-    seance_id: SEANCE_ID,
-    seat_label: k,
-    price: prices[k] || 0
-  }));
+  ticket_type: ticketTypeData.ticket_type,
+  ticket_type_label: ticketTypeData.ticket_type_label,
 
-  pushCashLog({
-    ts: Date.now(),
-    type: "sale",
-    order_id,
-    total,
-    tickets
-  });
+  show_slug: safeShowSlug,
+  seance_id: SEANCE_ID,
+  seat_label: k,
+  price: prices[k] || 0
+}));
+
+ pushCashLog({
+  ts: Date.now(),
+  type: "sale",
+  order_id,
+  buyer_name,
+  buyer_phone,
+  buyer_email,
+  total,
+  tickets
+});
 
   if (typeof reapplyAllStatuses === "function"){
     reapplyAllStatuses();
