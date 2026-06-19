@@ -849,7 +849,25 @@ body{
   font-size: 24px;
   font-weight: 700;
 }
-  
+.cash-buyer-box{
+  margin:12px 0;
+}
+
+.cash-buyer-box label{
+  display:block;
+  font-size:12px;
+  margin:6px 0 4px;
+  color:#666;
+}
+
+.cash-buyer-box input{
+  width:100%;
+  box-sizing:border-box;
+  padding:10px;
+  border:1px solid #ddd;
+  border-radius:8px;
+  margin-bottom:6px;
+}  
   </style>
   
 </head>
@@ -966,6 +984,25 @@ body{
     <div class="cash-pos-total-label">Сума до оформлення</div>
     <div id="summary-amount" class="cash-pos-total-value">Сума: 0 грн</div>
   </div>
+
+<div class="cash-pos-total-box">
+  <div class="cash-pos-total-label">Сума до оформлення</div>
+  <div id="summary-amount" class="cash-pos-total-value">Сума: 0 грн</div>
+</div>
+
+<div class="cash-buyer-box">
+  <label>Покупець</label>
+  <input id="cash-buyer-name" type="text" placeholder="Ім'я покупця" />
+
+  <label>Телефон</label>
+  <input id="cash-buyer-phone" type="tel" placeholder="+380..." />
+
+  <label>Email</label>
+  <input id="cash-buyer-email" type="email" placeholder="email (необов'язково)" />
+</div>
+
+<div class="cash-ticket-type" style="margin:16px 0;">
+            
 <div class="cash-ticket-type" style="margin:16px 0;">
 
   <label
