@@ -247,7 +247,29 @@
   border-color: #7d3434;
   color: #fff;
 }
-    
+
+.vip-subfilters{
+  display:flex;
+  gap:8px;
+  margin:8px 0 16px;
+  padding-left:6px;
+}
+
+.vip-subfilters button{
+  border:1px solid #35527c;
+  background:#10294f;
+  color:#dce8ff;
+  padding:7px 12px;
+  border-radius:999px;
+  cursor:pointer;
+}
+
+.vip-subfilters button.active{
+  background:#2d8cff;
+  border-color:#2d8cff;
+  color:#fff;
+}
+      
   </style>
 </head>
 
@@ -663,7 +685,7 @@ function renderList() {
   const q = document.getElementById("searchInput").value.trim().toLowerCase();
   const body = document.getElementById("clientsBody");
 
-  const list = CLIENTS
+  let list = CLIENTS
 .filter(c => {
   const hay =
     `${c.name} ${c.phone} ${c.email}`.toLowerCase();
@@ -704,6 +726,18 @@ function renderList() {
   if (!ACTIVE_LOST_DAYS) return true;
   return isLostClient(c, ACTIVE_LOST_DAYS);
 });
+
+  if (ACTIVE_VIP_SORT === "tickets") {
+  list.sort((a, b) => b.ticketsCount - a.ticketsCount);
+}
+
+if (ACTIVE_VIP_SORT === "amount") {
+  list.sort((a, b) => b.totalAmount - a.totalAmount);
+}
+
+if (ACTIVE_VIP_SORT === "visits") {
+  list.sort((a, b) => b.visited - a.visited);
+}
   
   if (!list.length) {
     body.innerHTML = `<tr><td colspan="8" class="muted">Нічого не знайдено</td></tr>`;
@@ -880,6 +914,31 @@ if (ACTIVE_SEGMENT !== "vip") {
     .forEach(x => x.classList.remove("active"));
 }
       
+      renderList();
+
+    });
+
+  });
+
+document
+  .querySelectorAll("[data-vip-sort]")
+  .forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+      const sort = btn.dataset.vipSort;
+
+      ACTIVE_VIP_SORT =
+        ACTIVE_VIP_SORT === sort ? "" : sort;
+
+      document
+        .querySelectorAll(".vip-btn")
+        .forEach(x => x.classList.remove("active"));
+
+      if (ACTIVE_VIP_SORT) {
+        btn.classList.add("active");
+      }
+
       renderList();
 
     });
