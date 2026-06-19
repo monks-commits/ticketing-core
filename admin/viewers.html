@@ -282,21 +282,10 @@
   <button class="seg-btn" data-segment="lost">Втрачені</button>
 </div>
 
-<div class="lost-stats">
-  <button class="lost-card" data-lost-days="90">
-    <span>Не були 90 днів</span>
-    <b id="lost90">0</b>
-  </button>
-
-  <button class="lost-card" data-lost-days="180">
-    <span>Не були 180 днів</span>
-    <b id="lost180">0</b>
-  </button>
-
-  <button class="lost-card" data-lost-days="365">
-    <span>Не були 365 днів</span>
-    <b id="lost365">0</b>
-  </button>
+<div id="lostFilters" class="lost-subfilters" style="display:none;">
+  <button class="lost-btn" data-lost-days="90">Не були 90 днів <span id="lost90">0</span></button>
+  <button class="lost-btn" data-lost-days="180">Не були 180 днів <span id="lost180">0</span></button>
+  <button class="lost-btn" data-lost-days="365">Не були 365 днів <span id="lost365">0</span></button>
 </div>
       
       <table>
@@ -848,24 +837,34 @@ lostPanel.style.display =
     });
 
 document
-  .querySelectorAll("[data-lost-days]")
+  .querySelectorAll("[data-segment]")
   .forEach(btn => {
-    btn.addEventListener("click", () => {
-      const days = Number(btn.dataset.lostDays);
 
-      ACTIVE_LOST_DAYS =
-        ACTIVE_LOST_DAYS === days ? null : days;
+    btn.addEventListener("click", () => {
 
       document
-        .querySelectorAll(".lost-card")
+        .querySelectorAll(".seg-btn")
         .forEach(x => x.classList.remove("active"));
 
-      if (ACTIVE_LOST_DAYS) {
-        btn.classList.add("active");
+      btn.classList.add("active");
+
+      ACTIVE_SEGMENT = btn.dataset.segment;
+
+      if (ACTIVE_SEGMENT !== "lost") {
+        ACTIVE_LOST_DAYS = 0;
+
+        document
+          .querySelectorAll(".lost-btn")
+          .forEach(x => x.classList.remove("active"));
       }
 
+      document.getElementById("lostFilters").style.display =
+        ACTIVE_SEGMENT === "lost" ? "flex" : "none";
+
       renderList();
+
     });
+
   });
   
 document.addEventListener("DOMContentLoaded", loadViewers);
