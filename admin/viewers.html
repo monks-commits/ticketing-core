@@ -780,19 +780,15 @@ if (ACTIVE_VIP_SORT === "visits") {
   }
 
   body.innerHTML = list.map(c => `
-    <tr class="client-row" onclick="openViewer('${esc(c.key)}')">
-      <td><b>${esc(c.name)}</b></td>
-      <td>${esc(c.phone || "—")}</td>
-    <td>${esc(c.email || "—")}</td>
-<td>${getClientStatus(c)}</td>
-<td>${c.ticketsCount}</td>
-      <td>${money(c.totalAmount)}</td>
-      <td><span class="badge ok">${c.visited}</span></td>
-      <td><span class="badge no">${c.unused}</span></td> 
-      <td>${fmtDate(c.lastVisit)}</td>
-    </tr>
-  `).join("");
-}
+<tr class="client-row" onclick="openViewer('${esc(c.key)}')">
+  <td><b>${esc(c.name)}</b></td>
+  <td>${esc(c.phone || "-")}</td>
+  <td>${getClientStatus(c)}</td>
+  <td>${c.ticketsCount}</td>
+  <td>${money(c.totalAmount)}</td>
+  <td>${fmtDate(c.lastVisit)}</td>
+</tr>
+`).join("");
 
 function openViewer(key) {
   const client = CLIENTS.find(c => c.key === key);
