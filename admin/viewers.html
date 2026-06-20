@@ -889,13 +889,27 @@ const favType = topValue(client.events, "ticket_type_label");
       .sort((a, b) => b.visited - a.visited)
       .findIndex(x => x.key === client.key) + 1;
 
-  document.getElementById("viewerStatus").innerHTML = `
-    <b>Статус:</b> ${status}<br>
-    <b>Рейтинг:</b>
-    #${rankTickets} за квитками ·
-    #${rankAmount} за сумою ·
-    #${rankVisits} за відвідуваннями
-  `;
+const avgCheck =
+  client.ticketsCount
+    ? Math.round(client.totalAmount / client.ticketsCount)
+    : 0;
+
+const favShow = topValue(client.events, "show_title");
+const favChannel = topValue(client.events, "channel");
+const favType = topValue(client.events, "ticket_type_label");
+  
+ document.getElementById("viewerStatus").innerHTML = `
+<b>Статус:</b> ${status}<br>
+<b>Рейтинг:</b>
+#${rankTickets} за квитками ·
+#${rankAmount} за сумою ·
+#${rankVisits} за відвідуваннями
+<br><br>
+<b>Середній чек:</b> ${money(avgCheck)}<br>
+<b>Улюблена подія:</b> ${favShow}<br>
+<b>Улюблений канал:</b> ${favChannel}<br>
+<b>Улюблений тип:</b> ${favType}
+`;
 
   document.getElementById("vTickets").textContent =
     client.ticketsCount;
