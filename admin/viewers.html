@@ -838,7 +838,6 @@ if (ACTIVE_VIP_SORT === "visits") {
 `).join("");
 }
 
-  
 function openViewer(key) {
   const client = CLIENTS.find(c => c.key === key);
   if (!client) return;
@@ -851,51 +850,43 @@ function openViewer(key) {
       ? Math.round((client.visited / client.ticketsCount) * 100)
       : 0;
 
-const avgCheck =
-  client.ticketsCount
-    ? Math.round(client.totalAmount / client.ticketsCount)
-    : 0;
+  const avgCheck =
+    client.ticketsCount
+      ? Math.round(client.totalAmount / client.ticketsCount)
+      : 0;
 
-const favShow = topValue(client.events, "show_title");
-const favChannel = topValue(client.events, "channel");
-const favType = topValue(client.events, "ticket_type_label");
-  
+  const favShow =
+    topValue(client.events, "title");
+
+  const favChannel =
+    topValue(client.events, "channel");
+
+  const favType =
+    topValue(client.events, "ticketType");
+
   document.getElementById("viewerMeta").innerHTML = `
- Телефон: ${esc(client.phone || "—")}
-  &nbsp;&nbsp;|&nbsp;&nbsp;
-  Email: ${esc(client.email || "—")}
-  <br>
-  
+    Телефон: ${esc(client.phone || "—")}
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    Email: ${esc(client.email || "—")}
+    <br>
+
     Перша покупка: ${fmtDate(client.firstOrder)}
     &nbsp;&nbsp;|&nbsp;&nbsp;
     Остання покупка: ${fmtDate(client.lastOrder)}
     <br>
+
     Перше відвідування: ${fmtDate(client.firstVisit)}
     &nbsp;&nbsp;|&nbsp;&nbsp;
     Останнє відвідування: ${fmtDate(client.lastVisit)}
     <br>
+
     Замовлень: ${client.ordersCount}
     &nbsp;&nbsp;|&nbsp;&nbsp;
     Відвідуваність: ${attendance}%
   `;
 
-  let status = "Новий";
-
-  if (client.ordersCount >= 10) {
-    status = "VIP";
-  } else if (client.ordersCount >= 5) {
-    status = "Постійний";
-  } else if (client.ordersCount >= 2) {
-    status = "Повернувся";
-  }
-
-  const lostDays = client.lastOrder
-    ? Math.floor((Date.now() - new Date(client.lastOrder)) / 86400000)
-    : 9999;
-
-  if (lostDays > 90) {
-    status = "Втрачений";
-  }
+  const status =
+    getClientStatus(client);
 
   const rankTickets =
     [...CLIENTS]
@@ -912,24 +903,18 @@ const favType = topValue(client.events, "ticket_type_label");
       .sort((a, b) => b.visited - a.visited)
       .findIndex(x => x.key === client.key) + 1;
 
-
-
-const favShow = topValue(client.events, "show_title");
-const favChannel = topValue(client.events, "channel");
-const favType = topValue(client.events, "ticket_type_label");
-  
- document.getElementById("viewerStatus").innerHTML = `
-<b>Статус:</b> ${status}<br>
-<b>Рейтинг:</b>
-#${rankTickets} за квитками ·
-#${rankAmount} за сумою ·
-#${rankVisits} за відвідуваннями
-<br><br>
-<b>Середній чек:</b> ${money(avgCheck)}<br>
-<b>Улюблена подія:</b> ${favShow}<br>
-<b>Улюблений канал:</b> ${favChannel}<br>
-<b>Улюблений тип:</b> ${favType}
-`;
+  document.getElementById("viewerStatus").innerHTML = `
+    <b>Статус:</b> ${status}<br>
+    <b>Рейтинг:</b>
+    #${rankTickets} за квитками ·
+    #${rankAmount} за сумою ·
+    #${rankVisits} за відвідуваннями
+    <br><br>
+    <b>Середній чек:</b> ${money(avgCheck)}<br>
+    <b>Улюблена подія:</b> ${esc(favShow)}<br>
+    <b>Улюблений канал:</b> ${esc(favChannel)}<br>
+    <b>Улюблений тип:</b> ${esc(favType)}
+  `;
 
   document.getElementById("vTickets").textContent =
     client.ticketsCount;
@@ -946,7 +931,8 @@ const favType = topValue(client.events, "ticket_type_label");
   loadViewerEvents(client);
 
   document.getElementById("clientModal").classList.add("show");
-}
+}  
+
 function closeViewer() {
   document.getElementById("clientModal").classList.remove("show");
 }
