@@ -553,9 +553,9 @@ async function loadViewers() {
     const [orders, tickets, seances] = await Promise.all([
       fetchAll("orders", "id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,ref_code,status"),
       fetchAll("tickets", "id,order_id,seance_id,seat_label,price,buyer_name,buyer_email,checked_in_at,checked_in_by,channel,ticket_type"),
-      fetchAll(
+    fetchAll(
   "seances",
-  "id,show,date,time,show_slug,event_type,genre"
+  "id,show,date,time,show_slug,event_type,genre,venue_id"
 )
     ]);
 
