@@ -555,22 +555,19 @@ async function loadViewers() {
       fetchAll("tickets", "id,order_id,seance_id,seat_label,price,buyer_name,buyer_email,checked_in_at,checked_in_by,channel,ticket_type"),
       fetchAll(
   "seances",
-  "id,slug,show_slug,code,show,date,time,event_type,genre"
+  "id,show,date,time,show_slug,event_type,genre"
 )
     ]);
 
     const seanceByKey = new Map();
 
     for (const s of seances) {
-      [
-        s.id,
-        s.seance_id,
-        s.slug,
-        s.show_slug,
-        s.code
-      ].forEach(k => {
-        if (k) seanceByKey.set(String(k), s);
-      });
+     [
+  s.id,
+  s.show_slug
+].forEach(k => {
+  if (k) seanceByKey.set(String(k), s);
+});
     }
 
     const ticketsByOrderId = new Map();
