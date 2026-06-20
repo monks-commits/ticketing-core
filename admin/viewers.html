@@ -414,7 +414,30 @@ function money(v) {
   return `${Math.round(Number(v || 0))} грн`;
 }
 
+ function topValue(arr, field) {
+  const map = {};
 
+  for (const item of (arr || [])) {
+    const v = item[field];
+    if (!v) continue;
+
+    map[v] = (map[v] || 0) + 1;
+  }
+
+  let best = "—";
+  let bestCount = 0;
+
+  for (const [k, v] of Object.entries(map)) {
+    if (v > bestCount) {
+      best = k;
+      bestCount = v;
+    }
+  }
+
+  return best;
+} 
+
+  
 function topValue(arr, field) {
   const map = {};
 
