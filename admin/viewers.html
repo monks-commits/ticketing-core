@@ -865,6 +865,8 @@ function openViewer(key) {
   const favType =
     topValue(client.events, "ticketType");
 
+  const favGenre = topValue(client.events, "genre");
+
   document.getElementById("viewerMeta").innerHTML = `
     Телефон: ${esc(client.phone || "—")}
     &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -912,6 +914,7 @@ function openViewer(key) {
     #${rankVisits} за відвідуваннями
     <br><br>
     <b>Середній чек:</b> ${money(avgCheck)}<br>
+    <b>Улюблений жанр:</b> ${favGenre}<br>
     <b>Улюблена подія:</b> ${esc(favShow)}<br>
     <b>Улюблений канал:</b> ${esc(favChannel)}<br>
     <b>Улюблений тип:</b> ${esc(favType)}
