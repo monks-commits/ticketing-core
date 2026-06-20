@@ -1769,28 +1769,29 @@ publish.onclick = async () => {
   if (!time) return alert("Вкажи час");
 
   try {
-    const res = await fetch(SUPABASE_FUNCTION_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-  seance_id: seance,
-  venue_id: venueId,
-  hall: hall,
-  show: show,
-  event_type: eventType.value || null,
-  genre: genre.value || null,
-  date: date,
-  time: time,
-  poster_url: poster_url,
-  status: status,
-  active:
-    status === "sales_open" ||
-    status === "published",
-  pricing: data.pricing,
-  seat_overrides: data.seat_overrides
-})
+   const res = await fetch(SUPABASE_FUNCTION_URL, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    seance_id: seance,
+    venue_id: venueId,
+    hall: hall,
+    show: show,
+    event_type: eventType.value || null,
+    genre: genre.value || null,
+    date: date,
+    time: time,
+    poster_url: poster_url,
+    status: status,
+    active:
+      status === "sales_open" ||
+      status === "published",
+    pricing: data.pricing,
+    seat_overrides: data.seat_overrides
+  })
+});
     const text = await res.text();
 
     if (!res.ok) {
