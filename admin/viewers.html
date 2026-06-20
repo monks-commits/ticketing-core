@@ -912,10 +912,7 @@ const favType = topValue(client.events, "ticket_type_label");
       .sort((a, b) => b.visited - a.visited)
       .findIndex(x => x.key === client.key) + 1;
 
-const avgCheck =
-  client.ticketsCount
-    ? Math.round(client.totalAmount / client.ticketsCount)
-    : 0;
+
 
 const favShow = topValue(client.events, "show_title");
 const favChannel = topValue(client.events, "channel");
