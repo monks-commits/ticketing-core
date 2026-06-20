@@ -460,6 +460,22 @@ function topValue(arr, field) {
 
   return best || "—";
 }
+
+function seatRow(seat) {
+  const s = String(seat || "");
+  const m = s.match(/\d+/);
+  return m ? m[0] : "—";
+}
+
+function seatZone(seat) {
+  const s = String(seat || "");
+
+  if (s.startsWith("P")) return "Партер";
+  if (s.startsWith("A")) return "Амфітеатр";
+  if (s.startsWith("B")) return "Балкон";
+
+  return "Інше";
+}
   
 function fmtDate(v) {
   if (!v) return "—";
