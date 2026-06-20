@@ -547,13 +547,13 @@ async function fetchAll(table, select = "*") {
 
 async function loadViewers() {
   const body = document.getElementById("clientsBody");
-  body.innerHTML = `<tr><td colspan="8" class="muted">Завантаження...</td></tr>`;
+  body.innerHTML = `<tr><td colspan="6" class="muted">Завантаження...</td></tr>`;
 
   try {
     const [orders, tickets, seances] = await Promise.all([
       fetchAll("orders", "id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,ref_code,status"),
       fetchAll("tickets", "id,order_id,seance_id,seat_label,price,buyer_name,buyer_email,checked_in_at,checked_in_by,channel,ticket_type"),
-      fetchAll("seances", "*")
+      fetchAll("seances", "id,seance_id,slug,show_slug,code,show,date,time,event_type,genre")
     ]);
 
     const seanceByKey = new Map();
@@ -588,7 +588,10 @@ async function loadViewers() {
     for (const order of orders) {
       const status = String(order.status || "").toLowerCase();
 
-      if (status && !["paid", "success", "completed", "approved"].includes(status)) {
+      if (
+        status &&
+        !["paid", "success", "completed", "approved"].includes(status)
+      ) {
         continue;
       }
 
@@ -598,25 +601,25 @@ async function loadViewers() {
       if (!clients.has(key)) {
         clients.set(key, {
           key,
-  name: order.buyer_name || "Без імені",
-  email: order.buyer_email || "",
-  phone: order.buyer_phone || "",
+          name: order.buyer_name || "Без імені",
+          email: order.buyer_email || "",
+          phone: order.buyer_phone || "",
 
-  ticketsCount: 0,
-  totalAmount: 0,
+          ticketsCount: 0,
+          totalAmount: 0,
 
-  visited: 0,
-  unused: 0,
+          visited: 0,
+          unused: 0,
 
-  ordersCount: 0,
+          ordersCount: 0,
 
-  firstOrder: null,
-  lastOrder: null,
+          firstOrder: null,
+          lastOrder: null,
 
-  firstVisit: null,
-  lastVisit: null,
+          firstVisit: null,
+          lastVisit: null,
 
-  events: []
+          events: []
         });
       }
 
@@ -625,25 +628,24 @@ async function loadViewers() {
       client.ordersCount++;
       client.totalAmount += Number(order.amount || 0);
 
-const orderDate = order.created_at || null;
+      const orderDate = order.created_at || null;
 
-if (orderDate) {
+      if (orderDate) {
+        if (
+          !client.firstOrder ||
+          new Date(orderDate) < new Date(client.firstOrder)
+        ) {
+          client.firstOrder = orderDate;
+        }
 
-  if (
-    !client.firstOrder ||
-    new Date(orderDate) < new Date(client.firstOrder)
-  ) {
-    client.firstOrder = orderDate;
-  }
+        if (
+          !client.lastOrder ||
+          new Date(orderDate) > new Date(client.lastOrder)
+        ) {
+          client.lastOrder = orderDate;
+        }
+      }
 
-  if (
-    !client.lastOrder ||
-    new Date(orderDate) > new Date(client.lastOrder)
-  ) {
-    client.lastOrder = orderDate;
-  }
-}
-      
       const orderTickets = ticketsByOrderId.get(publicOrderId) || [];
 
       for (const ticket of orderTickets) {
@@ -655,31 +657,30 @@ if (orderDate) {
         client.ticketsCount++;
 
         if (checkedAt) {
+          client.visited++;
 
-  client.visited++;
+          if (
+            !client.firstVisit ||
+            new Date(checkedAt) < new Date(client.firstVisit)
+          ) {
+            client.firstVisit = checkedAt;
+          }
 
-  if (
-    !client.firstVisit ||
-    new Date(checkedAt) < new Date(client.firstVisit)
-  ) {
-    client.firstVisit = checkedAt;
-  }
+          if (
+            !client.lastVisit ||
+            new Date(checkedAt) > new Date(client.lastVisit)
+          ) {
+            client.lastVisit = checkedAt;
+          }
+        } else {
+          client.unused++;
+        }
 
-  if (
-    !client.lastVisit ||
-    new Date(checkedAt) > new Date(client.lastVisit)
-  ) {
-    client.lastVisit = checkedAt;
-  }
-
-} else {
-
-  client.unused++;
-
-}
         client.events.push({
           date: getSeanceDate(seance, order),
           title: getSeanceTitle(seance),
+          eventType: seance.event_type || "—",
+          genre: seance.genre || "—",
           seat: ticket.seat_label || "—",
           price: Number(ticket.price || 0),
           channel: ticket.channel || order.channel || "—",
@@ -702,7 +703,7 @@ if (orderDate) {
 
   } catch (err) {
     console.error(err);
-    body.innerHTML = `<tr><td colspan="8">Помилка: ${esc(err.message)}</td></tr>`;
+    body.innerHTML = `<tr><td colspan="6">Помилка: ${esc(err.message)}</td></tr>`;
   }
 }
   
