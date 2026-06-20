@@ -804,6 +804,15 @@ function openViewer(key) {
       ? Math.round((client.visited / client.ticketsCount) * 100)
       : 0;
 
+const avgCheck =
+  client.ticketsCount
+    ? Math.round(client.totalAmount / client.ticketsCount)
+    : 0;
+
+const favShow = topValue(client.events, "show_title");
+const favChannel = topValue(client.events, "channel");
+const favType = topValue(client.events, "ticket_type_label");
+  
   document.getElementById("viewerMeta").innerHTML = `
  Телефон: ${esc(client.phone || "—")}
   &nbsp;&nbsp;|&nbsp;&nbsp;
