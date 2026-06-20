@@ -879,6 +879,23 @@ body{
 .cash-buyer-box input::placeholder{
   color:rgba(255,255,255,.45);
 }
+
+.cash-buyer-box .cash-buyer-field{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  margin-bottom:10px;
+}
+
+.cash-buyer-box .cash-buyer-field label{
+  display:block;
+}
+
+.cash-buyer-box .cash-buyer-field input{
+  display:block;
+  width:100%;
+}
+  
   </style>
   
 </head>
@@ -1000,29 +1017,22 @@ body{
 
 <div class="cash-buyer-box">
 
-  <label>Покупець</label>
-  <input
-    id="cash-buyer-name"
-    type="text"
-    placeholder="Ім'я покупця"
-  />
+  <div class="cash-buyer-field">
+    <label>Покупець</label>
+    <input id="cash-buyer-name" type="text" placeholder="Ім'я покупця" />
+  </div>
 
-  <label>Телефон</label>
-  <input
-    id="cash-buyer-phone"
-    type="tel"
-    placeholder="+380..."
-  />
+  <div class="cash-buyer-field">
+    <label>Телефон</label>
+    <input id="cash-buyer-phone" type="tel" placeholder="+380..." />
+  </div>
 
-  <label>Email</label>
-  <input
-    id="cash-buyer-email"
-    type="email"
-    placeholder="email (необов'язково)"
-  />
+  <div class="cash-buyer-field">
+    <label>Email</label>
+    <input id="cash-buyer-email" type="email" placeholder="email (необов'язково)" />
+  </div>
 
 </div>
-
 
             
 <div class="cash-ticket-type" style="margin:16px 0;">  
