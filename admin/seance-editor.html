@@ -706,6 +706,72 @@ const data = {
   seat_overrides: {}
 };
 
+  const GENRES_BY_TYPE = {
+  "Концерт": [
+    ["symphonic", "Симфонічна музика"],
+    ["chamber", "Камерна музика"],
+    ["jazz", "Джаз"],
+    ["pop_ua", "Естрада українська"],
+    ["pop_world", "Естрада зарубіжна"],
+    ["rock", "Рок"],
+    ["folk", "Фолк"],
+    ["choir", "Хорова музика"],
+    ["organ", "Органна музика"],
+    ["other", "Інше"]
+  ],
+
+  "Вистава": [
+    ["drama", "Драма"],
+    ["comedy", "Комедія"],
+    ["tragedy", "Трагедія"],
+    ["fairytale", "Казка"],
+    ["children", "Дитяча вистава"],
+    ["musical", "Мюзикл"],
+    ["opera", "Опера"],
+    ["ballet", "Балет"],
+    ["operetta", "Оперета"],
+    ["mono", "Моно вистава"],
+    ["other", "Інше"]
+  ],
+
+  "Кінопоказ": [
+    ["fiction", "Художній фільм"],
+    ["documentary", "Документальний фільм"],
+    ["children", "Дитячий фільм"],
+    ["arthouse", "Артхаус"],
+    ["retro", "Ретроспектива"],
+    ["other", "Інше"]
+  ],
+
+  "Лекція": [
+    ["art", "Мистецтво"],
+    ["history", "Історія"],
+    ["music", "Музика"],
+    ["literature", "Література"],
+    ["education", "Освіта"],
+    ["meeting", "Зустріч"],
+    ["other", "Інше"]
+  ],
+
+  "Фестиваль": [
+    ["music", "Музичний"],
+    ["theatre", "Театральний"],
+    ["cinema", "Кіно"],
+    ["children", "Дитячий"],
+    ["city", "Міський"],
+    ["other", "Інше"]
+  ],
+
+  "Інше": [
+    ["excursion", "Екскурсія"],
+    ["presentation", "Презентація"],
+    ["contest", "Конкурс"],
+    ["charity", "Благодійна подія"],
+    ["rental", "Орендна подія"],
+    ["other", "Інше"]
+  ]
+};
+
 const showStatus = document.getElementById("showStatus");
 const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
@@ -721,7 +787,7 @@ function fillVenueSelectFromConfig(){
     { id: "academy", title: "Академія руху" },
     { id: "shevchenko", title: "Театр Шевченка" },
     { id: "filarmoniya", title: "Філармонія" },
-    { id: "opera", title: "Дніпровська опера" },
+   
     { id: "client-x", title: "Client X" },
     { id: "big-stage-demo", title: "Велика сцена Demo" },
     { id: "club-demo", title: "Club Demo" }
@@ -760,7 +826,8 @@ const toRow = document.getElementById("toRow");
 const price = document.getElementById("price");
 const color = document.getElementById("color");
 const sale = document.getElementById("sale");
-
+const genre = document.getElementById("genre");
+  
 const segZone = document.getElementById("segZone");
 const segFromRow = document.getElementById("segFromRow");
 const segToRow = document.getElementById("segToRow");
@@ -806,6 +873,29 @@ function setVenueByHallName(hallName){
     venueSelect.value = found.id;
   }
 }
+
+function updateGenreSelect(selectedGenre = "") {
+  if (!eventType || !genre) return;
+
+  const type = eventType.value;
+  const list = GENRES_BY_TYPE[type] || [];
+
+  genre.innerHTML =
+    `<option value="">Оберіть жанр</option>` +
+    list
+      .map(([value, label]) =>
+        `<option value="${value}">${label}</option>`
+      )
+      .join("");
+
+  if (selectedGenre) {
+    genre.value = selectedGenre;
+  }
+}
+
+eventType?.addEventListener("change", () => {
+  updateGenreSelect();
+});
   
 function ensurePreviewUi() {
   let previewSection = document.getElementById("previewSection");
