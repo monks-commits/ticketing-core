@@ -996,6 +996,10 @@ const favRow = topValue(client.events, "row");
     #${rankVisits} за відвідуваннями
     <br><br>
     <b>Середній чек:</b> ${money(avgCheck)}<br>
+    <b>RFM:</b> ${esc(client.rfmSegment || "—")}<br>
+<b>Днів після візиту:</b> ${client.daysFromVisit}<br>
+<b>Середній заказ:</b> ${money(client.avgOrderAmount)}<br>
+<b>Квитків на заказ:</b> ${client.avgTicketsPerOrder}<br>
     <b>Улюблений жанр:</b> ${favGenre}<br>
     <b>Улюблена площадка:</b> ${esc(favVenue)}<br>
 <b>Улюблена зона:</b> ${esc(favZone)}<br>
