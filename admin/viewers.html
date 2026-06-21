@@ -816,7 +816,8 @@ client.lostVip =
   client.daysFromVisit > 180;
 client.regularTheatergoer =
   client.visited >= 5;
-  
+ client.genreFan =
+  topValue(client.events, "genre"); 
 }
     
     CLIENTS = Array.from(clients.values()).sort((a, b) => {
