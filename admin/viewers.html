@@ -850,7 +850,7 @@ else if (client.genreFan === "drama") {
     console.error(err);
     body.innerHTML = `<tr><td colspan="6">Помилка: ${esc(err.message)}</td></tr>`;
   }
-
+}
   
 function renderStats() {
   document.getElementById("statClients").textContent = CLIENTS.length;
