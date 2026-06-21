@@ -1045,6 +1045,15 @@ const favRow = topValue(client.events, "row");
 <b>Днів після візиту:</b> ${client.daysFromVisit}<br>
 <b>Середній заказ:</b> ${money(client.avgOrderAmount)}<br>
 <b>Квитків на заказ:</b> ${client.avgTicketsPerOrder}<br>
+
+<br>
+<b>Профіль:</b><br>
+${!client.familyVisitor && !client.groupBuyer && !client.sleepingVip && !client.lostVip ? "Базовий профіль<br>" : ""}
+${client.familyVisitor ? "👨‍👩‍👧 Сімейний<br>" : ""}
+${client.groupBuyer ? "👥 Груповий<br>" : ""}
+${client.sleepingVip ? "😴 Сплячий VIP<br>" : ""}
+${client.lostVip ? "❌ Втрачений VIP<br>" : ""}
+
     <b>Улюблений жанр:</b> ${favGenre}<br>
     <b>Улюблена площадка:</b> ${esc(favVenue)}<br>
 <b>Улюблена зона:</b> ${esc(favZone)}<br>
