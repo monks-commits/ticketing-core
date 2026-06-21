@@ -745,6 +745,30 @@ for (const client of clients.values()) {
         ).toFixed(1)
       : 0;
 }
+
+for (const client of clients.values()) {
+
+  let r = 1;
+  let f = 1;
+  let m = 1;
+
+  if (client.daysFromVisit <= 30) r = 5;
+  else if (client.daysFromVisit <= 90) r = 4;
+  else if (client.daysFromVisit <= 180) r = 3;
+  else if (client.daysFromVisit <= 365) r = 2;
+
+  if (client.visited >= 10) f = 5;
+  else if (client.visited >= 5) f = 4;
+  else if (client.visited >= 3) f = 3;
+  else if (client.visited >= 2) f = 2;
+
+  if (client.totalAmount >= 10000) m = 5;
+  else if (client.totalAmount >= 5000) m = 4;
+  else if (client.totalAmount >= 2000) m = 3;
+  else if (client.totalAmount >= 1000) m = 2;
+
+  client.rfmSegment = `${r}${f}${m}`;
+}
     
     CLIENTS = Array.from(clients.values()).sort((a, b) => {
       const av = a.lastVisit ? new Date(a.lastVisit).getTime() : 0;
