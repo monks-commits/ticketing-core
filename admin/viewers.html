@@ -813,6 +813,9 @@ client.sleepingVip =
 client.lostVip =
   client.rfmTitle === "VIP" &&
   client.daysFromVisit > 180;
+client.regularTheatergoer =
+  client.visited >= 5;
+  
 }
     
     CLIENTS = Array.from(clients.values()).sort((a, b) => {
