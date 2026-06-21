@@ -798,6 +798,19 @@ else if (r === 5 && f >= 2) {
 else {
   client.rfmTitle = "Активний";
 }
+  client.familyVisitor =
+  Number(client.avgTicketsPerOrder) >= 3;
+
+client.groupBuyer =
+  Number(client.avgTicketsPerOrder) >= 5;
+
+client.sleepingVip =
+  client.rfmTitle === "VIP" &&
+  client.daysFromVisit > 90;
+
+client.lostVip =
+  client.rfmTitle === "VIP" &&
+  client.daysFromVisit > 180;
 }
     
     CLIENTS = Array.from(clients.values()).sort((a, b) => {
