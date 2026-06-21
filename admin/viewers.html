@@ -818,7 +818,24 @@ client.regularTheatergoer =
   client.visited >= 5;
  client.genreFan =
   topValue(client.events, "genre"); 
+
+if (client.genreFan === "rock") {
+  client.genreFan = "🎸 Любитель року";
 }
+else if (client.genreFan === "jazz") {
+  client.genreFan = "🎷 Любитель джазу";
+}
+else if (client.genreFan === "opera") {
+  client.genreFan = "🎼 Любитель опери";
+}
+else if (client.genreFan === "ballet") {
+  client.genreFan = "🩰 Любитель балету";
+}
+else if (client.genreFan === "drama") {
+  client.genreFan = "🎭 Любитель драми";
+}
+  
+
     
     CLIENTS = Array.from(clients.values()).sort((a, b) => {
       const av = a.lastVisit ? new Date(a.lastVisit).getTime() : 0;
