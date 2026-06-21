@@ -768,6 +768,31 @@ for (const client of clients.values()) {
   else if (client.totalAmount >= 1000) m = 2;
 
   client.rfmSegment = `${r}${f}${m}`;
+
+  if (r === 1) {
+  client.rfmTitle = "Втрачений";
+}
+else if (r === 2) {
+  client.rfmTitle = "Під ризиком";
+}
+else if (r === 3) {
+  client.rfmTitle = "Засинає";
+}
+else if (r === 4) {
+  client.rfmTitle = "Остигає";
+}
+else if (r === 5 && f === 1) {
+  client.rfmTitle = "Новий";
+}
+else if (r === 5 && f >= 4) {
+  client.rfmTitle = "VIP";
+}
+else if (r === 5 && f >= 2) {
+  client.rfmTitle = "Постійний";
+}
+else {
+  client.rfmTitle = "Активний";
+}
 }
     
     CLIENTS = Array.from(clients.values()).sort((a, b) => {
