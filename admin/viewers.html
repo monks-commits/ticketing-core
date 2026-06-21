@@ -717,6 +717,35 @@ row: seatRow(ticket.seat_label),
       }
     }
 
+for (const client of clients.values()) {
+
+  client.daysFromVisit =
+    client.lastVisit
+      ? Math.floor(
+          (Date.now() - new Date(client.lastVisit))
+          / 86400000
+        )
+      : 9999;
+
+  client.frequency = client.visited;
+
+  client.monetary = client.totalAmount;
+
+  client.avgOrderAmount =
+    client.ordersCount
+      ? Math.round(
+          client.totalAmount / client.ordersCount
+        )
+      : 0;
+
+  client.avgTicketsPerOrder =
+    client.ordersCount
+      ? (
+          client.ticketsCount / client.ordersCount
+        ).toFixed(1)
+      : 0;
+}
+    
     CLIENTS = Array.from(clients.values()).sort((a, b) => {
       const av = a.lastVisit ? new Date(a.lastVisit).getTime() : 0;
       const bv = b.lastVisit ? new Date(b.lastVisit).getTime() : 0;
