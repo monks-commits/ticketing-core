@@ -387,6 +387,9 @@ async function boot(){
 
     SEANCES = seances || [];
 
+ORDERS = orders || [];
+TICKETS = tickets || [];
+    
     buildClients(orders, tickets, seances);
     renderSummary();
     renderOpportunities();
