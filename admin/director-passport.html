@@ -193,7 +193,7 @@ function renderSales(){
   document.getElementById("sales-body").innerHTML = `
     <div class="line"><b>Продано:</b> ${sold}</div>
     <div class="line"><b>Бронь:</b> ${reserveCount}</div>
-    <div class="line"><b>Холд:</b> ${holdCount}</div>
+    <div class="line"><b>Тимчасова бронь:</b> ${holdCount}</div>
     <div class="line"><b>Зайнято місць:</b> ${occupied}</div>
     <div class="line"><b>Вільно:</b> ${capacity ? Math.max(capacity - occupied, 0) : "—"}</div>
     <div class="line"><b>Заповнення:</b> ${capacity ? pct(occupied, capacity) : "—"}</div>
