@@ -176,7 +176,37 @@
         return;
       }
 
-      await loadGeneral();
+     await loadGeneral();
+
+async function loadSales() {
+  const { data: tickets, error } = await vaDb
+    .from("tickets")
+    .select("id, price, ticket_type, channel")
+    .eq("seance_id", seanceId);
+
+  if (error) {
+    document.getElementById("sales-body").innerHTML =
+      `<div class="error">${esc(error.message)}</div>`;
+    return;
+  }
+
+  const sold = tickets?.length || 0;
+
+  const amount = (tickets || [])
+    .reduce((sum, t) => sum + Number(t.price || 0), 0);
+
+  const avg = sold
+    ? Math.round(amount / sold)
+    : 0;
+
+  document.getElementById("sales-body").innerHTML = `
+    <div class="line"><b>Продано:</b> ${sold}</div>
+    <div class="line"><b>Виручка:</b> ${amount.toLocaleString("uk-UA")} грн</div>
+    <div class="line"><b>Середній чек:</b> ${avg.toLocaleString("uk-UA")} грн</div>
+  `;
+}
+      
+await loadSales();
     }
 
     async function loadGeneral() {
