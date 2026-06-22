@@ -308,28 +308,103 @@ function renderAttendance(){
   `;
 }
 
-function renderAudience(){
-  const buyers = {};
-  let named = 0;
-  let emails = 0;
-  let phones = 0;
+async function renderAudience(){
+  const buyerKeys = {};
 
   ORDERS.forEach(o => {
-    const key = o.buyer_email || o.buyer_phone || o.buyer_name || o.order_id || o.id;
-    if(key) buyers[key] = true;
+    const email = (o.buyer_email || "").trim().toLowerCase();
+    const phone = (o.buyer_phone || "").trim();
+    const name = (o.buyer_name || "").trim();
 
-    if(o.buyer_name) named++;
-    if(o.buyer_email) emails++;
-    if(o.buyer_phone) phones++;
+    const key = email || phone || name || o.order_id || o.id;
+    if (!key) return;
+
+    buyerKeys[key] = {
+      email,
+      phone,
+      name
+    };
+  });
+
+  const buyers = Object.values(buyerKeys);
+  const emails = buyers.map(b => b.email).filter(Boolean);
+  const phones = buyers.map(b => b.phone).filter(Boolean);
+
+  let viewers = [];
+
+  if (emails.length) {
+    const { data } = await vaDb
+      .from("viewers")
+      .select("*")
+      .in("email", emails);
+
+    viewers = viewers.concat(data || []);
+  }
+
+  if (phones.length) {
+    const { data } = await vaDb
+      .from("viewers")
+      .select("*")
+      .in("phone", phones);
+
+    viewers = viewers.concat(data || []);
+  }
+
+  const viewerMap = {};
+
+  viewers.forEach(v => {
+    if (v.email) viewerMap[String(v.email).toLowerCase()] = v;
+    if (v.phone) viewerMap[String(v.phone)] = v;
+  });
+
+  let newCount = 0;
+  let regularCount = 0;
+  let lostCount = 0;
+  let vipCount = 0;
+
+  buyers.forEach(b => {
+    const v =
+      viewerMap[b.email] ||
+      viewerMap[b.phone];
+
+    if (!v) {
+      newCount++;
+      return;
+    }
+
+    const totalOrders = Number(v.total_orders || 0);
+    const totalTickets = Number(v.total_tickets || 0);
+    const loyalty = String(v.loyalty_level || "").toLowerCase();
+    const status = String(v.status || "").toLowerCase();
+
+    if (totalOrders <= 1) newCount++;
+    if (totalOrders > 1) regularCount++;
+
+    if (
+      status.includes("lost") ||
+      status.includes("втрач") ||
+      status.includes("потер")
+    ) {
+      lostCount++;
+    }
+
+    if (
+      loyalty.includes("vip") ||
+      totalTickets >= 10
+    ) {
+      vipCount++;
+    }
   });
 
   document.getElementById("audience-body").innerHTML = `
-    <div class="line"><b>Покупців:</b> ${Object.keys(buyers).length}</div>
-    <div class="line"><b>Із ПІБ:</b> ${named}</div>
-    <div class="line"><b>Email:</b> ${emails}</div>
-    <div class="line"><b>Телефон:</b> ${phones}</div>
+    <div class="line"><b>Нові:</b> ${newCount}</div>
+    <div class="line"><b>Постійні:</b> ${regularCount}</div>
+    <div class="line"><b>Повернуті / втрачені:</b> ${lostCount}</div>
+    <div class="line"><b>VIP:</b> ${vipCount}</div>
+    <div class="hr"></div>
+    <div class="line"><b>Покупців:</b> ${buyers.length}</div>
     <div class="line"><b>Квитків на покупця:</b> ${
-      Object.keys(buyers).length ? (TICKETS.length / Object.keys(buyers).length).toFixed(1) : "—"
+      buyers.length ? (TICKETS.length / buyers.length).toFixed(1) : "—"
     }</div>
   `;
 }
