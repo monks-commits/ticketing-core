@@ -235,6 +235,76 @@ const occupied = sold + reserveCount + holdCount;
 await loadSales();
     }
 
+async function loadDynamic() {
+  const { data: orders, error } = await vaDb
+    .from("orders")
+    .select("id, amount, created_at, status")
+    .eq("seance_id", seanceId);
+
+  if (error) {
+    document.getElementById("dynamic-body").innerHTML =
+      `<div class="error">${esc(error.message)}</div>`;
+    return;
+  }
+
+  const paidOrders = (orders || []).filter(
+    o => String(o.status || "").toLowerCase() === "paid"
+  );
+
+  const now = new Date();
+
+  const todayKey = now.toISOString().slice(0, 10);
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = yesterday.toISOString().slice(0, 10);
+
+  const last7 = new Date(now);
+  last7.setDate(last7.getDate() - 7);
+
+  let todayCount = 0;
+  let yesterdayCount = 0;
+  let last7Count = 0;
+  let last7Amount = 0;
+
+  const byDay = {};
+
+  paidOrders.forEach(o => {
+    if (!o.created_at) return;
+
+    const d = new Date(o.created_at);
+    if (Number.isNaN(d.getTime())) return;
+
+    const key = d.toISOString().slice(0, 10);
+
+    byDay[key] = (byDay[key] || 0) + 1;
+
+    if (key === todayKey) todayCount++;
+    if (key === yesterdayKey) yesterdayCount++;
+
+    if (d >= last7) {
+      last7Count++;
+      last7Amount += Number(o.amount || 0);
+    }
+  });
+
+  const bestDay = Object.entries(byDay)
+    .sort((a, b) => b[1] - a[1])[0];
+
+  document.getElementById("dynamic-body").innerHTML = `
+    <div class="line"><b>Сьогодні:</b> ${todayCount}</div>
+    <div class="line"><b>Вчора:</b> ${yesterdayCount}</div>
+    <div class="line"><b>7 днів:</b> ${last7Count}</div>
+    <div class="line"><b>Сума за 7 днів:</b> ${last7Amount.toLocaleString("uk-UA")} грн</div>
+    <div class="line"><b>Кращий день:</b> ${
+      bestDay ? `${bestDay[0]} · ${bestDay[1]}` : "—"
+    }</div>
+  `;
+}
+    
+await loadDynamic();
+}
+    
     async function loadGeneral() {
       const { data, error } = await vaDb
         .from("seances")
