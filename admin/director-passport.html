@@ -267,15 +267,15 @@ function renderChannels(){
 
   const rows = Object.entries(counts)
     .sort((a,b) => b[1] - a[1])
-    .map(([code,count]) =>
-      `<div class="line"><b>${esc(titleBy(CHANNEL_MAP, code))}:</b> ${count}</div>`
-    )
+    .map(([code,count]) => {
+      const title = titleBy(CHANNEL_MAP, code);
+      return `<div class="line"><b>${esc(title)}:</b> ${count}</div>`;
+    })
     .join("");
 
   document.getElementById("channels-body").innerHTML =
     rows || `<div class="muted">Даних немає</div>`;
 }
-
 function renderTypes(){
   const counts = {};
 
@@ -286,15 +286,15 @@ function renderTypes(){
 
   const rows = Object.entries(counts)
     .sort((a,b) => b[1] - a[1])
-    .map(([code,count]) =>
-      `<div class="line"><b>${esc(titleBy(TYPE_MAP, code))}:</b> ${count}</div>`
-    )
+    .map(([code,count]) => {
+      const title = titleBy(TYPE_MAP, code);
+      return `<div class="line"><b>${esc(title)}:</b> ${count}</div>`;
+    })
     .join("");
 
   document.getElementById("types-body").innerHTML =
     rows || `<div class="muted">Даних немає</div>`;
 }
-
 function renderAttendance(){
   const sold = TICKETS.length;
   const checked = TICKETS.filter(t => t.checked_in_at).length;
