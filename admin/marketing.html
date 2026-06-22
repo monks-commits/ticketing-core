@@ -336,6 +336,15 @@ function renderOpportunities(){
   body.innerHTML = upcoming.map(s => {
     const genre = s.genre || "—";
     const aud = audienceForGenre(genre);
+
+const stats = getSeanceStats(s.id);
+
+const days = daysToSeance(s);
+
+const vip = aud.filter(c => c.isVip).length;
+
+const lost = aud.filter(c => c.isLost).length;
+    
     const vip = aud.filter(c => c.isVip).length;
     const lost = aud.filter(c => c.isLost).length;
 
