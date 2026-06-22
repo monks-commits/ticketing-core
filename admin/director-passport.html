@@ -216,8 +216,7 @@ const reserves = (bookings || []).filter(
     b.status === "reserved"
 );
 
-const occupied =
-  sold + reserveCount + holdCount;
+
 
 const holdCount = holds.length;
 const reserveCount = reserves.length;
