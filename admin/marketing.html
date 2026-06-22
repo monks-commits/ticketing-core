@@ -399,13 +399,7 @@ const rec =
     days
   );   
 
-    let action = "Немає достатньо даних";
-    let cls = "secondary";
-
-    if(aud.length){
-      action = `Запросити любителів жанру`;
-      cls = "btn";
-    }
+  
 
     return `
       <tr>
@@ -427,8 +421,28 @@ const rec =
   Втрачені: ${lost}
 </td>
         <td>
-          <button class="${cls}" onclick="showScenario('${esc(s.id)}')">${esc(action)}</button>
-        </td>
+  <div>
+    <span class="pill">
+      ${rec.status}
+    </span>
+  </div>
+
+  <div style="margin-top:6px">
+    ${rec.reason}
+  </div>
+
+  <div style="margin-top:6px;font-weight:700;color:#8dc2ff;">
+    ${rec.action}
+  </div>
+
+  <button
+    class="btn"
+    style="margin-top:8px"
+    onclick="showScenario('${esc(s.id)}')"
+  >
+    Деталі
+  </button>
+</td>
       </tr>
     `;
   }).join("");
