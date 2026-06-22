@@ -1,45 +1,214 @@
 <!DOCTYPE html>
 <html lang="uk">
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
-
-<style>
-/* сюда пойдет CSS, который я дал выше */
-</style>
-  
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VA Director — Паспорт сеансу</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #0d1728;
+      color: #fff;
+    }
+
+    .topbar {
+      height: 72px;
+      background: #0b1222;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .topbar h1 {
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .back {
+      background: #5b0d16;
+      color: #fff;
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 22px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .passport-grid {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .card {
+      background: #1d2a3d;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.08);
+      min-height: 220px;
+      padding: 22px;
+      box-shadow: 0 15px 40px rgba(0,0,0,.25);
+    }
+
+    .card h2 {
+      margin-bottom: 18px;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .line {
+      margin-bottom: 9px;
+      color: #c8d0dd;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .line b {
+      color: #fff;
+    }
+
+    .muted {
+      color: #9fb0c8;
+    }
+
+    .error {
+      color: #ffb4b4;
+      line-height: 1.5;
+    }
+  </style>
 </head>
+
 <body>
+  <header class="topbar">
+    <h1 id="passport-title">Паспорт сеансу</h1>
 
-<header class="topbar">
-  <h1 id="passport-title">Паспорт сеансу</h1>
+    <button class="back" onclick="history.back()">
+      ← Назад
+    </button>
+  </header>
 
-  <button class="back" onclick="history.back()">
-    ← Назад
-  </button>
-</header>
+  <main class="passport-grid">
 
-<main class="passport-grid">
+    <section class="card" id="general-card">
+      <h2>Загальне</h2>
+      <div id="general-body" class="muted">Завантаження...</div>
+    </section>
 
-  <section class="card" id="general-card">
-    <h2>Загальне</h2>
-    <div id="general-body">Завантаження...</div>
-  </section>
+    <section class="card">
+      <h2>Продажі</h2>
+      <div id="sales-body" class="muted">Готується...</div>
+    </section>
 
-  <section class="card"><h2>Продажі</h2></section>
-  <section class="card"><h2>Динаміка</h2></section>
+    <section class="card">
+      <h2>Динаміка</h2>
+      <div id="dynamic-body" class="muted">Готується...</div>
+    </section>
 
-  <section class="card"><h2>Канали</h2></section>
-  <section class="card"><h2>Типи квитків</h2></section>
-  <section class="card"><h2>Відвідуваність</h2></section>
+    <section class="card">
+      <h2>Канали</h2>
+      <div id="channels-body" class="muted">Готується...</div>
+    </section>
 
-  <section class="card"><h2>Аудиторія</h2></section>
-  <section class="card"><h2>Компенсації</h2></section>
-  <section class="card"><h2>Порівняння</h2></section>
+    <section class="card">
+      <h2>Типи квитків</h2>
+      <div id="types-body" class="muted">Готується...</div>
+    </section>
 
-</main>
+    <section class="card">
+      <h2>Відвідуваність</h2>
+      <div id="attendance-body" class="muted">Готується...</div>
+    </section>
 
+    <section class="card">
+      <h2>Аудиторія</h2>
+      <div id="audience-body" class="muted">Готується...</div>
+    </section>
+
+    <section class="card">
+      <h2>Компенсації</h2>
+      <div id="recovery-body" class="muted">Готується...</div>
+    </section>
+
+    <section class="card">
+      <h2>Порівняння</h2>
+      <div id="compare-body" class="muted">Готується...</div>
+    </section>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+    const vaDb = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    const params = new URLSearchParams(location.search);
+    const seanceId = params.get("seance");
+
+    function esc(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function fmt(value) {
+      return value || "—";
+    }
+
+    async function boot() {
+      if (!seanceId) {
+        document.getElementById("general-body").innerHTML =
+          `<div class="error">Не передано seance_id.</div>`;
+        return;
+      }
+
+      await loadGeneral();
+    }
+
+    async function loadGeneral() {
+      const { data, error } = await vaDb
+        .from("seances")
+        .select("*")
+        .eq("id", seanceId)
+        .single();
+
+      if (error || !data) {
+        document.getElementById("general-body").innerHTML =
+          `<div class="error">Сеанс не знайдено.<br>${esc(error?.message || "")}</div>`;
+        return;
+      }
+
+      document.getElementById("passport-title").textContent =
+        data.show || "Паспорт сеансу";
+
+      document.getElementById("general-body").innerHTML = `
+        <div class="line"><b>ID:</b> ${esc(data.id)}</div>
+        <div class="line"><b>Назва:</b> ${esc(fmt(data.show))}</div>
+        <div class="line"><b>Дата:</b> ${esc(fmt(data.date))}</div>
+        <div class="line"><b>Час:</b> ${esc(fmt(data.time))}</div>
+        <div class="line"><b>Площадка:</b> ${esc(fmt(data.venue_id))}</div>
+        <div class="line"><b>Жанр:</b> ${esc(fmt(data.genre))}</div>
+        <div class="line"><b>Тип:</b> ${esc(fmt(data.event_type))}</div>
+        <div class="line"><b>Статус:</b> ${esc(fmt(data.status))}</div>
+        <div class="line"><b>Місткість:</b> ${esc(fmt(data.capacity))}</div>
+      `;
+    }
+
+    boot();
+  </script>
 </body>
 </html>
