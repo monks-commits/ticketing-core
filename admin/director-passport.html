@@ -4,292 +4,371 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VA Director — Паспорт сеансу</title>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: #0d1728;
-      color: #fff;
-    }
-
-    .topbar {
-      height: 72px;
-      background: #0b1222;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-
-    .topbar h1 {
-      font-size: 28px;
-      font-weight: 900;
-    }
-
-    .back {
-      background: #5b0d16;
-      color: #fff;
-      border: 0;
-      border-radius: 16px;
-      padding: 12px 22px;
-      font-weight: 900;
-      cursor: pointer;
-    }
-
-    .passport-grid {
-      padding: 24px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .card {
-      background: #1d2a3d;
-      border-radius: 24px;
-      border: 1px solid rgba(255,255,255,.08);
-      min-height: 220px;
-      padding: 22px;
-      box-shadow: 0 15px 40px rgba(0,0,0,.25);
-    }
-
-    .card h2 {
-      margin-bottom: 18px;
-      font-size: 24px;
-      font-weight: 900;
-    }
-
-    .line {
-      margin-bottom: 9px;
-      color: #c8d0dd;
-      font-size: 16px;
-      line-height: 1.4;
-    }
-
-    .line b { color: #fff; }
-
-    .muted { color: #9fb0c8; }
-
-    .error {
-      color: #ffb4b4;
-      line-height: 1.5;
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;font-family:Arial,sans-serif;background:#0d1728;color:#fff}
+    .topbar{height:72px;background:#0b1222;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .topbar h1{font-size:28px;font-weight:900}
+    .back{background:#5b0d16;color:#fff;border:0;border-radius:16px;padding:12px 22px;font-weight:900;cursor:pointer}
+    .passport-grid{padding:24px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .card{background:#1d2a3d;border-radius:24px;border:1px solid rgba(255,255,255,.08);min-height:220px;padding:22px;box-shadow:0 15px 40px rgba(0,0,0,.25)}
+    .card h2{margin-bottom:18px;font-size:24px;font-weight:900}
+    .line{margin-bottom:9px;color:#c8d0dd;font-size:16px;line-height:1.4}
+    .line b{color:#fff}
+    .muted{color:#9fb0c8}
+    .error{color:#ffb4b4;line-height:1.5}
+    .hr{height:1px;background:rgba(255,255,255,.12);margin:12px 0}
   </style>
 </head>
 
 <body>
-  <header class="topbar">
-    <h1 id="passport-title">Паспорт сеансу</h1>
-    <button class="back" onclick="history.back()">← Назад</button>
-  </header>
+<header class="topbar">
+  <h1 id="passport-title">Паспорт сеансу</h1>
+  <button class="back" onclick="history.back()">← Назад</button>
+</header>
 
-  <main class="passport-grid">
-    <section class="card">
-      <h2>Загальне</h2>
-      <div id="general-body" class="muted">Завантаження...</div>
-    </section>
+<main class="passport-grid">
+  <section class="card"><h2>Загальне</h2><div id="general-body" class="muted">Завантаження...</div></section>
+  <section class="card"><h2>Продажі</h2><div id="sales-body" class="muted">Завантаження...</div></section>
+  <section class="card"><h2>Динаміка</h2><div id="dynamic-body" class="muted">Завантаження...</div></section>
+  <section class="card"><h2>Канали</h2><div id="channels-body" class="muted">Завантаження...</div></section>
+  <section class="card"><h2>Типи квитків</h2><div id="types-body" class="muted">Завантаження...</div></section>
+  <section class="card"><h2>Відвідуваність</h2><div id="attendance-body" class="muted">Завантаження...</div></section>
+  <section class="card"><h2>Аудиторія</h2><div id="audience-body" class="muted">Завантаження...</div></section>
+  <section class="card"><h2>Компенсації</h2><div id="recovery-body" class="muted">Завантаження...</div></section>
+  <section class="card"><h2>Порівняння</h2><div id="compare-body" class="muted">Завантаження...</div></section>
+</main>
 
-    <section class="card">
-      <h2>Продажі</h2>
-      <div id="sales-body" class="muted">Завантаження...</div>
-    </section>
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const vaDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <section class="card">
-      <h2>Динаміка</h2>
-      <div id="dynamic-body" class="muted">Завантаження...</div>
-    </section>
+const params = new URLSearchParams(location.search);
+const seanceId = params.get("seance");
 
-    <section class="card"><h2>Канали</h2><div id="channels-body" class="muted">Готується...</div></section>
-    <section class="card"><h2>Типи квитків</h2><div id="types-body" class="muted">Готується...</div></section>
-    <section class="card"><h2>Відвідуваність</h2><div id="attendance-body" class="muted">Готується...</div></section>
-    <section class="card"><h2>Аудиторія</h2><div id="audience-body" class="muted">Готується...</div></section>
-    <section class="card"><h2>Компенсації</h2><div id="recovery-body" class="muted">Готується...</div></section>
-    <section class="card"><h2>Порівняння</h2><div id="compare-body" class="muted">Готується...</div></section>
-  </main>
+let SEANCE = null;
+let TICKETS = [];
+let ORDERS = [];
+let BOOKINGS = [];
+let TYPE_MAP = {};
+let CHANNEL_MAP = {};
 
-  <script>
-    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+function esc(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 
-    const vaDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+function fmt(value){ return value || "—"; }
 
-    const params = new URLSearchParams(location.search);
-    const seanceId = params.get("seance");
+function money(value){
+  return Number(value || 0).toLocaleString("uk-UA") + " грн";
+}
 
-    function esc(value) {
-      return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+function pct(part,total){
+  if(!total) return "0%";
+  return Math.round((part / total) * 100) + "%";
+}
+
+function dateKey(value){
+  if(!value) return "";
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return "";
+  return d.toISOString().slice(0,10);
+}
+
+function titleBy(map, code){
+  return map[code] || code || "—";
+}
+
+async function boot(){
+  if(!seanceId){
+    document.getElementById("general-body").innerHTML =
+      `<div class="error">Не передано seance_id.</div>`;
+    return;
+  }
+
+  await loadDictionaries();
+  await loadData();
+
+  renderGeneral();
+  renderSales();
+  renderDynamic();
+  renderChannels();
+  renderTypes();
+  renderAttendance();
+  renderAudience();
+  renderRecovery();
+  renderCompare();
+}
+
+async function loadDictionaries(){
+  const { data: types } = await vaDb
+    .from("ticket_types")
+    .select("code,title,is_active");
+
+  TYPE_MAP = {};
+  (types || []).forEach(t => {
+    if(t.code) TYPE_MAP[t.code] = t.title || t.code;
+  });
+
+  const { data: channels } = await vaDb
+    .from("ticket_channels")
+    .select("code,title,is_active");
+
+  CHANNEL_MAP = {};
+  (channels || []).forEach(c => {
+    if(c.code) CHANNEL_MAP[c.code] = c.title || c.code;
+  });
+}
+
+async function loadData(){
+  const { data: seance, error: seanceError } = await vaDb
+    .from("seances")
+    .select("*")
+    .eq("id", seanceId)
+    .single();
+
+  if(seanceError || !seance){
+    document.getElementById("general-body").innerHTML =
+      `<div class="error">Сеанс не знайдено.<br>${esc(seanceError?.message || "")}</div>`;
+    throw seanceError || new Error("Seance not found");
+  }
+
+  SEANCE = seance;
+
+  const [ticketsRes, ordersRes, bookingsRes] = await Promise.all([
+    vaDb.from("tickets").select("*").eq("seance_id", seanceId),
+    vaDb.from("orders").select("*").eq("seance_id", seanceId),
+    vaDb.from("bookings").select("*").eq("seance_id", seanceId)
+  ]);
+
+  TICKETS = ticketsRes.data || [];
+  ORDERS = ordersRes.data || [];
+  BOOKINGS = bookingsRes.data || [];
+}
+
+function renderGeneral(){
+  document.getElementById("passport-title").textContent =
+    SEANCE.show || "Паспорт сеансу";
+
+  document.getElementById("general-body").innerHTML = `
+    <div class="line"><b>ID:</b> ${esc(SEANCE.id)}</div>
+    <div class="line"><b>Назва:</b> ${esc(fmt(SEANCE.show))}</div>
+    <div class="line"><b>Дата:</b> ${esc(fmt(SEANCE.date))}</div>
+    <div class="line"><b>Час:</b> ${esc(fmt(SEANCE.time))}</div>
+    <div class="line"><b>Площадка:</b> ${esc(fmt(SEANCE.venue_id))}</div>
+    <div class="line"><b>Жанр:</b> ${esc(fmt(SEANCE.genre))}</div>
+    <div class="line"><b>Тип:</b> ${esc(fmt(SEANCE.event_type))}</div>
+    <div class="line"><b>Статус:</b> ${esc(fmt(SEANCE.status))}</div>
+    <div class="line"><b>Місткість:</b> ${esc(fmt(SEANCE.capacity))}</div>
+  `;
+}
+
+function renderSales(){
+  const sold = TICKETS.length;
+  const amount = TICKETS.reduce((s,t) => s + Number(t.price || 0), 0);
+  const avg = sold ? Math.round(amount / sold) : 0;
+
+  const holds = BOOKINGS.filter(b =>
+    b.status === "hold" &&
+    (!b.expires_at || new Date(b.expires_at) > new Date())
+  );
+
+  const reserves = BOOKINGS.filter(b =>
+    b.status === "reserved"
+  );
+
+  const holdCount = holds.length;
+  const reserveCount = reserves.length;
+  const occupied = sold + reserveCount + holdCount;
+  const capacity = Number(SEANCE.capacity || 0);
+
+  document.getElementById("sales-body").innerHTML = `
+    <div class="line"><b>Продано:</b> ${sold}</div>
+    <div class="line"><b>Бронь:</b> ${reserveCount}</div>
+    <div class="line"><b>Холд:</b> ${holdCount}</div>
+    <div class="line"><b>Зайнято місць:</b> ${occupied}</div>
+    <div class="line"><b>Вільно:</b> ${capacity ? Math.max(capacity - occupied, 0) : "—"}</div>
+    <div class="line"><b>Заповнення:</b> ${capacity ? pct(occupied, capacity) : "—"}</div>
+    <div class="hr"></div>
+    <div class="line"><b>Виручка:</b> ${money(amount)}</div>
+    <div class="line"><b>Середній чек:</b> ${money(avg)}</div>
+  `;
+}
+
+function renderDynamic(){
+  const paidOrders = ORDERS.filter(o =>
+    String(o.status || "").toLowerCase() === "paid"
+  );
+
+  const now = new Date();
+  const todayKey = now.toISOString().slice(0,10);
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = yesterday.toISOString().slice(0,10);
+
+  const last7 = new Date(now);
+  last7.setDate(last7.getDate() - 7);
+
+  let todayCount = 0;
+  let yesterdayCount = 0;
+  let last7Count = 0;
+  let last7Amount = 0;
+  const byDay = {};
+  const byHour = {};
+
+  paidOrders.forEach(o => {
+    const d = new Date(o.created_at);
+    if(Number.isNaN(d.getTime())) return;
+
+    const key = d.toISOString().slice(0,10);
+    const hour = String(d.getHours()).padStart(2,"0") + ":00";
+
+    byDay[key] = (byDay[key] || 0) + 1;
+    byHour[hour] = (byHour[hour] || 0) + 1;
+
+    if(key === todayKey) todayCount++;
+    if(key === yesterdayKey) yesterdayCount++;
+
+    if(d >= last7){
+      last7Count++;
+      last7Amount += Number(o.amount || 0);
     }
+  });
 
-    function fmt(value) {
-      return value || "—";
-    }
+  const bestDay = Object.entries(byDay).sort((a,b) => b[1] - a[1])[0];
+  const bestHour = Object.entries(byHour).sort((a,b) => b[1] - a[1])[0];
 
-    async function boot() {
-      if (!seanceId) {
-        document.getElementById("general-body").innerHTML =
-          `<div class="error">Не передано seance_id.</div>`;
-        return;
-      }
+  document.getElementById("dynamic-body").innerHTML = `
+    <div class="line"><b>Сьогодні:</b> ${todayCount}</div>
+    <div class="line"><b>Вчора:</b> ${yesterdayCount}</div>
+    <div class="line"><b>7 днів:</b> ${last7Count}</div>
+    <div class="line"><b>Сума за 7 днів:</b> ${money(last7Amount)}</div>
+    <div class="line"><b>Кращий день:</b> ${bestDay ? `${esc(bestDay[0])} · ${bestDay[1]}` : "—"}</div>
+    <div class="line"><b>Краща година:</b> ${bestHour ? `${esc(bestHour[0])} · ${bestHour[1]}` : "—"}</div>
+  `;
+}
 
-      await loadGeneral();
-      await loadSales();
-      await loadDynamic();
-    }
+function renderChannels(){
+  const counts = {};
 
-    async function loadGeneral() {
-      const { data, error } = await vaDb
-        .from("seances")
-        .select("*")
-        .eq("id", seanceId)
-        .single();
+  TICKETS.forEach(t => {
+    const key = t.channel || "unknown";
+    counts[key] = (counts[key] || 0) + 1;
+  });
 
-      if (error || !data) {
-        document.getElementById("general-body").innerHTML =
-          `<div class="error">Сеанс не знайдено.<br>${esc(error?.message || "")}</div>`;
-        return;
-      }
+  const rows = Object.entries(counts)
+    .sort((a,b) => b[1] - a[1])
+    .map(([code,count]) =>
+      `<div class="line"><b>${esc(titleBy(CHANNEL_MAP, code))}:</b> ${count}</div>`
+    )
+    .join("");
 
-      document.getElementById("passport-title").textContent =
-        data.show || "Паспорт сеансу";
+  document.getElementById("channels-body").innerHTML =
+    rows || `<div class="muted">Даних немає</div>`;
+}
 
-      document.getElementById("general-body").innerHTML = `
-        <div class="line"><b>ID:</b> ${esc(data.id)}</div>
-        <div class="line"><b>Назва:</b> ${esc(fmt(data.show))}</div>
-        <div class="line"><b>Дата:</b> ${esc(fmt(data.date))}</div>
-        <div class="line"><b>Час:</b> ${esc(fmt(data.time))}</div>
-        <div class="line"><b>Площадка:</b> ${esc(fmt(data.venue_id))}</div>
-        <div class="line"><b>Жанр:</b> ${esc(fmt(data.genre))}</div>
-        <div class="line"><b>Тип:</b> ${esc(fmt(data.event_type))}</div>
-        <div class="line"><b>Статус:</b> ${esc(fmt(data.status))}</div>
-        <div class="line"><b>Місткість:</b> ${esc(fmt(data.capacity))}</div>
-      `;
-    }
+function renderTypes(){
+  const counts = {};
 
-    async function loadSales() {
-      const { data: tickets, error } = await vaDb
-        .from("tickets")
-        .select("id, price, ticket_type, channel")
-        .eq("seance_id", seanceId);
+  TICKETS.forEach(t => {
+    const key = t.ticket_type || "unknown";
+    counts[key] = (counts[key] || 0) + 1;
+  });
 
-      if (error) {
-        document.getElementById("sales-body").innerHTML =
-          `<div class="error">${esc(error.message)}</div>`;
-        return;
-      }
+  const rows = Object.entries(counts)
+    .sort((a,b) => b[1] - a[1])
+    .map(([code,count]) =>
+      `<div class="line"><b>${esc(titleBy(TYPE_MAP, code))}:</b> ${count}</div>`
+    )
+    .join("");
 
-      const sold = tickets?.length || 0;
+  document.getElementById("types-body").innerHTML =
+    rows || `<div class="muted">Даних немає</div>`;
+}
 
-      const amount = (tickets || [])
-        .reduce((sum, t) => sum + Number(t.price || 0), 0);
+function renderAttendance(){
+  const sold = TICKETS.length;
+  const checked = TICKETS.filter(t => t.checked_in_at).length;
+  const notChecked = Math.max(sold - checked, 0);
 
-      const avg = sold ? Math.round(amount / sold) : 0;
+  document.getElementById("attendance-body").innerHTML = `
+    <div class="line"><b>Продано:</b> ${sold}</div>
+    <div class="line"><b>Пройшли:</b> ${checked}</div>
+    <div class="line"><b>Не прийшли:</b> ${notChecked}</div>
+    <div class="line"><b>Явка:</b> ${pct(checked, sold)}</div>
+  `;
+}
 
-      const { data: bookings } = await vaDb
-        .from("bookings")
-        .select("*")
-        .eq("seance_id", seanceId);
+function renderAudience(){
+  const buyers = {};
+  let named = 0;
+  let emails = 0;
+  let phones = 0;
 
-      const holds = (bookings || []).filter(
-        b =>
-          b.status === "hold" &&
-          (!b.expires_at || new Date(b.expires_at) > new Date())
-      );
+  ORDERS.forEach(o => {
+    const key = o.buyer_email || o.buyer_phone || o.buyer_name || o.order_id || o.id;
+    if(key) buyers[key] = true;
 
-      const reserves = (bookings || []).filter(
-        b => b.status === "reserved"
-      );
+    if(o.buyer_name) named++;
+    if(o.buyer_email) emails++;
+    if(o.buyer_phone) phones++;
+  });
 
-      const holdCount = holds.length;
-      const reserveCount = reserves.length;
-      const occupied = sold + reserveCount + holdCount;
+  document.getElementById("audience-body").innerHTML = `
+    <div class="line"><b>Покупців:</b> ${Object.keys(buyers).length}</div>
+    <div class="line"><b>Із ПІБ:</b> ${named}</div>
+    <div class="line"><b>Email:</b> ${emails}</div>
+    <div class="line"><b>Телефон:</b> ${phones}</div>
+    <div class="line"><b>Квитків на покупця:</b> ${
+      Object.keys(buyers).length ? (TICKETS.length / Object.keys(buyers).length).toFixed(1) : "—"
+    }</div>
+  `;
+}
 
-      document.getElementById("sales-body").innerHTML = `
-        <div class="line"><b>Продано:</b> ${sold}</div>
-        <div class="line"><b>Бронь:</b> ${reserveCount}</div>
-        <div class="line"><b>Холд:</b> ${holdCount}</div>
-        <div class="line"><b>Зайнято місць:</b> ${occupied}</div>
-        <div class="line"><b>Виручка:</b> ${amount.toLocaleString("uk-UA")} грн</div>
-        <div class="line"><b>Середній чек:</b> ${avg.toLocaleString("uk-UA")} грн</div>
-      `;
-    }
+async function renderRecovery(){
+  const allowed = TICKETS.filter(t => t.compensation_allowed === true).length;
+  const used = TICKETS.filter(t => t.compensation_used === true).length;
 
-    async function loadDynamic() {
-      const { data: orders, error } = await vaDb
-        .from("orders")
-        .select("id, amount, created_at, status")
-        .eq("seance_id", seanceId);
+  let recoveryEvents = [];
 
-      if (error) {
-        document.getElementById("dynamic-body").innerHTML =
-          `<div class="error">${esc(error.message)}</div>`;
-        return;
-      }
+  const { data } = await vaDb
+    .from("recovery_events")
+    .select("*")
+    .or(`original_event.ilike.%${seanceId}%,recovery_event.ilike.%${seanceId}%`);
 
-      const paidOrders = (orders || []).filter(
-        o => String(o.status || "").toLowerCase() === "paid"
-      );
+  recoveryEvents = data || [];
 
-      const now = new Date();
-      const todayKey = now.toISOString().slice(0, 10);
+  document.getElementById("recovery-body").innerHTML = `
+    <div class="line"><b>Компенсацій дозволено:</b> ${allowed}</div>
+    <div class="line"><b>Використано:</b> ${used}</div>
+    <div class="line"><b>Не використано:</b> ${Math.max(allowed - used, 0)}</div>
+    <div class="line"><b>Recovery-подій:</b> ${recoveryEvents.length}</div>
+  `;
+}
 
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayKey = yesterday.toISOString().slice(0, 10);
+function renderCompare(){
+  const sameGenre = SEANCE.genre
+    ? "Можна порівняти по жанру"
+    : "Жанр не вказано";
 
-      const last7 = new Date(now);
-      last7.setDate(last7.getDate() - 7);
+  document.getElementById("compare-body").innerHTML = `
+    <div class="line"><b>Жанр:</b> ${esc(fmt(SEANCE.genre))}</div>
+    <div class="line"><b>Поточний сеанс:</b> ${esc(fmt(SEANCE.show))}</div>
+    <div class="line"><b>Порівняння:</b> ${esc(sameGenre)}</div>
+    <div class="muted">Глибоке порівняння підключимо після накопичення паспортів.</div>
+  `;
+}
 
-      let todayCount = 0;
-      let yesterdayCount = 0;
-      let last7Count = 0;
-      let last7Amount = 0;
-
-      const byDay = {};
-
-      paidOrders.forEach(o => {
-        if (!o.created_at) return;
-
-        const d = new Date(o.created_at);
-        if (Number.isNaN(d.getTime())) return;
-
-        const key = d.toISOString().slice(0, 10);
-
-        byDay[key] = (byDay[key] || 0) + 1;
-
-        if (key === todayKey) todayCount++;
-        if (key === yesterdayKey) yesterdayCount++;
-
-        if (d >= last7) {
-          last7Count++;
-          last7Amount += Number(o.amount || 0);
-        }
-      });
-
-      const bestDay = Object.entries(byDay)
-        .sort((a, b) => b[1] - a[1])[0];
-
-      document.getElementById("dynamic-body").innerHTML = `
-        <div class="line"><b>Сьогодні:</b> ${todayCount}</div>
-        <div class="line"><b>Вчора:</b> ${yesterdayCount}</div>
-        <div class="line"><b>7 днів:</b> ${last7Count}</div>
-        <div class="line"><b>Сума за 7 днів:</b> ${last7Amount.toLocaleString("uk-UA")} грн</div>
-        <div class="line"><b>Кращий день:</b> ${
-          bestDay ? `${esc(bestDay[0])} · ${bestDay[1]}` : "—"
-        }</div>
-      `;
-    }
-
-    boot();
-  </script>
+boot();
+</script>
 </body>
 </html>
