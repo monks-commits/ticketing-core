@@ -126,6 +126,31 @@ async function loadDictionaries(){
   (channels || []).forEach(c => {
     if(c.code) CHANNEL_MAP[c.code] = c.title || c.code;
   });
+
+  if (!Object.keys(CHANNEL_MAP).length) {
+  CHANNEL_MAP = {
+    cash: "Каса",
+    invite: "Запрошення",
+    offline: "Офлайн",
+    online: "Онлайн",
+    operator: "Оператор",
+    partner: "Партнер"
+  };
+}
+
+if (!Object.keys(TYPE_MAP).length) {
+  TYPE_MAP = {
+    full: "Звичайний",
+    child: "Дитячий",
+    discount: "Пільговий",
+    invite: "Запрошення",
+    promo: "Акційний",
+    rental: "Орендний",
+    service: "Службовий",
+    compensation: "Компенсаційний",
+    vip: "VIP"
+  };
+
 }
 
 async function loadData(){
