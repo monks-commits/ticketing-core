@@ -216,6 +216,9 @@ const reserves = (bookings || []).filter(
     b.status === "reserved"
 );
 
+const occupied =
+  sold + reserveCount + holdCount;
+); 
 const holdCount = holds.length;
 const reserveCount = reserves.length;
   
@@ -224,6 +227,7 @@ const reserveCount = reserves.length;
     <div><b>Бронь:</b> ${reserveCount}</div>
 <div><b>Холд:</b> ${holdCount}</div>
 <div class="line"><b>Виручка:</b> ${amount.toLocaleString("uk-UA")} грн</div>
+<div><b>Зайнято місць:</b> ${occupied}</div>
     <div class="line"><b>Середній чек:</b> ${avg.toLocaleString("uk-UA")} грн</div>
   `;
 }
