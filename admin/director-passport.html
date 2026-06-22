@@ -199,9 +199,31 @@ async function loadSales() {
     ? Math.round(amount / sold)
     : 0;
 
+const { data: bookings } = await vaDb
+  .from("bookings")
+  .select("*")
+  .eq("seance_id", seanceId);
+
+const holds = (bookings || []).filter(
+  b =>
+    b.status === "hold" &&
+    (!b.expires_at ||
+      new Date(b.expires_at) > new Date())
+);
+
+const reserves = (bookings || []).filter(
+  b =>
+    b.status === "reserved"
+);
+
+const holdCount = holds.length;
+const reserveCount = reserves.length;
+  
   document.getElementById("sales-body").innerHTML = `
     <div class="line"><b>Продано:</b> ${sold}</div>
-    <div class="line"><b>Виручка:</b> ${amount.toLocaleString("uk-UA")} грн</div>
+    <div><b>Бронь:</b> ${reserveCount}</div>
+<div><b>Холд:</b> ${holdCount}</div>
+<div class="line"><b>Виручка:</b> ${amount.toLocaleString("uk-UA")} грн</div>
     <div class="line"><b>Середній чек:</b> ${avg.toLocaleString("uk-UA")} грн</div>
   `;
 }
