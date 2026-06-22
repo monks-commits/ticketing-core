@@ -360,11 +360,13 @@ const lost = aud.filter(c => c.isLost).length;
         <td><b>${esc(s.show || "Подія")}</b><br><span class="muted">${esc(s.event_type || "")}</span></td>
         <td>${fmtDate(s.date)}</td>
         <td><span class="pill">${esc(genre)}</span></td>
-        <td>
-          Всього: <b>${aud.length}</b><br>
-          VIP: ${vip}<br>
-          Втрачені: ${lost}
-        </td>
+       <td>
+  Продано: <b>${stats.sold}</b><br>
+  Відвідали: ${stats.visited}<br>
+  Аудиторія жанру: ${aud.length}<br>
+  VIP: ${vip}<br>
+  Втрачені: ${lost}
+</td>
         <td>
           <button class="${cls}" onclick="showScenario('${esc(s.id)}')">${esc(action)}</button>
         </td>
