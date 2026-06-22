@@ -536,7 +536,7 @@ function openPostponedReport(id) {
     
   function openSeance(id) {
   location.href =
-    `/ticketing-core/hybrid/hall-cash.html?show=&seance=${encodeURIComponent(id)}&director=1&mode=${encodeURIComponent(activeStatus)}`;
+    `./director-passport.html?seance=${encodeURIComponent(id)}&mode=${encodeURIComponent(activeStatus)}`;
 }
 
     document.querySelectorAll(".status-btn").forEach(btn => {
