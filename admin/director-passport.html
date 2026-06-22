@@ -1,16 +1,45 @@
 <!DOCTYPE html>
 <html lang="uk">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+/* сюда пойдет CSS, который я дал выше */
+</style>
+  
 <head>
   <meta charset="UTF-8">
   <title>VA Director — Паспорт сеансу</title>
 </head>
 <body>
 
-<h1>Паспорт сеансу</h1>
+<header class="topbar">
+  <h1 id="passport-title">Паспорт сеансу</h1>
 
-<div class="passport-grid">
-  <!-- сюда будем добавлять 9 блоков -->
-</div>
+  <button class="back" onclick="history.back()">
+    ← Назад
+  </button>
+</header>
+
+<main class="passport-grid">
+
+  <section class="card" id="general-card">
+    <h2>Загальне</h2>
+    <div id="general-body">Завантаження...</div>
+  </section>
+
+  <section class="card"><h2>Продажі</h2></section>
+  <section class="card"><h2>Динаміка</h2></section>
+
+  <section class="card"><h2>Канали</h2></section>
+  <section class="card"><h2>Типи квитків</h2></section>
+  <section class="card"><h2>Відвідуваність</h2></section>
+
+  <section class="card"><h2>Аудиторія</h2></section>
+  <section class="card"><h2>Компенсації</h2></section>
+  <section class="card"><h2>Порівняння</h2></section>
+
+</main>
 
 </body>
 </html>
