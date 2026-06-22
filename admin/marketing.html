@@ -284,6 +284,23 @@ function audienceForGenre(genre){
   return CLIENTS.filter(c => c.favGenre === genre);
 }
 
+function getSeanceStats(seanceId) {
+  const tickets = TICKETS.filter(
+    t => String(t.seance_id) === String(seanceId)
+  );
+
+  const sold = tickets.length;
+
+  const visited = tickets.filter(
+    t => t.checked_in_at
+  ).length;
+
+  return {
+    sold,
+    visited
+  };
+}
+  
 function renderSummary(){
   const genres = new Set(CLIENTS.map(c => c.favGenre).filter(x => x && x !== "—"));
 
