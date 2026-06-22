@@ -176,7 +176,18 @@
         return;
       }
 
-     await loadGeneral();
+    async function boot() {
+  if (!seanceId) {
+    document.getElementById("general-body").innerHTML =
+      `<div class="error">Не передано seance_id.</div>`;
+    return;
+  }
+
+  await loadGeneral();
+  await loadSales();
+  await loadDynamic();
+}
+      
 
 async function loadSales() {
   const { data: tickets, error } = await vaDb
@@ -232,9 +243,6 @@ const occupied = sold + reserveCount + holdCount;
   `;
 }
       
-await loadSales();
-    }
-
 async function loadDynamic() {
   const { data: orders, error } = await vaDb
     .from("orders")
@@ -302,8 +310,7 @@ async function loadDynamic() {
   `;
 }
     
-await loadDynamic();
-}
+
     
     async function loadGeneral() {
       const { data, error } = await vaDb
