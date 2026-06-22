@@ -389,7 +389,15 @@ const vip = aud.filter(c => c.isVip).length;
 
 const lost = aud.filter(c => c.isLost).length;
     
-   
+const rec =
+  getSeanceRecommendation(
+    s,
+    stats,
+    aud,
+    vip,
+    lost,
+    days
+  );   
 
     let action = "Немає достатньо даних";
     let cls = "secondary";
