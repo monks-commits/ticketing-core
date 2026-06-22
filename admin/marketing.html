@@ -310,6 +310,50 @@ function daysToSeance(seance) {
     (d - new Date()) / 86400000
   );
 }
+
+function getSeanceRecommendation(
+  seance,
+  stats,
+  audience,
+  vip,
+  lost,
+  days
+) {
+  let status = "Добрий";
+  let reason = "Дій не потрібно";
+  let action = "Спостерігати";
+
+  if (days <= 7 && stats.sold < 30) {
+    status = "Потребує уваги";
+    reason = "До сеансу мало часу і продажі слабкі";
+
+    if (audience.length > 0) {
+      action = `Запросити ${audience.length} любителів жанру`;
+    } else {
+      action = "Посилити рекламу";
+    }
+  }
+
+  else if (days > 7 && stats.sold < 20) {
+    status = "Спостерігати";
+    reason = "До сеансу ще є час";
+    action = "Контролювати продажі";
+  }
+
+  if (lost > 0) {
+    action += ` + повернути ${lost} втрачених`;
+  }
+
+  if (vip > 0 && stats.sold < 50) {
+    action += ` + запросити ${vip} VIP`;
+  }
+
+  return {
+    status,
+    reason,
+    action
+  };
+}
   
 function renderSummary(){
   const genres = new Set(CLIENTS.map(c => c.favGenre).filter(x => x && x !== "—"));
