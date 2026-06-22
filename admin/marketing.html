@@ -357,7 +357,14 @@ const lost = aud.filter(c => c.isLost).length;
 
     return `
       <tr>
-        <td><b>${esc(s.show || "Подія")}</b><br><span class="muted">${esc(s.event_type || "")}</span></td>
+        <td>
+  <b>${esc(s.show || "Подія")}</b><br>
+  <span class="muted">${esc(s.event_type || "")}</span><br>
+  <span class="muted">
+    До сеансу:
+    ${days !== null ? days + " дн." : "—"}
+  </span>
+</td>
         <td>${fmtDate(s.date)}</td>
         <td><span class="pill">${esc(genre)}</span></td>
        <td>
