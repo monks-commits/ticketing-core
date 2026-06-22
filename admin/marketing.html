@@ -300,6 +300,16 @@ function getSeanceStats(seanceId) {
     visited
   };
 }
+
+function daysToSeance(seance) {
+  if (!seance.date) return null;
+
+  const d = new Date(seance.date);
+
+  return Math.ceil(
+    (d - new Date()) / 86400000
+  );
+}
   
 function renderSummary(){
   const genres = new Set(CLIENTS.map(c => c.favGenre).filter(x => x && x !== "—"));
