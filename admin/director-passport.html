@@ -218,9 +218,10 @@ const reserves = (bookings || []).filter(
 
 const occupied =
   sold + reserveCount + holdCount;
-); 
+
 const holdCount = holds.length;
 const reserveCount = reserves.length;
+const occupied = sold + reserveCount + holdCount;  
   
   document.getElementById("sales-body").innerHTML = `
     <div class="line"><b>Продано:</b> ${sold}</div>
