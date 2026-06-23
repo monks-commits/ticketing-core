@@ -470,6 +470,35 @@ function money(v) {
   return `${Math.round(Number(v || 0))} грн`;
 }
 
+function channelTitle(code) {
+  const map = {
+    online: "Онлайн",
+    cash: "Каса",
+    offline: "Офлайн",
+    operator: "Оператор",
+    partner: "Партнер",
+    invite: "Запрошення"
+  };
+
+  return map[code] || code || "—";
+}
+
+function ticketTypeTitle(code) {
+  const map = {
+    full: "Звичайний",
+    child: "Дитячий",
+    discount: "Пільговий",
+    invite: "Запрошення",
+    promo: "Акційний",
+    rental: "Орендний",
+    service: "Службовий",
+    compensation: "Компенсаційний",
+    vip: "VIP"
+  };
+
+  return map[code] || code || "—";
+}
+  
  function topValue(arr, field) {
   const map = {};
 
