@@ -1087,40 +1087,56 @@ const favRow = topValue(client.events, "row");
       .sort((a, b) => b.visited - a.visited)
       .findIndex(x => x.key === client.key) + 1;
 
-  document.getElementById("viewerStatus").innerHTML = `
-    <b>Статус:</b> ${status}<br>
-    <b>Рейтинг:</b>
-    #${rankTickets} за квитками ·
-    #${rankAmount} за сумою ·
-    #${rankVisits} за відвідуваннями
-    <br><br>
-    <b>Середній чек:</b> ${money(avgCheck)}<br>
-    <b>RFM:</b> ${client.rfmSegment}
-(${client.rfmTitle})<br>
-   
-<b>Днів після візиту:</b> ${client.daysFromVisit}<br>
-<b>Середній заказ:</b> ${money(client.avgOrderAmount)}<br>
-<b>Квитків на заказ:</b> ${client.avgTicketsPerOrder}<br>
+document.getElementById("viewerStatus").innerHTML = `
+  <div class="viewer-card">
+    <h3>Статус</h3>
+    <div class="viewer-line"><b>Статус:</b> ${status}</div>
+    <div class="viewer-line"><b>RFM:</b> ${client.rfmSegment} (${client.rfmTitle})</div>
+    <div class="viewer-line"><b>Днів після візиту:</b> ${client.daysFromVisit}</div>
+  </div>
 
-<br>
-<b>Профіль:</b><br>
-${!client.familyVisitor && !client.groupBuyer && !client.sleepingVip && !client.lostVip ? "Базовий профіль<br>" : ""}
-${client.familyVisitor ? "👨‍👩‍👧 Сімейний<br>" : ""}
-${client.groupBuyer ? "👥 Груповий<br>" : ""}
-${client.regularTheatergoer ? "🎭 Постійний театрал<br>" : ""}
-${client.genreFan ? client.genreFan + "<br>" : ""}
-${client.sleepingVip ? "😴 Сплячий VIP<br>" : ""}
-${client.lostVip ? "❌ Втрачений VIP<br>" : ""}
+  <div class="viewer-card">
+    <h3>Рейтинг</h3>
+    <div class="viewer-line"><b>За квитками:</b> #${rankTickets}</div>
+    <div class="viewer-line"><b>За сумою:</b> #${rankAmount}</div>
+    <div class="viewer-line"><b>За відвідуваннями:</b> #${rankVisits}</div>
+  </div>
 
-    <b>Улюблений жанр:</b> ${favGenre}<br>
-    <b>Улюблена площадка:</b> ${esc(favVenue)}<br>
-<b>Улюблена зона:</b> ${esc(favZone)}<br>
-<b>Улюблений ряд:</b> ${esc(favRow)}<br>
-    <b>Улюблена подія:</b> ${esc(favShow)}<br>
-    <b>Улюблений канал:</b> ${esc(favChannel)}<br>
-    <b>Улюблений тип:</b> ${esc(favType)}
-  `;
+  <div class="viewer-card">
+    <h3>Фінанси</h3>
+    <div class="viewer-line"><b>Середній чек:</b> ${money(avgCheck)}</div>
+    <div class="viewer-line"><b>Середній заказ:</b> ${money(client.avgOrderAmount)}</div>
+    <div class="viewer-line"><b>Квитків на заказ:</b> ${client.avgTicketsPerOrder}</div>
+  </div>
 
+  <div class="viewer-card">
+    <h3>Профіль</h3>
+    <div class="viewer-line">
+      ${!client.familyVisitor && !client.groupBuyer && !client.sleepingVip && !client.lostVip ? "Базовий профіль<br>" : ""}
+      ${client.familyVisitor ? "👨‍👩‍👧 Сімейний<br>" : ""}
+      ${client.groupBuyer ? "👥 Груповий<br>" : ""}
+      ${client.regularTheatergoer ? "🎭 Постійний театрал<br>" : ""}
+      ${client.genreFan ? client.genreFan + "<br>" : ""}
+      ${client.sleepingVip ? "😴 Сплячий VIP<br>" : ""}
+      ${client.lostVip ? "❌ Втрачений VIP<br>" : ""}
+    </div>
+  </div>
+
+  <div class="viewer-card">
+    <h3>Уподобання</h3>
+    <div class="viewer-line"><b>Жанр:</b> ${esc(favGenre)}</div>
+    <div class="viewer-line"><b>Площадка:</b> ${esc(favVenue)}</div>
+    <div class="viewer-line"><b>Подія:</b> ${esc(favShow)}</div>
+  </div>
+
+  <div class="viewer-card">
+    <h3>Місця і канал</h3>
+    <div class="viewer-line"><b>Зона:</b> ${esc(favZone)}</div>
+    <div class="viewer-line"><b>Ряд:</b> ${esc(favRow)}</div>
+    <div class="viewer-line"><b>Канал:</b> ${esc(favChannel)}</div>
+    <div class="viewer-line"><b>Тип:</b> ${esc(favType)}</div>
+  </div>
+`;
   document.getElementById("vTickets").textContent =
     client.ticketsCount;
 
