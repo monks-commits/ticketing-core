@@ -311,6 +311,16 @@ function daysToSeance(seance) {
   );
 }
 
+function getPlannedFill(daysLeft){
+  if (daysLeft <= 0) return 85;
+  if (daysLeft <= 1) return 85;
+  if (daysLeft <= 3) return 70;
+  if (daysLeft <= 7) return 50;
+  if (daysLeft <= 14) return 30;
+  if (daysLeft <= 30) return 15;
+  return 10;
+}
+  
 function getSeanceRecommendation(
   seance,
   stats,
