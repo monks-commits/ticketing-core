@@ -541,7 +541,12 @@ function evaluateSeance({
   const fill = capacity > 0
     ? Math.round((sold / capacity) * 100)
     : 0;
+const plannedFill =
+  getPlannedFill(daysLeft);
 
+const lag =
+  fill - plannedFill;
+  
   if (fill >= 85) {
     score += 40;
     reasons.push(`Заповнення ${fill}%`);
