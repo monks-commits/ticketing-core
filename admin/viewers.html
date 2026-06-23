@@ -1185,8 +1185,8 @@ document.getElementById("viewerStatus").innerHTML = `
     <h3>Місця і канал</h3>
     <div class="viewer-line"><b>Зона:</b> ${esc(favZone)}</div>
     <div class="viewer-line"><b>Ряд:</b> ${esc(favRow)}</div>
-    <div class="viewer-line"><b>Канал:</b> ${esc(favChannel)}</div>
-    <div class="viewer-line"><b>Тип:</b> ${esc(favType)}</div>
+    <div class="viewer-line"><b>Канал:</b> ${esc(channelTitle(favChannel))}</div>
+    <div class="viewer-line"><b>Тип:</b> ${esc(ticketTypeTitle(favType))}</div>
   </div>
 `;
   document.getElementById("vTickets").textContent =
