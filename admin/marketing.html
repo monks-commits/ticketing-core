@@ -547,10 +547,23 @@ const plannedFill =
 const lag =
   fill - plannedFill;
   
-  if (fill >= 85) {
-    score += 40;
-    reasons.push(`Заповнення ${fill}%`);
-  }
+  if (lag >= 20) {
+  score += 40;
+  reasons.push(`Випередження плану +${lag}%`);
+}
+else if (lag >= 0) {
+  score += 30;
+  reasons.push(`Продажі за планом`);
+}
+else if (lag >= -20) {
+  score += 20;
+  reasons.push(`Відставання від плану ${lag}%`);
+}
+else {
+  score += 10;
+  reasons.push(`Критичне відставання ${lag}%`);
+  actions.push("Посилити продажі");
+}
   else if (fill >= 60) {
     score += 30;
     reasons.push(`Заповнення ${fill}%`);
