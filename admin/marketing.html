@@ -425,6 +425,23 @@ const days = daysToSeance(s);
 const vip = aud.filter(c => c.isVip).length;
 
 const lost = aud.filter(c => c.isLost).length;
+
+const audiencePotential =
+  aud.length + vip + lost;
+
+const salesNeed = getSalesNeed({
+  sold: stats.sold,
+  capacity: Number(s.capacity || 0),
+  daysLeft: days || 0,
+  audiencePotential
+});
+
+const probability = getSuccessProbability({
+  needTickets: salesNeed.needTickets,
+  perDay: salesNeed.perDay,
+  audiencePotential,
+  daysLeft: days || 0
+});
     
 const analysis = evaluateSeance({
   sold: stats.sold,
