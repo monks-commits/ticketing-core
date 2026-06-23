@@ -364,6 +364,33 @@ function renderSummary(){
   document.getElementById("mLost").textContent = CLIENTS.filter(c => c.isLost).length;
 }
 
+function getLast7Sales(seanceId){
+  const border = new Date();
+  border.setDate(border.getDate() - 7);
+
+  return TICKETS.filter(t =>
+    String(t.seance_id) === String(seanceId) &&
+    t.created_at &&
+    new Date(t.created_at) >= border
+  ).length;
+}
+
+function getGenreAverage(genre){
+  const same = SEANCES.filter(s =>
+    s.genre === genre &&
+    s.date &&
+    new Date(s.date) < new Date()
+  );
+
+  if (!same.length) return 0;
+
+  const total = same.reduce((sum, s) => {
+    return sum + getSeanceStats(s.id).sold;
+  }, 0);
+
+  return Math.round(total / same.length);
+}
+  
 function renderOpportunities(){
   const body = document.getElementById("opportunitiesBody");
 
