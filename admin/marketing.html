@@ -485,6 +485,126 @@ function renderScenariosDefault(){
   `;
 }
 
+function evaluateSeance({
+  sold,
+  capacity,
+  daysLeft,
+  genreAudience,
+  vipCount,
+  lostCount,
+  last7Sales,
+  genreAverage
+}) {
+  let score = 0;
+  const reasons = [];
+  const actions = [];
+
+  // Продажи (40)
+  const fill = capacity > 0
+    ? Math.round((sold / capacity) * 100)
+    : 0;
+
+  if (fill >= 85) {
+    score += 40;
+    reasons.push(`Заповнення ${fill}%`);
+  }
+  else if (fill >= 60) {
+    score += 30;
+    reasons.push(`Заповнення ${fill}%`);
+  }
+  else if (fill >= 40) {
+    score += 20;
+    reasons.push(`Заповнення лише ${fill}%`);
+  }
+  else {
+    score += 10;
+    reasons.push(`Низькі продажі (${fill}%)`);
+    actions.push("Посилити продажі");
+  }
+
+  // Темп продаж
+  if (last7Sales >= 10) {
+    score += 20;
+    reasons.push("Хороший темп продажів");
+  }
+  else if (last7Sales >= 3) {
+    score += 12;
+    reasons.push("Середній темп продажів");
+  }
+  else {
+    score += 5;
+    reasons.push("Продажі сповільнилися");
+    actions.push("Активізувати аудиторію");
+  }
+
+  // Час до сеансу
+  if (daysLeft > 14) {
+    score += 15;
+    reasons.push("До сеансу ще багато часу");
+  }
+  else if (daysLeft > 5) {
+    score += 10;
+    reasons.push("До сеансу менше двох тижнів");
+  }
+  else {
+    score += 5;
+    reasons.push("До сеансу залишилось мало часу");
+  }
+
+  // Потенціал аудиторії
+  const potential = genreAudience + vipCount + lostCount;
+
+  if (potential >= 30) {
+    score += 15;
+    reasons.push(`Є потенційна аудиторія (${potential})`);
+  }
+  else {
+    score += 5;
+    reasons.push("Резерв аудиторії невеликий");
+  }
+
+  // Історія жанру
+  if (sold >= genreAverage) {
+    score += 10;
+    reasons.push("Краще середнього по жанру");
+  }
+  else {
+    score += 5;
+    reasons.push("Нижче середнього по жанру");
+  }
+
+  //------------------------------------------------
+
+  let status;
+
+  if (score >= 80)
+    status = "Добрий";
+  else if (score >= 60)
+    status = "Спостерігати";
+  else if (score >= 40)
+    status = "Потрібна дія";
+  else
+    status = "Терміново діяти";
+
+  //------------------------------------------------
+
+  if (vipCount > 0)
+    actions.push(`Запросити ${vipCount} VIP`);
+
+  if (lostCount > 0)
+    actions.push(`Повернути ${lostCount} втрачених`);
+
+  if (genreAudience > 0)
+    actions.push(`Запросити любителів жанру`);
+
+  return {
+    score,
+    status,
+    reasons,
+    actions
+  };
+}
+  
 async function boot(){
   buildTools();
 
