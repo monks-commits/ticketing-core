@@ -1230,8 +1230,8 @@ function loadViewerEvents(client) {
       <td>${esc(e.title)}</td>
       <td>${esc(e.seat)}</td>
       <td>${money(e.price)}</td>
-      <td>${esc(e.channel)}</td>
-      <td>${esc(e.ticketType)}</td>
+     <td>${esc(channelTitle(e.channel))}</td>
+<td>${esc(ticketTypeTitle(e.ticketType))}</td>
       <td><span class="badge ${e.checkedAt ? "ok" : "no"}">${esc(e.status)}</span></td>
       <td>${fmtDateTime(e.checkedAt)}</td>
     </tr>
