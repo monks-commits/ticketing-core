@@ -115,7 +115,7 @@ async function loadDictionaries(){
 
   TYPE_MAP = {};
   (types || []).forEach(t => {
-    if(t.code) TYPE_MAP[t.code] = t.title || t.code;
+    if (t.code) TYPE_MAP[t.code] = t.title || t.code;
   });
 
   const { data: channels } = await vaDb
@@ -124,35 +124,34 @@ async function loadDictionaries(){
 
   CHANNEL_MAP = {};
   (channels || []).forEach(c => {
-    if(c.code) CHANNEL_MAP[c.code] = c.title || c.code;
+    if (c.code) CHANNEL_MAP[c.code] = c.title || c.code;
   });
 
   if (!Object.keys(CHANNEL_MAP).length) {
-  CHANNEL_MAP = {
-    cash: "Каса",
-    invite: "Запрошення",
-    offline: "Офлайн",
-    online: "Онлайн",
-    operator: "Оператор",
-    partner: "Партнер"
-  };
+    CHANNEL_MAP = {
+      cash: "Каса",
+      invite: "Запрошення",
+      offline: "Офлайн",
+      online: "Онлайн",
+      operator: "Оператор",
+      partner: "Партнер"
+    };
+  }
+
+  if (!Object.keys(TYPE_MAP).length) {
+    TYPE_MAP = {
+      full: "Звичайний",
+      child: "Дитячий",
+      discount: "Пільговий",
+      invite: "Запрошення",
+      promo: "Акційний",
+      rental: "Орендний",
+      service: "Службовий",
+      compensation: "Компенсаційний",
+      vip: "VIP"
+    };
+  }
 }
-
-if (!Object.keys(TYPE_MAP).length) {
-  TYPE_MAP = {
-    full: "Звичайний",
-    child: "Дитячий",
-    discount: "Пільговий",
-    invite: "Запрошення",
-    promo: "Акційний",
-    rental: "Орендний",
-    service: "Службовий",
-    compensation: "Компенсаційний",
-    vip: "VIP"
-  };
-
-}
-
 async function loadData(){
   const { data: seance, error: seanceError } = await vaDb
     .from("seances")
