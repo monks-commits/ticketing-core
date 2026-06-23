@@ -1051,27 +1051,38 @@ function openViewer(key) {
 const favZone = topValue(client.events, "zone");
 const favRow = topValue(client.events, "row");
 
-  document.getElementById("viewerMeta").innerHTML = `
-    Телефон: ${esc(client.phone || "—")}
-    &nbsp;&nbsp;|&nbsp;&nbsp;
-    Email: ${esc(client.email || "—")}
-    <br>
+  document.getElementById("viewerHead").innerHTML = `
+<div class="viewer-top-grid">
 
-    Перша покупка: ${fmtDate(client.firstOrder)}
-    &nbsp;&nbsp;|&nbsp;&nbsp;
-    Остання покупка: ${fmtDate(client.lastOrder)}
-    <br>
+  <div class="viewer-top-card">
+    <h3>Контакти</h3>
+    <div class="viewer-line"><b>Телефон:</b> ${phone || "—"}</div>
+    <div class="viewer-line"><b>Email:</b> ${email || "—"}</div>
+  </div>
 
-    Перше відвідування: ${fmtDate(client.firstVisit)}
-    &nbsp;&nbsp;|&nbsp;&nbsp;
-    Останнє відвідування: ${fmtDate(client.lastVisit)}
-    <br>
+  <div class="viewer-top-card">
+    <h3>Покупки</h3>
+    <div class="viewer-line"><b>Перша:</b> ${firstBuy}</div>
+    <div class="viewer-line"><b>Остання:</b> ${lastBuy}</div>
+    <div class="viewer-line"><b>Замовлень:</b> ${client.ordersCount}</div>
+  </div>
 
-    Замовлень: ${client.ordersCount}
-    &nbsp;&nbsp;|&nbsp;&nbsp;
-    Відвідуваність: ${attendance}%
-  `;
+  <div class="viewer-top-card">
+    <h3>Відвідування</h3>
+    <div class="viewer-line"><b>Перше:</b> ${firstVisit}</div>
+    <div class="viewer-line"><b>Останнє:</b> ${lastVisit}</div>
+    <div class="viewer-line"><b>Явка:</b> ${visitPercent}%</div>
+  </div>
 
+  <div class="viewer-top-card">
+    <h3>Активність</h3>
+    <div class="viewer-line"><b>Днів після візиту:</b> ${client.daysFromVisit}</div>
+    <div class="viewer-line"><b>Квитків:</b> ${client.tickets}</div>
+    <div class="viewer-line"><b>Сума:</b> ${money(client.amount)}</div>
+  </div>
+
+</div>
+`;
   const status =
     getClientStatus(client);
 
