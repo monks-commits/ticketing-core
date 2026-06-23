@@ -416,15 +416,16 @@ const vip = aud.filter(c => c.isVip).length;
 
 const lost = aud.filter(c => c.isLost).length;
     
-const rec =
-  getSeanceRecommendation(
-    s,
-    stats,
-    aud,
-    vip,
-    lost,
-    days
-  );   
+const analysis = evaluateSeance({
+  sold: stats.sold,
+  capacity: Number(s.capacity || 0),
+  daysLeft: days || 0,
+  genreAudience: aud.length,
+  vipCount: vip,
+  lostCount: lost,
+  last7Sales: getLast7Sales(s.id),
+  genreAverage: getGenreAverage(genre)
+});
 
   
 
@@ -638,7 +639,7 @@ async function boot(){
   try{
     const [orders, tickets, seances] = await Promise.all([
       fetchAll("orders", "id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,status"),
-      fetchAll("tickets", "id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type"),
+      fetchAll("tickets", "id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"),
       fetchAll("seances", "id,show,date,time,show_slug,event_type,genre,venue_id,status")
     ]);
 
