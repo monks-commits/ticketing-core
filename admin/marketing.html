@@ -451,16 +451,16 @@ const analysis = evaluateSeance({
         <td>
   <div>
     <span class="pill">
-      ${rec.status}
+     ${analysis.status} · ${analysis.score}
     </span>
   </div>
 
   <div style="margin-top:6px">
-    ${rec.reason}
+    ${analysis.reasons.slice(0,2).join("<br>")}
   </div>
 
   <div style="margin-top:6px;font-weight:700;color:#8dc2ff;">
-    ${rec.action}
+    ${analysis.actions.slice(0,2).join("<br>") || "Спостерігати"}
   </div>
 
   <button
