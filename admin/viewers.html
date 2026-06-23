@@ -1075,11 +1075,17 @@ const favRow = topValue(client.events, "row");
   document.getElementById("viewerHead").innerHTML = `
 <div class="viewer-top-grid">
 
-  <div class="viewer-top-card">
-    <h3>Контакти</h3>
-    <div class="viewer-line"><b>Телефон:</b> ${phone || "—"}</div>
-    <div class="viewer-line"><b>Email:</b> ${email || "—"}</div>
+ <div class="viewer-top-card">
+  <h3>Контакти</h3>
+
+  <div class="viewer-line">
+    <b>Телефон:</b> ${client.phone || "—"}
   </div>
+
+  <div class="viewer-line">
+    <b>Email:</b> ${client.email || "—"}
+  </div>
+</div>
 
   <div class="viewer-top-card">
     <h3>Покупки</h3>
