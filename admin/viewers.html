@@ -1089,15 +1089,15 @@ const favRow = topValue(client.events, "row");
 
   <div class="viewer-top-card">
     <h3>Покупки</h3>
-    <div class="viewer-line"><b>Перша:</b> ${firstBuy}</div>
-    <div class="viewer-line"><b>Остання:</b> ${lastBuy}</div>
+    <div class="viewer-line"><b>Перша:</b> ${fmtDate(client.firstOrder)}</div>
+    <div class="viewer-line"><b>Остання:</b> ${fmtDate(client.lastOrder)}</div>
     <div class="viewer-line"><b>Замовлень:</b> ${client.ordersCount}</div>
   </div>
 
   <div class="viewer-top-card">
     <h3>Відвідування</h3>
-    <div class="viewer-line"><b>Перше:</b> ${firstVisit}</div>
-    <div class="viewer-line"><b>Останнє:</b> ${lastVisit}</div>
+    <div class="viewer-line"><b>Перше:</b> ${fmtDate(client.firstVisit)}</div>
+    <div class="viewer-line"><b>Останнє:</b>${fmtDate(client.lastVisit)}</div>
     <div class="viewer-line"><b>Явка:</b> ${visitPercent}%</div>
   </div>
 
