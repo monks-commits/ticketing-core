@@ -466,7 +466,10 @@ const analysis = evaluateSeance({
   </div>
 
   <div style="margin-top:6px">
-    ${analysis.reasons.slice(0,2).join("<br>")}
+    Факт: ${analysis.fill}%<br>
+План: ${analysis.plannedFill}%<br>
+Відхилення: ${analysis.lag}%<br><br>
+${analysis.reasons.slice(0,2).join("<br>")}
   </div>
 
   <div style="margin-top:6px;font-weight:700;color:#8dc2ff;">
@@ -654,11 +657,14 @@ else {
     actions.push(`Запросити любителів жанру`);
 
   return {
-    score,
-    status,
-    reasons,
-    actions
-  };
+  score,
+  status,
+  reasons,
+  actions,
+  fill,
+  plannedFill,
+  lag
+};
 }
   
 async function boot(){
