@@ -526,6 +526,90 @@ function renderScenariosDefault(){
   `;
 }
 
+function getSalesNeed({
+  sold,
+  capacity,
+  daysLeft,
+  audiencePotential
+}) {
+  const targetFill = 70;
+
+  const targetTickets =
+    Math.ceil(Number(capacity || 0) * targetFill / 100);
+
+  const needTickets =
+    Math.max(0, targetTickets - Number(sold || 0));
+
+  const perDay =
+    daysLeft > 0
+      ? Math.ceil(needTickets / daysLeft)
+      : needTickets;
+
+  let forecast = "Встигаємо";
+
+  if (perDay > 40)
+    forecast = "Майже нереально";
+  else if (perDay > 20)
+    forecast = "Потрібна активна кампанія";
+  else if (perDay > 10)
+    forecast = "Реально";
+
+  const enoughAudience =
+    Number(audiencePotential || 0) >= needTickets;
+
+  return {
+    targetTickets,
+    needTickets,
+    perDay,
+    forecast,
+    enoughAudience
+  };
+}
+
+function getSuccessProbability({
+  needTickets,
+  perDay,
+  audiencePotential,
+  daysLeft
+}) {
+  let p = 100;
+
+  if (perDay > 40) p -= 50;
+  else if (perDay > 20) p -= 30;
+  else if (perDay > 10) p -= 15;
+
+  if (audiencePotential < needTickets) {
+    const deficit = needTickets - audiencePotential;
+
+    if (deficit > 100)
+      p -= 35;
+    else if (deficit > 50)
+      p -= 20;
+    else if (deficit > 20)
+      p -= 10;
+  }
+
+  if (daysLeft <= 3)
+    p -= 15;
+  else if (daysLeft <= 7)
+    p -= 8;
+
+  p = Math.max(5, Math.min(100, p));
+
+  let status = "Висока";
+
+  if (p < 70)
+    status = "Середня";
+
+  if (p < 40)
+    status = "Низька";
+
+  return {
+    percent: p,
+    status
+  };
+}
+  
 function evaluateSeance({
   sold,
   capacity,
