@@ -215,16 +215,16 @@ function renderSales(){
   const capacity = Number(SEANCE.capacity || 0);
 
   document.getElementById("sales-body").innerHTML = `
-    <div class="line"><b>Продано:</b> ${sold}</div>
-    <div class="line"><b>Бронь:</b> ${reserveCount}</div>
-    <div class="line"><b>Тимчасова бронь:</b> ${holdCount}</div>
-    <div class="line"><b>Зайнято місць:</b> ${occupied}</div>
-    <div class="line"><b>Вільно:</b> ${capacity ? Math.max(capacity - occupied, 0) : "—"}</div>
-    <div class="line"><b>Заповнення:</b> ${capacity ? pct(occupied, capacity) : "—"}</div>
-    <div class="hr"></div>
-    <div class="line"><b>Виручка:</b> ${money(amount)}</div>
-    <div class="line"><b>Середній чек:</b> ${money(avg)}</div>
-  `;
+  <div class="line"><b>Продано:</b> ${sold}</div>
+  <div class="line"><b>Бронь:</b> ${reserveCount}</div>
+  <div class="line"><b>Тимчасова бронь:</b> ${holdCount}</div>
+  <div class="line"><b>Зайнято місць:</b> ${occupied}</div>
+  <div class="line"><b>Вільно:</b> ${capacity ? Math.max(capacity - occupied, 0) : "—"}</div>
+  <div class="line"><b>Заповнення:</b> ${capacity ? pct(occupied, capacity) : "—"}</div>
+  <div class="hr"></div>
+  <div class="line"><b>Виручка:</b> ${money(amount)}</div>
+  <div class="line"><b>Середній чек:</b> ${money(avg)}</div>
+`;
 }
 
 function renderDynamic(){
@@ -289,12 +289,13 @@ function renderChannels(){
     counts[key] = (counts[key] || 0) + 1;
   });
 
+  const total = TICKETS.length;
+
   const rows = Object.entries(counts)
     .sort((a,b) => b[1] - a[1])
-    .map(([code,count]) => {
-      const title = titleBy(CHANNEL_MAP, code);
-      return `<div class="line"><b>${esc(title)}:</b> ${count}</div>`;
-    })
+    .map(([code,count]) =>
+      `<div class="line"><b>${esc(titleBy(CHANNEL_MAP, code))}:</b> ${count} (${pct(count, total)})</div>`
+    )
     .join("");
 
   document.getElementById("channels-body").innerHTML =
@@ -308,12 +309,13 @@ function renderTypes(){
     counts[key] = (counts[key] || 0) + 1;
   });
 
+  const total = TICKETS.length;
+
   const rows = Object.entries(counts)
     .sort((a,b) => b[1] - a[1])
-    .map(([code,count]) => {
-      const title = titleBy(TYPE_MAP, code);
-      return `<div class="line"><b>${esc(title)}:</b> ${count}</div>`;
-    })
+    .map(([code,count]) =>
+      `<div class="line"><b>${esc(titleBy(TYPE_MAP, code))}:</b> ${count} (${pct(count, total)})</div>`
+    )
     .join("");
 
   document.getElementById("types-body").innerHTML =
