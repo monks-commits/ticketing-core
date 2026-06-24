@@ -645,17 +645,92 @@ function renderJournalSection(){
 }
 
 function renderEfficiencySection(){
-  const tickets = getScopeTickets();
-  const avg = tickets.length ? Math.round(tickets.reduce((s,t)=>s+Number(t.price||0),0)/tickets.length) : 0;
-  document.getElementById("activeSectionPanel").innerHTML = `
+  const panel = document.getElementById("activeSectionPanel");
+
+  const seanceIds = getActiveSeanceIds();
+
+  const tickets = TICKETS.filter(t =>
+    seanceIds.includes(String(t.seance_id))
+  );
+
+  const sold = tickets.length;
+
+  const revenue = tickets.reduce(
+    (sum, t) => sum + Number(t.price || 0),
+    0
+  );
+
+  const visited = tickets.filter(t =>
+    t.checked_in_at
+  ).length;
+
+  const avg = sold
+    ? Math.round(revenue / sold)
+    : 0;
+
+  const attendance = sold
+    ? Math.round((visited / sold) * 100)
+    : 0;
+
+  const ticketTypes = getTicketTypeStats(seanceIds);
+  const channels = getChannelRows(seanceIds);
+
+  panel.innerHTML = `
     <h2>📊 Ефективність</h2>
-    ${renderScopeHeader()}
-    <div class="muted">Тільки факти: жанри, канали, сеанси. Без прогнозів.</div>
-    <div class="grid" style="margin-top:16px">
-      <div class="box"><span>Квитків</span><b>${tickets.length}</b></div>
-      <div class="box"><span>Середня ціна</span><b>${avg}</b></div>
-      <div class="box"><span>Каналів</span><b>${getChannelRows(getScopeSeanceIds()).length}</b></div>
-      <div class="box"><span>Типів квитків</span><b>${Object.keys(getTicketTypeStats(getScopeSeanceIds())).length}</b></div>
+
+    <div class="muted" style="margin-bottom:12px">
+      Факти по вибраних сеансах. Без прогнозів.
+    </div>
+
+    <div class="grid">
+      <div class="box"><span>Квитків</span><b>${sold}</b></div>
+      <div class="box"><span>Виручка</span><b>${revenue.toLocaleString("uk-UA")} грн</b></div>
+      <div class="box"><span>Середній чек</span><b>${avg.toLocaleString("uk-UA")} грн</b></div>
+      <div class="box"><span>Явка</span><b>${attendance}%</b></div>
+    </div>
+
+    <div class="box" style="margin-top:16px">
+      <h3>Типи квитків</h3>
+      ${
+        Object.keys(ticketTypes).length
+          ? Object.entries(ticketTypes)
+              .map(([k,v]) =>
+                `<span class="pill">${esc(ticketTypeLabel(k))}: ${v}</span>`
+              )
+              .join(" ")
+          : `<span class="muted">Немає квитків.</span>`
+      }
+    </div>
+
+    <div class="box" style="margin-top:16px">
+      <h3>Канали продажів</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Канал</th>
+            <th>Квитків</th>
+            <th>Сума</th>
+            <th>Середній чек</th>
+            <th>Частка</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            channels.length
+              ? channels.map(r => `
+                <tr>
+                  <td><b>${esc(r.channel)}</b></td>
+                  <td>${r.tickets}</td>
+                  <td>${r.sum.toLocaleString("uk-UA")} грн</td>
+                  <td>${r.avg.toLocaleString("uk-UA")} грн</td>
+                  <td>${r.share}%</td>
+                </tr>
+              `).join("")
+              : `<tr><td colspan="5" class="muted">Немає продажів</td></tr>`
+          }
+        </tbody>
+      </table>
     </div>
   `;
 }
