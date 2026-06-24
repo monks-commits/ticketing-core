@@ -1032,6 +1032,7 @@ function evaluateSeance({
   
 async function boot(){
   buildTools();
+  initMarketingSections();
 
   try{
     const [orders, tickets, seances] = await Promise.all([
