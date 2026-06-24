@@ -243,6 +243,32 @@ function audienceForGenre(genre){
   return CLIENTS.filter(c => c.favGenre === genre);
 }
 
+function getTicketTypeStats(seanceIds){
+  const ids = Array.isArray(seanceIds)
+    ? seanceIds.map(String)
+    : [String(seanceIds)];
+
+  const map = {};
+
+  TICKETS
+    .filter(t =>
+      ids.includes(String(t.seance_id))
+    )
+    .forEach(t => {
+      const type =
+        t.ticket_type || "Звичайний";
+
+      if (!map[type]) {
+        map[type] = 0;
+      }
+
+      map[type]++;
+    });
+
+  return map;
+}
+
+  
 function getSeanceStats(seanceId){
   const tickets = TICKETS.filter(t => String(t.seance_id) === String(seanceId));
   return {
