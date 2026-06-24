@@ -279,7 +279,7 @@ function topValue(arr, field){
 
 function buildTools(){
   document.getElementById("toolsGrid").innerHTML = TOOLS.map((t, i) => `
-    <div class="box tool" onclick="openMarketingSection(${i})" id="tool-${i}">
+   <div class="box tool" data-section="${i}" id="tool-${i}">
       <h3>${esc(t[0])}</h3>
       <div class="muted">${esc(t[1])}</div>
       <span class="tag">${esc(t[2])}</span>
