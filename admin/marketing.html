@@ -632,6 +632,56 @@ function getSuccessProbability({
     status
   };
 }
+
+function getPotentialTickets(audience, vip, lost) {
+  return (
+    Math.round(audience * 0.35) +
+    Math.round(vip * 0.5) +
+    Math.round(lost * 0.15)
+  );
+}
+
+  function getPotentialRevenue(
+  potentialTickets,
+  seanceId
+) {
+  const tickets = TICKETS.filter(
+    t => String(t.seance_id) === String(seanceId)
+  );
+
+  let avg = 450;
+
+  if (tickets.length) {
+    avg =
+      tickets.reduce(
+        (s, t) => s + Number(t.price || 0),
+        0
+      ) / tickets.length;
+  }
+
+  return Math.round(
+    potentialTickets * avg
+  );
+}
+
+  function getSuccessProbability(
+  audience,
+  vip,
+  lost
+) {
+  const score =
+    audience * 3 +
+    vip * 5 +
+    lost;
+
+  if (score >= 50)
+    return "Висока";
+
+  if (score >= 20)
+    return "Середня";
+
+  return "Низька";
+}
   
 function evaluateSeance({
   sold,
