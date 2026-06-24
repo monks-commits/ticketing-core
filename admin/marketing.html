@@ -327,12 +327,18 @@ function openMarketingSection(index){
   const tool = document.getElementById(`tool-${index}`);
   if(tool) tool.classList.add("active");
 
-  document.querySelectorAll(".section-body").forEach(x =>
-    x.classList.remove("show")
-  );
+  const t = TOOLS[index];
 
-  const section = document.getElementById(`section-${index}`);
-  if(section) section.classList.add("show");
+  const panel = document.getElementById("activeSectionPanel");
+  if(!panel || !t) return;
+
+  panel.innerHTML = `
+    <h3>${esc(t[0])}</h3>
+    <div class="muted">${esc(t[1])}</div>
+    <div style="margin-top:10px">
+      <span class="tag">${esc(t[2])}</span>
+    </div>
+  `;
 }
   
 function buildClients(orders, tickets, seances){
