@@ -250,8 +250,8 @@ function topValue(arr, field){
 }
 
 function buildTools(){
-  document.getElementById("toolsGrid").innerHTML = TOOLS.map(t => `
-    <div class="box tool">
+  document.getElementById("toolsGrid").innerHTML = TOOLS.map((t, i) => `
+    <div class="box tool" onclick="openMarketingSection(${i})" id="tool-${i}">
       <h3>${esc(t[0])}</h3>
       <div class="muted">${esc(t[1])}</div>
       <span class="tag">${esc(t[2])}</span>
@@ -259,6 +259,22 @@ function buildTools(){
   `).join("");
 }
 
+function openMarketingSection(index){
+  document.querySelectorAll(".tool").forEach(x =>
+    x.classList.remove("active")
+  );
+
+  const tool = document.getElementById(`tool-${index}`);
+  if(tool) tool.classList.add("active");
+
+  document.querySelectorAll(".section-body").forEach(x =>
+    x.classList.remove("show")
+  );
+
+  const section = document.getElementById(`section-${index}`);
+  if(section) section.classList.add("show");
+}
+  
 function buildClients(orders, tickets, seances){
   const seanceByKey = new Map();
 
