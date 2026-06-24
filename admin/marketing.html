@@ -426,6 +426,26 @@ const vip = aud.filter(c => c.isVip).length;
 
 const lost = aud.filter(c => c.isLost).length;
 
+const potentialTickets =
+  getPotentialTickets(
+    aud.length,
+    vip,
+    lost
+  );
+
+const potentialRevenue =
+  getPotentialRevenue(
+    potentialTickets,
+    s.id
+  );
+
+const probability =
+  getSuccessProbability(
+    aud.length,
+    vip,
+    lost
+  );    
+
 const audiencePotential =
   aud.length + vip + lost;
 
