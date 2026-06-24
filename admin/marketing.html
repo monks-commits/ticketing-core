@@ -31,9 +31,12 @@
     .bad{background:#7d3434}
     .btn{border:0;border-radius:10px;background:#2d8cff;color:white;padding:9px 12px;cursor:pointer}
     .btn.secondary{background:#314766}
+    .btn.danger{background:#7d3434}
     .section-workspace{min-height:320px}
-    .scenario{line-height:1.55}
-    @media(max-width:900px){.grid,.tool-grid{grid-template-columns:1fr}.wrap{padding:16px}}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
+    .table-wrap{overflow:auto;border-radius:14px}
+    input[type="checkbox"]{transform:scale(1.15);cursor:pointer}
+    @media(max-width:900px){.grid,.tool-grid{grid-template-columns:1fr}.wrap{padding:16px} table{font-size:13px}}
   </style>
 </head>
 
@@ -78,12 +81,13 @@ let CLIENTS = [];
 let SEANCES = [];
 let ORDERS = [];
 let TICKETS = [];
-let CURRENT_SEANCE_IDS = [];  
+let CURRENT_SEANCE_IDS = [];
+let ACTIVE_SECTION = 0;
 
 const TOOLS = [
   ["📍 Що відбувається зараз", "Сеанси, які потребують уваги", "Сеанси"],
-  ["👥 Аудиторії", "VIP, постійні, втрачені покупці та любителі жанрів", "Клієнтська база"],
-  ["📣 Канали продажів", "Онлайн, каса, оператори, уповноважені, реферали", "Продажі"],
+  ["👥 Аудиторії", "Аудиторія вибраних сеансів: жанри, VIP, типи квитків", "Клієнтська база"],
+  ["📣 Канали продажів", "Канали по проданих квитках вибраних сеансів", "Продажі"],
   ["🎯 Кампанії", "Планування маркетингових дій без автоматичної відправки", "Дії"],
   ["🧰 Сценарії та досвід", "Загальні методики без закритої експертизи VA", "База знань"],
   ["📒 Журнал маркетингу", "Що робили, коли робили і який був результат", "Історія дій"],
@@ -163,6 +167,7 @@ function initMarketingSections(){
 }
 
 function openMarketingSection(index){
+  ACTIVE_SECTION = index;
   document.querySelectorAll(".tool").forEach(x => x.classList.remove("active"));
   const tool = document.getElementById(`tool-${index}`);
   if(tool) tool.classList.add("active");
@@ -213,7 +218,7 @@ function buildClients(orders, tickets, seances){
     c.total += Number(order.amount || 0);
     c.orders++;
 
-    const orderTickets = ticketsByOrder.get(String(order.order_id || "")) || [];
+    const orderTickets = ticketsByOrder.get(String(order.order_id || order.id || "")) || [];
     for(const ticket of orderTickets){
       const seance = seanceByKey.get(String(ticket.seance_id || order.seance_id || "")) || {};
       const checkedAt = ticket.checked_in_at || null;
@@ -222,7 +227,12 @@ function buildClients(orders, tickets, seances){
         c.visited++;
         if(!c.lastVisit || new Date(checkedAt) > new Date(c.lastVisit)) c.lastVisit = checkedAt;
       }
-      c.events.push({ genre: seance.genre || "—", title: seance.show || "Подія", checkedAt });
+      c.events.push({
+        seanceId: ticket.seance_id || order.seance_id || null,
+        genre: seance.genre || "—",
+        title: seance.show || "Подія",
+        checkedAt
+      });
     }
   }
 
@@ -244,32 +254,82 @@ function audienceForGenre(genre){
   return CLIENTS.filter(c => c.favGenre === genre);
 }
 
+function upcomingSeances(){
+  return SEANCES
+    .filter(s => s.date && new Date(s.date) >= new Date(Date.now() - 86400000))
+    .sort((a,b) => new Date(a.date) - new Date(b.date));
+}
+
+function getScopeSeanceIds(){
+  if(CURRENT_SEANCE_IDS.length) return CURRENT_SEANCE_IDS.map(String);
+  return upcomingSeances().slice(0, 30).map(s => String(s.id));
+}
+
+function getScopeSeances(){
+  const ids = new Set(getScopeSeanceIds());
+  return SEANCES.filter(s => ids.has(String(s.id)));
+}
+
+function getScopeTickets(){
+  const ids = new Set(getScopeSeanceIds());
+  return TICKETS.filter(t => ids.has(String(t.seance_id)));
+}
+
+function scopeTitle(){
+  if(CURRENT_SEANCE_IDS.length === 0) return "Всі найближчі сеанси";
+  if(CURRENT_SEANCE_IDS.length === 1){
+    const s = SEANCES.find(x => String(x.id) === String(CURRENT_SEANCE_IDS[0]));
+    return s ? (s.show || "Вибраний сеанс") : "Вибраний сеанс";
+  }
+  return `Вибрано сеансів: ${CURRENT_SEANCE_IDS.length}`;
+}
+
+function renderScopeHeader(){
+  return `
+    <div class="box" style="margin-bottom:16px">
+      <div class="muted">Поточний обсяг аналізу</div>
+      <h3>${esc(scopeTitle())}</h3>
+      <div class="muted">Якщо нічого не вибрано — розділи рахують усі найближчі сеанси.</div>
+    </div>
+  `;
+}
+
+function refreshActiveSection(){
+  openMarketingSection(ACTIVE_SECTION);
+}
+
+function toggleSeance(id){
+  id = String(id);
+  if(CURRENT_SEANCE_IDS.includes(id)){
+    CURRENT_SEANCE_IDS = CURRENT_SEANCE_IDS.filter(x => x !== id);
+  } else {
+    CURRENT_SEANCE_IDS.push(id);
+  }
+  refreshActiveSection();
+}
+
+function clearSeanceSelection(){
+  CURRENT_SEANCE_IDS = [];
+  refreshActiveSection();
+}
+
+function selectAllVisibleSeances(){
+  CURRENT_SEANCE_IDS = upcomingSeances().slice(0, 30).map(s => String(s.id));
+  refreshActiveSection();
+}
+
 function getTicketTypeStats(seanceIds){
-  const ids = Array.isArray(seanceIds)
-    ? seanceIds.map(String)
-    : [String(seanceIds)];
-
+  const ids = new Set((Array.isArray(seanceIds) ? seanceIds : [seanceIds]).map(String));
   const map = {};
-
   TICKETS
-    .filter(t =>
-      ids.includes(String(t.seance_id))
-    )
+    .filter(t => ids.has(String(t.seance_id)))
     .forEach(t => {
-      const type =
-        t.ticket_type || "Звичайний";
-
-      if (!map[type]) {
-        map[type] = 0;
-      }
-
-      map[type]++;
+      const type = t.ticket_type || "Звичайний";
+      map[type] = (map[type] || 0) + 1;
     });
-
   return map;
 }
 
-  
 function getSeanceStats(seanceId){
   const tickets = TICKETS.filter(t => String(t.seance_id) === String(seanceId));
   return {
@@ -317,18 +377,18 @@ function evaluateSeance({ sold, capacity, daysLeft, genreAudience, vipCount, los
   if(lag < -20){
     status = "Потрібна дія";
     risk = "Високий";
-    reasons.push(`Відставання від плану ${lag}%`);
+    reasons.push(`Відставання від планового орієнтира ${lag}%`);
     actions.push("Посилити продажі");
   } else if(lag < 0){
     status = "Спостерігати";
     risk = "Середній";
-    reasons.push(`Відставання від плану ${lag}%`);
+    reasons.push(`Відставання від планового орієнтира ${lag}%`);
   } else {
     reasons.push("Продажі не нижче планового орієнтира");
   }
 
   if(last7Sales < 3){
-    reasons.push("Продажі за 7 днів слабкі");
+    reasons.push("Продажі за останні 7 днів слабкі");
     actions.push("Активізувати аудиторію");
   }
 
@@ -350,15 +410,19 @@ function normalizeSalesChannel(t){
   return raw ? t.channel : "Невідомо";
 }
 
-function getChannelRows(){
-  const totalTickets = TICKETS.length || 0;
+function getChannelRows(seanceIds){
+  const ids = new Set((seanceIds || getScopeSeanceIds()).map(String));
+  const tickets = TICKETS.filter(t => ids.has(String(t.seance_id)));
+  const totalTickets = tickets.length || 0;
   const map = {};
-  for(const t of TICKETS){
+
+  for(const t of tickets){
     const channel = normalizeSalesChannel(t);
     if(!map[channel]) map[channel] = { channel, tickets:0, sum:0 };
     map[channel].tickets++;
     map[channel].sum += Number(t.price || 0);
   }
+
   return Object.values(map).sort((a,b) => b.tickets - a.tickets).map(r => ({
     ...r,
     avg: r.tickets ? Math.round(r.sum / r.tickets) : 0,
@@ -366,15 +430,21 @@ function getChannelRows(){
   }));
 }
 
-function summaryHtml(){
-  const genres = new Set(CLIENTS.map(c => c.favGenre).filter(x => x && x !== "—"));
+function currentScopeSummaryHtml(){
+  const scopeTickets = getScopeTickets();
+  const scopeSeances = getScopeSeances();
+  const sum = scopeTickets.reduce((s,t) => s + Number(t.price || 0), 0);
+  const visited = scopeTickets.filter(t => t.checked_in_at).length;
+  const genres = new Set(scopeSeances.map(s => s.genre).filter(Boolean));
+
   return `
     <div class="grid" style="margin-bottom:16px">
-      <div class="box"><span>Покупців</span><b>${CLIENTS.length}</b></div>
-      <div class="box"><span>Жанрів у базі</span><b>${genres.size}</b></div>
-      <div class="box"><span>VIP / постійні</span><b>${CLIENTS.filter(c => c.isVip || c.isRegular).length}</b></div>
-      <div class="box"><span>Втрачено 90+ днів</span><b>${CLIENTS.filter(c => c.isLost).length}</b></div>
+      <div class="box"><span>Сеансів</span><b>${scopeSeances.length}</b></div>
+      <div class="box"><span>Квитків</span><b>${scopeTickets.length}</b></div>
+      <div class="box"><span>Сума</span><b>${sum.toLocaleString("uk-UA")}</b></div>
+      <div class="box"><span>Відвідали</span><b>${visited}</b></div>
     </div>
+    <div class="muted" style="margin-bottom:12px">Жанри: ${genres.size ? Array.from(genres).map(esc).join(", ") : "—"}</div>
   `;
 }
 
@@ -382,30 +452,34 @@ function renderCurrentSection(){
   const panel = document.getElementById("activeSectionPanel");
   panel.innerHTML = `
     <h2>📍 Що відбувається зараз</h2>
-    <div class="muted" style="margin-bottom:12px">Фіксуємо поточний стан. Без прогнозів і сумнівних обіцянок.</div>
-    ${summaryHtml()}
-    <table>
-      <thead>
-        <tr>
-          <th>Сеанс</th>
-          <th>Дата</th>
-          <th>Жанр</th>
-          <th>Продажі та аудиторія</th>
-          <th>Стан і дії</th>
-        </tr>
-      </thead>
-      <tbody>${opportunitiesRowsHtml()}</tbody>
-    </table>
+    <div class="muted" style="margin-bottom:12px">Виберіть один або кілька сеансів. Інші розділи будуть рахувати саме вибрані сеанси.</div>
+    ${renderScopeHeader()}
+    <div class="toolbar">
+      <button class="btn secondary" onclick="selectAllVisibleSeances()">Вибрати всі найближчі</button>
+      <button class="btn danger" onclick="clearSeanceSelection()">Скинути вибір</button>
+    </div>
+    ${currentScopeSummaryHtml()}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Сеанс</th>
+            <th>Дата</th>
+            <th>Жанр</th>
+            <th>Продажі та аудиторія</th>
+            <th>Стан і дії</th>
+          </tr>
+        </thead>
+        <tbody>${opportunitiesRowsHtml()}</tbody>
+      </table>
+    </div>
   `;
 }
 
 function opportunitiesRowsHtml(){
-  const upcoming = SEANCES
-    .filter(s => s.date && new Date(s.date) >= new Date(Date.now() - 86400000))
-    .sort((a,b) => new Date(a.date) - new Date(b.date))
-    .slice(0, 30);
-
-  if(!upcoming.length) return `<tr><td colspan="5" class="muted">Немає майбутніх сеансів</td></tr>`;
+  const upcoming = upcomingSeances().slice(0, 30);
+  if(!upcoming.length) return `<tr><td colspan="6" class="muted">Немає майбутніх сеансів</td></tr>`;
 
   return upcoming.map(s => {
     const genre = s.genre || "—";
@@ -425,9 +499,11 @@ function opportunitiesRowsHtml(){
     });
 
     const riskClass = analysis.risk === "Високий" ? "bad" : analysis.risk === "Середній" ? "warn" : "good";
+    const checked = CURRENT_SEANCE_IDS.includes(String(s.id)) ? "checked" : "";
 
     return `
       <tr>
+        <td><input type="checkbox" ${checked} onchange="toggleSeance('${esc(s.id)}')"></td>
         <td><b>${esc(s.show || "Подія")}</b><br><span class="muted">${esc(s.event_type || "")}</span><br><span class="muted">До сеансу: ${days !== null ? days + " дн." : "—"}</span></td>
         <td>${fmtDate(s.date)}</td>
         <td><span class="pill">${esc(genre)}</span></td>
@@ -455,59 +531,80 @@ function opportunitiesRowsHtml(){
 
 function renderAudienceSection(){
   const panel = document.getElementById("activeSectionPanel");
-  const genres = Array.from(new Set(CLIENTS.map(c => c.favGenre).filter(x => x && x !== "—")));
+  const scopeIds = getScopeSeanceIds();
+  const scopeSeances = getScopeSeances();
+  const scopeTickets = getScopeTickets();
+  const genres = Array.from(new Set(scopeSeances.map(s => s.genre).filter(x => x && x !== "—")));
+  const ticketTypes = getTicketTypeStats(scopeIds);
+  const genreAudienceCount = new Set(genres.flatMap(g => audienceForGenre(g).map(c => c.key))).size;
+
   panel.innerHTML = `
     <h2>👥 Аудиторії</h2>
-    <div class="muted" style="margin-bottom:12px">Сегменти покупців з КБ.</div>
+    ${renderScopeHeader()}
+    ${currentScopeSummaryHtml()}
+
     <div class="grid">
-      <div class="box"><span>VIP</span><b>${CLIENTS.filter(c => c.isVip).length}</b></div>
-      <div class="box"><span>Постійні</span><b>${CLIENTS.filter(c => c.isRegular).length}</b></div>
+      <div class="box"><span>Аудиторія жанрів</span><b>${genreAudienceCount}</b></div>
+      <div class="box"><span>VIP у КБ</span><b>${CLIENTS.filter(c => c.isVip).length}</b></div>
+      <div class="box"><span>Постійні у КБ</span><b>${CLIENTS.filter(c => c.isRegular).length}</b></div>
       <div class="box"><span>Втрачені 90+</span><b>${CLIENTS.filter(c => c.isLost).length}</b></div>
-      <div class="box"><span>Жанрів</span><b>${genres.length}</b></div>
     </div>
+
     <div class="box" style="margin-top:16px">
-      <h3>Любителі жанрів</h3>
+      <h3>Любителі жанрів вибраних сеансів</h3>
       ${genres.length ? genres.map(g => `<span class="pill">${esc(g)}: ${audienceForGenre(g).length}</span>`).join(" ") : `<span class="muted">Поки немає жанрових даних.</span>`}
+    </div>
+
+    <div class="box" style="margin-top:16px">
+      <h3>Типи квитків у вибраних сеансах</h3>
+      ${Object.keys(ticketTypes).length
+        ? Object.entries(ticketTypes).map(([k,v]) => `<span class="pill">${esc(k)}: ${v}</span>`).join(" ")
+        : `<span class="muted">По вибраних сеансах поки немає квитків.</span>`}
     </div>
   `;
 }
 
 function renderChannelsSection(){
   const panel = document.getElementById("activeSectionPanel");
-  const rows = getChannelRows();
+  const rows = getChannelRows(getScopeSeanceIds());
   panel.innerHTML = `
     <h2>📣 Канали продажів</h2>
+    ${renderScopeHeader()}
     <div class="muted" style="margin-bottom:12px">Рахуємо тільки продані квитки. Канал = місце входу на схему, яке дало продаж.</div>
-    <table>
-      <thead>
-        <tr><th>Канал</th><th>Квитків</th><th>Сума</th><th>Середній чек</th><th>Частка</th></tr>
-      </thead>
-      <tbody>
-        ${rows.length ? rows.map(r => `
-          <tr>
-            <td><b>${esc(r.channel)}</b></td>
-            <td>${r.tickets}</td>
-            <td>${r.sum.toLocaleString("uk-UA")} грн</td>
-            <td>${r.avg.toLocaleString("uk-UA")} грн</td>
-            <td>${r.share}%</td>
-          </tr>
-        `).join("") : `<tr><td colspan="5" class="muted">Немає продажів</td></tr>`}
-      </tbody>
-    </table>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Канал</th><th>Квитків</th><th>Сума</th><th>Середній чек</th><th>Частка</th></tr>
+        </thead>
+        <tbody>
+          ${rows.length ? rows.map(r => `
+            <tr>
+              <td><b>${esc(r.channel)}</b></td>
+              <td>${r.tickets}</td>
+              <td>${r.sum.toLocaleString("uk-UA")} грн</td>
+              <td>${r.avg.toLocaleString("uk-UA")} грн</td>
+              <td>${r.share}%</td>
+            </tr>
+          `).join("") : `<tr><td colspan="5" class="muted">Немає продажів</td></tr>`}
+        </tbody>
+      </table>
+    </div>
   `;
 }
 
 function renderCampaignsSection(){
   document.getElementById("activeSectionPanel").innerHTML = `
     <h2>🎯 Кампанії</h2>
-    <div class="muted">Поки без автоматичної відправки. Розділ для планування дій.</div>
-    <div class="box" style="margin-top:16px">Буде: назва кампанії, сеанс, аудиторія, канал, статус, результат.</div>
+    ${renderScopeHeader()}
+    <div class="muted">Поки без автоматичної відправки. Розділ для планування дій по вибраних сеансах.</div>
+    <div class="box" style="margin-top:16px">Буде: назва кампанії, вибрані сеанси, аудиторія, канал, статус, результат.</div>
   `;
 }
 
 function renderPlaybooksSection(){
   document.getElementById("activeSectionPanel").innerHTML = `
     <h2>🧰 Сценарії та досвід</h2>
+    ${renderScopeHeader()}
     <div class="muted">Загальні інструменти і методики. Закрита експертиза VA сюди не виводиться.</div>
     <div class="grid" style="margin-top:16px">
       <div class="box"><b>Загальні інструменти</b><div class="muted">VIP, реферали, партнери, організації.</div></div>
@@ -521,16 +618,25 @@ function renderPlaybooksSection(){
 function renderJournalSection(){
   document.getElementById("activeSectionPanel").innerHTML = `
     <h2>📒 Журнал маркетингу</h2>
-    <div class="muted">Що робили, коли робили і який був результат.</div>
+    ${renderScopeHeader()}
+    <div class="muted">Що робили, коли робили і який був результат по вибраних сеансах.</div>
     <div class="box" style="margin-top:16px">Поки розділ у підготовці.</div>
   `;
 }
 
 function renderEfficiencySection(){
+  const tickets = getScopeTickets();
+  const avg = tickets.length ? Math.round(tickets.reduce((s,t)=>s+Number(t.price||0),0)/tickets.length) : 0;
   document.getElementById("activeSectionPanel").innerHTML = `
     <h2>📊 Ефективність</h2>
+    ${renderScopeHeader()}
     <div class="muted">Тільки факти: жанри, канали, сеанси. Без прогнозів.</div>
-    <div class="box" style="margin-top:16px">Поки розділ у підготовці.</div>
+    <div class="grid" style="margin-top:16px">
+      <div class="box"><span>Квитків</span><b>${tickets.length}</b></div>
+      <div class="box"><span>Середня ціна</span><b>${avg}</b></div>
+      <div class="box"><span>Каналів</span><b>${getChannelRows(getScopeSeanceIds()).length}</b></div>
+      <div class="box"><span>Типів квитків</span><b>${Object.keys(getTicketTypeStats(getScopeSeanceIds())).length}</b></div>
+    </div>
   `;
 }
 
