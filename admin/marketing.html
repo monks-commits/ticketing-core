@@ -575,7 +575,10 @@ function renderAudienceSection(){
     <div class="box" style="margin-top:16px">
       <h3>Типи квитків у вибраних сеансах</h3>
       ${Object.keys(ticketTypes).length
-        ? Object.entries(ticketTypes).map(([k,v]) => `<span class="pill">${esc(ticketTypeLabel(k)}: ${v}</span>`).join(" ")
+        ? Object.entries(ticketTypes)
+    .map(([k,v]) =>
+      `<span class="pill">${esc(ticketTypeLabel(k))}: ${v}</span>`
+    ).join(" ")
         : `<span class="muted">По вибраних сеансах поки немає квитків.</span>`}
     </div>
   `;
