@@ -420,6 +420,79 @@ function renderSummary(){
   document.getElementById("mLost").textContent = CLIENTS.filter(c => c.isLost).length;
 }
 
+function normalizeSalesChannel(t) {
+  const raw = String(t.channel || "").toLowerCase();
+
+  if (["online", "site", "web"].includes(raw))
+    return "Онлайн";
+
+  if (["cash", "kasa", "каса"].includes(raw))
+    return "Каса";
+
+  if (["operator", "karabas", "contramarka", "concert"].includes(raw))
+    return "Оператори";
+
+  if (["authorized", "agent", "уповноважений"].includes(raw))
+    return "Уповноважені";
+
+  if (["ref", "referral", "partner_ref"].includes(raw))
+    return "Реферали";
+
+  return raw ? t.channel : "Невідомо";
+}
+
+function renderChannels() {
+  const body = document.getElementById("channelsBody");
+  if (!body) return;
+
+  const totalTickets = TICKETS.length || 0;
+
+  if (!totalTickets) {
+    body.innerHTML = `<tr><td colspan="5" class="muted">Немає продажів</td></tr>`;
+    return;
+  }
+
+  const map = {};
+
+  for (const t of TICKETS) {
+    const channel = normalizeSalesChannel(t);
+
+    if (!map[channel]) {
+      map[channel] = {
+        channel,
+        tickets: 0,
+        sum: 0
+      };
+    }
+
+    map[channel].tickets++;
+    map[channel].sum += Number(t.price || 0);
+  }
+
+  const rows = Object.values(map)
+    .sort((a, b) => b.tickets - a.tickets);
+
+  body.innerHTML = rows.map(r => {
+    const avg = r.tickets
+      ? Math.round(r.sum / r.tickets)
+      : 0;
+
+    const share = totalTickets
+      ? Math.round((r.tickets / totalTickets) * 100)
+      : 0;
+
+    return `
+      <tr>
+        <td><b>${esc(r.channel)}</b></td>
+        <td>${r.tickets}</td>
+        <td>${r.sum.toLocaleString("uk-UA")} грн</td>
+        <td>${avg.toLocaleString("uk-UA")} грн</td>
+        <td>${share}%</td>
+      </tr>
+    `;
+  }).join("");
+}
+  
 function getLast7Sales(seanceId){
   const border = new Date();
   border.setDate(border.getDate() - 7);
