@@ -427,24 +427,40 @@ function normalizeSalesChannel(t){
   return raw ? t.channel : "Невідомо";
 }
 
-function getChannelRows(seanceIds){
-  const ids = new Set((seanceIds || getScopeSeanceIds()).map(String));
-  const tickets = TICKETS.filter(t => ids.has(String(t.seance_id)));
-  const totalTickets = tickets.length || 0;
+function getChannelRows(seanceIds = null){
+  const ids = seanceIds
+    ? seanceIds.map(String)
+    : null;
+
+  const sourceTickets = ids
+    ? TICKETS.filter(t => ids.includes(String(t.seance_id)))
+    : TICKETS;
+
+  const totalTickets = sourceTickets.length || 0;
   const map = {};
 
-  for(const t of tickets){
+  for(const t of sourceTickets){
     const channel = normalizeSalesChannel(t);
-    if(!map[channel]) map[channel] = { channel, tickets:0, sum:0 };
+
+    if(!map[channel]){
+      map[channel] = {
+        channel,
+        tickets: 0,
+        sum: 0
+      };
+    }
+
     map[channel].tickets++;
     map[channel].sum += Number(t.price || 0);
   }
 
-  return Object.values(map).sort((a,b) => b.tickets - a.tickets).map(r => ({
-    ...r,
-    avg: r.tickets ? Math.round(r.sum / r.tickets) : 0,
-    share: totalTickets ? Math.round((r.tickets / totalTickets) * 100) : 0
-  }));
+  return Object.values(map)
+    .sort((a,b) => b.tickets - a.tickets)
+    .map(r => ({
+      ...r,
+      avg: r.tickets ? Math.round(r.sum / r.tickets) : 0,
+      share: totalTickets ? Math.round((r.tickets / totalTickets) * 100) : 0
+    }));
 }
 
 function currentScopeSummaryHtml(){
