@@ -82,6 +82,22 @@ let SEANCES = [];
 let ORDERS = [];
 let TICKETS = [];
 let CURRENT_SEANCE_IDS = [];
+
+ function getActiveSeanceIds(){
+  if (CURRENT_SEANCE_IDS.length) {
+    return CURRENT_SEANCE_IDS.map(String);
+  }
+
+  return SEANCES
+    .filter(s => {
+      const d = new Date(
+        s.event_date || s.date || s.datetime || s.starts_at
+      );
+      return d >= new Date();
+    })
+    .map(s => String(s.id));
+} 
+  
 let ACTIVE_SECTION = 0;
 
 const TOOLS = [
