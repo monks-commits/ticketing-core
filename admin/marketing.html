@@ -686,24 +686,7 @@ function getPotentialTickets(audience, vip, lost) {
   );
 }
 
-  function getSuccessProbability(
-  audience,
-  vip,
-  lost
-) {
-  const score =
-    audience * 3 +
-    vip * 5 +
-    lost;
-
-  if (score >= 50)
-    return "Висока";
-
-  if (score >= 20)
-    return "Середня";
-
-  return "Низька";
-}
+  
   
 function evaluateSeance({
   sold,
