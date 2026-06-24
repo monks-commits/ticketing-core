@@ -330,6 +330,23 @@ function getTicketTypeStats(seanceIds){
   return map;
 }
 
+function ticketTypeLabel(type){
+  const map = {
+    full: "Звичайний",
+    discount: "Пільговий",
+    invite: "Запрошення",
+    promo: "Акційний",
+    vip: "VIP",
+    child: "Дитячий",
+    service: "Службовий",
+    compensation: "Компенсаційний",
+    rent: "Оренда",
+    free: "Безкоштовний"
+  };
+
+  return map[type] || type;
+}
+  
 function getSeanceStats(seanceId){
   const tickets = TICKETS.filter(t => String(t.seance_id) === String(seanceId));
   return {
