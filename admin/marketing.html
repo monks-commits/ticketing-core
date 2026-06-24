@@ -328,20 +328,43 @@ function openMarketingSection(index){
   const tool = document.getElementById(`tool-${index}`);
   if(tool) tool.classList.add("active");
 
+  const panel = document.getElementById("activeSectionPanel");
+  if(!panel) return;
+
+  if(index === 0){
+    panel.innerHTML = `
+      <h2>📍 Що відбувається зараз</h2>
+      <div class="muted" style="margin-bottom:12px">
+        Сеанси, які потребують уваги, ризики та можливі дії.
+      </div>
+      <div id="opportunitiesSlot"></div>
+    `;
+    renderOpportunities();
+    return;
+  }
+
+  if(index === 2){
+    panel.innerHTML = `
+      <h2>📣 Канали продажів</h2>
+      <div class="muted" style="margin-bottom:12px">
+        Продані квитки по каналах: онлайн, каса, оператори, уповноважені, реферали.
+      </div>
+      <div id="channelsSlot"></div>
+    `;
+    renderChannels();
+    return;
+  }
+
   const t = TOOLS[index];
 
-  const panel = document.getElementById("activeSectionPanel");
-  if(!panel || !t) return;
-
   panel.innerHTML = `
-    <h3>${esc(t[0])}</h3>
+    <h2>${esc(t[0])}</h2>
     <div class="muted">${esc(t[1])}</div>
-    <div style="margin-top:10px">
-      <span class="tag">${esc(t[2])}</span>
+    <div class="box" style="margin-top:16px">
+      Розділ у підготовці.
     </div>
   `;
 }
-  
 function buildClients(orders, tickets, seances){
   const seanceByKey = new Map();
 
