@@ -740,6 +740,47 @@ function renderJournalSection(){
   `;
 }
 
+async function saveJournalEntry(){
+  const seanceIds = getActiveSeanceIds();
+
+  if(!seanceIds.length){
+    alert("Оберіть хоча б один сеанс.");
+    return;
+  }
+
+  const action_date = document.getElementById("jDate").value;
+  const action_type = document.getElementById("jType").value.trim();
+  const channel = document.getElementById("jChannel").value.trim();
+  const budget = Number(document.getElementById("jBudget").value || 0);
+  const comment = document.getElementById("jComment").value.trim();
+  const result = document.getElementById("jResult").value.trim();
+
+  const rows = seanceIds.map(seance_id => ({
+    seance_id,
+    action_date,
+    action_type,
+    channel,
+    budget,
+    comment,
+    result,
+    author: "admin"
+  }));
+
+  const { data, error } = await sb
+    .from("marketing_journal")
+    .insert(rows)
+    .select("*");
+
+  if(error){
+    console.error(error);
+    alert("Помилка збереження: " + error.message);
+    return;
+  }
+
+  JOURNAL = JOURNAL.concat(data || []);
+  renderJournalSection();
+}
+  
 function renderEfficiencySection(){
   const panel = document.getElementById("activeSectionPanel");
 
