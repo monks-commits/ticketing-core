@@ -877,7 +877,7 @@ async function boot(){
   initMarketingSections();
 
   try{
-    const [orders, tickets, seances] = await Promise.all([
+    const [orders, tickets, seances, journal] = await Promise.all([
       fetchAll("orders", "id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,status"),
       fetchAll("tickets", "id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"),
       fetchAll("seances", "id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity")
