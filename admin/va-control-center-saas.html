@@ -1,75 +1,67 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>VA CONTROL CENTER SaaS</title>
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
+*{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:Arial, Helvetica, sans-serif;
   background:#111827;
   color:#fff;
   min-height:100vh;
 }
-
 header{
   padding:30px;
   border-bottom:1px solid #2d3748;
 }
-
-h1{
-  font-size:34px;
-  margin-bottom:8px;
-}
-
-.subtitle{
-  color:#9ca3af;
-}
-
+h1{font-size:34px;margin-bottom:8px}
+.subtitle{color:#9ca3af}
 .grid{
   padding:30px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:20px;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:22px;
 }
-
-.card{
+.panel{
   background:#1f2937;
   border:1px solid #374151;
   border-radius:20px;
-  padding:25px;
-  text-decoration:none;
-  color:#fff;
-  transition:.2s;
+  padding:24px;
 }
-
-.card:hover{
-  transform:translateY(-4px);
-  border-color:#991b1b;
-  box-shadow:0 10px 30px rgba(0,0,0,.35);
+.panel h2{
+  font-size:25px;
+  margin-bottom:10px;
 }
-
-.icon{
-  font-size:42px;
+.panel p{
+  color:#9ca3af;
+  line-height:1.45;
   margin-bottom:18px;
 }
-
-.card h2{
-  margin-bottom:10px;
-  font-size:24px;
+.buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
 }
-
-.card p{
-  color:#9ca3af;
-  line-height:1.5;
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 16px;
+  border-radius:12px;
+  background:#3b82f6;
+  color:#fff;
+  text-decoration:none;
+  font-weight:700;
+  border:1px solid rgba(255,255,255,.12);
 }
+.btn:hover{filter:brightness(1.12)}
+.btn.gray{background:#475569}
+.btn.yellow{background:#d6a900;color:#07111f}
+.btn.red{background:#991b1b}
+.btn.green{background:#16a34a}
 </style>
 </head>
 
@@ -77,80 +69,109 @@ h1{
 
 <header>
   <h1>VA CONTROL CENTER SaaS</h1>
-  <div class="subtitle">
-    Центральна панель керування платформою VA
-  </div>
+  <div class="subtitle">Центральна панель керування платформою VA</div>
 </header>
 
-<div class="grid">
+<main class="grid">
 
-  <a class="card" href="#">
-    <div class="icon">🎭</div>
-    <h2>Створення сеансу</h2>
-    <p>Ultra, редактор сеансу, Visual Editor.</p>
-  </a>
+  <section class="panel">
+    <h2>🎭 Створення сеансу</h2>
+    <p>Конструктор залу, редактор сеансу, афіша та відео.</p>
+    <div class="buttons">
+      <a class="btn" href="../../hall-engine-lab/hall-ultra.html">Конструктор</a>
+      <a class="btn" href="./seance-editor.html">Редактор</a>
+      <a class="btn" href="./visual-editor-v2.html">Візуальний редактор</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">📣</div>
-    <h2>Просування</h2>
-    <p>VA сайт, Facebook, Instagram, Telegram.</p>
-  </a>
+  <section class="panel">
+    <h2>📣 Просування</h2>
+    <p>VA сайт та майбутні входи в соцмережі.</p>
+    <div class="buttons">
+      <a class="btn" href="https://vash-admin.com/" target="_blank">VA сайт</a>
+      <a class="btn gray" href="#">Facebook</a>
+      <a class="btn gray" href="#">Instagram</a>
+      <a class="btn gray" href="#">Telegram</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">💵</div>
-    <h2>Каса</h2>
-    <p>Точка входу до касового модуля.</p>
-  </a>
+  <section class="panel">
+    <h2>💵 Каса</h2>
+    <p>Поточний прямий вхід до касового модуля.</p>
+    <div class="buttons">
+      <a class="btn green" href="../hybrid/hall-cash.html?show=&seance=akakiy-2026-07-10-18-00">Відкрити касу</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">🎟️</div>
-    <h2>Керування сеансами</h2>
-    <p>Управління подіями, компенсації, аудит, архів.</p>
-  </a>
+  <section class="panel">
+    <h2>🎟️ Керування сеансами</h2>
+    <p>Сеанси, каса, редактор, звіти, audit, toggle, компенсації, перенос та архів.</p>
+    <div class="buttons">
+      <a class="btn yellow" href="./manage.html">Керування</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">🚪</div>
-    <h2>Контроль доступу</h2>
-    <p>Scanner та Recovery Scanner.</p>
-  </a>
+  <section class="panel">
+    <h2>🚪 Контроль доступу</h2>
+    <p>Звичайний сканер та сканер recovery-квитків.</p>
+    <div class="buttons">
+      <a class="btn" href="../../teatr-shevchenka/scanner/index.html">Сканер</a>
+      <a class="btn gray" href="../../hall-engine-lab/recovery/recovery-scanner.html">Recovery Scanner</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">♻️</div>
-    <h2>Recovery</h2>
-    <p>Повний цикл компенсацій.</p>
-  </a>
+  <section class="panel">
+    <h2>♻️ Recovery</h2>
+    <p>Окреме recovery-додаток: кабінет, аудит, імпорт і компенсації.</p>
+    <div class="buttons">
+      <a class="btn green" href="../../hall-engine-lab/recovery/cabinet.html">Cabinet</a>
+      <a class="btn gray" href="../../hall-engine-lab/recovery/management-dashboard.html">Dashboard</a>
+      <a class="btn gray" href="../../hall-engine-lab/recovery/recovery-audit.html">Audit</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">🤝</div>
-    <h2>Реферали</h2>
-    <p>Партнери, кабінет та аналітика.</p>
-  </a>
+  <section class="panel">
+    <h2>🤝 Реферали</h2>
+    <p>Партнерські продажі, кабінет реферала та dashboard.</p>
+    <div class="buttons">
+      <a class="btn" href="./referral-dashboard.html">Dashboard</a>
+      <a class="btn gray" href="./referral-cabinet.html">Cabinet</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">👥</div>
-    <h2>Клієнтська база</h2>
-    <p>CRM, сегменти та паспорт клієнта.</p>
-  </a>
+  <section class="panel">
+    <h2>👥 Клієнтська база</h2>
+    <p>CRM, сегменти, історія покупок та паспорт клієнта.</p>
+    <div class="buttons">
+      <a class="btn" href="./viewers.html">Клієнтська база</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">🎩</div>
-    <h2>Директорська ложа</h2>
-    <p>Dashboard та аналітика керівника.</p>
-  </a>
+  <section class="panel">
+    <h2>🎩 Директорська ложа</h2>
+    <p>Директорський dashboard і переходи до управлінської аналітики.</p>
+    <div class="buttons">
+      <a class="btn red" href="./director-dashboard.html">Dashboard</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">📈</div>
-    <h2>Marketing OS</h2>
-    <p>Маркетинг, аудиторії та кампанії.</p>
-  </a>
+  <section class="panel">
+    <h2>📈 Marketing OS</h2>
+    <p>Аудиторії, кампанії, канали, сценарії, журнал та ефективність.</p>
+    <div class="buttons">
+      <a class="btn" href="./marketing.html">Marketing OS</a>
+    </div>
+  </section>
 
-  <a class="card" href="#">
-    <div class="icon">📊</div>
-    <h2>Звіти</h2>
-    <p>Фінанси, продажі та аналітика.</p>
-  </a>
+  <section class="panel">
+    <h2>📊 Звіти</h2>
+    <p>Каса, бронювання, продажі по каналах, майданчиках та audit log.</p>
+    <div class="buttons">
+      <a class="btn" href="./reports/index.html">Відкрити звіти</a>
+    </div>
+  </section>
 
-</div>
+</main>
 
 </body>
 </html>
