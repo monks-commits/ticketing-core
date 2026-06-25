@@ -712,6 +712,7 @@ function renderJournalSection(){
             <th>Канал</th>
             <th>Бюджет</th>
             <th>Коментар / результат</th>
+<th>Висновок</th>
           </tr>
         </thead>
         <tbody>
@@ -730,10 +731,11 @@ function renderJournalSection(){
                         ${esc(j.comment || "")}<br>
                         <span class="muted">${esc(j.result || "")}</span>
                       </td>
+                      <td>${esc(j.conclusion || "—")}</td>
                     </tr>
                   `;
                 }).join("")
-              : `<tr><td colspan="6" class="muted">Поки немає записів.</td></tr>`
+              : `<tr><td colspan="7" class="muted">Поки немає записів.</td></tr>`
           }
         </tbody>
       </table>
