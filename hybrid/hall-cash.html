@@ -3509,6 +3509,7 @@ function applyStatusFromBackoffice(status, seats){
    // ---- boot ----
 (async ()=>{
 
+  
   // загрузка списка сеансов
   async function loadSeancesForCash() {
 
@@ -3535,13 +3536,7 @@ const res = await fetch(
 );
 
       const rows = await res.json();
-const allowedVenueIds = new Set(
-  (CLIENT_CONFIG?.venues || []).map(v => v.id)
-);
-
-const filteredRows = Array.isArray(rows)
-  ? rows.filter(s => !s.venue_id || allowedVenueIds.has(s.venue_id))
-  : [];
+const filteredRows = Array.isArray(rows) ? rows : [];
       select.innerHTML = `<option value="">Оберіть сеанс…</option>`;
 
      filteredRows.forEach(s => {
