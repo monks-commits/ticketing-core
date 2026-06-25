@@ -668,11 +668,75 @@ function renderPlaybooksSection(){
 }
 
 function renderJournalSection(){
-  document.getElementById("activeSectionPanel").innerHTML = `
+  const panel = document.getElementById("activeSectionPanel");
+  const seanceIds = getActiveSeanceIds();
+
+  const rows = JOURNAL
+    .filter(j => seanceIds.includes(String(j.seance_id)))
+    .sort((a,b) => new Date(b.action_date || b.created_at) - new Date(a.action_date || a.created_at));
+
+  panel.innerHTML = `
     <h2>📒 Журнал маркетингу</h2>
-    ${renderScopeHeader()}
-    <div class="muted">Що робили, коли робили і який був результат по вибраних сеансах.</div>
-    <div class="box" style="margin-top:16px">Поки розділ у підготовці.</div>
+    <div class="muted" style="margin-bottom:12px">
+      Дії по вибраних сеансах.
+    </div>
+
+    <div class="box">
+      <h3>Додати дію</h3>
+
+      <div class="grid">
+        <input id="jDate" type="date" class="box" value="${new Date().toISOString().slice(0,10)}">
+        <input id="jType" class="box" placeholder="Дія: пост, реклама, флаєри...">
+        <input id="jChannel" class="box" placeholder="Канал: Telegram, Facebook...">
+        <input id="jBudget" type="number" class="box" placeholder="Бюджет">
+      </div>
+
+      <textarea id="jComment" class="box" style="width:100%;margin-top:12px;box-sizing:border-box" rows="3" placeholder="Коментар"></textarea>
+      <textarea id="jResult" class="box" style="width:100%;margin-top:12px;box-sizing:border-box" rows="2" placeholder="Результат"></textarea>
+
+      <button class="btn" style="margin-top:12px" onclick="saveJournalEntry()">
+        Зберегти дію
+      </button>
+    </div>
+
+    <div class="box" style="margin-top:16px">
+      <h3>Історія дій</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Сеанс</th>
+            <th>Дія</th>
+            <th>Канал</th>
+            <th>Бюджет</th>
+            <th>Коментар / результат</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            rows.length
+              ? rows.map(j => {
+                  const s = SEANCES.find(x => String(x.id) === String(j.seance_id));
+                  return `
+                    <tr>
+                      <td>${fmtDate(j.action_date || j.created_at)}</td>
+                      <td>${esc(s?.show || j.seance_id)}</td>
+                      <td>${esc(j.action_type || "—")}</td>
+                      <td>${esc(j.channel || "—")}</td>
+                      <td>${Number(j.budget || 0).toLocaleString("uk-UA")} грн</td>
+                      <td>
+                        ${esc(j.comment || "")}<br>
+                        <span class="muted">${esc(j.result || "")}</span>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")
+              : `<tr><td colspan="6" class="muted">Поки немає записів.</td></tr>`
+          }
+        </tbody>
+      </table>
+    </div>
   `;
 }
 
