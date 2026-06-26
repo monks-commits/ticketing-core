@@ -962,6 +962,43 @@ boot();
 
 boot();
 
+function getVisual(s){
+  return Array.isArray(s.seance_visuals)
+    ? s.seance_visuals[0]
+    : s.seance_visuals;
+}
+
+function openEventInfo(seanceId){
+  const item = ALL_SEANCES.find(s => String(s.id) === String(seanceId));
+  const visual = item ? getVisual(item) : null;
+  const text = visual?.event_text || "";
+
+  if (!text.trim()) return;
+
+  document.getElementById("eventModalText").textContent = text;
+  document.getElementById("eventModal").hidden = false;
+}
+
+function closeEventInfo(){
+  document.getElementById("eventModal").hidden = true;
+}
+
+document.addEventListener("click", e => {
+  const infoBtn = e.target.closest(".info-btn");
+  if (infoBtn) {
+    e.preventDefault();
+    openEventInfo(infoBtn.dataset.seance);
+    return;
+  }
+
+  if (
+    e.target.closest(".event-modal-close") ||
+    e.target.classList.contains("event-modal-backdrop")
+  ) {
+    closeEventInfo();
+  }
+});
+  
 document.addEventListener("click", e => {
   const btn = e.target.closest(".buy-ticket-btn");
   if (!btn) return;
