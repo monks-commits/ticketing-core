@@ -795,7 +795,7 @@ const img =
 async function loadSeances(){
   const url =
     `${SUPABASE_URL}/rest/v1/seances` +
-    `?select=id,show,date,time,poster_url,venue_id,active,status,seance_visuals(poster_url)` +
+    `?select=id,show,date,time,poster_url,venue_id,active,status,seance_visuals(poster_url,event_text,live_poster_url)` +
     `&active=eq.true&order=date.asc,time.asc`;
 
   const res = await fetch(url, {
