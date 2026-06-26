@@ -2136,14 +2136,15 @@ async function loadHallVisualConfig(hallFile){
         if (Array.isArray(rows) && rows.length) {
           const v = rows[0];
 
-          HALL_VISUAL_CONFIG = {
-            poster: v.poster_url || "",
-            livePoster: v.live_poster_url || "",
-            livePosterDuration: Number(v.live_poster_duration || 6200),
-            video: v.background_video_url || ""
-            eventText: v.event_text || "",
-ticketText: v.ticket_text || "",
-          };
+         HALL_VISUAL_CONFIG = {
+  poster: v.poster_url || "",
+  livePoster: v.live_poster_url || "",
+  livePosterDuration: Number(v.live_poster_duration || 6200),
+  video: v.background_video_url || "",
+
+  eventText: v.event_text || "",
+  ticketText: v.ticket_text || ""
+};
 
           console.log("VISUAL CONFIG FROM SUPABASE:", HALL_VISUAL_CONFIG);
           return HALL_VISUAL_CONFIG;
