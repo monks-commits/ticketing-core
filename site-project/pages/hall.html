@@ -3081,7 +3081,7 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
     const beforeX = (mx - panX) / scale;
     const beforeY = (my - panY) / scale;
 
-    scale = Math.max(minScale, Math.min(maxScale, newScale));
+    scale = Math.max(minScale, Math.min(maxScale, newScale)); 
 
     panX = mx - beforeX * scale;
     panY = my - beforeY * scale;
