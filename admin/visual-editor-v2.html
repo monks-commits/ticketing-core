@@ -243,6 +243,12 @@ if (eventTextEl) {
     durationInput.value = currentVisual.live_poster_duration;
   }
 
+document.getElementById("enableLivePoster").checked =
+currentVisual?.enable_live_poster ?? true;
+
+document.getElementById("showEventInfo").checked =
+currentVisual?.show_event_info ?? true;
+  
   renderPreview(currentVisual);
   setStatus(currentVisual ? "Visual завантажено" : "Для цього сеансу visual ще не створено");
 }
