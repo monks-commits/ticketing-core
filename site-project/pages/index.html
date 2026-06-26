@@ -745,7 +745,14 @@ function renderSeances(){
   }
 
   visible.forEach(s => {
-    const img = s.poster_url || "images/default.jpg";
+    const visual = Array.isArray(s.seance_visuals)
+  ? s.seance_visuals[0]
+  : s.seance_visuals;
+
+const img =
+  visual?.poster_url ||
+  s.poster_url ||
+  "images/default.jpg";
     const venue = getVenueName(s.venue_id);
 
     const el = document.createElement("div");
