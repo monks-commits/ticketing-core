@@ -787,7 +787,7 @@ function renderSeances(){
 
 async function loadSeances(){
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,poster_url,venue_id,active,status&active=eq.true&order=date.asc,time.asc`,
+`${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,venue_id,active,status,seance_visuals(poster_url)&active=eq.true&order=date.asc,time.asc`,
     {
       headers:{
         apikey: SUPABASE_ANON_KEY,
