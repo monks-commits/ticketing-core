@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VA Live Visual Editor V2</title>
+<title>VA Visual Editor</title>
 
 <style>
 *{box-sizing:border-box}
@@ -42,9 +42,11 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
 </head>
 
 <body>
-<div class="page">
-  <h1>VA Live Visual Editor V2</h1>
-  <div class="small">Завантаження афіші, Live Poster і відеофону без входу в Supabase.</div>
+<h1>VA Visual Editor</h1>
+
+<div class="small">
+Візуальне оформлення сеансу. Афіша, Live Poster, відеофон та опис події.
+</div>
 
   <div class="card">
     <label>Сеанс</label>
@@ -78,6 +80,32 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
       <div>
         <label>Тривалість Live Poster, ms</label>
         <input id="durationInput" type="number" value="6200">
+
+        <div style="margin-top:18px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:#0b1220">
+
+<div style="font-weight:700;margin-bottom:12px">
+Налаштування
+</div>
+
+<label style="display:flex;gap:10px;align-items:center">
+<input
+type="checkbox"
+id="enableLivePoster"
+checked
+style="width:auto">
+Використовувати Live Poster
+</label>
+
+<label style="display:flex;gap:10px;align-items:center;margin-top:10px">
+<input
+type="checkbox"
+id="showEventInfo"
+checked
+style="width:auto">
+Показувати кнопку «Про подію»
+</label>
+
+</div>
       </div>
     </div>
 
