@@ -273,9 +273,11 @@ async function saveVisual(){
   live_poster_duration: Number(durationInput.value || currentVisual?.live_poster_duration || 6200),
   background_video_url: bgVideoUrl || currentVisual?.background_video_url || null,
 
-  ticket_text:
-    document.getElementById("ticketText")?.value.trim() || "",
+ event_text:
+  document.getElementById("eventText")?.value.trim() || "",
 
+ticket_text:
+  document.getElementById("eventText")?.value.trim() || "",
   enabled: true,
   updated_at: new Date().toISOString()
 };
