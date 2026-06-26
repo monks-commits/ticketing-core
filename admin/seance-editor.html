@@ -1870,7 +1870,7 @@ showStatus.value = seanceRow.status || "draft";
   renderPreview();
 }
 
-["showName","showDate","showTime","seanceId","showStatus"]
+["showName","showDate","showTime","seanceId","showStatus"].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener("input", render);
   if (el) el.addEventListener("change", render);
