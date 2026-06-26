@@ -307,11 +307,7 @@ async function saveVisual(){
   live_poster_duration: Number(durationInput.value || currentVisual?.live_poster_duration || 6200),
   background_video_url: bgVideoUrl || currentVisual?.background_video_url || null,
 
-enable_live_poster:
-document.getElementById("enableLivePoster")?.checked ?? true,
 
-show_event_info:
-document.getElementById("showEventInfo")?.checked ?? true,
      
  event_text:
   document.getElementById("eventText")?.value.trim() || "",
