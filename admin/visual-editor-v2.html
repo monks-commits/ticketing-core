@@ -202,11 +202,13 @@ async function loadCurrentVisual(){
 
   currentVisual = data || null;
 
-const ticketTextEl = document.getElementById("ticketText");
+const eventTextEl = document.getElementById("eventText");
 
-if (ticketTextEl) {
-  ticketTextEl.value =
-    currentVisual?.ticket_text || "";
+if (eventTextEl) {
+  eventTextEl.value =
+    currentVisual?.event_text ||
+    currentVisual?.ticket_text ||
+    "";
 }
   
   if (currentVisual?.live_poster_duration) {
