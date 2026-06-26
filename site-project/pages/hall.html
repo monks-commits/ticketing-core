@@ -3609,6 +3609,7 @@ hallFile = String(hallFile).trim();
 
 console.log("RESOLVED HALL:", hallFile);
 await loadHallVisualConfig(hallFile);
+ setEventPosterFromSeance(SEANCE_META); 
 renderPageVideoBackground();
   const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
   cache: "no-store"
