@@ -778,6 +778,14 @@ const img =
           ${safeHtml(formatDate(s.date, s.time))}
         </div>
 
+<button
+  class="info-btn"
+  type="button"
+  data-seance="${safeHtml(s.id)}"
+>
+  Про подію
+</button>
+
         <a
   class="btn buy-ticket-btn"
   data-seance="${s.id}"
