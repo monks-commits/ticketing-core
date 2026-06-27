@@ -7432,6 +7432,7 @@
       "text": "БАЛКОН",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#f3f4f7",
       "layerId": "text"
     },
     {
@@ -7755,6 +7756,7 @@
       "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7768,9 +7770,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "2",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7784,9 +7787,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "3",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7800,9 +7804,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "4",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7816,9 +7821,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "5",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7832,9 +7838,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "6",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7848,9 +7855,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "7",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7864,9 +7872,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "8",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7880,9 +7889,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "9",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7896,9 +7906,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "10",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7912,9 +7923,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "11",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7928,9 +7940,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "12",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7944,9 +7957,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "13",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7960,9 +7974,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "14",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7976,9 +7991,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "15",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -7992,9 +8008,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "16",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -8008,9 +8025,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "17",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#e2e4e9",
       "layerId": "text"
     },
     {
@@ -8027,6 +8045,7 @@
       "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#f9fafb",
       "layerId": "text"
     },
     {
@@ -8040,9 +8059,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "2",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#f9fafb",
       "layerId": "text"
     },
     {
@@ -8056,9 +8076,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "3",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#f9fafb",
       "layerId": "text"
     },
     {
@@ -8072,9 +8093,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "4",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#f9fafb",
       "layerId": "text"
     },
     {
@@ -8088,9 +8110,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "5",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#f9fafb",
       "layerId": "text"
     },
     {
@@ -8104,9 +8127,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "6",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#f9fafb",
       "layerId": "text"
     },
     {
