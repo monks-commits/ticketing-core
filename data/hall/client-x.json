@@ -7432,14 +7432,14 @@
       "text": "БАЛКОН",
       "fill": "transparent",
       "borderColor": "transparent",
-      "textColor": "#f3f4f7",
+      "textColor": "#ffffff",
       "layerId": "text"
     },
     {
       "id": "text_1782559394846_154",
       "type": "text",
       "x": 360,
-      "y": 626,
+      "y": 625,
       "w": 160,
       "h": 80,
       "rotate": 0,
@@ -7449,6 +7449,7 @@
       "text": "ПАРТЕР",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#ffffff",
       "layerId": "text"
     },
     {
@@ -8147,6 +8148,7 @@
       "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#ffffff",
       "layerId": "text"
     },
     {
@@ -8160,9 +8162,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "2",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#ffffff",
       "layerId": "text"
     },
     {
@@ -8176,9 +8179,10 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "3",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#ffffff",
       "layerId": "text"
     },
     {
@@ -8192,25 +8196,27 @@
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "4",
+      "text": "1",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#ffffff",
       "layerId": "text"
     },
     {
       "id": "text_1782563808371_28",
       "type": "text",
-      "x": 632,
-      "y": 93,
+      "x": 633,
+      "y": 96,
       "w": 160,
       "h": 80,
       "rotate": 0,
       "z": 30,
       "size": 15,
       "glow": 0,
-      "text": "5",
+      "text": "2",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#ffffff",
       "layerId": "text"
     },
     {
@@ -8227,6 +8233,7 @@
       "text": "6",
       "fill": "transparent",
       "borderColor": "transparent",
+      "textColor": "#ffffff",
       "layerId": "text"
     }
   ]
