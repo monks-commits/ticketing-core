@@ -1813,8 +1813,8 @@ function formatPrice(value){
 
 function getSeatTooltipHtml(meta, price){
   const zone = zoneToHuman(meta?.zone);
-  const row = Number(meta?.row || 0);
-  const seat = Number(meta?.seat || 0);
+const row = String(meta?.row ?? "");
+const seat = String(meta?.seat ?? "");
 
   return `
     <div class="seat-tooltip__title">Додати в кошик</div>
