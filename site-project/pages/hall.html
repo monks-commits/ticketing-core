@@ -2841,8 +2841,7 @@ function renderDecor(hallData, target){
 
   decor.forEach(item => {
 
-    // Новый конструктор сохраняет type:"text"
-    // Старые версии могли сохранять type:"label"
+    // ---------- ТЕКСТ ----------
     if (item.type === "text" || item.type === "label") {
 
       const el = document.createElement("div");
@@ -2852,21 +2851,47 @@ function renderDecor(hallData, target){
       el.style.position = "absolute";
       el.style.left = Number(item.x || 0) + "px";
       el.style.top = Number(item.y || 0) + "px";
-      el.style.transform = `translate(-50%, -50%) rotate(${rotate}deg)`;
+      el.style.transform =
+        `translate(-50%, -50%) rotate(${rotate}deg)`;
 
       el.style.fontSize = Number(item.size || 24) + "px";
-      el.style.fontWeight = item.weight || "700";
+      el.style.fontFamily = item.fontFamily || "Arial";
+      el.style.fontWeight =
+        item.fontWeight ||
+        item.weight ||
+        "700";
+
       el.style.letterSpacing = item.letterSpacing || "0";
-      el.style.color = item.color || "#1f2937";
+
+      el.style.color =
+        item.textColor ||
+        item.color ||
+        "#1f2937";
+
       el.style.whiteSpace = "nowrap";
       el.style.pointerEvents = "none";
       el.style.zIndex = "40";
+
+      // Контур
+      el.style.webkitTextStroke =
+        `${Number(item.strokeWidth || 0)}px ${item.strokeColor || "transparent"}`;
+
+      // Свечение
+      el.style.textShadow =
+        Number(item.textGlow || 0) > 0
+          ? `0 0 ${item.textGlow}px ${item.textColor || item.color || "#ffffff"}`
+          : "none";
+
+      // Прозрачность
+      el.style.opacity =
+        Number(item.opacity ?? 1);
 
       el.textContent = item.text || "";
 
       target.appendChild(el);
     }
 
+    // ---------- СЦЕНА ----------
     if (item.type === "stage") {
 
       const stage = document.createElement("div");
@@ -2874,30 +2899,54 @@ function renderDecor(hallData, target){
       stage.style.position = "absolute";
 
       stage.style.left = Number(item.x || 0) + "px";
-stage.style.top  = Number(item.y || 0) + "px";
+      stage.style.top  = Number(item.y || 0) + "px";
 
-stage.style.transform =
-    `translate(-50%, -50%) rotate(${Number(item.rotate||0)}deg)`;
+      stage.style.transform =
+        `translate(-50%, -50%) rotate(${Number(item.rotate || 0)}deg)`;
 
       stage.style.width = Number(item.w || 600) + "px";
       stage.style.height = Number(item.h || 80) + "px";
 
       stage.style.background =
-    item.fill ||
-    item.background ||
-    "#04a9e8";
-      stage.style.color = item.color || "#fff";
+        item.fill ||
+        item.background ||
+        "#04a9e8";
+
+      stage.style.color =
+        item.textColor ||
+        item.color ||
+        "#ffffff";
 
       stage.style.display = "flex";
       stage.style.alignItems = "center";
       stage.style.justifyContent = "center";
 
       stage.style.fontSize = Number(item.size || 44) + "px";
-      stage.style.fontWeight = item.weight || "900";
-      stage.style.letterSpacing = item.letterSpacing || ".08em";
+      stage.style.fontFamily = item.fontFamily || "Arial";
+      stage.style.fontWeight =
+        item.fontWeight ||
+        item.weight ||
+        "900";
+
+      stage.style.letterSpacing =
+        item.letterSpacing || ".08em";
+
+      // Контур
+      stage.style.webkitTextStroke =
+        `${Number(item.strokeWidth || 0)}px ${item.strokeColor || "transparent"}`;
+
+      // Свечение
+      stage.style.textShadow =
+        Number(item.textGlow || 0) > 0
+          ? `0 0 ${item.textGlow}px ${item.textColor || item.color || "#ffffff"}`
+          : "none";
+
+      // Прозрачность
+      stage.style.opacity =
+        Number(item.opacity ?? 1);
 
       stage.style.pointerEvents = "none";
-      stage.style.zIndex = "35";
+      stage.style.zIndex = String(item.z || 35);
 
       stage.textContent = item.text || "СЦЕНА";
 
@@ -2907,7 +2956,6 @@ stage.style.transform =
   });
 
 }
-
 function renderPriceLegendMobile() {
   const desktop = document.getElementById("priceLegendDesktop");
   const mobile = document.getElementById("priceLegendMobile");
