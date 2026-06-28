@@ -1816,10 +1816,7 @@ function getSeatTooltipHtml(meta, price){
   const row = String(meta?.row ?? "");
   const seat = String(meta?.seat ?? "");
 
-  const isLodge =
-    zone.toLowerCase().includes("лож") ||
-    row === "0" ||
-    row === "";
+  const isLodge = zone.toLowerCase().includes("лож");
 
   const placeLine = isLodge
     ? `${zone}, місце: ${seat}`
