@@ -779,7 +779,7 @@ const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];
-
+let currentActive = true;
 
   
   
@@ -1812,7 +1812,7 @@ async function loadSeance(){
   if(!seance) return;
 
   const seanceRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=show,date,time,poster_url,venue_id,status,event_type`,
+    `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=show,date,time,poster_url,venue_id,status,event_type,active`,
     {
       headers:{
         apikey: SUPABASE_ANON_KEY,
@@ -1830,6 +1830,7 @@ async function loadSeance(){
     showTime.value = seanceRow.time || "";
    
 showStatus.value = seanceRow.status || "draft";
+ currentActive = seanceRow.active !== false;
     
     if (seanceRow.venue_id === "academy") {
   venueSelect.value = "academy";
