@@ -2879,7 +2879,10 @@ function renderDecor(hallData, target){
       stage.style.width = Number(item.w || 600) + "px";
       stage.style.height = Number(item.h || 80) + "px";
 
-      stage.style.background = item.background || "#04a9e8";
+      stage.style.background =
+    item.fill ||
+    item.background ||
+    "#04a9e8";
       stage.style.color = item.color || "#fff";
 
       stage.style.display = "flex";
