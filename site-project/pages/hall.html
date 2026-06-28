@@ -2874,7 +2874,10 @@ function renderDecor(hallData, target){
       stage.style.position = "absolute";
 
       stage.style.left = Number(item.x || 0) + "px";
-      stage.style.top = Number(item.y || 0) + "px";
+stage.style.top  = Number(item.y || 0) + "px";
+
+stage.style.transform =
+    `translate(-50%, -50%) rotate(${Number(item.rotate||0)}deg)`;
 
       stage.style.width = Number(item.w || 600) + "px";
       stage.style.height = Number(item.h || 80) + "px";
