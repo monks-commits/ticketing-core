@@ -1787,9 +1787,7 @@ publish.onclick = async () => {
     time: time,
     
     status: status,
-    active:
-      status === "sales_open" ||
-      status === "published",
+    active: currentActive,
     pricing: data.pricing,
     seat_overrides: data.seat_overrides
   })
