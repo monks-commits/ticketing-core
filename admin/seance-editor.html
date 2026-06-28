@@ -1812,7 +1812,7 @@ async function loadSeance(){
   if(!seance) return;
 
   const seanceRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=show,date,time,poster_url,venue_id,status,event_type,active`,
+    `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=show,date,time,poster_url,venue_id,status,event_type`,
     {
       headers:{
         apikey: SUPABASE_ANON_KEY,
@@ -1825,27 +1825,23 @@ async function loadSeance(){
   const seanceRow = Array.isArray(seanceRows) && seanceRows.length ? seanceRows[0] : null;
 
   if (seanceRow) {
-
-  showName.value = seanceRow.show || "";
-  showDate.value = seanceRow.date || "";
-  showTime.value = seanceRow.time || "";
-
-  showStatus.value = seanceRow.status || "draft";
-
-  currentActive = seanceRow.active !== false;
-
-  if (seanceRow.venue_id === "academy") {
-    venueSelect.value = "academy";
-  } else if (seanceRow.venue_id === "shevchenko") {
-    venueSelect.value = "shevchenko-v2";
-  } else if (seanceRow.venue_id === "big-stage-demo") {
-    venueSelect.value = "big-stage-demo";
+    showName.value = seanceRow.show || "";
+    showDate.value = seanceRow.date || "";
+    showTime.value = seanceRow.time || "";
+   
+showStatus.value = seanceRow.status || "draft";
+    
+    if (seanceRow.venue_id === "academy") {
+  venueSelect.value = "academy";
+} else if (seanceRow.venue_id === "shevchenko") {
+  venueSelect.value = "shevchenko-v2";
+} else if (seanceRow.venue_id === "big-stage-demo") {
+  venueSelect.value = "big-stage-demo";
+}
   }
 
-}
-
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seance)}&select=pricing,seat_overrides,hall,venue_id,active`,
+    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seance)}&select=pricing,seat_overrides,hall,venue_id`,
     {
       headers:{
         apikey: SUPABASE_ANON_KEY,
