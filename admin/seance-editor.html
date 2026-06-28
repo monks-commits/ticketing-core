@@ -1770,6 +1770,18 @@ publish.onclick = async () => {
   if (!date) return alert("Вкажи дату");
   if (!time) return alert("Вкажи час");
 
+if (
+  Object.keys(data.pricing || {}).length === 0 &&
+  Object.keys(data.seat_overrides || {}).length === 0
+) {
+  const ok = confirm(
+    "УВАГА: pricing і seat_overrides порожні.\n\n" +
+    "Якщо зберегти зараз — ціни та кольори для цього сеансу будуть стерті.\n\n" +
+    "Продовжити?"
+  );
+  if (!ok) return;
+}
+  
   try {
    const res = await fetch(SUPABASE_FUNCTION_URL, {
   method: "POST",
