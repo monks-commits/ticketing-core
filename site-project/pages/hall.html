@@ -3113,13 +3113,13 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
       r.height / realH
     ) * (isMobile() ? 1.15 : 0.92);
 
-    if (isMobile()) {
-      minScale = fitScale * 0.25;
-      maxScale = fitScale * 8;
-    } else {
-      minScale = fitScale;
-      maxScale = 3;
-    }
+   if (isMobile()) {
+    minScale = fitScale * 0.25;
+    maxScale = fitScale * 8;
+} else {
+    minScale = fitScale * 0.25;   // <-- было fitScale
+    maxScale = fitScale * 8;      // <-- вместо 3
+}
 
     scale = fitScale;
 
