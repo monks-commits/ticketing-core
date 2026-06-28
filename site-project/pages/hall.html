@@ -1813,12 +1813,21 @@ function formatPrice(value){
 
 function getSeatTooltipHtml(meta, price){
   const zone = zoneToHuman(meta?.zone);
-const row = String(meta?.row ?? "");
-const seat = String(meta?.seat ?? "");
+  const row = String(meta?.row ?? "");
+  const seat = String(meta?.seat ?? "");
+
+  const isLodge =
+    zone.toLowerCase().includes("лож") ||
+    row === "0" ||
+    row === "";
+
+  const placeLine = isLodge
+    ? `${zone}, місце: ${seat}`
+    : `${zone}, ряд: ${row}, місце: ${seat}`;
 
   return `
     <div class="seat-tooltip__title">Додати в кошик</div>
-    <p class="seat-tooltip__line">${zone}, ряд: ${row}, місце: ${seat}</p>
+    <p class="seat-tooltip__line">${placeLine}</p>
     <p class="seat-tooltip__line">Ціна: ${formatPrice(price)}</p>
   `;
 }
