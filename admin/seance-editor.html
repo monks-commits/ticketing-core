@@ -1949,21 +1949,7 @@ function applyEditorUrlParams(){
   }
 }
 
-function openVisualEditor(){
 
-    const id = seanceId.value.trim();
-
-    if(!id){
-        alert("Спочатку створіть або завантажте сеанс.");
-        return;
-    }
-
-    window.open(
-        `visual-editor.html?seance=${encodeURIComponent(id)}`,
-        "_blank"
-    );
-
-}
   
 async function bootEditor(){
   CLIENT_CONFIG = await loadVAConfig();
