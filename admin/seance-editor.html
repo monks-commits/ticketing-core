@@ -385,7 +385,7 @@ textarea{
     <h1>🎛️ Редактор сеансу</h1>
     <p>Назва вистави — для глядача.
 Seance ID — технічний ключ.
-Афіша, Live Poster, відеофон і опис події налаштовуються в окремому візуальному редакторі.
+Афіша, Live Poster, відеофон і опис події налаштовуються в окремому візуальному редакторі.</p>
     <span class="badge">VA Admin • seance editor</span>
   </section>
 
@@ -477,12 +477,18 @@ Seance ID — технічний ключ.
   <option value="cancelled">Скасовано</option>
 </select>
           </div>
+
+          <div class="field">
+            <label for="showActive">Показувати на сайті</label>
+            <select id="showActive">
+              <option value="true">Так</option>
+              <option value="false">Ні</option>
+            </select>
+          </div>
         </div>
 
         <div class="note">
-         Назва вистави — для глядача.
-Seance ID — технічний ключ.
-Афіша, Live Poster, відеофон і опис події налаштовуються у Visual Editor.
+         Назва вистави — для глядача. Seance ID — технічний ключ.
         </div>
       </section>
 
@@ -797,6 +803,7 @@ const data = {
 };
 
 const showStatus = document.getElementById("showStatus");
+const showActive = document.getElementById("showActive");
 const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
 let CLIENT_CONFIG = null;
@@ -886,6 +893,13 @@ function getHallNameByVenue(id){
   return VAConfigHelper.getHallNameByVenue(CONFIG_VENUES, id);
 }
 
+function normalizeHallNameForPreview(v){
+  if (!v) return "academy";
+  if (v === "shevchenko" || v === "shevchenko-v2") return "shevchenko-v2";
+  if (v === "academy-ruhu") return "academy";
+  return v;
+}
+
 function setVenueByHallName(hallName){
 
   if (!hallName || !venueSelect) return;
@@ -925,47 +939,31 @@ function ensurePreviewUi() {
   let previewSection = document.getElementById("previewSection");
   if (previewSection) return;
 
-  const leftStack = document.querySelector(".layout .stack");
+  const leftStack = document.querySelector(".layout > .stack:not(.sticky)");
   if (!leftStack) {
     console.warn("Preview: left stack not found");
     return;
   }
 
   const cards = Array.from(leftStack.querySelectorAll(".card"));
-
   const dataCard =
     cards.find(card => card.textContent.includes("Дані сеансу")) ||
     cards[1] ||
     cards[0];
 
-  if (!dataCard || !dataCard.parentNode) {
+  if (!dataCard) {
     console.warn("Preview: data card not found");
     return;
   }
 
   previewSection = document.createElement("section");
-  previewSection.className = "card";
+  previewSection.className = "card preview-full-card";
   previewSection.id = "previewSection";
   previewSection.innerHTML = `
     <h2>👁 Попередній перегляд схеми</h2>
     <div id="previewInfo" class="note">Схема ще не завантажена</div>
-
-    <div id="previewWrap" style="
-      margin-top:14px;
-      height:620px;
-      background:rgba(0,0,0,.16);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:18px;
-      padding:18px;
-      overflow:auto;
-    ">
-      <div id="previewStage" style="
-        min-width:max-content;
-        display:flex;
-        flex-direction:column;
-        gap:10px;
-        align-items:center;
-      "></div>
+    <div id="previewWrap" class="preview-full-wrap">
+      <div id="previewStage"></div>
     </div>
   `;
 
@@ -1268,26 +1266,23 @@ function renderSideVerticalPreview(section){
 }
   
 
-  async function renderPreview(){
-
+async function renderPreview(){
   ensurePreviewUi();
 
   const previewStage = document.getElementById("previewStage");
   const previewInfo = document.getElementById("previewInfo");
-
+  const previewWrap = document.getElementById("previewWrap");
   if (!previewStage || !previewInfo) return;
 
   previewStage.innerHTML = "";
   previewInfo.textContent = "Завантаження схеми…";
- 
+
   const hallName = normalizeHallNameForPreview(
-  getHallNameByVenue(venueSelect.value)
-);
+    getHallNameByVenue(venueSelect.value) || venueSelect.value
+  );
 
   try {
-    // ===== УНИВЕРСАЛЬНЫЙ PREVIEW ДЛЯ JSON-ЗАЛОВ =====
     const res = await fetch(`../data/hall/${hallName}.json`, { cache:"no-store" });
-
     if (!res.ok) {
       previewInfo.textContent = `Не вдалося завантажити схему: ${hallName}.json`;
       return;
@@ -1295,29 +1290,33 @@ function renderSideVerticalPreview(section){
 
     const hall = await res.json();
 
-    const stage = document.createElement("div");
-    stage.style.display = "inline-flex";
-    stage.style.alignItems = "center";
-    stage.style.justifyContent = "center";
-    stage.style.minWidth = "140px";
-    stage.style.padding = "8px 16px";
-    stage.style.borderRadius = "999px";
-    stage.style.background = "rgba(255,255,255,.08)";
-    stage.style.color = "#fff";
-    stage.style.fontWeight = "700";
-    stage.style.letterSpacing = ".04em";
-    stage.textContent = hall.title || hall.name || "Сцена";
-    previewStage.appendChild(stage);
+    if (Array.isArray(hall.seats)) {
+      renderBuilderPreview(hall, previewStage, previewWrap);
+      previewInfo.textContent = `Builder-схема: ${hallName} • ${hall.seats.length} місць`;
+      return;
+    }
 
-if (Array.isArray(hall.seats)) {
-  previewInfo.textContent =
-    `Builder-схема: ${hall.seats.length} місць`;
+    if (Array.isArray(hall.sections)) {
+      renderSectionsPreview(hall, previewStage);
+      previewInfo.textContent = `Схема: ${hallName} • Seance: ${seanceId.value.trim() || "новий сеанс"}`;
+      return;
+    }
 
+    previewInfo.textContent = "У hall JSON немає seats або sections для preview.";
+
+  } catch (e) {
+    previewInfo.textContent = `Помилка preview: ${e.message || e}`;
+  }
+}
+
+function renderBuilderPreview(hall, previewStage, previewWrap){
   previewStage.innerHTML = "";
 
-  const scale = 0.16;
   const w = Number(hall.width || 1600);
   const h = Number(hall.height || 1000);
+  const maxW = Math.max(420, Number(previewWrap?.clientWidth || 900) - 46);
+  const maxH = 560;
+  const scale = Math.min(0.55, maxW / w, maxH / h);
 
   const box = document.createElement("div");
   box.style.position = "relative";
@@ -1328,171 +1327,136 @@ if (Array.isArray(hall.seats)) {
   box.style.borderRadius = "14px";
   box.style.overflow = "hidden";
 
-  // decor: сцена и подписи
   (hall.decor || []).forEach(d => {
     const el = document.createElement("div");
-
     el.style.position = "absolute";
     el.style.left = (Number(d.x || 0) * scale) + "px";
     el.style.top = (Number(d.y || 0) * scale) + "px";
     el.style.pointerEvents = "none";
+    el.style.zIndex = String(d.z || 10);
 
     if (d.type === "text" || d.type === "label") {
-      el.style.transform =
-        `translate(-50%, -50%) rotate(${Number(d.rotate || 0)}deg)`;
+      el.style.transform = `translate(-50%, -50%) rotate(${Number(d.rotate || 0)}deg)`;
       el.style.fontSize = Math.max(8, Number(d.size || 24) * scale) + "px";
-      el.style.fontWeight = d.weight || "700";
-      el.style.color = "#111827";
+      el.style.fontFamily = d.fontFamily || "Arial";
+      el.style.fontWeight = d.fontWeight || d.weight || "700";
+      el.style.color = d.textColor || d.color || "#111827";
       el.style.whiteSpace = "nowrap";
+      el.style.webkitTextStroke = `${Math.max(0, Number(d.strokeWidth || 0) * scale)}px ${d.strokeColor || "transparent"}`;
+      el.style.textShadow = Number(d.textGlow || 0) > 0
+        ? `0 0 ${Math.max(1, Number(d.textGlow) * scale)}px ${d.textColor || d.color || "#ffffff"}`
+        : "none";
+      el.style.opacity = Number(d.opacity ?? 1);
       el.textContent = d.text || "";
     }
 
     if (d.type === "stage") {
+      el.style.transform = `translate(-50%, -50%) rotate(${Number(d.rotate || 0)}deg)`;
       el.style.width = (Number(d.w || 600) * scale) + "px";
       el.style.height = (Number(d.h || 80) * scale) + "px";
-      el.style.background = "#04a9e8";
-      el.style.color = "#fff";
+      el.style.background = d.fill || d.background || "#04a9e8";
+      el.style.color = d.textColor || d.color || "#fff";
       el.style.display = "flex";
       el.style.alignItems = "center";
       el.style.justifyContent = "center";
       el.style.fontSize = Math.max(10, Number(d.size || 44) * scale) + "px";
-      el.style.fontWeight = "900";
+      el.style.fontFamily = d.fontFamily || "Arial";
+      el.style.fontWeight = d.fontWeight || d.weight || "900";
+      el.style.letterSpacing = d.letterSpacing || ".08em";
+      el.style.webkitTextStroke = `${Math.max(0, Number(d.strokeWidth || 0) * scale)}px ${d.strokeColor || "transparent"}`;
+      el.style.textShadow = Number(d.textGlow || 0) > 0
+        ? `0 0 ${Math.max(1, Number(d.textGlow) * scale)}px ${d.textColor || d.color || "#ffffff"}`
+        : "none";
+      el.style.opacity = Number(d.opacity ?? 1);
       el.textContent = d.text || "СЦЕНА";
     }
 
     box.appendChild(el);
   });
 
-  // seats
   hall.seats.forEach(s => {
     const key = s.key || `${s.prefix || ""}${s.row}-M${s.seat}`;
     const state = previewSeatState(key);
-
     const dot = document.createElement("div");
-
     dot.style.position = "absolute";
     dot.style.left = (Number(s.x || 0) * scale) + "px";
     dot.style.top = (Number(s.y || 0) * scale) + "px";
-    dot.style.width = "8px";
-    dot.style.height = "8px";
+    dot.style.width = Math.max(5, Number(s.size || 18) * scale) + "px";
+    dot.style.height = Math.max(5, Number(s.size || 18) * scale) + "px";
     dot.style.borderRadius = "50%";
     dot.style.transform = "translate(-50%, -50%)";
     dot.style.background = state.color || "#9ca3af";
     dot.style.border = "1px solid rgba(255,255,255,.9)";
     dot.title = key;
-
-    if (state.sale === false) {
-      dot.style.opacity = ".45";
-    }
-
+    if (state.sale === false) dot.style.opacity = ".45";
     box.appendChild(dot);
   });
 
   previewStage.appendChild(box);
-  return;
-}
-    
-if (!Array.isArray(hall.sections)) {
-  previewInfo.textContent = "У hall JSON немає sections для preview.";
-  return;
 }
 
-    const sectionsMap = new Map();
+function renderSectionsPreview(hall, previewStage){
+  previewStage.innerHTML = "";
 
-    hall.sections.forEach(sec => {
-      if (sec && sec.id) {
-        sectionsMap.set(sec.id, sec);
-      }
-    });
+  const stage = document.createElement("div");
+  stage.style.display = "inline-flex";
+  stage.style.alignItems = "center";
+  stage.style.justifyContent = "center";
+  stage.style.minWidth = "140px";
+  stage.style.padding = "8px 16px";
+  stage.style.borderRadius = "999px";
+  stage.style.background = "rgba(255,255,255,.08)";
+  stage.style.color = "#fff";
+  stage.style.fontWeight = "700";
+  stage.style.letterSpacing = ".04em";
+  stage.textContent = hall.title || hall.name || "Сцена";
+  previewStage.appendChild(stage);
 
-    hall.sections.forEach(sec => {
-      if (!sec || sec.hidden === true) return;
+  const sectionsMap = new Map();
+  hall.sections.forEach(sec => {
+    if (sec && sec.id) sectionsMap.set(sec.id, sec);
+  });
 
-      if (sec.type === "horizontal_group") {
-        const group = document.createElement("div");
-        group.style.display = "flex";
-        group.style.alignItems = "flex-start";
-        group.style.justifyContent = "center";
-        group.style.gap = "18px";
-        group.style.width = "100%";
+  hall.sections.forEach(sec => {
+    if (!sec || sec.hidden === true) return;
 
-        (sec.items || []).forEach(id => {
-          const child = sectionsMap.get(id);
-          if (!child) return;
+    if (sec.type === "horizontal_group") {
+      const group = document.createElement("div");
+      group.style.display = "flex";
+      group.style.alignItems = "flex-start";
+      group.style.justifyContent = "center";
+      group.style.gap = "18px";
+      group.style.width = "100%";
 
-          if (child.type === "multi_block_rows") {
-            group.appendChild(renderMultiBlockPreview(child));
-            return;
-          }
+      (sec.items || []).forEach(id => {
+        const child = sectionsMap.get(id);
+        if (!child) return;
+        if (child.type === "multi_block_rows") group.appendChild(renderMultiBlockPreview(child));
+        if (child.type === "side_vertical") group.appendChild(renderSideVerticalPreview(child));
+        if (child.type === "rows") {
+          group.appendChild(renderRowsPreview(child.title || child.zone || "Секція", child.rows || [], child.prefix || "P"));
+        }
+      });
 
-          if (child.type === "side_vertical") {
-            group.appendChild(renderSideVerticalPreview(child));
-            return;
-          }
+      previewStage.appendChild(group);
+      return;
+    }
 
-          if (child.type === "rows") {
-            group.appendChild(
-              renderRowsPreview(
-                child.title || child.zone || "Секція",
-                child.rows || [],
-                child.prefix || "P"
-              )
-            );
-            return;
-          }
-        });
-
-        previewStage.appendChild(group);
-        return;
-      }
-
-      if (sec.type === "multi_block_rows") {
-        previewStage.appendChild(renderMultiBlockPreview(sec));
-        return;
-      }
-
-      if (sec.type === "side_vertical") {
-        previewStage.appendChild(renderSideVerticalPreview(sec));
-        return;
-      }
-
-      if (sec.type === "rows") {
-        previewStage.appendChild(
-          renderRowsPreview(
-            sec.title || sec.zone || "Секція",
-            sec.rows || [],
-            sec.prefix || "P"
-          )
-        );
-        return;
-      }
-
-      if (sec.type === "custom_rows") {
-        const title = document.createElement("div");
-        title.style.fontSize = "14px";
-        title.style.fontWeight = "700";
-        title.style.color = "#b8c4d6";
-        title.style.marginTop = "8px";
-        title.textContent = sec.title || sec.zone || "Секція";
-        previewStage.appendChild(title);
-        return;
-      }
-    });
-
-    const note = document.createElement("div");
-    note.style.fontSize = "12px";
-    note.style.color = "#b8c4d6";
-    note.style.marginTop = "8px";
-    note.textContent = "Preview показує поточні правила editor-а для цього сеансу або нового налаштування.";
-    previewStage.appendChild(note);
-
-    previewInfo.textContent =
-      `Схема: ${hallName} • Seance: ${seanceId.value.trim() || "новий сеанс"}`;
-
-  } catch (e) {
-    previewInfo.textContent = `Помилка preview: ${e.message || e}`;
-  }
+    if (sec.type === "multi_block_rows") previewStage.appendChild(renderMultiBlockPreview(sec));
+    if (sec.type === "side_vertical") previewStage.appendChild(renderSideVerticalPreview(sec));
+    if (sec.type === "rows") previewStage.appendChild(renderRowsPreview(sec.title || sec.zone || "Секція", sec.rows || [], sec.prefix || "P"));
+    if (sec.type === "custom_rows") {
+      const title = document.createElement("div");
+      title.style.fontSize = "14px";
+      title.style.fontWeight = "700";
+      title.style.color = "#b8c4d6";
+      title.style.marginTop = "8px";
+      title.textContent = sec.title || sec.zone || "Секція";
+      previewStage.appendChild(title);
+    }
+  });
 }
+
 
 function venueToDbVenueId(v){
   if (v === "shevchenko-v2") return "shevchenko";
@@ -1607,6 +1571,8 @@ function createNewSeance(){
 
   data.pricing = {};
   data.seat_overrides = {};
+  currentActive = true;
+  if (showActive) showActive.value = "true";
 
   render();
   renderPreview();
@@ -1831,7 +1797,7 @@ if (
     time: time,
     
     status: status,
-    active: currentActive,
+    active: showActive ? showActive.value === "true" : currentActive,
     pricing: data.pricing,
     seat_overrides: data.seat_overrides
   })
@@ -1873,6 +1839,7 @@ async function loadSeance(){
    
 showStatus.value = seanceRow.status || "draft";
  currentActive = seanceRow.active !== false;
+    if (showActive) showActive.value = currentActive ? "true" : "false";
     
     if (seanceRow.venue_id === "academy") {
   venueSelect.value = "academy";
@@ -1913,7 +1880,7 @@ showStatus.value = seanceRow.status || "draft";
   renderPreview();
 }
 
-["showName","showDate","showTime","seanceId","showStatus"].forEach(id => {
+["showName","showDate","showTime","seanceId","showStatus","showActive"].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener("input", render);
   if (el) el.addEventListener("change", render);
@@ -1959,18 +1926,23 @@ function applyEditorUrlParams(){
 
   
 async function bootEditor(){
-  CLIENT_CONFIG = await loadVAConfig();
-
-  if (Array.isArray(CLIENT_CONFIG?.venues)) {
-    CONFIG_VENUES = CLIENT_CONFIG.venues;
-    fillVenueSelectFromConfig();
+  try {
+    CLIENT_CONFIG = await loadVAConfig();
+  } catch (e) {
+    console.warn("loadVAConfig error", e);
+    CLIENT_CONFIG = null;
   }
 
+  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+    ? CLIENT_CONFIG.venues
+    : [];
+
+  fillVenueSelectFromConfig();
   applyEditorUrlParams();
 
- render();
-ensurePreviewUi();
-renderPreview();
+  ensurePreviewUi();
+  render();
+  await renderPreview();
 
   if (typeof loadVenueSeances === "function") {
     await loadVenueSeances();
