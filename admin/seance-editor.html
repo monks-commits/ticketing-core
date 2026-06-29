@@ -903,25 +903,29 @@ function ensurePreviewUi() {
   let previewSection = document.getElementById("previewSection");
   if (previewSection) return;
 
-  const cards = Array.from(document.querySelectorAll(".stack.sticky .card"));
-  const jsonCard = cards.find(card => card.querySelector("#output"));
-  if (!jsonCard || !jsonCard.parentNode) return;
+  const mainStack = document.querySelector(".layout > .stack");
+  if (!mainStack) return;
+
+  const dataCard = Array.from(mainStack.querySelectorAll(".card"))
+    .find(card => card.querySelector("#showName"));
+
+  if (!dataCard || !dataCard.parentNode) return;
 
   previewSection = document.createElement("section");
   previewSection.className = "card";
   previewSection.id = "previewSection";
   previewSection.innerHTML = `
-    <h3>👁 Попередній перегляд схеми</h3>
+    <h2>👁 Попередній перегляд схеми</h2>
     <div id="previewInfo" class="note">Схема ще не завантажена</div>
 
     <div id="previewWrap" style="
-      margin-top:12px;
-      background:rgba(0,0,0,.10);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:16px;
-      padding:12px;
+      margin-top:14px;
+      height:620px;
+      background:rgba(0,0,0,.16);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      padding:18px;
       overflow:auto;
-      min-height:220px;
     ">
       <div id="previewStage" style="
         min-width:max-content;
@@ -933,20 +937,8 @@ function ensurePreviewUi() {
     </div>
   `;
 
-  jsonCard.parentNode.insertBefore(previewSection, jsonCard);
+  dataCard.parentNode.insertBefore(previewSection, dataCard.nextSibling);
 }
-
-ensurePreviewUi();
-
-const previewStage = document.getElementById("previewStage");
-const previewInfo = document.getElementById("previewInfo");
-
-function normalizeHallNameForPreview(v){
-  if (v === "academy") return "academy";
-  if (v === "shevchenko-v2" || v === "shevchenko") return "shevchenko-v2";
-  return v || "academy";
-}
-
 function previewSeatState(key){
   const override = data.seat_overrides[key] || null;
 
