@@ -927,13 +927,23 @@ function ensurePreviewUi() {
   let previewSection = document.getElementById("previewSection");
   if (previewSection) return;
 
-  const mainStack = document.querySelector(".layout > .stack");
-  if (!mainStack) return;
+  const leftStack = document.querySelector(".layout .stack");
+  if (!leftStack) {
+    console.warn("Preview: left stack not found");
+    return;
+  }
 
-  const dataCard = Array.from(mainStack.querySelectorAll(".card"))
-    .find(card => card.querySelector("#showName"));
+  const cards = Array.from(leftStack.querySelectorAll(".card"));
 
-  if (!dataCard || !dataCard.parentNode) return;
+  const dataCard =
+    cards.find(card => card.textContent.includes("Дані сеансу")) ||
+    cards[1] ||
+    cards[0];
+
+  if (!dataCard || !dataCard.parentNode) {
+    console.warn("Preview: data card not found");
+    return;
+  }
 
   previewSection = document.createElement("section");
   previewSection.className = "card";
@@ -961,8 +971,9 @@ function ensurePreviewUi() {
     </div>
   `;
 
-  dataCard.parentNode.insertBefore(previewSection, dataCard.nextSibling);
+  dataCard.insertAdjacentElement("afterend", previewSection);
 }
+  
 function previewSeatState(key){
   const override = data.seat_overrides[key] || null;
 
