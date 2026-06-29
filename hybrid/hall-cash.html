@@ -3758,6 +3758,10 @@ if (!hallFile) {
 
 hallFile = String(hallFile).trim();
 
+if (hallFile === "shevchenko") {
+  hallFile = "shevchenko-v2";
+}
+
 console.log("CASH HALL:", hallFile);
 
 const hallRes = await fetch(`../data/hall/${hallFile}.json`, {
