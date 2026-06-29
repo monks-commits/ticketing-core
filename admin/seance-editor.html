@@ -1961,8 +1961,9 @@ async function bootEditor(){
 
   applyEditorUrlParams();
 
-  render();
-  renderPreview();
+ render();
+ensurePreviewUi();
+renderPreview();
 
   if (typeof loadVenueSeances === "function") {
     await loadVenueSeances();
