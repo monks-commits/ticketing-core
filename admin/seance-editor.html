@@ -1268,11 +1268,17 @@ function renderSideVerticalPreview(section){
 }
   
 async function renderPreview(){
+  async function renderPreview(){
+
+  ensurePreviewUi();
+
+  const previewStage = document.getElementById("previewStage");
+  const previewInfo = document.getElementById("previewInfo");
+
   if (!previewStage || !previewInfo) return;
 
   previewStage.innerHTML = "";
   previewInfo.textContent = "Завантаження схеми…";
-
   const hallName = normalizeHallNameForPreview(
   getHallNameByVenue(venueSelect.value)
 );
