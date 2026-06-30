@@ -2142,34 +2142,15 @@ async function loadHallVisualConfig(hallFile){
         if (Array.isArray(rows) && rows.length) {
           const v = rows[0];
 
-          HALL_VISUAL_CONFIG = {
-            poster: v.poster_url || "",
-            livePoster: v.live_poster_url || "",
-            livePosterDuration: Number(v.live_poster_duration || 6200),
+         HALL_VISUAL_CONFIG = {
+  poster: v.poster_url || "",
+  livePoster: v.live_poster_url || "",
+  livePosterDuration: Number(v.live_poster_duration || 6200),
+  video: v.background_video_url || "",
 
-            image: v.background_image_url || "",
-            imageEnabled: v.background_image_enabled ?? !!v.background_image_url,
-            imageOpacity: Number(v.background_image_opacity ?? 1),
-            imageScale: Number(v.background_image_scale ?? 1),
-            imageX: Number(v.background_image_x ?? 0),
-            imageY: Number(v.background_image_y ?? 0),
-            imageFit: v.background_image_fit || "cover",
-
-            video: v.background_video_url || "",
-            videoEnabled: v.background_video_enabled ?? !!v.background_video_url,
-            videoOpacity: Number(v.background_video_opacity ?? 1),
-            videoScale: Number(v.background_video_scale ?? 1),
-            videoX: Number(v.background_video_x ?? 0),
-            videoY: Number(v.background_video_y ?? 0),
-            videoFit: v.background_video_fit || "cover",
-            videoLoop: v.background_video_loop ?? true,
-            videoMuted: v.background_video_muted ?? true,
-
-            overlayOpacity: Number(v.background_overlay_opacity ?? 0),
-
-            eventText: v.event_text || "",
-            ticketText: v.ticket_text || ""
-          };
+  eventText: v.event_text || "",
+  ticketText: v.ticket_text || "",
+};
 
           console.log("VISUAL CONFIG FROM SUPABASE:", HALL_VISUAL_CONFIG);
           return HALL_VISUAL_CONFIG;
@@ -2200,80 +2181,32 @@ async function loadHallVisualConfig(hallFile){
 }
 
 function renderPageVideoBackground(){
-  document.querySelector("#va-theme-image-bg")?.remove();
-  document.querySelector("#va-theme-video-bg")?.remove();
-  document.querySelector("#va-theme-overlay-bg")?.remove();
-
-  const imageUrl = HALL_VISUAL_CONFIG?.image || "";
   const videoUrl = HALL_VISUAL_CONFIG?.video || "";
+  if (!videoUrl) return;
 
-  if (imageUrl && HALL_VISUAL_CONFIG?.imageEnabled !== false) {
-    const img = document.createElement("img");
-    img.id = "va-theme-image-bg";
-    img.src = imageUrl;
+  document.querySelector("#va-theme-video-bg")?.remove();
 
-    img.style.cssText = `
-      position:fixed;
-      inset:0;
-      width:100vw;
-      height:100vh;
-      object-fit:${HALL_VISUAL_CONFIG?.imageFit || "cover"};
-      opacity:${HALL_VISUAL_CONFIG?.imageOpacity ?? 1};
-      transform:scale(${HALL_VISUAL_CONFIG?.imageScale || 1})
-        translate(${HALL_VISUAL_CONFIG?.imageX || 0}px, ${HALL_VISUAL_CONFIG?.imageY || 0}px);
-      pointer-events:none;
-      z-index:-3;
-    `;
+  const video = document.createElement("video");
+  video.id = "va-theme-video-bg";
+  video.src = videoUrl;
+  video.autoplay = true;
+  video.loop = true;
+  video.muted = true;
+  video.playsInline = true;
 
-    document.body.prepend(img);
-  }
+  video.style.position = "fixed";
+  video.style.left = "0";
+  video.style.top = "0";
+  video.style.width = "100vw";
+  video.style.height = "100vh";
+  video.style.objectFit = "cover";
+  video.style.pointerEvents = "none";
+  video.style.zIndex = "0";
+  video.style.opacity = "1";
+  video.style.filter = "brightness(.42) contrast(1.12) saturate(1.1)";
 
-  if (videoUrl && HALL_VISUAL_CONFIG?.videoEnabled !== false) {
-    const video = document.createElement("video");
-    video.id = "va-theme-video-bg";
-    video.src = videoUrl;
-    video.autoplay = true;
-    video.loop = HALL_VISUAL_CONFIG?.videoLoop ?? true;
-    video.muted = HALL_VISUAL_CONFIG?.videoMuted ?? true;
-    video.playsInline = true;
-
-    video.style.cssText = `
-      position:fixed;
-      inset:0;
-      width:100vw;
-      height:100vh;
-      object-fit:${HALL_VISUAL_CONFIG?.videoFit || "cover"};
-      opacity:${HALL_VISUAL_CONFIG?.videoOpacity ?? 1};
-      transform:scale(${HALL_VISUAL_CONFIG?.videoScale || 1})
-        translate(${HALL_VISUAL_CONFIG?.videoX || 0}px, ${HALL_VISUAL_CONFIG?.videoY || 0}px);
-      pointer-events:none;
-      z-index:-2;
-      filter:brightness(.42) contrast(1.12) saturate(1.1);
-    `;
-
-    document.body.prepend(video);
-  }
-
-  const overlayOpacity = Number(HALL_VISUAL_CONFIG?.overlayOpacity || 0);
-
-  if (overlayOpacity > 0) {
-    const overlay = document.createElement("div");
-    overlay.id = "va-theme-overlay-bg";
-    overlay.style.cssText = `
-      position:fixed;
-      inset:0;
-      background:#000;
-      opacity:${overlayOpacity};
-      pointer-events:none;
-      z-index:-1;
-    `;
-
-    document.body.prepend(overlay);
-  }
-
-  if (imageUrl || videoUrl) {
-    document.body.classList.add("va-theme-active");
-  }
+  document.body.classList.add("va-theme-active");
+  document.body.prepend(video);
 }
     
 async function loadSeanceMeta() {
