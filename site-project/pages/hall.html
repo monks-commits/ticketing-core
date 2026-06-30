@@ -2181,6 +2181,49 @@ async function loadHallVisualConfig(hallFile){
 }
 
 function renderPageVideoBackground(){
+
+  document.querySelector("#va-theme-image-bg")?.remove();
+  document.querySelector("#va-theme-overlay-bg")?.remove();
+
+  const imageUrl = HALL_VISUAL_CONFIG?.image || "";
+
+  if (imageUrl && HALL_VISUAL_CONFIG?.imageEnabled !== false) {
+    const img = document.createElement("img");
+    img.id = "va-theme-image-bg";
+    img.src = imageUrl;
+
+    img.style.position = "fixed";
+    img.style.left = "50%";
+    img.style.top = "50%";
+    img.style.width = (100 * (HALL_VISUAL_CONFIG?.imageScale || 1)) + "vw";
+    img.style.height = (100 * (HALL_VISUAL_CONFIG?.imageScale || 1)) + "vh";
+    img.style.transform =
+      `translate(calc(-50% + ${HALL_VISUAL_CONFIG?.imageX || 0}px), calc(-50% + ${HALL_VISUAL_CONFIG?.imageY || 0}px))`;
+    img.style.objectFit = HALL_VISUAL_CONFIG?.imageFit || "cover";
+    img.style.opacity = String(HALL_VISUAL_CONFIG?.imageOpacity ?? 1);
+    img.style.pointerEvents = "none";
+    img.style.zIndex = "0";
+
+    document.body.classList.add("va-theme-active");
+    document.body.prepend(img);
+  }
+
+  const overlayOpacity = Number(HALL_VISUAL_CONFIG?.overlayOpacity || 0);
+
+  if (overlayOpacity > 0) {
+    const overlay = document.createElement("div");
+    overlay.id = "va-theme-overlay-bg";
+    overlay.style.position = "fixed";
+    overlay.style.inset = "0";
+    overlay.style.background = "#000";
+    overlay.style.opacity = String(overlayOpacity);
+    overlay.style.pointerEvents = "none";
+    overlay.style.zIndex = "0";
+
+    document.body.classList.add("va-theme-active");
+    document.body.prepend(overlay);
+  }
+  
   const videoUrl = HALL_VISUAL_CONFIG?.video || "";
   if (!videoUrl) return;
 
