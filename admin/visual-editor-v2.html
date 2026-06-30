@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VA Visual Editor V2</title>
+<title>VA Visual Editor V2.1</title>
 
 <style>
 *{box-sizing:border-box}
@@ -34,6 +34,7 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
 .btn{background:var(--gold);color:#111827;width:100%;margin-top:14px}
 .btn2{background:var(--blue);color:#fff;width:100%;margin-top:10px}
 .btn3{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18);width:100%;margin-top:10px}
+.btn-danger{background:#7f1d1d;color:#fff;border:1px solid rgba(248,113,113,.35);width:100%;margin-top:10px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .small{color:var(--muted);font-size:13px;line-height:1.45}
@@ -60,7 +61,7 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
 <body>
 <div class="page">
 
-  <h1>VA Visual Editor V2</h1>
+  <h1>VA Visual Editor V2.1</h1>
   <div class="small">Візуальне оформлення сеансу: афіша, Live Poster, фон-зображення, відеофон та опис події.</div>
 
   <div class="card">
@@ -245,6 +246,9 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
     <button class="btn" id="saveBtn">Завантажити файли і зберегти</button>
     <button class="btn2" id="loadBtn">Завантажити поточний visual</button>
     <button class="btn3" id="resetBgBtn">Скинути налаштування фону</button>
+    <button class="btn-danger" id="clearBgImageBtn">🗑 Видалити Background Image</button>
+    <button class="btn-danger" id="clearBgVideoBtn">🗑 Видалити Background Video</button>
+    <button class="btn-danger" id="clearAllBgBtn">🧹 Очистити весь фон сеансу</button>
     <div class="status" id="status"></div>
   </div>
 
@@ -301,10 +305,14 @@ function setStatus(text){
 }
 
 function safeName(name){
-  return String(name || "file")
+  const raw = String(name || "file");
+  const ext = (raw.includes(".") ? raw.split(".").pop() : "bin")
     .toLowerCase()
-    .replace(/[^a-z0-9а-яіїєґ._-]+/gi, "-")
-    .replace(/-+/g, "-");
+    .replace(/[^a-z0-9]/g, "") || "bin";
+
+  // Supabase Storage надежнее работает с ASCII-only ключами.
+  // Исходное имя файла пользователю не нужно: URL хранится в seance_visuals.
+  return "file." + ext;
 }
 
 function numValue(id, fallback = 0){
@@ -618,8 +626,16 @@ async function saveVisual(){
 
     setStatus("Готово. Visual, фон і опис події збережено.");
   } catch (e) {
-    console.error(e);
-    setStatus("Помилка: " + (e.message || e));
+    console.error("SAVE VISUAL ERROR:", e);
+    setStatus(
+      "Помилка: " +
+      (
+        e.message ||
+        e.details ||
+        e.hint ||
+        JSON.stringify(e)
+      )
+    );
   }
 }
 
@@ -650,6 +666,101 @@ function resetBackgroundControls(){
   renderPreview(currentVisual);
 }
 
+async function updateVisualFields(fields, successMessage){
+  const seanceId = seanceSelect.value;
+
+  if (!seanceId) {
+    alert("Оберіть сеанс");
+    return;
+  }
+
+  setStatus("Оновлюю visual...");
+
+  const { data, error } = await sb
+    .from("seance_visuals")
+    .update({
+      ...fields,
+      updated_at: new Date().toISOString()
+    })
+    .eq("seance_id", seanceId)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error("UPDATE VISUAL ERROR:", error);
+    setStatus("Помилка: " + (error.message || JSON.stringify(error)));
+    return;
+  }
+
+  currentVisual = data || { ...(currentVisual || {}), ...fields };
+  setControlValues(currentVisual);
+  renderPreview(currentVisual);
+  setStatus(successMessage || "Visual оновлено.");
+}
+
+async function clearBackgroundImage(){
+  if (!confirm("Видалити Background Image з цього сеансу?")) return;
+
+  bgImageFile.value = "";
+
+  await updateVisualFields({
+    background_image_url: null,
+    background_image_enabled: false,
+    background_image_opacity: 1,
+    background_image_scale: 1,
+    background_image_x: 0,
+    background_image_y: 0,
+    background_image_fit: "cover"
+  }, "Background Image видалено з цього сеансу.");
+}
+
+async function clearBackgroundVideo(){
+  if (!confirm("Видалити Background Video з цього сеансу?")) return;
+
+  bgVideoFile.value = "";
+
+  await updateVisualFields({
+    background_video_url: null,
+    background_video_enabled: false,
+    background_video_opacity: 1,
+    background_video_scale: 1,
+    background_video_x: 0,
+    background_video_y: 0,
+    background_video_fit: "cover",
+    background_video_loop: true,
+    background_video_muted: true
+  }, "Background Video видалено з цього сеансу.");
+}
+
+async function clearAllBackground(){
+  if (!confirm("Очистити Background Image і Background Video для цього сеансу?")) return;
+
+  bgImageFile.value = "";
+  bgVideoFile.value = "";
+
+  await updateVisualFields({
+    background_image_url: null,
+    background_image_enabled: false,
+    background_image_opacity: 1,
+    background_image_scale: 1,
+    background_image_x: 0,
+    background_image_y: 0,
+    background_image_fit: "cover",
+
+    background_video_url: null,
+    background_video_enabled: false,
+    background_video_opacity: 1,
+    background_video_scale: 1,
+    background_video_x: 0,
+    background_video_y: 0,
+    background_video_fit: "cover",
+    background_video_loop: true,
+    background_video_muted: true,
+
+    background_overlay_opacity: 0
+  }, "Фон сеансу повністю очищено.");
+}
+
 ["enableBgImage","bgImageFit","bgImageX","bgImageY","enableBgVideo","bgVideoFit","bgVideoX","bgVideoY","bgVideoLoop","bgVideoMuted"].forEach(id => {
   document.getElementById(id)?.addEventListener("input", () => renderPreview(currentVisual));
   document.getElementById(id)?.addEventListener("change", () => renderPreview(currentVisual));
@@ -664,6 +775,9 @@ bindRange("bgVideoOpacity", "bgVideoOpacityNum", () => renderPreview(currentVisu
 document.getElementById("saveBtn").addEventListener("click", saveVisual);
 document.getElementById("loadBtn").addEventListener("click", loadCurrentVisual);
 document.getElementById("resetBgBtn").addEventListener("click", resetBackgroundControls);
+document.getElementById("clearBgImageBtn").addEventListener("click", clearBackgroundImage);
+document.getElementById("clearBgVideoBtn").addEventListener("click", clearBackgroundVideo);
+document.getElementById("clearAllBgBtn").addEventListener("click", clearAllBackground);
 seanceSelect.addEventListener("change", loadCurrentVisual);
 
 document.getElementById("openSeanceBtn").addEventListener("click", () => {
