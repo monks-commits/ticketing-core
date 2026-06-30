@@ -16747,5 +16747,26 @@
       "h": 14
     }
   ],
-  "decor": []
+  "decor": [
+    {
+      "id": "media_1782819841009_1",
+      "type": "media",
+      "x": 1553,
+      "y": 1587,
+      "w": 2761,
+      "h": 1781,
+      "rotate": 0,
+      "z": 30,
+      "size": 24,
+      "opacity": 1,
+      "glow": 5,
+      "text": "",
+      "fill": "#8b5cf6",
+      "borderColor": "#ffffff",
+      "textColor": "#ffffff",
+      "mediaFit": "cover",
+      "mediaMime": "image/jpeg",
+      "layerId": "media"
+    }
+  ]
 }
