@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VA Проєкти V1</title>
+  <style>
+    :root{--bg:#071426;--card:#152943;--card2:#0e2138;--line:#29415f;--text:#fff;--muted:#b8c7dc;--blue:#2f8cff;--green:#16a34a;--red:#b23b3b;--gold:#f59e0b}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+    .wrap{max-width:1420px;margin:0 auto;padding:28px 22px 60px}
+    h1{font-size:38px;margin:0 0 10px} h2{font-size:25px;margin:0 0 16px} h3{margin:0 0 8px;font-size:18px}
+    .lead{color:var(--muted);font-size:18px;margin-bottom:22px}.card{background:var(--card);border-radius:18px;padding:22px;margin-bottom:20px}
+    .grid{display:grid;grid-template-columns:380px 1fr;gap:20px}.projects{display:grid;gap:12px}
+    .project-item{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer}
+    .project-item.active{border-color:var(--blue);box-shadow:0 0 0 2px rgba(47,140,255,.25)}
+    .project-title{font-size:21px;font-weight:900;margin-bottom:6px}.meta{color:var(--muted);font-size:14px;line-height:1.45}
+    label{display:block;font-size:13px;color:var(--muted);font-weight:800;margin-bottom:6px}
+    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:#0a1b30;color:var(--text);padding:11px;font-size:15px}
+    textarea{min-height:120px;resize:vertical}.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.field{margin-bottom:13px}
+    .btn{border:0;border-radius:12px;padding:12px 16px;color:#fff;font-weight:900;cursor:pointer;background:#324962;margin:0 8px 8px 0}
+    .btn:hover{opacity:.92}.blue{background:var(--blue)}.green{background:var(--green)}.red{background:var(--red)}.gold{background:var(--gold);color:#111827}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}.tab{padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#0a1b30;color:#fff;cursor:pointer;font-weight:800}
+    .tab.active{background:var(--blue);border-color:var(--blue)}.panel{display:none}.panel.active{display:block}
+    table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid var(--line);padding:12px;text-align:left} th{color:#c9d7ea;font-size:13px}
+    .pill{display:inline-block;padding:5px 10px;border-radius:999px;background:#27496f;color:#fff;font-size:12px;font-weight:800}
+    .empty{color:var(--muted);padding:20px;border:1px dashed var(--line);border-radius:14px}.material-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .material-box{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:16px}.material-box p{margin:0 0 14px;color:var(--muted);line-height:1.45}
+    .log{white-space:pre-wrap;background:#061221;border:1px solid var(--line);border-radius:12px;padding:14px;color:#cfe0f8}.warn{background:#2b1f08;border:1px solid #8a620f;color:#ffe8ad;border-radius:12px;padding:12px;margin-bottom:14px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Проєкти</h1>
+  <div class="lead">Проєкт — творча картка події. Сеанс — конкретна дата, зал, ціни, продажі та відвідуваність.</div>
+  <div class="grid">
+    <section class="card"><h2>Список проєктів</h2><button class="btn blue" id="newProjectBtn">+ Новий проєкт</button><button class="btn" id="reloadBtn">Оновити</button><div id="projectsList" class="projects"></div></section>
+    <section class="card">
+      <div id="noProject" class="empty">Оберіть проєкт або створіть новий.</div>
+      <div id="projectWorkspace" style="display:none">
+        <h2 id="workspaceTitle">Проєкт</h2>
+        <div class="tabs">
+          <button class="tab active" data-tab="passport">Паспорт</button>
+          <button class="tab" data-tab="seances">Сеанси</button>
+          <button class="tab" data-tab="materials">Робочі матеріали</button>
+          <button class="tab" data-tab="campaigns">Кампанії</button>
+          <button class="tab" data-tab="history">Історія</button>
+        </div>
+        <div class="panel active" id="tab-passport">
+          <div class="row2"><div class="field"><label>Назва</label><input id="pTitle"></div><div class="field"><label>Статус</label><select id="pStatus"><option value="draft">draft</option><option value="active">active</option><option value="archive">archive</option></select></div></div>
+          <div class="row3"><div class="field"><label>Жанр</label><input id="pGenre" placeholder="джаз, опера, балет..."></div><div class="field"><label>Тип</label><input id="pType" placeholder="концерт, вистава..."></div><div class="field"><label>Вік</label><input id="pAge" placeholder="12+"></div></div>
+          <div class="field"><label>Короткий опис</label><textarea id="pShort"></textarea></div>
+          <div class="field"><label>Повний опис / вихідний матеріал</label><textarea id="pDescription"></textarea></div>
+          <div class="field"><label>Ключові слова</label><input id="pTags" placeholder="zimmer, williams, symphony"></div>
+          <button class="btn green" id="saveProjectBtn">Зберегти проєкт</button><button class="btn red" id="deleteProjectBtn">Видалити</button>
+        </div>
+        <div class="panel" id="tab-seances">
+          <h2>Привʼязані сеанси</h2><div id="linkedSeances"></div>
+          <h2>Доступні сеанси</h2><div class="field"><label>Пошук сеансу</label><input id="seanceSearch" placeholder="назва / id / дата"></div><button class="btn blue" id="loadSeancesBtn">Завантажити сеанси</button><div id="availableSeances"></div>
+        </div>
+        <div class="panel" id="tab-materials">
+          <div class="warn">Тут зберігаються тільки матеріали конкретного проєкту. База знань, історії, календарі та матеріали VA будуть окремим модулем.</div>
+          <h2>Робочі матеріали проєкту</h2>
+          <div class="material-grid">
+            <div class="material-box"><h3>Вихідні матеріали</h3><p>Текст організатора, посилання, PDF, нотатки.</p><button class="btn blue" data-material="source">Відкрити</button></div>
+            <div class="material-box"><h3>Опис події</h3><p>Опис для сайту, картки події та короткий анонс.</p><button class="btn blue" data-material="event_description">Відкрити</button></div>
+            <div class="material-box"><h3>Афіша / квиток</h3><p>Слоган, підзаголовок, короткий текст для афіші та квитка.</p><button class="btn blue" data-material="poster_ticket">Відкрити</button></div>
+            <div class="material-box"><h3>Соцмережі</h3><p>Facebook, Instagram, Telegram, Viber.</p><button class="btn blue" data-material="social">Відкрити</button></div>
+            <div class="material-box"><h3>Озвучення</h3><p>Дикторський текст 30/45/60 секунд.</p><button class="btn blue" data-material="voiceover">Відкрити</button></div>
+            <div class="material-box"><h3>Відео / промпти</h3><p>Сценарій, розкадровка, промпти для генерації.</p><button class="btn blue" data-material="video_prompts">Відкрити</button></div>
+          </div>
+          <div class="field"><label id="materialEditorLabel">Редактор матеріалу</label><textarea id="materialEditor"></textarea></div><button class="btn green" id="saveMaterialBtn">Зберегти матеріал</button>
+        </div>
+        <div class="panel" id="tab-campaigns"><h2>Кампанії проєкту</h2><button class="btn blue" id="openMarketingBtn">Відкрити Marketing OS</button><button class="btn gold" id="createCampaignBtn">+ Кампанія для проєкту</button><div id="campaignList" class="empty">Кампанії підключимо наступним кроком.</div></div>
+        <div class="panel" id="tab-history"><h2>Історія проєкту</h2><div id="historyLog" class="log">Історія дій зберігатиметься тут.</div></div>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+'use strict';
+const SUPABASE_URL = window.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
+const $ = id => document.getElementById(id);
+let projects = [], selectedProject = null, currentMaterialType = 'source';
+function headers(){return {apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':'application/json'};}
+function apiReady(){return !!SUPABASE_URL && !!SUPABASE_ANON_KEY;}
+async function sb(path, options={}){if(!apiReady()) throw new Error('SUPABASE_URL / SUPABASE_ANON_KEY не задані.');const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{...options,headers:{...headers(),...(options.headers||{})}});if(!res.ok)throw new Error(await res.text()||res.statusText);if(res.status===204)return null;return await res.json();}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));}
+function logHistory(text){$('historyLog').textContent=new Date().toLocaleString()+' — '+text+'\n'+$('historyLog').textContent;}
+async function loadProjects(){try{projects=await sb('projects?select=*&order=created_at.desc');}catch(e){projects=[{id:'demo-zimmer',title:'SYMPHONY ZIMMER & WILLIAMS',status:'draft',genre:'',type:'концерт',age:'',short_description:'',description:'',tags:'zimmer,williams,symphony'},{id:'demo-acdc',title:'AC/DC',status:'active',genre:'rock',type:'концерт',age:'',short_description:'',description:'',tags:'rock,cover'}];console.warn(e);}renderProjects();}
+function renderProjects(){$('projectsList').innerHTML=projects.map(p=>`<div class="project-item ${selectedProject&&selectedProject.id===p.id?'active':''}" data-id="${p.id}"><div class="project-title">${escapeHtml(p.title||'Без назви')}</div><div class="meta"><span class="pill">${escapeHtml(p.status||'draft')}</span><br>Жанр: ${escapeHtml(p.genre||'—')}<br>Тип: ${escapeHtml(p.type||'—')}</div></div>`).join('')||'<div class="empty">Проєктів поки немає.</div>';}
+function fillPassport(p){$('workspaceTitle').textContent=p.title||'Проєкт';$('pTitle').value=p.title||'';$('pStatus').value=p.status||'draft';$('pGenre').value=p.genre||'';$('pType').value=p.type||'';$('pAge').value=p.age||'';$('pShort').value=p.short_description||'';$('pDescription').value=p.description||'';$('pTags').value=p.tags||'';}
+function selectProject(id){selectedProject=projects.find(p=>p.id===id);if(!selectedProject)return;$('noProject').style.display='none';$('projectWorkspace').style.display='block';fillPassport(selectedProject);renderProjects();loadProjectMaterial(currentMaterialType);loadLinkedSeances();}
+async function saveProject(){const payload={title:$('pTitle').value.trim()||'Без назви',status:$('pStatus').value,genre:$('pGenre').value.trim(),type:$('pType').value.trim(),age:$('pAge').value.trim(),short_description:$('pShort').value.trim(),description:$('pDescription').value.trim(),tags:$('pTags').value.trim(),updated_at:new Date().toISOString()};if(!selectedProject||selectedProject.isNew){try{const rows=await sb('projects',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)});selectedProject=rows[0];logHistory('Створено проєкт');}catch(e){payload.id='local-'+Date.now();selectedProject=payload;projects.unshift(selectedProject);alert('Supabase не підключений. Проєкт створено локально для макета.');}}else{try{await sb(`projects?id=eq.${encodeURIComponent(selectedProject.id)}`,{method:'PATCH',body:JSON.stringify(payload)});logHistory('Оновлено проєкт');}catch(e){console.warn(e);}Object.assign(selectedProject,payload);}await loadProjects();selectProject(selectedProject.id);}
+async function deleteProject(){if(!selectedProject)return;if(!confirm('Видалити проєкт?'))return;try{await sb(`projects?id=eq.${encodeURIComponent(selectedProject.id)}`,{method:'DELETE'});}catch(e){console.warn(e);}projects=projects.filter(p=>p.id!==selectedProject.id);selectedProject=null;$('projectWorkspace').style.display='none';$('noProject').style.display='block';renderProjects();}
+async function loadProjectMaterial(type){currentMaterialType=type;$('materialEditor').value='';$('materialEditorLabel').textContent='Редактор матеріалу: '+type;if(!selectedProject)return;try{const rows=await sb(`project_contents?project_id=eq.${encodeURIComponent(selectedProject.id)}&content_type=eq.${encodeURIComponent(type)}&select=*&limit=1`);if(rows&&rows[0])$('materialEditor').value=rows[0].body||'';}catch(e){console.warn(e);}}
+async function saveMaterial(){if(!selectedProject)return;const payload={project_id:selectedProject.id,content_type:currentMaterialType,body:$('materialEditor').value,updated_at:new Date().toISOString()};try{const rows=await sb(`project_contents?project_id=eq.${encodeURIComponent(selectedProject.id)}&content_type=eq.${encodeURIComponent(currentMaterialType)}&select=id&limit=1`);if(rows&&rows[0])await sb(`project_contents?id=eq.${encodeURIComponent(rows[0].id)}`,{method:'PATCH',body:JSON.stringify(payload)});else await sb('project_contents',{method:'POST',body:JSON.stringify(payload)});logHistory('Збережено матеріал: '+currentMaterialType);alert('Матеріал збережено');}catch(e){alert('Supabase не підключений або таблиця ще не створена. Текст залишився в редакторі.');console.warn(e);}}
+async function loadLinkedSeances(){if(!selectedProject)return;try{const rows=await sb(`seances?project_id=eq.${encodeURIComponent(selectedProject.id)}&select=id,title,name,date,time,status,hall,project_id&order=date.asc`);renderLinkedSeances(rows||[]);}catch(e){$('linkedSeances').innerHTML='<div class="empty">Сеанси поки не підключені або поле project_id ще не додано.</div>';}}
+async function loadAvailableSeances(){try{const q=$('seanceSearch').value.trim();const rows=await sb('seances?select=id,title,name,date,time,status,hall,project_id&order=date.asc&limit=80');const filtered=q?rows.filter(s=>JSON.stringify(s).toLowerCase().includes(q.toLowerCase())):rows;renderAvailableSeances(filtered||[]);}catch(e){$('availableSeances').innerHTML='<div class="empty">Не вдалося завантажити сеанси.</div>';}}
+function renderLinkedSeances(rows){$('linkedSeances').innerHTML=rows.length?tableSeances(rows,true):'<div class="empty">До проєкту ще не привʼязано сеансів.</div>';}
+function renderAvailableSeances(rows){$('availableSeances').innerHTML=rows.length?tableSeances(rows,false):'<div class="empty">Сеансів не знайдено.</div>';}
+function tableSeances(rows,linked){return `<table><thead><tr><th>Назва</th><th>Дата</th><th>Час</th><th>Зал</th><th>Статус</th><th></th></tr></thead><tbody>${rows.map(s=>`<tr><td>${escapeHtml(s.title||s.name||s.id)}</td><td>${escapeHtml(s.date||'—')}</td><td>${escapeHtml(s.time||'—')}</td><td>${escapeHtml(s.hall||'—')}</td><td>${escapeHtml(s.status||'—')}</td><td>${linked?`<button class="btn red" data-unlink="${s.id}">Відвʼязати</button>`:`<button class="btn blue" data-link="${s.id}">Привʼязати</button>`}</td></tr>`).join('')}</tbody></table>`;}
+async function linkSeance(id){if(!selectedProject)return;try{await sb(`seances?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify({project_id:selectedProject.id})});await loadLinkedSeances();await loadAvailableSeances();}catch(e){alert('Потрібно додати поле project_id у таблицю seances.');}}
+async function unlinkSeance(id){try{await sb(`seances?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify({project_id:null})});await loadLinkedSeances();await loadAvailableSeances();}catch(e){console.warn(e);}}
+document.addEventListener('click',e=>{const projectItem=e.target.closest('.project-item');if(projectItem)selectProject(projectItem.dataset.id);const tab=e.target.closest('.tab');if(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');$('tab-'+tab.dataset.tab).classList.add('active');}const materialBtn=e.target.closest('[data-material]');if(materialBtn)loadProjectMaterial(materialBtn.dataset.material);const linkBtn=e.target.closest('[data-link]');if(linkBtn)linkSeance(linkBtn.dataset.link);const unlinkBtn=e.target.closest('[data-unlink]');if(unlinkBtn)unlinkSeance(unlinkBtn.dataset.unlink);});
+$('newProjectBtn').onclick=()=>{selectedProject={id:'new',isNew:true,title:'Новий проєкт',status:'draft',genre:'',type:'',age:'',short_description:'',description:'',tags:''};$('noProject').style.display='none';$('projectWorkspace').style.display='block';fillPassport(selectedProject);};
+$('reloadBtn').onclick=loadProjects;$('saveProjectBtn').onclick=saveProject;$('deleteProjectBtn').onclick=deleteProject;$('saveMaterialBtn').onclick=saveMaterial;$('loadSeancesBtn').onclick=loadAvailableSeances;
+$('openMarketingBtn').onclick=()=>{const id=selectedProject?encodeURIComponent(selectedProject.id):'';location.href=`marketing.html?project_id=${id}`;};
+$('createCampaignBtn').onclick=()=>{const id=selectedProject?encodeURIComponent(selectedProject.id):'';location.href=`marketing.html?project_id=${id}&new_campaign=1`;};
+loadProjects();
+</script>
+</body>
+</html>
