@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>VA • Продажі</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root{
+      --bg:#0b0b0f; --card:#15151d; --card2:#1d1d27;
+      --text:#f5f5f7; --muted:#9ca3af; --line:#2a2a36;
+      --green:#22c55e; --red:#ef4444; --blue:#38bdf8;
+      --yellow:#f59e0b; --accent:#7f1d1d;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(circle at top,#241111,#08080c 55%);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+    .wrap{max-width:1280px;margin:0 auto;padding:22px}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:20px}
+    h1{margin:0 0 6px;font-size:28px;letter-spacing:.04em;text-transform:uppercase}
+    h2{margin-top:0}
+    .sub{color:var(--muted);font-size:14px}
+    .status{padding:10px 14px;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:12px;font-size:14px;color:var(--muted)}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    select,input,button{background:#111118;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+    button{cursor:pointer;background:var(--accent);border-color:#9f1239}
+    .grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
+    .card{background:linear-gradient(180deg,var(--card),#101018);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.25)}
+    .metric-title{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+    .metric-value{font-size:30px;font-weight:800;line-height:1}
+    .metric-note{margin-top:8px;color:var(--muted);font-size:13px}
+    .green{color:var(--green)} .red{color:var(--red)} .blue{color:var(--blue)} .yellow{color:var(--yellow)}
+    .main{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
+    th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+    .bar{height:8px;background:#262632;border-radius:999px;overflow:hidden;margin-top:6px}
+    .bar span{display:block;height:100%;background:var(--green);width:0%}
+    .empty{color:var(--muted);padding:12px 0}
+    @media(max-width:1050px){.grid5{grid-template-columns:1fr 1fr 1fr}.main{grid-template-columns:1fr}}
+    @media(max-width:560px){.grid5{grid-template-columns:1fr}.top{display:block}}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <h1>Продажі</h1>
+      <div class="sub" id="periodInfo">Аналітика продажів за вибраний період</div>
+
+      <div class="controls">
+        <select id="periodSelect">
+          <option value="today">Сьогодні</option>
+          <option value="week">Тиждень</option>
+          <option value="month" selected>Місяць</option>
+          <option value="season">Сезон</option>
+          <option value="all">Весь час</option>
+        </select>
+
+        <select id="seanceSelect">
+          <option value="all">Усі сеанси</option>
+        </select>
+
+        <button onclick="loadData()">Оновити</button>
+      </div>
+    </div>
+
+    <div class="status" id="liveStatus">Статус: очікування даних</div>
+  </div>
+
+  <div class="grid5">
+    <div class="card">
+      <div class="metric-title">Квитків</div>
+      <div class="metric-value" id="ticketsCount">0</div>
+      <div class="metric-note">усього оформлено</div>
+    </div>
+
+    <div class="card">
+      <div class="metric-title">Сума</div>
+      <div class="metric-value green" id="totalAmount">0 ₴</div>
+      <div class="metric-note">за квитками</div>
+    </div>
+
+    <div class="card">
+      <div class="metric-title">Середній чек</div>
+      <div class="metric-value blue" id="avgCheck">0 ₴</div>
+      <div class="metric-note">сума / квитки</div>
+    </div>
+
+    <div class="card">
+      <div class="metric-title">Запрошення</div>
+      <div class="metric-value yellow" id="invitationCount">0</div>
+      <div class="metric-note">безоплатні / запрошені</div>
+    </div>
+
+    <div class="card">
+      <div class="metric-title">Компенсації</div>
+      <div class="metric-value red" id="compCount">0</div>
+      <div class="metric-note">компенсаційні квитки</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="card">
+      <h2>Канали продажів</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Канал</th>
+            <th>Квитків</th>
+            <th>Сума</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody id="channelRows"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Типи квитків</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Тип</th>
+            <th>Квитків</th>
+            <th>Сума</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody id="typeRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TYPE_LABELS = {
+  full: "Звичайний",
+  regular: "Звичайний",
+  standard: "Звичайний",
+  vip: "VIP",
+  discount: "Пільговий",
+  child: "Дитячий",
+  promo: "Акційний",
+  invitation: "Запрошення",
+  service: "Службовий",
+  compensation: "Компенсаційний",
+  free: "Безкоштовний",
+  rental: "Оренда",
+  undefined: "Не вказано",
+  null: "Не вказано"
+};
+
+const CHANNEL_LABELS = {
+  cash: "Каса",
+  online: "Онлайн",
+  site: "Сайт",
+  partner: "Партнер",
+  operator: "Оператор",
+  referral: "Реферал",
+  authorized: "Уповноважені",
+  undefined: "Не вказано",
+  null: "Не вказано"
+};
+
+async function init(){
+  await loadSeances();
+  await loadData();
+
+  document.getElementById("periodSelect").onchange = loadData;
+  document.getElementById("seanceSelect").onchange = loadData;
+}
+
+async function loadSeances(){
+  const select = document.getElementById("seanceSelect");
+
+  const { data, error } = await sb
+    .from("seances")
+    .select("id,show,date,time,venue_id,status,active")
+    .order("date", { ascending: true });
+
+  if(error){
+    console.error("loadSeances error:", error);
+    return;
+  }
+
+  const current = select.value || "all";
+  select.innerHTML = `<option value="all">Усі сеанси</option>`;
+
+  (data || []).forEach(s => {
+    const title = s.show || "Без назви";
+    const dateTime = `${s.date || ""} ${s.time || ""}`.trim();
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${title} • ${dateTime}`;
+    select.appendChild(opt);
+  });
+
+  select.value = current;
+}
+
+function getPeriodRange(){
+  const period = document.getElementById("periodSelect").value;
+  const now = new Date();
+  let from = null;
+
+  if(period === "today"){
+    from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  if(period === "week"){
+    from = new Date(now);
+    from.setDate(now.getDate() - 7);
+  }
+
+  if(period === "month"){
+    from = new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  if(period === "season"){
+    from = new Date(now.getFullYear(), 0, 1);
+  }
+
+  if(period === "all"){
+    return null;
+  }
+
+  return from ? from.toISOString() : null;
+}
+
+async function loadData(){
+  document.getElementById("liveStatus").textContent = "Статус: оновлення...";
+
+  const seanceId = document.getElementById("seanceSelect").value;
+  const fromDate = getPeriodRange();
+
+  let query = sb
+    .from("tickets")
+    .select("id,seance_id,seat_label,price,channel,ticket_type,checked_in_at,checked_in_by,created_at");
+
+  if(seanceId && seanceId !== "all"){
+    query = query.eq("seance_id", seanceId);
+  }
+
+  if(fromDate){
+    query = query.gte("created_at", fromDate);
+  }
+
+  const { data, error } = await query;
+
+  if(error){
+    console.error("tickets error:", error);
+    document.getElementById("liveStatus").textContent = "Статус: помилка завантаження";
+    return;
+  }
+
+  const tickets = data || [];
+
+  renderSummary(tickets);
+  renderGroupedTable(tickets, "channel", "channelRows", CHANNEL_LABELS);
+  renderGroupedTable(tickets, "ticket_type", "typeRows", TYPE_LABELS);
+
+  document.getElementById("periodInfo").textContent =
+    `Показано квитків: ${tickets.length}`;
+
+  document.getElementById("liveStatus").textContent =
+    "Статус: дані оновлено " + new Date().toLocaleTimeString("uk-UA");
+}
+
+function renderSummary(tickets){
+  const count = tickets.length;
+  const total = tickets.reduce((sum, t) => sum + normalizeMoney(t.price), 0);
+  const avg = count ? Math.round(total / count) : 0;
+
+  const invitations = tickets.filter(t => normalizeKey(t.ticket_type) === "invitation" || normalizeKey(t.ticket_type) === "free").length;
+  const compensations = tickets.filter(t => normalizeKey(t.ticket_type) === "compensation").length;
+
+  document.getElementById("ticketsCount").textContent = count;
+  document.getElementById("totalAmount").textContent = formatMoney(total);
+  document.getElementById("avgCheck").textContent = formatMoney(avg);
+  document.getElementById("invitationCount").textContent = invitations;
+  document.getElementById("compCount").textContent = compensations;
+}
+
+function renderGroupedTable(tickets, field, tbodyId, labels){
+  const grouped = {};
+  const totalCount = tickets.length;
+
+  tickets.forEach(t => {
+    const raw = t[field] ?? "undefined";
+    const key = normalizeKey(raw);
+    const label = labels[key] || raw || "Не вказано";
+
+    if(!grouped[label]){
+      grouped[label] = { count:0, amount:0 };
+    }
+
+    grouped[label].count++;
+    grouped[label].amount += normalizeMoney(t.price);
+  });
+
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = "";
+
+  const keys = Object.keys(grouped).sort();
+
+  if(!keys.length){
+    tbody.innerHTML = `<tr><td colspan="4" class="empty">Немає даних</td></tr>`;
+    return;
+  }
+
+  keys.forEach(label => {
+    const item = grouped[label];
+    const percent = totalCount ? Math.round((item.count / totalCount) * 100) : 0;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+        <strong>${escapeHtml(label)}</strong>
+        <div class="bar"><span style="width:${percent}%"></span></div>
+      </td>
+      <td>${item.count}</td>
+      <td>${formatMoney(item.amount)}</td>
+      <td>${percent}%</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function normalizeMoney(value){
+  const n = Number(value || 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function normalizeKey(value){
+  return String(value ?? "undefined").toLowerCase().trim();
+}
+
+function formatMoney(value){
+  return `${Math.round(value).toLocaleString("uk-UA")} ₴`;
+}
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+init();
+</script>
+
+</body>
+</html>
