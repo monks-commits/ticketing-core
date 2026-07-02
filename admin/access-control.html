@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>VA • Контроль доступу</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />   
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    :root{ 
+    :root{
       --bg:#0b0b0f;
       --card:#15151d;
       --card2:#1d1d27;
@@ -327,14 +327,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-/* =====================================================
-   VA ACCESS CONTROL
-   ===================================================== */
-
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS"; 
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-const db = window.supabase.createClient(
+const sb = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
@@ -357,6 +353,7 @@ const TYPE_LABELS = {
 };
 
 const INCIDENT_LABELS = {
+  checkin_ok: "Прохід дозволено",
   duplicate_attempt: "Повторний прохід",
   invalid_token: "Недійсний токен",
   wrong_seance: "Інший сеанс",
@@ -368,23 +365,23 @@ const INCIDENT_LABELS = {
 async function init(){
   await loadSeances();
   await loadData();
-
   setInterval(loadData, 5000);
-
   tryRealtime();
 }
 
 async function loadSeances(){
   const select = document.getElementById("seanceSelect");
 
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from("seances")
     .select("id,title,show_title,event_title,starts_at,date,time,venue,hall,active")
     .order("starts_at", { ascending: true })
     .limit(30);
 
   if(error){
+    console.error("loadSeances error:", error);
     select.innerHTML = `<option>Помилка завантаження сеансів</option>`;
+    document.getElementById("liveStatus").textContent = "Статус: помилка завантаження сеансів";
     return;
   }
 
@@ -407,25 +404,29 @@ async function loadSeances(){
     select.value = CURRENT_SEANCE_ID;
   }
 
-  select.addEventListener("change", () => {
+  select.onchange = () => {
     CURRENT_SEANCE_ID = select.value;
     loadData();
-  });
+  };
 }
 
 async function loadData(){
-  if(!CURRENT_SEANCE_ID) return;
+  if(!CURRENT_SEANCE_ID){
+    document.getElementById("seanceInfo").textContent = "Немає доступних сеансів";
+    document.getElementById("liveStatus").textContent = "Статус: немає сеансу";
+    return;
+  }
 
   document.getElementById("liveStatus").textContent = "Статус: оновлення...";
 
-  const [seanceRes, ticketsRes, eventsRes] = await Promise.all([
-    supabase
+  const [seanceRes, ticketsRes, events] = await Promise.all([
+    sb
       .from("seances")
       .select("*")
       .eq("id", CURRENT_SEANCE_ID)
       .single(),
 
-    db
+    sb
       .from("tickets")
       .select("*")
       .eq("seance_id", CURRENT_SEANCE_ID),
@@ -433,21 +434,28 @@ async function loadData(){
     loadAccessEvents()
   ]);
 
-  const seance = seanceRes.data;
+  if(seanceRes.error){
+    console.error("seance error:", seanceRes.error);
+  }
+
+  if(ticketsRes.error){
+    console.error("tickets error:", ticketsRes.error);
+  }
+
+  const seance = seanceRes.data || null;
   const tickets = ticketsRes.data || [];
-  const events = eventsRes || [];
 
   renderSeance(seance);
   renderTickets(tickets);
-  renderIncidents(events);
-  renderLog(events, tickets);
+  renderIncidents(events || []);
+  renderLog(events || []);
 
   document.getElementById("liveStatus").textContent =
     "Статус: дані оновлено " + new Date().toLocaleTimeString("uk-UA");
 }
 
 async function loadAccessEvents(){
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from("access_events")
     .select("*")
     .eq("seance_id", CURRENT_SEANCE_ID)
@@ -455,6 +463,7 @@ async function loadAccessEvents(){
     .limit(50);
 
   if(error){
+    console.warn("access_events unavailable:", error);
     return [];
   }
 
@@ -526,6 +535,14 @@ function renderTickets(tickets){
 
     tbody.appendChild(tr);
   });
+
+  if(!Object.keys(byType).length){
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" style="color:var(--muted)">Немає квитків по цьому сеансу</td>
+      </tr>
+    `;
+  }
 }
 
 function renderIncidents(events){
@@ -543,7 +560,7 @@ function renderIncidents(events){
   document.getElementById("incidentTotal").textContent = total;
 }
 
-function renderLog(events, tickets){
+function renderLog(events){
   const box = document.getElementById("eventLog");
   box.innerHTML = "";
 
@@ -578,7 +595,7 @@ function renderLog(events, tickets){
 
 function tryRealtime(){
   try{
-    db.channel("access-control-" + CURRENT_SEANCE_ID)
+    sb.channel("access-control-" + CURRENT_SEANCE_ID)
       .on(
         "postgres_changes",
         {
