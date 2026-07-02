@@ -578,8 +578,7 @@ function renderLog(events, tickets){
 
 function tryRealtime(){
   try{
-    supabase
-      .channel("access-control-" + CURRENT_SEANCE_ID)
+    db.channel("access-control-" + CURRENT_SEANCE_ID)
       .on(
         "postgres_changes",
         {
