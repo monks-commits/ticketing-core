@@ -2,232 +2,41 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA • Контроль доступу</title> 
+  <title>VA • Контроль доступу</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     :root{
-      --bg:#0b0b0f;
-      --card:#15151d;
-      --card2:#1d1d27;
-      --text:#f5f5f7;
-      --muted:#9ca3af;
-      --line:#2a2a36;
-      --green:#22c55e;
-      --yellow:#f59e0b;
-      --red:#ef4444;
-      --blue:#38bdf8;
-      --accent:#7f1d1d;
+      --bg:#0b0b0f; --card:#15151d; --card2:#1d1d27;
+      --text:#f5f5f7; --muted:#9ca3af; --line:#2a2a36;
+      --green:#22c55e; --red:#ef4444; --blue:#38bdf8; --accent:#7f1d1d;
     }
-
     *{box-sizing:border-box}
-
-    body{
-      margin:0;
-      background:radial-gradient(circle at top,#241111,#08080c 55%);
-      color:var(--text);
-      font-family:Arial, Helvetica, sans-serif;
-    }
-
-    .wrap{
-      max-width:1280px;
-      margin:0 auto;
-      padding:22px;
-    }
-
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:20px;
-      margin-bottom:20px;
-    }
-
-    h1{
-      margin:0 0 6px;
-      font-size:28px;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-    }
-
-    .sub{
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .status{
-      padding:10px 14px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.04);
-      border-radius:12px;
-      font-size:14px;
-      color:var(--muted);
-    }
-
-    .grid4{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .card{
-      background:linear-gradient(180deg,var(--card),#101018);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:18px;
-      box-shadow:0 12px 35px rgba(0,0,0,.25);
-    }
-
-    .metric-title{
-      color:var(--muted);
-      font-size:13px;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      margin-bottom:8px;
-    }
-
-    .metric-value{
-      font-size:34px;
-      font-weight:800;
-      line-height:1;
-    }
-
-    .metric-note{
-      margin-top:8px;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .green{color:var(--green)}
-    .yellow{color:var(--yellow)}
-    .red{color:var(--red)}
-    .blue{color:var(--blue)}
-
-    .main{
-      display:grid;
-      grid-template-columns:1.2fr .8fr;
-      gap:16px;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:14px;
-    }
-
-    th,td{
-      padding:12px 10px;
-      border-bottom:1px solid var(--line);
-      text-align:left;
-    }
-
-    th{
-      color:var(--muted);
-      font-weight:600;
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.05em;
-    }
-
-    .bar{
-      height:8px;
-      background:#262632;
-      border-radius:999px;
-      overflow:hidden;
-      margin-top:6px;
-    }
-
-    .bar > span{
-      display:block;
-      height:100%;
-      background:var(--green);
-      width:0%;
-    }
-
-    .incident-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-
-    .incident{
-      background:var(--card2);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
-    }
-
-    .incident strong{
-      display:block;
-      font-size:26px;
-      margin-bottom:4px;
-    }
-
-    .incident span{
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .log{
-      margin-top:16px;
-      max-height:360px;
-      overflow:auto;
-    }
-
-    .log-row{
-      display:grid;
-      grid-template-columns:70px 1fr auto;
-      gap:10px;
-      padding:11px 0;
-      border-bottom:1px solid var(--line);
-      font-size:14px;
-      align-items:center;
-    }
-
-    .pill{
-      padding:4px 8px;
-      border-radius:999px;
-      font-size:12px;
-      background:#242432;
-      color:var(--muted);
-      white-space:nowrap;
-    }
-
-    .pill.ok{background:rgba(34,197,94,.14); color:var(--green)}
-    .pill.warn{background:rgba(245,158,11,.14); color:var(--yellow)}
-    .pill.bad{background:rgba(239,68,68,.14); color:var(--red)}
-
-    select,button{
-      background:#111118;
-      color:var(--text);
-      border:1px solid var(--line);
-      border-radius:10px;
-      padding:10px 12px;
-    }
-
-    button{
-      cursor:pointer;
-      background:var(--accent);
-      border-color:#9f1239;
-    }
-
-    .controls{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:12px;
-    }
-
-    @media(max-width:900px){
-      .grid4{grid-template-columns:1fr 1fr}
-      .main{grid-template-columns:1fr}
-    }
-
-    @media(max-width:560px){
-      .grid4{grid-template-columns:1fr}
-      .top{display:block}
-    }
+    body{margin:0;background:radial-gradient(circle at top,#241111,#08080c 55%);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+    .wrap{max-width:1280px;margin:0 auto;padding:22px}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:20px}
+    h1{margin:0 0 6px;font-size:28px;letter-spacing:.04em;text-transform:uppercase}
+    h2{margin-top:0}
+    .sub{color:var(--muted);font-size:14px}
+    .status{padding:10px 14px;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:12px;font-size:14px;color:var(--muted)}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+    .card{background:linear-gradient(180deg,var(--card),#101018);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.25)}
+    .metric-title{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+    .metric-value{font-size:34px;font-weight:800;line-height:1}
+    .metric-note{margin-top:8px;color:var(--muted);font-size:13px}
+    .green{color:var(--green)} .red{color:var(--red)} .blue{color:var(--blue)}
+    .main{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
+    th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+    .bar{height:8px;background:#262632;border-radius:999px;overflow:hidden;margin-top:6px}
+    .bar span{display:block;height:100%;background:var(--green);width:0%}
+    select,button{background:#111118;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+    button{cursor:pointer;background:var(--accent);border-color:#9f1239}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .empty{color:var(--muted);padding:12px 0}
+    @media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}.main{grid-template-columns:1fr}}
+    @media(max-width:560px){.grid4{grid-template-columns:1fr}.top{display:block}}
   </style>
 </head>
 
@@ -238,48 +47,40 @@
     <div>
       <h1>Контроль доступу</h1>
       <div class="sub" id="seanceInfo">Поточний сеанс завантажується...</div>
-
       <div class="controls">
         <select id="seanceSelect"></select>
         <button onclick="loadData()">Оновити</button>
       </div>
     </div>
-
-    <div class="status" id="liveStatus">
-      Статус: очікування даних
-    </div>
+    <div class="status" id="liveStatus">Статус: очікування даних</div>
   </div>
 
   <div class="grid4">
     <div class="card">
       <div class="metric-title">Оформлено</div>
       <div class="metric-value" id="totalExpected">0</div>
-      <div class="metric-note">продано / запрошено / службові</div>
+      <div class="metric-note">усі квитки по сеансу</div>
     </div>
-
     <div class="card">
       <div class="metric-title">Пройшло</div>
       <div class="metric-value green" id="totalPassed">0</div>
-      <div class="metric-note">за скануванням QR</div>
+      <div class="metric-note">checked_in_at заповнено</div>
     </div>
-
     <div class="card">
       <div class="metric-title">Явка</div>
       <div class="metric-value blue" id="attendanceRate">0%</div>
       <div class="metric-note">пройшло / оформлено</div>
     </div>
-
     <div class="card">
-      <div class="metric-title">Інциденти</div>
-      <div class="metric-value red" id="incidentTotal">0</div>
-      <div class="metric-note">повтор, помилки, ручний допуск</div>
+      <div class="metric-title">Не пройшло</div>
+      <div class="metric-value red" id="notPassed">0</div>
+      <div class="metric-note">оформлено, але не скановано</div>
     </div>
   </div>
 
   <div class="main">
     <div class="card">
       <h2>Типи квитків</h2>
-
       <table>
         <thead>
           <tr>
@@ -294,31 +95,18 @@
     </div>
 
     <div class="card">
-      <h2>Інциденти</h2>
-
-      <div class="incident-grid">
-        <div class="incident">
-          <strong id="dupCount">0</strong>
-          <span>Повторний прохід</span>
-        </div>
-
-        <div class="incident">
-          <strong id="invalidCount">0</strong>
-          <span>Недійсний токен</span>
-        </div>
-
-        <div class="incident">
-          <strong id="wrongCount">0</strong>
-          <span>Інший сеанс</span>
-        </div>
-
-        <div class="incident">
-          <strong id="manualCount">0</strong>
-          <span>Ручний допуск</span>
-        </div>
-      </div>
-
-      <div class="log" id="eventLog"></div>
+      <h2>Канали</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Канал</th>
+            <th>Очікується</th>
+            <th>Пройшло</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody id="channelRows"></tbody>
+      </table>
     </div>
   </div>
 
@@ -330,14 +118,12 @@
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-const sb = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let CURRENT_SEANCE_ID = new URLSearchParams(location.search).get("seance_id") || null;
 
 const TYPE_LABELS = {
+  full: "Звичайний",
   regular: "Звичайний",
   standard: "Звичайний",
   vip: "VIP",
@@ -352,21 +138,21 @@ const TYPE_LABELS = {
   null: "Не вказано"
 };
 
-const INCIDENT_LABELS = {
-  checkin_ok: "Прохід дозволено",
-  duplicate_attempt: "Повторний прохід",
-  invalid_token: "Недійсний токен",
-  wrong_seance: "Інший сеанс",
-  manual_allow: "Ручний допуск",
-  compensation_used: "Компенсація",
-  offline_checkin: "Офлайн-прохід"
+const CHANNEL_LABELS = {
+  cash: "Каса",
+  online: "Онлайн",
+  site: "Сайт",
+  partner: "Партнер",
+  operator: "Оператор",
+  referral: "Реферал",
+  undefined: "Не вказано",
+  null: "Не вказано"
 };
 
 async function init(){
   await loadSeances();
   await loadData();
   setInterval(loadData, 5000);
-  tryRealtime();
 }
 
 async function loadSeances(){
@@ -374,30 +160,32 @@ async function loadSeances(){
 
   const { data, error } = await sb
     .from("seances")
-    .select("id,title,show_title,event_title,starts_at,date,time,venue,hall,active")
-    .order("starts_at", { ascending: true })
-    .limit(30);
+    .select("id,show,date,time,venue_id,status,active")
+    .order("date", { ascending: true });
 
   if(error){
     console.error("loadSeances error:", error);
     select.innerHTML = `<option>Помилка завантаження сеансів</option>`;
-    document.getElementById("liveStatus").textContent = "Статус: помилка завантаження сеансів";
+    document.getElementById("seanceInfo").textContent = "Немає доступних сеансів";
+    document.getElementById("liveStatus").textContent = "Статус: помилка";
     return;
   }
 
   select.innerHTML = "";
 
-  (data || []).forEach(s => {
-    const title = s.title || s.show_title || s.event_title || "Без назви";
-    const date = s.starts_at || s.date || "";
+  const rows = data || [];
+
+  rows.forEach(s => {
+    const title = s.show || "Без назви";
+    const dateTime = `${s.date || ""} ${s.time || ""}`.trim();
     const opt = document.createElement("option");
     opt.value = s.id;
-    opt.textContent = `${title} • ${date}`;
+    opt.textContent = `${title} • ${dateTime}`;
     select.appendChild(opt);
   });
 
-  if(!CURRENT_SEANCE_ID && data && data.length){
-    CURRENT_SEANCE_ID = data[0].id;
+  if(!CURRENT_SEANCE_ID && rows.length){
+    CURRENT_SEANCE_ID = rows[0].id;
   }
 
   if(CURRENT_SEANCE_ID){
@@ -419,19 +207,15 @@ async function loadData(){
 
   document.getElementById("liveStatus").textContent = "Статус: оновлення...";
 
-  const [seanceRes, ticketsRes, events] = await Promise.all([
-    sb
-      .from("seances")
-      .select("*")
+  const [seanceRes, ticketsRes] = await Promise.all([
+    sb.from("seances")
+      .select("id,show,date,time,venue_id,status,active")
       .eq("id", CURRENT_SEANCE_ID)
       .single(),
 
-    sb
-      .from("tickets")
-      .select("*")
-      .eq("seance_id", CURRENT_SEANCE_ID),
-
-    loadAccessEvents()
+    sb.from("tickets")
+      .select("id,seance_id,seat_label,price,channel,ticket_type,checked_in_at,checked_in_by")
+      .eq("seance_id", CURRENT_SEANCE_ID)
   ]);
 
   if(seanceRes.error){
@@ -440,34 +224,20 @@ async function loadData(){
 
   if(ticketsRes.error){
     console.error("tickets error:", ticketsRes.error);
+    document.getElementById("liveStatus").textContent = "Статус: помилка квитків";
+    return;
   }
 
   const seance = seanceRes.data || null;
   const tickets = ticketsRes.data || [];
 
   renderSeance(seance);
-  renderTickets(tickets);
-  renderIncidents(events || []);
-  renderLog(events || []);
+  renderSummary(tickets);
+  renderGroupedTable(tickets, "ticket_type", "typeRows", TYPE_LABELS);
+  renderGroupedTable(tickets, "channel", "channelRows", CHANNEL_LABELS);
 
   document.getElementById("liveStatus").textContent =
     "Статус: дані оновлено " + new Date().toLocaleTimeString("uk-UA");
-}
-
-async function loadAccessEvents(){
-  const { data, error } = await sb
-    .from("access_events")
-    .select("*")
-    .eq("seance_id", CURRENT_SEANCE_ID)
-    .order("created_at", { ascending:false })
-    .limit(50);
-
-  if(error){
-    console.warn("access_events unavailable:", error);
-    return [];
-  }
-
-  return data || [];
 }
 
 function renderSeance(seance){
@@ -476,51 +246,64 @@ function renderSeance(seance){
     return;
   }
 
-  const title = seance.title || seance.show_title || seance.event_title || "Без назви";
-  const venue = seance.venue || seance.hall || "";
-  const date = seance.starts_at || seance.date || "";
+  const title = seance.show || "Без назви";
+  const venue = seance.venue_id || "";
+  const date = seance.date || "";
   const time = seance.time || "";
+  const status = seance.status || "";
 
   document.getElementById("seanceInfo").textContent =
-    `${title} • ${date} ${time} • ${venue}`;
+    `${title} • ${date} ${time} • ${venue} • ${status}`;
 }
 
-function renderTickets(tickets){
-  const byType = {};
+function renderSummary(tickets){
+  const total = tickets.length;
+  const passed = tickets.filter(t => !!t.checked_in_at).length;
+  const notPassed = total - passed;
+  const rate = total ? Math.round((passed / total) * 100) : 0;
+
+  document.getElementById("totalExpected").textContent = total;
+  document.getElementById("totalPassed").textContent = passed;
+  document.getElementById("notPassed").textContent = notPassed;
+  document.getElementById("attendanceRate").textContent = rate + "%";
+}
+
+function renderGroupedTable(tickets, field, tbodyId, labels){
+  const grouped = {};
 
   tickets.forEach(t => {
-    const raw = t.ticket_type || t.ticket_type_label || t.type || "undefined";
+    const raw = t[field] ?? "undefined";
     const key = String(raw).toLowerCase();
-    const label = TYPE_LABELS[key] || raw || "Не вказано";
+    const label = labels[key] || raw || "Не вказано";
 
-    if(!byType[label]){
-      byType[label] = {
-        expected:0,
-        passed:0
-      };
+    if(!grouped[label]){
+      grouped[label] = { expected:0, passed:0 };
     }
 
-    byType[label].expected++;
+    grouped[label].expected++;
 
     if(t.checked_in_at){
-      byType[label].passed++;
+      grouped[label].passed++;
     }
   });
 
-  const totalExpected = tickets.length;
-  const totalPassed = tickets.filter(t => !!t.checked_in_at).length;
-  const rate = totalExpected ? Math.round(totalPassed / totalExpected * 100) : 0;
-
-  document.getElementById("totalExpected").textContent = totalExpected;
-  document.getElementById("totalPassed").textContent = totalPassed;
-  document.getElementById("attendanceRate").textContent = rate + "%";
-
-  const tbody = document.getElementById("typeRows");
+  const tbody = document.getElementById(tbodyId);
   tbody.innerHTML = "";
 
-  Object.keys(byType).sort().forEach(label => {
-    const item = byType[label];
-    const percent = item.expected ? Math.round(item.passed / item.expected * 100) : 0;
+  const keys = Object.keys(grouped).sort();
+
+  if(!keys.length){
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="empty">Немає даних</td>
+      </tr>
+    `;
+    return;
+  }
+
+  keys.forEach(label => {
+    const item = grouped[label];
+    const percent = item.expected ? Math.round((item.passed / item.expected) * 100) : 0;
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -532,94 +315,8 @@ function renderTickets(tickets){
       <td>${item.passed}</td>
       <td>${percent}%</td>
     `;
-
     tbody.appendChild(tr);
   });
-
-  if(!Object.keys(byType).length){
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="4" style="color:var(--muted)">Немає квитків по цьому сеансу</td>
-      </tr>
-    `;
-  }
-}
-
-function renderIncidents(events){
-  const duplicate = events.filter(e => e.event_type === "duplicate_attempt").length;
-  const invalid = events.filter(e => e.event_type === "invalid_token").length;
-  const wrong = events.filter(e => e.event_type === "wrong_seance").length;
-  const manual = events.filter(e => e.event_type === "manual_allow").length;
-
-  const total = duplicate + invalid + wrong + manual;
-
-  document.getElementById("dupCount").textContent = duplicate;
-  document.getElementById("invalidCount").textContent = invalid;
-  document.getElementById("wrongCount").textContent = wrong;
-  document.getElementById("manualCount").textContent = manual;
-  document.getElementById("incidentTotal").textContent = total;
-}
-
-function renderLog(events){
-  const box = document.getElementById("eventLog");
-  box.innerHTML = "";
-
-  if(!events.length){
-    box.innerHTML = `<div class="sub">Журнал інцидентів поки порожній</div>`;
-    return;
-  }
-
-  events.forEach(e => {
-    const time = e.created_at
-      ? new Date(e.created_at).toLocaleTimeString("uk-UA", {hour:"2-digit", minute:"2-digit"})
-      : "";
-
-    const type = e.event_type || "";
-    const label = INCIDENT_LABELS[type] || type;
-
-    let pillClass = "warn";
-    if(type === "checkin_ok") pillClass = "ok";
-    if(type === "invalid_token" || type === "wrong_seance") pillClass = "bad";
-
-    const row = document.createElement("div");
-    row.className = "log-row";
-    row.innerHTML = `
-      <div>${time}</div>
-      <div>${escapeHtml(label)} ${e.seat_label ? "• " + escapeHtml(e.seat_label) : ""}</div>
-      <div class="pill ${pillClass}">${escapeHtml(type)}</div>
-    `;
-
-    box.appendChild(row);
-  });
-}
-
-function tryRealtime(){
-  try{
-    sb.channel("access-control-" + CURRENT_SEANCE_ID)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tickets",
-          filter: `seance_id=eq.${CURRENT_SEANCE_ID}`
-        },
-        () => loadData()
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "access_events",
-          filter: `seance_id=eq.${CURRENT_SEANCE_ID}`
-        },
-        () => loadData()
-      )
-      .subscribe();
-  }catch(e){
-    console.warn("Realtime unavailable", e);
-  }
 }
 
 function escapeHtml(value){
