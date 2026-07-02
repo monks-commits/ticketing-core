@@ -425,7 +425,7 @@ async function loadData(){
       .eq("id", CURRENT_SEANCE_ID)
       .single(),
 
-    supabase
+    db
       .from("tickets")
       .select("*")
       .eq("seance_id", CURRENT_SEANCE_ID),
