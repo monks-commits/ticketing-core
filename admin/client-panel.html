@@ -339,51 +339,41 @@ input{
     </div>
   </header>
 
-  <section class="grid">
-    <a class="card nav-card" id="linkSeances" href="#activeSeances"> 
-      <div class="ico">🎭</div>
-      <div>
-        <h3>Сеанси</h3>
-        <p>Список активних подій цієї площадки.</p>
-      </div>
-    </a>
+ <section class="grid">
 
-    <a class="card nav-card" id="linkEditor" href="./seance-editor.html">
-      <div class="ico">🎛️</div>
-      <div>
-        <h3>Редактор</h3>
-        <p>Ціни, кольори, афіша, preview залу.</p>
-      </div>
-    </a>
+  <a class="card nav-card" href="#" onclick="goManage(); return false;">
+    <div class="ico">🟢</div>
+    <div>
+      <h3>Стан продажів</h3>
+      <p>Глобальне увімкнення / вимкнення онлайн-продажів.</p>
+    </div>
+  </a>
 
-<a class="card nav-card" href="#" onclick="goManage()">
-  <div class="ico">🗂️</div>
-  <div>
-    <h3>Керування</h3>
-    <p>Архів, активні сеанси, контроль статусів.</p>
-  </div>
-</a>
+  <a class="card nav-card" id="createSeanceTopBtn" href="./seance-editor.html">
+    <div class="ico">➕</div>
+    <div>
+      <h3>Створити сеанс</h3>
+      <p>Створення підстави для обороту квитків.</p>
+    </div>
+  </a>
 
-<a class="card nav-card" href="#" onclick="goCash()">
-  <div class="ico">🎟️</div>
-  <div>
-    <h3>Загальна каса</h3>
-    <p>Перевірка каси, sync та ручний контроль продажів.</p>
-  </div>
-</a>
-    
-  
+  <a class="card nav-card" href="#" onclick="goTurnover(); return false;">
+    <div class="ico">🎫</div>
+    <div>
+      <h3>Оборот квитків</h3>
+      <p>Випуск, видача, повернення, компенсації, залишки.</p>
+    </div>
+  </a>
 
-    <a class="card nav-card" id="linkReports" href="./reports/index.html">
-      <div class="ico">📊</div>
-      <div>
-        <h3>Звіти</h3>
-        <p>Звіти з параметрами міста і площадки.</p>
-      </div>
-    </a>
+  <a class="card nav-card" href="#" onclick="goCash(); return false;">
+    <div class="ico">🖨️</div>
+    <div>
+      <h3>Каса / друк</h3>
+      <p>Продаж, друк квитків, видача уповноваженим.</p>
+    </div>
+  </a>
 
-    
-  </section>
+</section>
 
   <section class="stats">
     <div class="card stat">
