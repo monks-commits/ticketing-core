@@ -102,6 +102,22 @@
   </div>
 
   <div class="main">
+
+<div class="card" style="margin-top:16px;">
+  <h2>Динаміка продажів</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Дата</th>
+        <th>Квитків</th>
+        <th>Сума</th>
+        <th>Середній чек</th>
+      </tr>
+    </thead>
+    <tbody id="dailyRows"></tbody>
+  </table>
+</div>
+    
     <div class="card">
       <h2>Канали продажів</h2>
       <table>
@@ -270,6 +286,7 @@ async function loadData(){
   renderSummary(tickets);
   renderGroupedTable(tickets, "channel", "channelRows", CHANNEL_LABELS);
   renderGroupedTable(tickets, "ticket_type", "typeRows", TYPE_LABELS);
+  renderDailySales(tickets);
 
   document.getElementById("periodInfo").textContent =
     `Показано квитків: ${tickets.length}`;
@@ -338,6 +355,52 @@ function renderGroupedTable(tickets, field, tbodyId, labels){
   });
 }
 
+function renderDailySales(tickets){
+  const grouped = {};
+
+  tickets.forEach(t => {
+    if(!t.created_at) return;
+
+    const d = new Date(t.created_at);
+    const key = d.toISOString().slice(0, 10);
+
+    if(!grouped[key]){
+      grouped[key] = {
+        count: 0,
+        amount: 0
+      };
+    }
+
+    grouped[key].count++;
+    grouped[key].amount += normalizeMoney(t.price);
+  });
+
+  const tbody = document.getElementById("dailyRows");
+  tbody.innerHTML = "";
+
+  const days = Object.keys(grouped).sort();
+
+  if(!days.length){
+    tbody.innerHTML = `<tr><td colspan="4" class="empty">Немає даних</td></tr>`;
+    return;
+  }
+
+  days.forEach(day => {
+    const item = grouped[day];
+    const avg = item.count ? Math.round(item.amount / item.count) : 0;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${formatDateUa(day)}</strong></td>
+      <td>${item.count}</td>
+      <td>${formatMoney(item.amount)}</td>
+      <td>${formatMoney(avg)}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+  
 function normalizeMoney(value){
   const n = Number(value || 0);
   return Number.isFinite(n) ? n : 0;
@@ -351,6 +414,15 @@ function formatMoney(value){
   return `${Math.round(value).toLocaleString("uk-UA")} ₴`;
 }
 
+function formatDateUa(isoDate){
+  const d = new Date(isoDate + "T00:00:00");
+  return d.toLocaleDateString("uk-UA", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+}
+  
 function escapeHtml(value){
   return String(value ?? "")
     .replaceAll("&","&amp;")
