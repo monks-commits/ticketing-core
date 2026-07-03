@@ -222,13 +222,15 @@ function getPeriodRange(){
     from.setDate(now.getDate() - 7);
   }
 
-  if(period === "month"){
-    from = new Date(now.getFullYear(), now.getMonth(), 1);
-  }
+ if(period === "month"){
+  from = new Date(now);
+  from.setDate(now.getDate() - 30);
+}
 
-  if(period === "season"){
-    from = new Date(now.getFullYear(), 0, 1);
-  }
+ if(period === "season"){
+  from = new Date(now);
+  from.setDate(now.getDate() - 365);
+}
 
   if(period === "all"){
     return null;
