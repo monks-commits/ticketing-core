@@ -646,10 +646,10 @@ function renderEvents(rows){
           </div>
 
           <div class="event-actions">
-            <a class="btn" href="${seanceEditorUrl(s.id)}">Редактор</a>
-            <a class="btn ghost" href="${seancePublicUrl(s.id)}" target="_blank">Зал</a>
-            <a class="btn orange" href="./reports/kg10.html?${contextQuery({ seance:s.id, seance_id:s.id })}">KG-10</a>
-            <a class="btn dark" href="./reports/index.html?${contextQuery({ seance:s.id, view:"sales" })}">Продажі</a>
+          <a class="btn" href="${seanceEditorUrl(s.id)}">Редактор</a>
+<a class="btn ghost" href="${seancePublicUrl(s.id)}" target="_blank">Онлайн-зал</a>
+<a class="btn orange" href="./ticket-turnover.html?${contextQuery({ seance:s.id, seance_id:s.id })}">Оборот</a>
+<a class="btn dark" href="./manage.html?${contextQuery({ seance:s.id, seance_id:s.id, view:"compensation" })}">Компенсації</a>
           </div>
         </div>
       </article>
