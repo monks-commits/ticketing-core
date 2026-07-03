@@ -433,26 +433,75 @@
       </section>
 
       <section id="moduleTurnover" class="hidden">
-        <div class="workspace-head">
-          <div>
-            <h2>Оборот квитків</h2>
-            <p>Каркас V1. Дані підключимо після створення журналу руху квитків.</p>
-          </div>
-        </div>
 
-        <div class="stub-grid">
-          <div class="stub"><h4>Випуск</h4><p>Скільки місць активовано при публікації сеансу.</p></div>
-          <div class="stub"><h4>Видача</h4><p>Кому видано квитки: оператори, уповноважені, організації.</p></div>
-          <div class="stub"><h4>Повернення</h4><p>Повернення нереалізованих квитків від отримувачів.</p></div>
-          <div class="stub"><h4>Типи квитків</h4><p>Звичайні, пільгові, акційні, службові, компенсаційні, оренда.</p></div>
-          <div class="stub"><h4>Номінали</h4><p>Сегментація за вартістю: кількість, сума, залишок.</p></div>
-          <div class="stub"><h4>Компенсації</h4><p>Активовано, використано, не використано, погашено.</p></div>
-          <div class="stub"><h4>Перенесення</h4><p>Зв’язок старого та нового сеансу.</p></div>
-          <div class="stub"><h4>Погашення</h4><p>Факт проходу через контроль доступу.</p></div>
-          <div class="stub"><h4>Журнал руху</h4><p>Єдина історія всіх операцій з квитками.</p></div>
-        </div>
-      </section>
+  <div class="workspace-head">
+    <div>
+      <h2>Оборот квитків</h2>
+      <p>Єдина модель руху квитка: від випуску до погашення.</p>
+    </div>
+  </div>
 
+  <!-- KPI ROW -->
+  <div class="stub-grid">
+
+    <div class="stub">
+      <h4>Випуск</h4>
+      <p>Активовано місць при публікації сеансу.</p>
+      <strong id="tIssued">—</strong>
+    </div>
+
+    <div class="stub">
+      <h4>Видача</h4>
+      <p>Оператори / уповноважені / каса.</p>
+      <strong id="tIssuedTo">—</strong>
+    </div>
+
+    <div class="stub">
+      <h4>Повернення</h4>
+      <p>Нереалізовані квитки, повернуті в систему.</p>
+      <strong id="tReturns">—</strong>
+    </div>
+
+    <div class="stub">
+      <h4>Компенсації</h4>
+      <p>Видані та погашені компенсаційні квитки.</p>
+      <strong id="tComp">—</strong>
+    </div>
+
+  </div>
+
+  <!-- TYPES + PRICING -->
+  <div class="stub-grid" style="margin-top:14px;">
+
+    <div class="stub">
+      <h4>Типи квитків</h4>
+      <p>Звичайні / пільгові / акційні / службові / оренда</p>
+      <div id="tTypes">—</div>
+    </div>
+
+    <div class="stub">
+      <h4>Сегментація по цінах</h4>
+      <p>Оборот по номіналах</p>
+      <div id="tPricing">—</div>
+    </div>
+
+    <div class="stub">
+      <h4>Погашення</h4>
+      <p>Факт проходу через контроль доступу</p>
+      <strong id="tUsed">—</strong>
+    </div>
+
+  </div>
+
+  <!-- FUTURE JOURNAL HOOK -->
+  <div class="stub" style="margin-top:14px;">
+    <h4>Журнал руху квитків</h4>
+    <p>
+      Тут буде едина таблица: випуск → видача → повернення → компенсація → погашення.
+    </p>
+  </div>
+
+</section>
       <section id="moduleReports" class="hidden">
         <div class="workspace-head">
           <div>
