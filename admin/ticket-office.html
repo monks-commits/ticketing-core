@@ -721,6 +721,20 @@
     async function loadSeances(){
       seanceSelect.innerHTML = "<option value=''>Завантаження…</option>";
 
+const sid = new URLSearchParams(location.search).get("seance");
+if (sid) {
+  seanceSelect.value = sid;
+  loadTurnover(sid);
+}
+      
+const qs = new URLSearchParams(location.search);
+const sid = qs.get("seance");
+
+if(sid && SEANCES.some(s => s.id === sid)){
+  seanceSelect.value = sid;
+  loadTurnover(sid);
+}
+      
       try{
         const url =
           `${SUPABASE_URL}/rest/v1/seances` +
