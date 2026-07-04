@@ -859,50 +859,7 @@ async function loadTurnover(seanceId) {
 // -------------------------------
 // INIT
 // -------------------------------
-window.addEventListener("load", async () => {
 
-  await loadSeances();
-
-  // bind select change
-  seanceSelect.addEventListener("change", () => {
-    loadTurnover(seanceSelect.value);
-  });
-
-  // hash support
-  if(location.hash === "#turnover"){
-    showModule("turnover");
-  }
-});   
-
-window.addEventListener("load", () => {
-
-  (async () => {
-
-    // 1. грузим сеансы
-    await loadSeances();
-
-    // 2. безопасно вешаем change
-    if (seanceSelect) {
-      seanceSelect.addEventListener("change", () => {
-        loadTurnover(seanceSelect.value);
-      });
-    }
-
-    // 3. авто-старт если уже есть значение
-    setTimeout(() => {
-      if (seanceSelect && seanceSelect.value) {
-        loadTurnover(seanceSelect.value);
-      }
-    }, 300);
-
-    // 4. hash режим
-    if (location.hash === "#turnover") {
-      showModule("turnover");
-    }
-
-  })();
-
-});
     
   </script>
 </body>
