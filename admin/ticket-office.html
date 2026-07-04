@@ -769,7 +769,7 @@
         .replace(/"/g,"&quot;");
     }
 
-   window.addEventListener("load", async () => {
+  window.addEventListener("load", async () => {
 
   const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
 
@@ -779,23 +779,55 @@
 
   await loadSeances();
 
-  // 👇 ДОБАВЛЯЕМ СВЯЗКУ С ОБОРОТОМ
-  seanceSelect.addEventListener("change", () => {
-    const id = seanceSelect.value;
-    loadTurnover(id);
-  });
+  // 💥 ВАЖНО: привязка сеанса → оборот
+  if(seanceSelect){
+    seanceSelect.addEventListener("change", () => {
+      loadTurnover(seanceSelect.value);
+    });
+  }
 
-  // 👇 если сеанс уже выбран при загрузке
-  if(seanceSelect.value){
+  // 💥 если уже выбран сеанс
+  if(seanceSelect && seanceSelect.value){
     loadTurnover(seanceSelect.value);
   }
 
-  // твоя логика вкладки turnover
   if(location.hash === "#turnover"){
     showModule("turnover");
   }
 
 });
+async function loadTurnover(seanceId){
+
+  if(!seanceId) return;
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/ticket_flow?seance_id=eq.${seanceId}`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
+  );
+
+  const rows = await res.json();
+
+  const sum = (arr) =>
+    arr.reduce((a,b)=>a + (b.quantity || 0), 0);
+
+  const issue = rows.filter(r => r.operation_type === "ISSUE");
+  const sale = rows.filter(r => r.operation_type === "SALE");
+  const ret = rows.filter(r => r.operation_type === "RETURN");
+  const comp = rows.filter(r => r.operation_type === "COMPENSATION");
+  const red = rows.filter(r => r.operation_type === "REDEEM");
+
+  document.getElementById("tIssued").innerText = sum(issue);
+  document.getElementById("tIssuedTo").innerText = sum(sale);
+  document.getElementById("tReturns").innerText = sum(ret);
+  document.getElementById("tComp").innerText = sum(comp);
+  document.getElementById("tUsed").innerText = sum(red);
+}
+    
   </script>
 </body>
 </html>
