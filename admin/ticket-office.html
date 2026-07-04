@@ -864,6 +864,24 @@ window.addEventListener("load", ()=>{
     showModule("turnover");
   }
 
+const seanceSelect = document.getElementById("seanceSelect");
+
+if(seanceSelect){
+
+  seanceSelect.addEventListener("change", () => {
+    loadTurnover(seanceSelect.value);
+  });
+
+  const sid = new URLSearchParams(location.search).get("seance");
+
+  if(sid){
+    setTimeout(() => {
+      seanceSelect.value = sid;
+      loadTurnover(sid);
+    }, 200);
+  }
+}
+  
 });
     
   </script>
