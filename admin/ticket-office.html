@@ -860,7 +860,30 @@ async function loadTurnover(seanceId) {
 // INIT
 // -------------------------------
 
-    
+window.addEventListener("load", async () => {
+
+  await loadSeances();
+
+  if (seanceSelect) {
+    seanceSelect.addEventListener("change", () => {
+      loadTurnover(seanceSelect.value);
+    });
+  }
+
+  const sid = new URLSearchParams(location.search).get("seance");
+
+  if (sid) {
+    setTimeout(() => {
+      seanceSelect.value = sid;
+      loadTurnover(sid);
+    }, 200);
+  }
+
+  if (location.hash === "#turnover") {
+    showModule("turnover");
+  }
+
+});    
   </script>
 </body>
 </html>
