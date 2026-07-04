@@ -718,63 +718,54 @@
       }
     }
 
-    async function loadSeances(){
-      seanceSelect.innerHTML = "<option value=''>Завантаження…</option>";
+   async function loadSeances() {
 
-const sid = new URLSearchParams(location.search).get("seance");
-if (sid) {
-  seanceSelect.value = sid;
-  loadTurnover(sid);
-}
-      
-const qs = new URLSearchParams(location.search);
-const sid = qs.get("seance");
+  try {
 
-if(sid && SEANCES.some(s => s.id === sid)){
-  seanceSelect.value = sid;
-  loadTurnover(sid);
-}
-      
-      try{
-        const url =
-          `${SUPABASE_URL}/rest/v1/seances` +
-          "?select=id,show,date,time,status,active,archived,venue_id" +
-          "&order=date.asc,time.asc";
+    const url =
+      `${SUPABASE_URL}/rest/v1/seances` +
+      "?select=id,title,date,time,status,active,archived,venue_id" +
+      "&order=date.asc,time.asc";
 
-        const res = await fetch(url, {
-          headers:{
-            apikey:SUPABASE_ANON_KEY,
-            Authorization:`Bearer ${SUPABASE_ANON_KEY}`
-          },
-          cache:"no-store"
-        });
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      cache: "no-store"
+    });
 
-        if(!res.ok){
-          throw new Error(await res.text());
-        }
-
-        const rows = await res.json();
-        SEANCES = Array.isArray(rows) ? rows : [];
-        const visible = SEANCES.filter(s => s.archived !== true);
-
-        seanceSelect.innerHTML =
-          "<option value=''>Оберіть сеанс</option>" +
-          visible.map(s => {
-            return `<option value="${escapeHtml(s.id)}">${escapeHtml(seanceLabel(s))}</option>`;
-          }).join("");
-
-        const qs = new URLSearchParams(location.search);
-        const sid = qs.get("seance");
-        if(sid && visible.some(s => s.id === sid)){
-          seanceSelect.value = sid;
-        }
-
-      }catch(e){
-        console.error(e);
-        seanceSelect.innerHTML = "<option value=''>Помилка завантаження сеансів</option>";
-      }
+    if (!res.ok) {
+      throw new Error(await res.text());
     }
 
+    const rows = await res.json();
+
+    SEANCES = Array.isArray(rows) ? rows : [];
+
+    const visible = SEANCES.filter(s => s.archived !== true);
+
+    seanceSelect.innerHTML =
+      "<option value=''>Оберіть сеанс</option>" +
+      visible.map(s =>
+        `<option value="${escapeHtml(s.id)}">
+          ${escapeHtml(s.title || "")}
+        </option>`
+      ).join("");
+
+    // 🔥 ВАЖНО: авто-выбор из URL + запуск оборота
+    const qs = new URLSearchParams(location.search);
+    const sid = qs.get("seance");
+
+    if (sid && visible.some(s => s.id === sid)) {
+      seanceSelect.value = sid;
+      loadTurnover(sid);
+    }
+
+  } catch (e) {
+    console.error(e);
+  }
+}
     function escapeHtml(value){
       return String(value ?? "")
         .replace(/&/g,"&amp;")
