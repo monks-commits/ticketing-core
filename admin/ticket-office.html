@@ -779,6 +779,93 @@
         showModule("turnover");
       }
     });
+
+// ============================
+// TURNOVER MODULE (FIX ADDON)
+// ============================
+
+async function loadTurnover(seanceId){
+
+  if(!seanceId) return;
+
+  try{
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/ticket_flow?select=*&seance_id=eq.${seanceId}`,
+      {
+        headers:{
+          apikey:SUPABASE_ANON_KEY,
+          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    if(!res.ok){
+      throw new Error(await res.text());
+    }
+
+    const rows = await res.json();
+
+    const sum = (type)=>
+      rows
+        .filter(r=>r.operation_type===type)
+        .reduce((a,b)=>a+(b.quantity||0),0);
+
+    const set = (id,val)=>{
+      const el=document.getElementById(id);
+      if(el) el.innerText=val;
+    };
+
+    set("tIssued", sum("ISSUE"));
+    set("tIssuedTo", sum("SALE"));
+    set("tReturns", sum("RETURN"));
+    set("tComp", sum("COMPENSATION"));
+    set("tUsed", sum("REDEEM"));
+
+  }catch(e){
+    console.error("turnover error", e);
+  }
+}
+
+
+// ============================
+// BIND SEANCE → TURNOVER
+// ============================
+
+function bindTurnover(){
+
+  const select = document.getElementById("seanceSelect");
+  if(!select) return;
+
+  select.addEventListener("change", ()=>{
+    loadTurnover(select.value);
+  });
+
+  const sid = new URLSearchParams(location.search).get("seance");
+
+  if(sid){
+    setTimeout(()=>{
+      select.value = sid;
+      loadTurnover(sid);
+    },200);
+  }
+}
+
+
+// ============================
+// INIT EXTENSION
+// ============================
+
+window.addEventListener("load", ()=>{
+
+  bindTurnover();
+
+  if(location.hash === "#turnover"){
+    showModule("turnover");
+  }
+
+});
+    
   </script>
 </body>
 </html>
