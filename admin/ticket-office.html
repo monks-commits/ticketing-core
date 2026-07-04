@@ -873,6 +873,37 @@ window.addEventListener("load", async () => {
     showModule("turnover");
   }
 });   
+
+window.addEventListener("load", () => {
+
+  (async () => {
+
+    // 1. грузим сеансы
+    await loadSeances();
+
+    // 2. безопасно вешаем change
+    if (seanceSelect) {
+      seanceSelect.addEventListener("change", () => {
+        loadTurnover(seanceSelect.value);
+      });
+    }
+
+    // 3. авто-старт если уже есть значение
+    setTimeout(() => {
+      if (seanceSelect && seanceSelect.value) {
+        loadTurnover(seanceSelect.value);
+      }
+    }, 300);
+
+    // 4. hash режим
+    if (location.hash === "#turnover") {
+      showModule("turnover");
+    }
+
+  })();
+
+});
+    
   </script>
 </body>
 </html>
