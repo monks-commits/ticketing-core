@@ -801,39 +801,54 @@
   }
 
 });
-async function loadTurnover(seanceId){
+async function loadTurnover(seanceId) {
 
-  if(!seanceId){
-  console.warn("No seance selected");
-  return;
-}
+  if (!seanceId) return;
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/ticket_flow?seance_id=eq.${seanceId}`,
-    {
-      headers:{
+  try {
+
+    const url =
+      `${SUPABASE_URL}/rest/v1/ticket_flow` +
+      `?select=*` +
+      `&seance_id=eq.${encodeURIComponent(seanceId)}`;
+
+    const res = await fetch(url, {
+      headers: {
         apikey: SUPABASE_ANON_KEY,
-        Authorization:`Bearer ${SUPABASE_ANON_KEY}`
-      }
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      cache: "no-store"
+    });
+
+    if (!res.ok) {
+      throw new Error(await res.text());
     }
-  );
 
-  const rows = await res.json();
+    const rows = await res.json();
 
-  const sum = (arr) =>
-    arr.reduce((a,b)=>a + (b.quantity || 0), 0);
+    const sum = (arr) =>
+      arr.reduce((a, b) => a + (b.quantity || 0), 0);
 
-  const issue = rows.filter(r => r.operation_type === "ISSUE");
-  const sale = rows.filter(r => r.operation_type === "SALE");
-  const ret = rows.filter(r => r.operation_type === "RETURN");
-  const comp = rows.filter(r => r.operation_type === "COMPENSATION");
-  const red = rows.filter(r => r.operation_type === "REDEEM");
+    const issue = rows.filter(r => r.operation_type === "ISSUE");
+    const sale = rows.filter(r => r.operation_type === "SALE");
+    const ret = rows.filter(r => r.operation_type === "RETURN");
+    const comp = rows.filter(r => r.operation_type === "COMPENSATION");
+    const red = rows.filter(r => r.operation_type === "REDEEM");
 
-  document.getElementById("tIssued").innerText = sum(issue);
-  document.getElementById("tIssuedTo").innerText = sum(sale);
-  document.getElementById("tReturns").innerText = sum(ret);
-  document.getElementById("tComp").innerText = sum(comp);
-  document.getElementById("tUsed").innerText = sum(red);
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = val;
+    };
+
+    set("tIssued", sum(issue));
+    set("tIssuedTo", sum(sale));
+    set("tReturns", sum(ret));
+    set("tComp", sum(comp));
+    set("tUsed", sum(red));
+
+  } catch (e) {
+    console.error("turnover error:", e);
+  }
 }
     
   </script>
