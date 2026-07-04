@@ -798,7 +798,10 @@
 });
 async function loadTurnover(seanceId){
 
-  if(!seanceId) return;
+  if(!seanceId){
+  console.warn("No seance selected");
+  return;
+}
 
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/ticket_flow?seance_id=eq.${seanceId}`,
