@@ -718,54 +718,7 @@
       }
     }
 
-   async function loadSeances() {
-
-  try {
-
-    const url =
-      `${SUPABASE_URL}/rest/v1/seances` +
-      "?select=id,title,date,time,status,active,archived,venue_id" +
-      "&order=date.asc,time.asc";
-
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      cache: "no-store"
-    });
-
-    if (!res.ok) {
-      throw new Error(await res.text());
-    }
-
-    const rows = await res.json();
-
-    SEANCES = Array.isArray(rows) ? rows : [];
-
-    const visible = SEANCES.filter(s => s.archived !== true);
-
-    seanceSelect.innerHTML =
-      "<option value=''>Оберіть сеанс</option>" +
-      visible.map(s =>
-        `<option value="${escapeHtml(s.id)}">
-          ${escapeHtml(s.title || "")}
-        </option>`
-      ).join("");
-
-    // 🔥 ВАЖНО: авто-выбор из URL + запуск оборота
-    const qs = new URLSearchParams(location.search);
-    const sid = qs.get("seance");
-
-    if (sid && visible.some(s => s.id === sid)) {
-      seanceSelect.value = sid;
-      loadTurnover(sid);
-    }
-
-  } catch (e) {
-    console.error(e);
-  }
-}
+  
     function escapeHtml(value){
       return String(value ?? "")
         .replace(/&/g,"&amp;")
@@ -774,13 +727,6 @@
         .replace(/"/g,"&quot;");
     }
 
-  window.addEventListener("load", async () => {
-
-  const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
-
-  if(saved){
-    toggleSecret.value = saved;
-  }
 
   await loadSeances();
 
@@ -801,56 +747,132 @@
   }
 
 });
+
+ // ===============================
+// VA TICKET OFFICE CORE FIX v1
+// TURNOVER + SEANCES WORKING
+// ===============================
+
+let SEANCES = [];
+
+// escape helper
+function escapeHtml(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+
+// -------------------------------
+// LOAD SEANCES
+// -------------------------------
+async function loadSeances() {
+
+  try {
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?select=*&order=date.asc,time.asc`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    if (!res.ok) throw new Error(await res.text());
+
+    const rows = await res.json();
+    SEANCES = Array.isArray(rows) ? rows : [];
+
+    const visible = SEANCES.filter(s => s.archived !== true);
+
+    seanceSelect.innerHTML =
+      "<option value=''>Оберіть сеанс</option>" +
+      visible.map(s =>
+        `<option value="${escapeHtml(s.id)}">
+          ${escapeHtml(s.title || s.name || s.id)}
+        </option>`
+      ).join("");
+
+    // URL auto select
+    const sid = new URLSearchParams(location.search).get("seance");
+
+    if (sid && visible.some(s => s.id === sid)) {
+      seanceSelect.value = sid;
+      loadTurnover(sid);
+    }
+
+  } catch (e) {
+    console.error("loadSeances error:", e);
+  }
+}
+
+
+// -------------------------------
+// LOAD TURNOVER
+// -------------------------------
 async function loadTurnover(seanceId) {
 
   if (!seanceId) return;
 
   try {
 
-    const url =
-      `${SUPABASE_URL}/rest/v1/ticket_flow` +
-      `?select=*` +
-      `&seance_id=eq.${encodeURIComponent(seanceId)}`;
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/ticket_flow?select=*&seance_id=eq.${seanceId}`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
 
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      cache: "no-store"
-    });
-
-    if (!res.ok) {
-      throw new Error(await res.text());
-    }
+    if (!res.ok) throw new Error(await res.text());
 
     const rows = await res.json();
 
     const sum = (arr) =>
-      arr.reduce((a, b) => a + (b.quantity || 0), 0);
+      arr.reduce((a,b)=>a + (b.quantity || 0), 0);
 
-    const issue = rows.filter(r => r.operation_type === "ISSUE");
-    const sale = rows.filter(r => r.operation_type === "SALE");
-    const ret = rows.filter(r => r.operation_type === "RETURN");
-    const comp = rows.filter(r => r.operation_type === "COMPENSATION");
-    const red = rows.filter(r => r.operation_type === "REDEEM");
+    const get = (t) =>
+      rows.filter(r => r.operation_type === t);
 
-    const set = (id, val) => {
+    const set = (id,val)=>{
       const el = document.getElementById(id);
-      if (el) el.innerText = val;
+      if(el) el.innerText = val;
     };
 
-    set("tIssued", sum(issue));
-    set("tIssuedTo", sum(sale));
-    set("tReturns", sum(ret));
-    set("tComp", sum(comp));
-    set("tUsed", sum(red));
+    set("tIssued", sum(get("ISSUE")));
+    set("tIssuedTo", sum(get("SALE")));
+    set("tReturns", sum(get("RETURN")));
+    set("tComp", sum(get("COMPENSATION")));
+    set("tUsed", sum(get("REDEEM")));
 
   } catch (e) {
     console.error("turnover error:", e);
   }
 }
-    
+
+
+// -------------------------------
+// INIT
+// -------------------------------
+window.addEventListener("load", async () => {
+
+  await loadSeances();
+
+  // bind select change
+  seanceSelect.addEventListener("change", () => {
+    loadTurnover(seanceSelect.value);
+  });
+
+  // hash support
+  if(location.hash === "#turnover"){
+    showModule("turnover");
+  }
+});   
   </script>
 </body>
 </html>
