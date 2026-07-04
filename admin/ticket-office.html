@@ -769,16 +769,33 @@
         .replace(/"/g,"&quot;");
     }
 
-    window.addEventListener("load", async () => {
-      const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
-      if(saved){
-        toggleSecret.value = saved;
-      }
-      await loadSeances();
-      if(location.hash === "#turnover"){
-        showModule("turnover");
-      }
-    });
+   window.addEventListener("load", async () => {
+
+  const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
+
+  if(saved){
+    toggleSecret.value = saved;
+  }
+
+  await loadSeances();
+
+  // 👇 ДОБАВЛЯЕМ СВЯЗКУ С ОБОРОТОМ
+  seanceSelect.addEventListener("change", () => {
+    const id = seanceSelect.value;
+    loadTurnover(id);
+  });
+
+  // 👇 если сеанс уже выбран при загрузке
+  if(seanceSelect.value){
+    loadTurnover(seanceSelect.value);
+  }
+
+  // твоя логика вкладки turnover
+  if(location.hash === "#turnover"){
+    showModule("turnover");
+  }
+
+});
   </script>
 </body>
 </html>
