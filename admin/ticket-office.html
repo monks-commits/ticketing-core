@@ -755,6 +755,8 @@
           seanceSelect.value = sid;
         }
 
+loadTurnover(seanceSelect.value);
+        
       }catch(e){
         console.error(e);
         seanceSelect.innerHTML = "<option value=''>Помилка завантаження сеансів</option>";
