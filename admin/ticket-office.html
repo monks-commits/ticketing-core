@@ -828,82 +828,235 @@ async function loadTurnover(seanceId){
     if(el) el.innerHTML = val ?? 0;
   };
 
+  const api = async (table, query)=>{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      cache:"no-store"
+    });
+
+    if(!res.ok){
+      console.error(table, await res.text());
+      return [];
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  };
+
   if(!seanceId){
-    set("tIssued", 0);
-    set("tIssuedTo", 0);
-    set("tReturns", 0);
-    set("tComp", 0);
-    set("tUsed", 0);
-    set("tTypes", "—");
-    set("tPricing", "—");
+    ["tIssued","tIssuedTo","tBooked","tFree","tReturns","tComp","tUsed","tFill","tRevenue"].forEach(id=>set(id,0));
+    set("tTypes","—");
+    set("tPricing","—");
+    set("tQuotaStatus","");
+    set("flowJournalBody", `<tr><td colspan="7" style="padding:10px;">—</td></tr>`);
     return;
   }
 
   try{
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets` +
-      `?seance_id=eq.${encodeURIComponent(seanceId)}` +
-      `&select=id,order_id,price,ticket_type,checked_in_at,compensation_allowed,compensation_used`,
-      {
-        headers:{
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        cache:"no-store"
-      }
+    const quota = await api(
+      "seance_ticket_quota",
+      `?seance_id=eq.${encodeURIComponent(seanceId)}&source=eq.va&select=*`
     );
 
-    if(!res.ok){
-      throw new Error(await res.text());
-    }
+    const tickets = await api(
+      "tickets",
+      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
+    );
 
-    const tickets = await res.json();
+    const bookings = await api(
+      "bookings",
+      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
+    );
 
-    const issued = tickets.length;
-    const issuedTo = tickets.filter(t => !!t.order_id).length;
-    const returned = 0;
-    const comp = tickets.filter(t => t.compensation_allowed === true || t.compensation_used === true).length;
-    const used = tickets.filter(t => !!t.checked_in_at).length;
+    const issued = quota.length;
+    const issuedTo = tickets.length;
 
-    const typeMap = {};
-    tickets.forEach(t=>{
-      const key = t.ticket_type || "unknown";
-      typeMap[key] = (typeMap[key] || 0) + 1;
+    const activeBookings = bookings.filter(b => {
+      const st = String(b.status || "").toLowerCase();
+      return !["cancelled","canceled","expired","released"].includes(st);
     });
 
+    const booked = activeBookings.reduce((sum,b)=>{
+      if(Array.isArray(b.seats)) return sum + b.seats.length;
+      if(Array.isArray(b.seat_labels)) return sum + b.seat_labels.length;
+      if(b.seat_label) return sum + 1;
+      return sum + 1;
+    },0);
+
+    const returned = tickets.filter(t => String(t.status || "").toLowerCase() === "returned").length;
+
+    const comp = tickets.filter(t =>
+      t.compensation_allowed === true ||
+      t.compensation_used === true ||
+      String(t.ticket_type || "").toLowerCase() === "compensation"
+    ).length;
+
+    const used = tickets.filter(t => !!t.checked_in_at).length;
+
+    const free = Math.max(issued - issuedTo - booked, 0);
+    const fill = issued ? Math.round(((issuedTo + booked) / issued) * 100) : 0;
+    const revenue = tickets.reduce((s,t)=>s + Number(t.price || 0),0);
+
+    const typeMap = {};
     const priceMap = {};
+
     tickets.forEach(t=>{
-      const key = Number(t.price || 0);
-      priceMap[key] = (priceMap[key] || 0) + 1;
+      const type = t.ticket_type || "unknown";
+      const price = Number(t.price || 0);
+      typeMap[type] = (typeMap[type] || 0) + 1;
+      priceMap[price] = (priceMap[price] || 0) + 1;
     });
 
     set("tIssued", issued);
     set("tIssuedTo", issuedTo);
+    set("tBooked", booked);
+    set("tFree", free);
     set("tReturns", returned);
     set("tComp", comp);
     set("tUsed", used);
+    set("tFill", `${fill}%`);
+    set("tRevenue", `${revenue} грн`);
+
+    set("tQuotaStatus", issued ? "" : "Квота VA ще не випущена.");
 
     set("tTypes",
-      Object.entries(typeMap)
-        .map(([k,v]) => `${k}: ${v}`)
-        .join("<br>") || "—"
+      Object.entries(typeMap).map(([k,v])=>`${k}: ${v}`).join("<br>") || "—"
     );
 
     set("tPricing",
       Object.entries(priceMap)
         .sort((a,b)=>Number(a[0])-Number(b[0]))
-        .map(([k,v]) => `${k}₴ → ${v}`)
+        .map(([k,v])=>`${k}₴ → ${v}`)
         .join("<br>") || "—"
     );
 
+    renderTicketFlowJournal({ quota, tickets, bookings });
+
   }catch(e){
     console.error("turnover error:", e);
-    set("tIssued", 0);
-    set("tIssuedTo", 0);
-    set("tReturns", 0);
-    set("tComp", 0);
-    set("tUsed", 0);
   }
+}
+
+function renderTicketFlowJournal({ quota, tickets, bookings }){
+  const body = document.getElementById("flowJournalBody");
+  if(!body) return;
+
+  const rows = [];
+
+  quota.forEach(q=>{
+    rows.push({
+      date: q.created_at || "",
+      op: "Випуск VA",
+      seat: q.seat_key || "",
+      type: "",
+      channel: q.source || "va",
+      amount: "",
+      note: q.status || "released"
+    });
+  });
+
+  bookings.forEach(b=>{
+    const seats =
+      Array.isArray(b.seats) ? b.seats :
+      Array.isArray(b.seat_labels) ? b.seat_labels :
+      b.seat_label ? [b.seat_label] :
+      [""];
+
+    seats.forEach(seat=>{
+      rows.push({
+        date: b.created_at || "",
+        op: "Бронь",
+        seat,
+        type: b.ticket_type || "",
+        channel: b.channel || "booking",
+        amount: "",
+        note: b.status || ""
+      });
+    });
+  });
+
+  tickets.forEach(t=>{
+    rows.push({
+      date: t.created_at || "",
+      op: "Видача",
+      seat: t.seat_label || "",
+      type: t.ticket_type || "",
+      channel: t.channel || "",
+      amount: t.price ?? "",
+      note: t.buyer_name || t.order_id || ""
+    });
+
+    if(t.compensation_allowed === true || t.compensation_used === true){
+      rows.push({
+        date: t.compensation_granted_at || t.created_at || "",
+        op: "Компенсація",
+        seat: t.seat_label || "",
+        type: t.ticket_type || "",
+        channel: t.channel || "",
+        amount: t.price ?? "",
+        note: t.compensation_reason || ""
+      });
+    }
+
+    if(t.checked_in_at){
+      rows.push({
+        date: t.checked_in_at,
+        op: "Погашення",
+        seat: t.seat_label || "",
+        type: t.ticket_type || "",
+        channel: t.channel || "",
+        amount: "",
+        note: t.checked_in_by || t.checkin_note || ""
+      });
+    }
+
+    if(String(t.status || "").toLowerCase() === "returned"){
+      rows.push({
+        date: t.updated_at || t.created_at || "",
+        op: "Повернення",
+        seat: t.seat_label || "",
+        type: t.ticket_type || "",
+        channel: t.channel || "",
+        amount: t.price ?? "",
+        note: t.status || ""
+      });
+    }
+  });
+
+  rows.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+
+  if(!rows.length){
+    body.innerHTML = `<tr><td colspan="7" style="padding:10px;">Журнал порожній.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.slice(0,250).map(r=>`
+    <tr>
+      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(formatDateTime(r.date))}</td>
+      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.op)}</td>
+      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.seat)}</td>
+      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.type)}</td>
+      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.channel)}</td>
+      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.amount)}</td>
+      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.note)}</td>
+    </tr>
+  `).join("");
+}
+
+function formatDateTime(value){
+  if(!value) return "";
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString("uk-UA", {
+    day:"2-digit",
+    month:"2-digit",
+    year:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit"
+  });
 }
     
   </script>
