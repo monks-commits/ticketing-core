@@ -771,6 +771,11 @@ loadTurnover(seanceSelect.value);
         .replace(/"/g,"&quot;");
     }
 
+function setText(id, value){
+  const el = document.querySelector("#" + id);
+  if(el) el.innerText = value ?? 0;
+}
+    
     window.addEventListener("load", async () => {
       const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
       if(saved){
