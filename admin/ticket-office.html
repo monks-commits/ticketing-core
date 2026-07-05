@@ -815,7 +815,9 @@ async function loadTurnover(seanceId){
     const sold = tickets.filter(t => t.order_id).length;
     const returned = tickets.filter(t => t.status === "returned").length;
     const comp = tickets.filter(t => t.ticket_type === "compensation").length;
-    const used = tickets.filter(t => t.checked_in_at || t.status === "used" || t.status === "checked").length;
+   const used = tickets.filter(t =>
+  t.status === "used" || t.status === "checked"
+).length;
 
     const typeMap = {};
     tickets.forEach(t=>{
