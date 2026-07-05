@@ -775,6 +775,11 @@
         toggleSecret.value = saved;
       }
       await loadSeances();
+
+seanceSelect.addEventListener("change", () => {
+  loadTurnover(seanceSelect.value);
+});
+      
       if(location.hash === "#turnover"){
         showModule("turnover");
       }
