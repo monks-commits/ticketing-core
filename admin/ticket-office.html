@@ -788,86 +788,82 @@ seanceSelect.addEventListener("change", () => {
     });
 
 async function loadTurnover(seanceId){
-
   if(!seanceId) return;
 
   try{
-
-    // 1. tickets = фактический оборот
-    const ticketsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${seanceId}&select=*`,
+    // 1. СЕАНС (для понимания контекста)
+    const seance = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${seanceId}&select=id`,
       {
         headers:{
           apikey: SUPABASE_ANON_KEY,
-          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
         }
       }
-    );
+    ).then(r => r.json());
 
-    const tickets = ticketsRes.ok ? await ticketsRes.json() : [];
-
-    // 2. orders = деньги
-    const ordersRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?seance_id=eq.${seanceId}&select=*`,
+    // 2. ВЫПУСК = ВСЕ БИЛЕТЫ, СВЯЗАННЫЕ С СЕАНСОМ (ПРАВИЛЬНАЯ МОДЕЛЬ)
+    const tickets = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${seanceId}&select=price,ticket_type,status`,
       {
         headers:{
           apikey: SUPABASE_ANON_KEY,
-          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
         }
       }
-    );
+    ).then(r => r.json());
 
-    const orders = ordersRes.ok ? await ordersRes.json() : [];
+    // 3. ВЫДАЧА = ВСЕ ПРОДАЖИ (paid)
+    const orders = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?seance_id=eq.${seanceId}&status=eq.paid&select=id`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    ).then(r => r.json());
 
-    // ===== KPI =====
+    // 4. ВОЗВРАТЫ
+    const returned = tickets.filter(t => t.status === 'returned').length;
 
-    const issued = tickets.length;
+    // 5. КОМПЕНСАЦИИ
+    const compensation = tickets.filter(t => t.ticket_type === 'compensation').length;
 
-    const returns = tickets.filter(t => t.status === "returned").length;
+    // 6. РАЗБИВКА ТИПОВ
+    const typeMap = {};
+    tickets.forEach(t => {
+      const key = t.ticket_type || 'unknown';
+      typeMap[key] = (typeMap[key] || 0) + 1;
+    });
 
-    const used = tickets.filter(t => t.checked_in_at != null).length;
+    // 7. ЦЕНОВАЯ СЕГМЕНТАЦИЯ
+    const priceMap = {};
+    tickets.forEach(t => {
+      const p = t.price || 0;
+      priceMap[p] = (priceMap[p] || 0) + 1;
+    });
 
-    const issuedNet = issued - returns;
+    // 8. ВЫВОД В UI
 
-    const sales = orders.reduce((s,o)=> s + (Number(o.amount)||0),0);
+    setText("issued", tickets.length);
+    setText("sold", orders.length);
+    setText("returned", returned);
+    setText("compensation", compensation);
 
-    // ===== UI =====
-
-    const set = (id,val)=>{
-      const el = document.getElementById(id);
-      if(el) el.innerText = val ?? 0;
-    };
-
-    set("tIssued", issued);
-    set("tIssuedTo", issuedNet);
-    set("tReturns", returns);
-    set("tComp", 0); // пока нет отдельной таблицы компенсаций
-    set("tUsed", used);
-
-    // дополнительные блоки (если есть)
-    const types = document.getElementById("tTypes");
-    if(types){
-      const byType = {};
-      tickets.forEach(t=>{
-        const k = t.ticket_type || "unknown";
-        byType[k] = (byType[k] || 0) + 1;
-      });
-
-      types.innerHTML = Object.entries(byType)
-        .map(([k,v])=>`${k}: ${v}`)
+    // Типы билетов
+    const typeBox = document.querySelector("#typeBreakdown");
+    if(typeBox){
+      typeBox.innerHTML = Object.entries(typeMap)
+        .map(([k,v]) => `${k}: ${v}`)
         .join("<br>");
     }
 
-    const pricing = document.getElementById("tPricing");
-    if(pricing){
-      const byPrice = {};
-      tickets.forEach(t=>{
-        const p = t.price || 0;
-        byPrice[p] = (byPrice[p] || 0) + 1;
-      });
-
-      pricing.innerHTML = Object.entries(byPrice)
-        .map(([k,v])=>`${k}₴ → ${v}`)
+    // Цена сегментация
+    const priceBox = document.querySelector("#priceBreakdown");
+    if(priceBox){
+      priceBox.innerHTML = Object.entries(priceMap)
+        .map(([k,v]) => `${k}₴ → ${v}`)
         .join("<br>");
     }
 
