@@ -793,60 +793,86 @@ seanceSelect.addEventListener("change", () => {
     });
 
 async function loadTurnover(seanceId){
-  if(!seanceId) return;
-
   const set = (id,val)=>{
     const el = document.getElementById(id);
     if(el) el.innerHTML = val ?? 0;
   };
 
-  try{
-    const headers = {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-    };
+  if(!seanceId){
+    set("tIssued", 0);
+    set("tIssuedTo", 0);
+    set("tReturns", 0);
+    set("tComp", 0);
+    set("tUsed", 0);
+    set("tTypes", "—");
+    set("tPricing", "—");
+    return;
+  }
 
-    const tickets = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(seanceId)}&select=id,price,ticket_type,status,order_id`,
-      { headers }
-    ).then(r => r.ok ? r.json() : []);
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets` +
+      `?seance_id=eq.${encodeURIComponent(seanceId)}` +
+      `&select=id,order_id,price,ticket_type,checked_in_at,compensation_allowed,compensation_used`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        cache:"no-store"
+      }
+    );
+
+    if(!res.ok){
+      throw new Error(await res.text());
+    }
+
+    const tickets = await res.json();
 
     const issued = tickets.length;
-    const sold = tickets.filter(t => t.order_id).length;
-    const returned = tickets.filter(t => t.status === "returned").length;
-    const comp = tickets.filter(t => t.ticket_type === "compensation").length;
-   const used = tickets.filter(t =>
-  t.status === "used" || t.status === "checked"
-).length;
+    const issuedTo = tickets.filter(t => !!t.order_id).length;
+    const returned = 0;
+    const comp = tickets.filter(t => t.compensation_allowed === true || t.compensation_used === true).length;
+    const used = tickets.filter(t => !!t.checked_in_at).length;
 
     const typeMap = {};
     tickets.forEach(t=>{
-      const k = t.ticket_type || "unknown";
-      typeMap[k] = (typeMap[k] || 0) + 1;
+      const key = t.ticket_type || "unknown";
+      typeMap[key] = (typeMap[key] || 0) + 1;
     });
 
     const priceMap = {};
     tickets.forEach(t=>{
-      const p = t.price ?? 0;
-      priceMap[p] = (priceMap[p] || 0) + 1;
+      const key = Number(t.price || 0);
+      priceMap[key] = (priceMap[key] || 0) + 1;
     });
 
     set("tIssued", issued);
-    set("tIssuedTo", sold);
+    set("tIssuedTo", issuedTo);
     set("tReturns", returned);
     set("tComp", comp);
     set("tUsed", used);
 
     set("tTypes",
-      Object.entries(typeMap).map(([k,v]) => `${k}: ${v}`).join("<br>") || "—"
+      Object.entries(typeMap)
+        .map(([k,v]) => `${k}: ${v}`)
+        .join("<br>") || "—"
     );
 
     set("tPricing",
-      Object.entries(priceMap).map(([k,v]) => `${k}₴ → ${v}`).join("<br>") || "—"
+      Object.entries(priceMap)
+        .sort((a,b)=>Number(a[0])-Number(b[0]))
+        .map(([k,v]) => `${k}₴ → ${v}`)
+        .join("<br>") || "—"
     );
 
   }catch(e){
     console.error("turnover error:", e);
+    set("tIssued", 0);
+    set("tIssuedTo", 0);
+    set("tReturns", 0);
+    set("tComp", 0);
+    set("tUsed", 0);
   }
 }
     
