@@ -432,28 +432,42 @@
         </div>
       </section>
 
-      <section id="moduleTurnover" class="hidden">
+     <section id="moduleTurnover" class="hidden">
 
   <div class="workspace-head">
     <div>
       <h2>Оборот квитків</h2>
-      <p>Єдина модель руху квитка: від випуску до погашення.</p>
+      <p>Оборот по VA-квоте: випуск → видача → бронь → повернення → компенсація → погашення.</p>
     </div>
+
+    <button class="btn green" id="quotaSyncBtn" onclick="syncQuotaFromPricing()">Оновити квоту VA</button>
   </div>
 
-  <!-- KPI ROW -->
   <div class="stub-grid">
 
     <div class="stub">
-      <h4>Випуск</h4>
-      <p>Активовано місць при публікації сеансу.</p>
+      <h4>Випуск VA</h4>
+      <p>Місця, випущені у продаж VA.</p>
       <strong id="tIssued">—</strong>
+      <div class="note" id="tQuotaStatus"></div>
     </div>
 
     <div class="stub">
       <h4>Видача</h4>
-      <p>Оператори / уповноважені / каса.</p>
+      <p>Фактично видані / продані квитки VA.</p>
       <strong id="tIssuedTo">—</strong>
+    </div>
+
+    <div class="stub">
+      <h4>Бронь</h4>
+      <p>Активні бронювання.</p>
+      <strong id="tBooked">—</strong>
+    </div>
+
+    <div class="stub">
+      <h4>Залишок</h4>
+      <p>Випуск VA мінус видача та бронь.</p>
+      <strong id="tFree">—</strong>
     </div>
 
     <div class="stub">
@@ -464,13 +478,12 @@
 
     <div class="stub">
       <h4>Компенсації</h4>
-      <p>Видані та погашені компенсаційні квитки.</p>
+      <p>Видані / дозволені компенсаційні квитки.</p>
       <strong id="tComp">—</strong>
     </div>
 
   </div>
 
-  <!-- TYPES + PRICING -->
   <div class="stub-grid" style="margin-top:14px;">
 
     <div class="stub">
@@ -493,33 +506,50 @@
 
   </div>
 
-  <!-- FUTURE JOURNAL HOOK -->
+  <div class="stub-grid" style="margin-top:14px;">
+    <div class="stub">
+      <h4>Заповнення VA-квоти</h4>
+      <p>Розрахунок від випущених у VA місць, а не від місткості залу.</p>
+      <strong id="tFill">—</strong>
+    </div>
+
+    <div class="stub">
+      <h4>Виручка</h4>
+      <p>Сума по виданих квитках VA.</p>
+      <strong id="tRevenue">—</strong>
+    </div>
+
+    <div class="stub">
+      <h4>Джерело випуску</h4>
+      <p>seance_ticket_quota</p>
+      <strong>VA</strong>
+    </div>
+  </div>
+
   <div class="stub" style="margin-top:14px;">
     <h4>Журнал руху квитків</h4>
-    <p>
-      Тут буде едина таблица: випуск → видача → повернення → компенсація → погашення.
-    </p>
+
+    <div style="overflow:auto; margin-top:12px;">
+      <table style="width:100%; border-collapse:collapse; font-size:14px;">
+        <thead>
+          <tr style="text-align:left; color:#b8c4d6;">
+            <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,.14);">Дата</th>
+            <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,.14);">Операція</th>
+            <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,.14);">Місце</th>
+            <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,.14);">Тип</th>
+            <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,.14);">Канал</th>
+            <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,.14);">Сума</th>
+            <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,.14);">Примітка</th>
+          </tr>
+        </thead>
+        <tbody id="flowJournalBody">
+          <tr><td colspan="7" style="padding:10px;">—</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
 </section>
-      <section id="moduleReports" class="hidden">
-        <div class="workspace-head">
-          <div>
-            <h2>Звіти</h2>
-            <p>Усі звіти як зрізи єдиного обороту квитків.</p>
-          </div>
-        </div>
-
-        <div class="stub-grid">
-          <div class="stub"><h4>Продажі</h4><p><a class="btn ghost" href="./sales.html">Відкрити продажі</a></p></div>
-          <div class="stub"><h4>KG-10</h4><p><a class="btn ghost" href="./reports/kg10.html">Відкрити KG-10</a></p></div>
-          <div class="stub"><h4>KG-13</h4><p><a class="btn ghost" href="./reports/kg13.html">Відкрити KG-13</a></p></div>
-          <div class="stub"><h4>Контроль доступу</h4><p><a class="btn ghost" href="./access-control.html">Відкрити контроль</a></p></div>
-          <div class="stub"><h4>Компенсації</h4><p>Recovery-звіти підключимо з існуючого модуля.</p></div>
-          <div class="stub"><h4>Оборот квитків</h4><p>Після запуску журналу руху квитків.</p></div>
-        </div>
-      </section>
-
     </main>
   </div>
 
