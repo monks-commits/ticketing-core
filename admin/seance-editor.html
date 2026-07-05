@@ -1957,11 +1957,12 @@ if (
       return;
     }
 
-    alert("✅ Сеанс створено / оновлено");
-  } catch (err) {
-    alert("❌ Помилка: " + err.message);
-  }
-};
+    const quotaCount = await syncSeanceQuota(seance);
+
+alert(
+  "✅ Сеанс створено / оновлено\n\n" +
+  "🎫 VA-квота випущена: " + quotaCount + " місць"
+);
 
 async function loadSeance(){
   const seance = seanceId.value.trim();
