@@ -795,82 +795,53 @@ seanceSelect.addEventListener("change", () => {
 async function loadTurnover(seanceId){
   if(!seanceId) return;
 
+  const set = (id,val)=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = val ?? 0;
+  };
+
   try{
-    // 1. СЕАНС (для понимания контекста)
-    const seance = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?id=eq.${seanceId}&select=id`,
-      {
-        headers:{
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    ).then(r => r.json());
+    const headers = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    };
 
-    // 2. ВЫПУСК = ВСЕ БИЛЕТЫ, СВЯЗАННЫЕ С СЕАНСОМ (ПРАВИЛЬНАЯ МОДЕЛЬ)
     const tickets = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${seanceId}&select=price,ticket_type,status`,
-      {
-        headers:{
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    ).then(r => r.json());
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(seanceId)}&select=id,price,ticket_type,status,order_id,checked_in_at`,
+      { headers }
+    ).then(r => r.ok ? r.json() : []);
 
-    // 3. ВЫДАЧА = ВСЕ ПРОДАЖИ (paid)
-    const orders = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?seance_id=eq.${seanceId}&status=eq.paid&select=id`,
-      {
-        headers:{
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    ).then(r => r.json());
+    const issued = tickets.length;
+    const sold = tickets.filter(t => t.order_id).length;
+    const returned = tickets.filter(t => t.status === "returned").length;
+    const comp = tickets.filter(t => t.ticket_type === "compensation").length;
+    const used = tickets.filter(t => t.checked_in_at || t.status === "used" || t.status === "checked").length;
 
-    // 4. ВОЗВРАТЫ
-    const returned = tickets.filter(t => t.status === 'returned').length;
-
-    // 5. КОМПЕНСАЦИИ
-    const compensation = tickets.filter(t => t.ticket_type === 'compensation').length;
-
-    // 6. РАЗБИВКА ТИПОВ
     const typeMap = {};
-    tickets.forEach(t => {
-      const key = t.ticket_type || 'unknown';
-      typeMap[key] = (typeMap[key] || 0) + 1;
+    tickets.forEach(t=>{
+      const k = t.ticket_type || "unknown";
+      typeMap[k] = (typeMap[k] || 0) + 1;
     });
 
-    // 7. ЦЕНОВАЯ СЕГМЕНТАЦИЯ
     const priceMap = {};
-    tickets.forEach(t => {
-      const p = t.price || 0;
+    tickets.forEach(t=>{
+      const p = t.price ?? 0;
       priceMap[p] = (priceMap[p] || 0) + 1;
     });
 
-    // 8. ВЫВОД В UI
+    set("tIssued", issued);
+    set("tIssuedTo", sold);
+    set("tReturns", returned);
+    set("tComp", comp);
+    set("tUsed", used);
 
-    setText("issued", tickets.length);
-    setText("sold", orders.length);
-    setText("returned", returned);
-    setText("compensation", compensation);
+    set("tTypes",
+      Object.entries(typeMap).map(([k,v]) => `${k}: ${v}`).join("<br>") || "—"
+    );
 
-    // Типы билетов
-    const typeBox = document.querySelector("#typeBreakdown");
-    if(typeBox){
-      typeBox.innerHTML = Object.entries(typeMap)
-        .map(([k,v]) => `${k}: ${v}`)
-        .join("<br>");
-    }
-
-    // Цена сегментация
-    const priceBox = document.querySelector("#priceBreakdown");
-    if(priceBox){
-      priceBox.innerHTML = Object.entries(priceMap)
-        .map(([k,v]) => `${k}₴ → ${v}`)
-        .join("<br>");
-    }
+    set("tPricing",
+      Object.entries(priceMap).map(([k,v]) => `${k}₴ → ${v}`).join("<br>") || "—"
+    );
 
   }catch(e){
     console.error("turnover error:", e);
