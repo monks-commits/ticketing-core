@@ -807,7 +807,7 @@ async function loadTurnover(seanceId){
     };
 
     const tickets = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(seanceId)}&select=id,price,ticket_type,status,order_id,checked_in_at`,
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(seanceId)}&select=id,price,ticket_type,status,order_id`,
       { headers }
     ).then(r => r.ok ? r.json() : []);
 
