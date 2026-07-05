@@ -1964,6 +1964,11 @@ alert(
   "🎫 VA-квота випущена: " + quotaCount + " місць"
 );
 
+  } catch (err) {
+    alert("❌ Помилка: " + (err.message || err));
+  }
+};
+
 async function loadSeance(){
   const seance = seanceId.value.trim();
   if(!seance) return;
