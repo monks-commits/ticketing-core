@@ -790,99 +790,59 @@ async function loadTurnover(seanceId){
 
   try{
 
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/ticket_flow?select=*&seance_id=eq.${seanceId}`,
-      {
+    // =====================
+    const [ticketsRes, ordersRes] = await Promise.all([
+
+      fetch(`${SUPABASE_URL}/rest/v1/tickets?select=price&show_slug=eq.${seanceId}`, {
         headers:{
           apikey:SUPABASE_ANON_KEY,
           Authorization:`Bearer ${SUPABASE_ANON_KEY}`
         }
-      }
-    );
+      }),
 
-    if(!res.ok){
-      throw new Error(await res.text());
-    }
+      fetch(`${SUPABASE_URL}/rest/v1/orders?select=amount,status,show_slug&show_slug=eq.${seanceId}`, {
+        headers:{
+          apikey:SUPABASE_ANON_KEY,
+          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+        }
+      })
 
-    const rows = await res.json();
+    ]);
 
-    const sum = (type)=>
-      rows
-        .filter(r=>r.operation_type===type)
-        .reduce((a,b)=>a+(b.quantity||0),0);
+    const tickets = await ticketsRes.json() || [];
+    const orders  = await ordersRes.json() || [];
 
+    // =====================
+    // KPI
+    // =====================
+
+    const issued = tickets.length;
+
+    const salesOnline = orders
+      .filter(o => o.status === "paid")
+      .reduce((a,b)=>a + (b.amount || 0),0);
+
+    const revenueTickets = tickets
+      .reduce((a,b)=>a + (b.price || 0),0);
+
+    const used = issued; // пока нет scan логики
+
+    // =====================
     const set = (id,val)=>{
-      const el=document.getElementById(id);
-      if(el) el.innerText=val;
+      const el = document.getElementById(id);
+      if(el) el.innerText = val ?? 0;
     };
 
-    set("tIssued", sum("ISSUE"));
-    set("tIssuedTo", sum("SALE"));
-    set("tReturns", sum("RETURN"));
-    set("tComp", sum("COMPENSATION"));
-    set("tUsed", sum("REDEEM"));
+    set("tIssued", issued);
+    set("tIssuedTo", revenueTickets + salesOnline);
+    set("tReturns", 0);
+    set("tComp", 0);
+    set("tUsed", used);
 
   }catch(e){
-    console.error("turnover error", e);
+    console.error("TURNOVER ERROR:", e);
   }
 }
-
-
-// ============================
-// BIND SEANCE → TURNOVER
-// ============================
-
-function bindTurnover(){
-
-  const select = document.getElementById("seanceSelect");
-  if(!select) return;
-
-  select.addEventListener("change", ()=>{
-    loadTurnover(select.value);
-  });
-
-  const sid = new URLSearchParams(location.search).get("seance");
-
-  if(sid){
-    setTimeout(()=>{
-      select.value = sid;
-      loadTurnover(sid);
-    },200);
-  }
-}
-
-
-// ============================
-// INIT EXTENSION
-// ============================
-
-window.addEventListener("load", ()=>{
-
-  bindTurnover();
-
-  if(location.hash === "#turnover"){
-    showModule("turnover");
-  }
-
-const seanceSelect = document.getElementById("seanceSelect");
-
-if(seanceSelect){
-
-  seanceSelect.addEventListener("change", () => {
-    loadTurnover(seanceSelect.value);
-  });
-
-  const sid = new URLSearchParams(location.search).get("seance");
-
-  if(sid){
-    setTimeout(() => {
-      seanceSelect.value = sid;
-      loadTurnover(sid);
-    }, 200);
-  }
-}
-  
-});
     
   </script>
 </body>
