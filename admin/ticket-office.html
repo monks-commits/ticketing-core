@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>VA • Квитковий відділ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />    
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     :root{
@@ -20,856 +20,162 @@
       --red:#ef4444;
     }
 
-    *{ box-sizing:border-box; }
-
+    *{box-sizing:border-box;}
     body{
       margin:0;
-      min-height:100vh;
-      font-family:Arial, Helvetica, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(127,29,29,.32), transparent 34%),
-        radial-gradient(circle at top right, rgba(76,134,247,.16), transparent 30%),
-        var(--bg);
+      font-family:Arial;
+      background:var(--bg);
       color:var(--text);
     }
 
-    .page{
-      width:min(1320px, calc(100% - 48px));
-      margin:0 auto;
-      padding:34px 0 56px;
-    }
+    .page{width:min(1320px,100%);margin:auto;padding:30px;}
 
-    .top{
-      display:flex;
-      justify-content:space-between;
-      gap:16px;
-      align-items:flex-start;
-      margin-bottom:26px;
-    }
-
-    h1{
-      margin:0;
-      font-size:44px;
-      line-height:1.05;
-      text-transform:uppercase;
-      letter-spacing:.03em;
-    }
-
-    .subtitle{
-      margin-top:8px;
-      color:var(--muted);
-      font-size:16px;
-    }
-
-    .home-btn{
-      border:1px solid var(--line);
-      background:var(--accent);
-      color:white;
-      border-radius:999px;
-      padding:12px 20px;
-      font-weight:900;
-      cursor:pointer;
-    }
+    h1{font-size:40px;margin:0;}
 
     .modules{
       display:grid;
-      grid-template-columns:repeat(3, 1fr);
-      gap:18px;
-      margin-bottom:22px;
+      grid-template-columns:repeat(3,1fr);
+      gap:16px;
+      margin:20px 0;
     }
 
     .module-card{
-      background:linear-gradient(180deg, rgba(29,45,71,.96), rgba(21,31,49,.96));
-      border:1px solid var(--line);
-      border-radius:28px;
-      padding:24px;
-      min-height:160px;
+      background:var(--card);
+      padding:20px;
+      border-radius:18px;
       cursor:pointer;
-      box-shadow:0 18px 44px rgba(0,0,0,.24);
+      border:1px solid var(--line);
     }
 
     .module-card.active{
-      outline:3px solid rgba(127,29,29,.65);
-    }
-
-    .module-card .icon{
-      font-size:38px;
-      margin-bottom:14px;
-    }
-
-    .module-card h2{
-      margin:0 0 8px;
-      font-size:30px;
-      text-transform:uppercase;
-    }
-
-    .module-card p{
-      margin:0;
-      color:var(--muted);
-      line-height:1.45;
-      font-size:15px;
+      outline:2px solid var(--accent);
     }
 
     .workspace{
-      background:rgba(29,45,71,.96);
-      border:1px solid var(--line);
-      border-radius:28px;
-      padding:24px;
-      box-shadow:0 18px 44px rgba(0,0,0,.24);
-    }
-
-    .workspace-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:14px;
-      margin-bottom:20px;
-    }
-
-    .workspace-head h2{
-      margin:0;
-      font-size:32px;
-    }
-
-    .workspace-head p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:15px;
-    }
-
-    .panel{
-      background:rgba(15,23,42,.38);
-      border:1px solid var(--line);
-      border-radius:22px;
+      background:var(--card);
       padding:20px;
-      margin-bottom:18px;
-    }
-
-    .panel h3{
-      margin:0 0 14px;
-      font-size:23px;
-    }
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-height:42px;
-      padding:0 16px;
-      border:0;
-      border-radius:14px;
-      color:white;
-      text-decoration:none;
-      font-weight:900;
-      cursor:pointer;
-      background:var(--blue);
-      white-space:nowrap;
-    }
-
-    .btn:hover{ filter:brightness(1.08); }
-    .btn.green{ background:var(--green); color:#08111f; }
-    .btn.orange{ background:var(--orange); color:#111827; }
-    .btn.red{ background:var(--red); }
-    .btn.dark{ background:#111827; }
-    .btn.accent{ background:var(--accent); }
-    .btn.ghost{ background:rgba(255,255,255,.1); border:1px solid var(--line); }
-
-    .status-grid{
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:10px;
-    }
-
-    .status-link{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      min-height:56px;
-      padding:0 14px;
-      border-radius:14px;
+      border-radius:18px;
       border:1px solid var(--line);
-      background:rgba(255,255,255,.08);
-      color:#fff;
-      text-decoration:none;
-      font-weight:900;
     }
 
-    .status-link.main{ background:var(--accent); }
-
-    .work-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:18px;
-    }
-
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:7px;
-      margin-bottom:12px;
-    }
-
-    label{
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    select,
-    input{
-      width:100%;
-      min-height:44px;
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:var(--soft);
-      color:#fff;
-      padding:0 12px;
-      outline:none;
-      font:inherit;
-    }
-
-    .buttons{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .action-grid{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:10px;
-    }
-
-    .toggle-state{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-      color:var(--muted);
-      background:rgba(255,255,255,.05);
-      margin-top:12px;
-      line-height:1.45;
-    }
-
-    .toggle-state strong{
-      display:block;
-      color:#fff;
-      font-size:18px;
-      margin-bottom:4px;
-    }
-
-    .note{
-      color:var(--muted);
-      line-height:1.5;
-      font-size:14px;
-      margin-top:14px;
-    }
+    .hidden{display:none;}
 
     .stub-grid{
       display:grid;
       grid-template-columns:repeat(3,1fr);
-      gap:14px;
+      gap:12px;
+      margin-top:10px;
     }
 
     .stub{
-      background:rgba(255,255,255,.06);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:18px;
-      min-height:120px;
-    }
-
-    .stub h4{
-      margin:0 0 8px;
-      font-size:19px;
-    }
-
-    .stub p{
-      margin:0;
-      color:var(--muted);
-      line-height:1.45;
-      font-size:14px;
-    }
-
-    .hidden{ display:none !important; }
-
-    @media(max-width:1000px){
-      .modules,
-      .work-grid,
-      .stub-grid{ grid-template-columns:1fr; }
-      .status-grid{ grid-template-columns:1fr 1fr; }
-      .action-grid{ grid-template-columns:1fr 1fr; }
-    }
-
-    @media(max-width:640px){
-      .page{ width:min(100% - 24px, 1320px); padding:22px 0 34px; }
-      .top,
-      .workspace-head{ flex-direction:column; }
-      h1{ font-size:32px; }
-      .status-grid,
-      .action-grid{ grid-template-columns:1fr; }
+      background:var(--soft);
+      padding:14px;
+      border-radius:14px;
     }
   </style>
 </head>
 
 <body>
-  <div class="page">
 
-    <header class="top">
-      <div>
-        <h1>Квитковий відділ</h1>
-        <div class="subtitle">
-          Робоче місце створення сеансів, керування подіями, обороту квитків та звітності.
-        </div>
+<div class="page">
+
+  <h1>Квитковий відділ</h1>
+
+  <div class="modules">
+    <div class="module-card active" onclick="show('seances')">Сеанси</div>
+    <div class="module-card" onclick="show('turnover')">Оборот</div>
+    <div class="module-card" onclick="show('reports')">Звіти</div>
+  </div>
+
+  <div class="workspace">
+
+    <!-- TURNOVER -->
+    <div id="turnover" class="hidden">
+
+      <h2>Оборот квитків</h2>
+
+      <div class="stub-grid">
+        <div class="stub">Випуск: <b id="tIssued">0</b></div>
+        <div class="stub">Видача: <b id="tIssuedTo">0</b></div>
+        <div class="stub">Повернення: <b id="tReturns">0</b></div>
+        <div class="stub">Компенсації: <b id="tComp">0</b></div>
+        <div class="stub">Погашення: <b id="tUsed">0</b></div>
       </div>
 
-      <button class="home-btn" onclick="goHome()">← Головна</button>
-    </header>
-
-    <section class="modules">
-      <article class="module-card active" id="tabSeances" onclick="showModule('seances')">
-        <div class="icon">🎭</div>
-        <h2>Сеанси</h2>
-        <p>Створення, редагування, перенесення, скасування, архів та компенсації.</p>
-      </article>
-
-      <article class="module-card" id="tabTurnover" onclick="showModule('turnover')">
-        <div class="icon">🎫</div>
-        <h2>Оборот квитків</h2>
-        <p>Випуск, видача, повернення, продаж, типи, номінали, компенсації та залишки.</p>
-      </article>
-
-      <article class="module-card" id="tabReports" onclick="showModule('reports')">
-        <div class="icon">📊</div>
-        <h2>Звіти</h2>
-        <p>Касові, фінансові, по сеансах, каналах, типах квитків, операторах та уповноважених.</p>
-      </article>
-    </section>
-
-    <main class="workspace">
-
-      <section id="moduleSeances">
-        <div class="workspace-head">
-          <div>
-            <h2>Сеанси</h2>
-            <p>Основа обороту квитків: створення сеансу, робота з ним та контроль станів.</p>
-          </div>
-
-          <a class="btn green" href="./seance-editor.html">➕ Новий сеанс</a>
-        </div>
-
-        <div class="panel">
-          <h3>Статус сеансів</h3>
-
-          <div class="status-grid">
-            <a class="status-link main" href="./director-seances.html#sale">
-              <span>В продажі</span><span>→</span>
-            </a>
-
-            <a class="status-link" href="./director-seances.html#past">
-              <span>Відбулися</span><span>→</span>
-            </a>
-
-            <a class="status-link" href="./director-seances.html#postponed">
-              <span>Перенесені</span><span>→</span>
-            </a>
-
-            <a class="status-link" href="./director-seances.html#cancelled">
-              <span>Скасовані</span><span>→</span>
-            </a>
-
-            <a class="status-link" href="./director-seances.html#archive">
-              <span>Архів</span><span>→</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h3>Робота із сеансом</h3>
-
-          <div class="work-grid">
-            <div>
-              <div class="field">
-                <label for="toggleSecret">TOGGLE_SECRET</label>
-                <input id="toggleSecret" type="password" placeholder="Secret для керування онлайн-продажами">
-              </div>
-
-              <div class="buttons">
-                <button class="btn ghost" onclick="refreshToggle()">Оновити</button>
-                <button class="btn green" onclick="setOnlineSales(true)">Увімкнути</button>
-                <button class="btn red" onclick="setOnlineSales(false)">Вимкнути</button>
-              </div>
-
-              <div class="toggle-state" id="toggleState">
-                <strong>Онлайн-продажі</strong>
-                Статус не зчитано.
-              </div>
-            </div>
-
-            <div>
-              <div class="field">
-                <label for="seanceSelect">Вибір сеансу</label>
-                <select id="seanceSelect">
-                  <option value="">Завантаження сеансів…</option>
-                </select>
-              </div>
-
-              <div class="action-grid">
-                <button class="btn ghost" onclick="openOnlineHall()">Онлайн-зал</button>
-                <button class="btn orange" onclick="openCash()">Каса</button>
-                <button class="btn" onclick="openEditor()">Редагувати</button>
-                <button class="btn dark" onclick="openTurnover()">Оборот</button>
-                <button class="btn accent" onclick="postponeSeance()">Перенести</button>
-                <button class="btn accent" onclick="openCompensation()">Компенсації</button>
-                <button class="btn red" onclick="cancelSeance()">Скасувати</button>
-                <button class="btn red" onclick="archiveSeance()">Архівувати</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="note">
-            Каса потрібна не лише для продажу, а й для друку квитків та видачі уповноваженим / розповсюджувачам.
-            Онлайн-зал використовується для перевірки афіші, схеми, цін, hold та прийому платежів.
-          </div>
-        </div>
-      </section>
-
-      <section id="moduleTurnover" class="hidden">
-
-  <div class="workspace-head">
-    <div>
-      <h2>Оборот квитків</h2>
-      <p>Єдина модель руху квитка: від випуску до погашення.</p>
-    </div>
-  </div>
-
-  <!-- KPI ROW -->
-  <div class="stub-grid">
-
-    <div class="stub">
-      <h4>Випуск</h4>
-      <p>Активовано місць при публікації сеансу.</p>
-      <strong id="tIssued">—</strong>
-    </div>
-
-    <div class="stub">
-      <h4>Видача</h4>
-      <p>Оператори / уповноважені / каса.</p>
-      <strong id="tIssuedTo">—</strong>
-    </div>
-
-    <div class="stub">
-      <h4>Повернення</h4>
-      <p>Нереалізовані квитки, повернуті в систему.</p>
-      <strong id="tReturns">—</strong>
-    </div>
-
-    <div class="stub">
-      <h4>Компенсації</h4>
-      <p>Видані та погашені компенсаційні квитки.</p>
-      <strong id="tComp">—</strong>
     </div>
 
   </div>
+</div>
 
-  <!-- TYPES + PRICING -->
-  <div class="stub-grid" style="margin-top:14px;">
+<script>
+const SUPABASE_URL="https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_nCCfptJOb8Lzy1uAwGBJzA";
 
-    <div class="stub">
-      <h4>Типи квитків</h4>
-      <p>Звичайні / пільгові / акційні / службові / оренда</p>
-      <div id="tTypes">—</div>
-    </div>
+function show(id){
+  document.querySelectorAll('.workspace > div').forEach(d=>d.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
 
-    <div class="stub">
-      <h4>Сегментація по цінах</h4>
-      <p>Оборот по номіналах</p>
-      <div id="tPricing">—</div>
-    </div>
-
-    <div class="stub">
-      <h4>Погашення</h4>
-      <p>Факт проходу через контроль доступу</p>
-      <strong id="tUsed">—</strong>
-    </div>
-
-  </div>
-
-  <!-- FUTURE JOURNAL HOOK -->
-  <div class="stub" style="margin-top:14px;">
-    <h4>Журнал руху квитків</h4>
-    <p>
-      Тут буде едина таблица: випуск → видача → повернення → компенсація → погашення.
-    </p>
-  </div>
-
-</section>
-      <section id="moduleReports" class="hidden">
-        <div class="workspace-head">
-          <div>
-            <h2>Звіти</h2>
-            <p>Усі звіти як зрізи єдиного обороту квитків.</p>
-          </div>
-        </div>
-
-        <div class="stub-grid">
-          <div class="stub"><h4>Продажі</h4><p><a class="btn ghost" href="./sales.html">Відкрити продажі</a></p></div>
-          <div class="stub"><h4>KG-10</h4><p><a class="btn ghost" href="./reports/kg10.html">Відкрити KG-10</a></p></div>
-          <div class="stub"><h4>KG-13</h4><p><a class="btn ghost" href="./reports/kg13.html">Відкрити KG-13</a></p></div>
-          <div class="stub"><h4>Контроль доступу</h4><p><a class="btn ghost" href="./access-control.html">Відкрити контроль</a></p></div>
-          <div class="stub"><h4>Компенсації</h4><p>Recovery-звіти підключимо з існуючого модуля.</p></div>
-          <div class="stub"><h4>Оборот квитків</h4><p>Після запуску журналу руху квитків.</p></div>
-        </div>
-      </section>
-
-    </main>
-  </div>
-
-  <script>
-    "use strict";
-
-    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-    const TOGGLE_ENDPOINT = "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/toggle-online-sales";
-    const TOGGLE_LS_KEY = "va_toggle_secret_v1";
-
-    const seanceSelect = document.getElementById("seanceSelect");
-    const toggleSecret = document.getElementById("toggleSecret");
-    const toggleState = document.getElementById("toggleState");
-
-    let SEANCES = [];
-
-    function showModule(name){
-      const modules = {
-        seances: ["tabSeances", "moduleSeances"],
-        turnover: ["tabTurnover", "moduleTurnover"],
-        reports: ["tabReports", "moduleReports"]
-      };
-
-      Object.values(modules).forEach(([tabId, bodyId]) => {
-        document.getElementById(tabId).classList.remove("active");
-        document.getElementById(bodyId).classList.add("hidden");
-      });
-
-      const current = modules[name] || modules.seances;
-      document.getElementById(current[0]).classList.add("active");
-      document.getElementById(current[1]).classList.remove("hidden");
-    }
-
-    function goHome(){
-      location.href = "./director-dashboard.html";
-    }
-
-    function selectedSeanceId(){
-      return seanceSelect.value || "";
-    }
-
-    function requireSeance(){
-      const id = selectedSeanceId();
-      if(!id){
-        alert("Оберіть сеанс.");
-        return "";
-      }
-      return id;
-    }
-
-    function seanceLabel(s){
-      const title = s.show || s.id || "Без назви";
-      const dt = [s.date, s.time].filter(Boolean).join(" ");
-      return dt ? `${title} • ${dt}` : title;
-    }
-
-    function openOnlineHall(){
-      const id = requireSeance();
-      if(!id) return;
-      window.open(`../site-project/pages/hall.html?seance=${encodeURIComponent(id)}`, "_blank");
-    }
-
-    function openCash(){
-      const id = requireSeance();
-      if(!id) return;
-      window.open(`../hybrid/hall-cash.html?seance=${encodeURIComponent(id)}`, "_blank");
-    }
-
-    function openEditor(){
-      const id = requireSeance();
-      if(!id) return;
-      window.open(`./seance-editor.html?seance=${encodeURIComponent(id)}&seance_id=${encodeURIComponent(id)}`, "_blank");
-    }
-
-    function openTurnover(){
-      const id = requireSeance();
-      if(!id) return;
-      showModule("turnover");
-      history.replaceState(null, "", `ticket-office.html?seance=${encodeURIComponent(id)}#turnover`);
-    }
-
-    function openCompensation(){
-      const id = requireSeance();
-      if(!id) return;
-      window.open(`./manage.html?seance=${encodeURIComponent(id)}&view=compensation`, "_blank");
-    }
-
-    function postponeSeance(){
-      const id = requireSeance();
-      if(!id) return;
-      window.open(`./manage.html?seance=${encodeURIComponent(id)}&view=postpone`, "_blank");
-    }
-
-    function cancelSeance(){
-      const id = requireSeance();
-      if(!id) return;
-      window.open(`./manage.html?seance=${encodeURIComponent(id)}&view=cancel`, "_blank");
-    }
-
-    async function archiveSeance(){
-      const id = requireSeance();
-      if(!id) return;
-
-      const ok = confirm("Архівувати обраний сеанс?");
-      if(!ok) return;
-
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`,
-        {
-          method:"PATCH",
-          headers:{
-            apikey:SUPABASE_ANON_KEY,
-            Authorization:`Bearer ${SUPABASE_ANON_KEY}`,
-            "Content-Type":"application/json"
-          },
-          body:JSON.stringify({
-            archived:true,
-            active:false
-          })
-        }
-      );
-
-      if(!res.ok){
-        alert("Помилка архівації.");
-        return;
-      }
-
-      await loadSeances();
-    }
-
-    function getToggleSecret(){
-      const secret = (toggleSecret.value || "").trim();
-      if(!secret){
-        throw new Error("Потрібен TOGGLE_SECRET");
-      }
-      localStorage.setItem(TOGGLE_LS_KEY, secret);
-      return secret;
-    }
-
-    function renderToggle(settings){
-      const enabled = settings && settings.online_sales_enabled;
-
-      if(enabled === true){
-        toggleState.innerHTML = "<strong>Онлайн-продажі</strong>Статус: УВІМКНЕНО";
-        toggleState.style.borderColor = "rgba(34,197,94,.45)";
-        return;
-      }
-
-      if(enabled === false){
-        toggleState.innerHTML = "<strong>Онлайн-продажі</strong>Статус: ВИМКНЕНО";
-        toggleState.style.borderColor = "rgba(239,68,68,.45)";
-        return;
-      }
-
-      toggleState.innerHTML = "<strong>Онлайн-продажі</strong>Статус не зчитано.";
-    }
-
-    async function toggleApi(method, body){
-      const secret = getToggleSecret();
-      const res = await fetch(TOGGLE_ENDPOINT, {
-        method,
-        headers:{
-          "Content-Type":"application/json",
-          "x-toggle-secret":secret
-        },
-        body: body ? JSON.stringify(body) : undefined
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if(!res.ok || data.ok === false){
-        throw new Error(data.error || `HTTP ${res.status}`);
-      }
-      return data;
-    }
-
-    async function refreshToggle(){
-      try{
-        toggleState.innerHTML = "<strong>Онлайн-продажі</strong>Зчитую статус…";
-        const data = await toggleApi("GET");
-        renderToggle(data.settings);
-      }catch(e){
-        toggleState.innerHTML = "<strong>Онлайн-продажі</strong>Помилка: " + String(e.message || e);
-      }
-    }
-
-    async function setOnlineSales(value){
-      try{
-        toggleState.innerHTML = "<strong>Онлайн-продажі</strong>Застосовую…";
-        const data = await toggleApi("POST", {
-          online_sales_enabled: Boolean(value)
-        });
-        renderToggle(data.settings);
-      }catch(e){
-        toggleState.innerHTML = "<strong>Онлайн-продажі</strong>Помилка: " + String(e.message || e);
-      }
-    }
-
-    async function loadSeances(){
-      seanceSelect.innerHTML = "<option value=''>Завантаження…</option>";
-
-      try{
-        const url =
-          `${SUPABASE_URL}/rest/v1/seances` +
-          "?select=id,show,date,time,status,active,archived,venue_id" +
-          "&order=date.asc,time.asc";
-
-        const res = await fetch(url, {
-          headers:{
-            apikey:SUPABASE_ANON_KEY,
-            Authorization:`Bearer ${SUPABASE_ANON_KEY}`
-          },
-          cache:"no-store"
-        });
-
-        if(!res.ok){
-          throw new Error(await res.text());
-        }
-
-        const rows = await res.json();
-        SEANCES = Array.isArray(rows) ? rows : [];
-        const visible = SEANCES.filter(s => s.archived !== true);
-
-        seanceSelect.innerHTML =
-          "<option value=''>Оберіть сеанс</option>" +
-          visible.map(s => {
-            return `<option value="${escapeHtml(s.id)}">${escapeHtml(seanceLabel(s))}</option>`;
-          }).join("");
-
-        const qs = new URLSearchParams(location.search);
-        const sid = qs.get("seance");
-        if(sid && visible.some(s => s.id === sid)){
-          seanceSelect.value = sid;
-        }
-
-      }catch(e){
-        console.error(e);
-        seanceSelect.innerHTML = "<option value=''>Помилка завантаження сеансів</option>";
-      }
-    }
-
-    function escapeHtml(value){
-      return String(value ?? "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;");
-    }
-
-    window.addEventListener("load", async () => {
-      const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
-      if(saved){
-        toggleSecret.value = saved;
-      }
-      await loadSeances();
-      if(location.hash === "#turnover"){
-        showModule("turnover");
-      }
-    });
-
-// ============================
-// TURNOVER MODULE (FIX ADDON)
-// ============================
+function set(id,val){
+  const el=document.getElementById(id);
+  if(el) el.innerText=val;
+}
 
 async function loadTurnover(seanceId){
 
-  const safeNum = (v) => Number(v || 0);
-
-  const set = (id,val)=>{
-    const el = document.getElementById(id);
-    if(el) el.innerText = val ?? 0;
-  };
-
-  try{
-
-    if(!seanceId){
-      console.warn("NO SEANCE");
-      return;
-    }
-
-    const base = `${SUPABASE_URL}/rest/v1`;
-
-    const headers = {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-    };
-
-    // =========================
-    // SAFE PARALLEL LOAD
-    // =========================
-    const [ticketsRes, ordersRes, cashRes] = await Promise.allSettled([
-      fetch(`${base}/tickets?select=price,show_slug&show_slug=eq.${seanceId}`, {headers}),
-      fetch(`${base}/orders?select=amount,status,show_slug&show_slug=eq.${seanceId}`, {headers}),
-      fetch(`${base}/cash_ops?select=payload,created_at`, {headers})
-    ]);
-
-    // =========================
-    // SAFE PARSE
-    // =========================
-    const tickets = ticketsRes.status === "fulfilled"
-      ? await ticketsRes.value.json().catch(()=>[])
-      : [];
-
-    const orders = ordersRes.status === "fulfilled"
-      ? await ordersRes.value.json().catch(()=>[])
-      : [];
-
-    const cash = cashRes.status === "fulfilled"
-      ? await cashRes.value.json().catch(()=>[])
-      : [];
-
-    // =========================
-    // KPI LOGIC
-    // =========================
-
-    const issued = tickets.length;
-
-    const salesOnline = orders
-      .filter(o => o?.status === "paid")
-      .reduce((a,b)=>a + safeNum(b.amount),0);
-
-    const ticketRevenue = tickets
-      .reduce((a,b)=>a + safeNum(b.price),0);
-
-    // cash_ops (если есть ручные продажи/возвраты)
-    const cashRevenue = cash.length; // временно нейтрально
-
-    const total = ticketRevenue + salesOnline;
-
-    // =========================
-    // OUTPUT
-    // =========================
-    set("tIssued", issued);
-    set("tIssuedTo", total);
-    set("tReturns", 0);
-    set("tComp", 0);
-    set("tUsed", issued);
-
-    console.log("TURNOVER OK", {
-      issued,
-      total,
-      ticketRevenue,
-      salesOnline
-    });
-
-  }catch(e){
-    console.error("TURNOVER HARD FAIL:", e);
+  if(!seanceId){
+    set("tIssued",0);
+    set("tIssuedTo",0);
+    set("tReturns",0);
+    set("tComp",0);
+    set("tUsed",0);
+    return;
   }
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/ticket_flow?seance_id=eq.${seanceId}&select=operation_type,quantity`,
+    {
+      headers:{
+        apikey:SUPABASE_ANON_KEY,
+        Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
+  );
+
+  if(!res.ok){
+    console.error(await res.text());
+    return;
+  }
+
+  const rows = await res.json();
+
+  let issued=0, returned=0, comp=0, used=0;
+
+  rows.forEach(r=>{
+    const q=Number(r.quantity||0);
+
+    if(r.operation_type==="issue") issued+=q;
+    if(r.operation_type==="return") returned+=q;
+    if(r.operation_type==="compensation") comp+=q;
+    if(r.operation_type==="used") used+=q;
+  });
+
+  const total = issued - returned;
+
+  set("tIssued",issued);
+  set("tIssuedTo",total);
+  set("tReturns",returned);
+  set("tComp",comp);
+  set("tUsed",used);
 }
-    
-  </script>
+
+// AUTO LOAD
+window.addEventListener("load",()=>{
+  const qs=new URLSearchParams(location.search);
+  const sid=qs.get("seance");
+  if(sid) loadTurnover(sid);
+});
+</script>
+
 </body>
 </html>
