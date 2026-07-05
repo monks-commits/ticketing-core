@@ -1747,6 +1747,154 @@ function copyJson(){
   alert("Скопійовано");
 }
 
+function collectHallSeatKeys(hall){
+  const keys = new Set();
+
+  if(Array.isArray(hall.seats)){
+    hall.seats.forEach(s=>{
+      const key = s.key || `${s.prefix || ""}${s.row}-M${s.seat}`;
+      if(key) keys.add(key);
+    });
+  }
+
+  if(Array.isArray(hall.sections)){
+    const map = new Map();
+    hall.sections.forEach(s=>{ if(s?.id) map.set(s.id, s); });
+
+    const walk = (sec)=>{
+      if(!sec || sec.hidden === true) return;
+
+      if(sec.type === "horizontal_group"){
+        (sec.items || []).forEach(id => walk(map.get(id)));
+        return;
+      }
+
+      if(sec.type === "rows"){
+        const prefix = sec.prefix || "P";
+        (sec.rows || []).forEach(r=>{
+          for(let i=1; i<=Number(r.seats || 0); i++){
+            keys.add(`${prefix}${r.row}-M${i}`);
+          }
+        });
+      }
+
+      if(sec.type === "multi_block_rows"){
+        const prefix = sec.prefix || "P";
+        (sec.rows || []).forEach(r=>{
+          (r.blocks || []).forEach(block=>{
+            const start = Number(block.start || 1);
+            const count = Number(block.count || 0);
+            const reverse = block.reverse === true;
+
+            for(let i=0; i<count; i++){
+              const seatNum = reverse ? start - i : start + i;
+              keys.add(`${prefix}${r.row}-M${seatNum}`);
+            }
+          });
+        });
+      }
+
+      if(sec.type === "side_vertical"){
+        const prefix = sec.prefix || "S";
+        const row = Number(sec.row || 1);
+        const start = Number(sec.start || 1);
+        const count = Number(sec.count || 0);
+        const reverse = sec.reverse === true;
+
+        for(let i=0; i<count; i++){
+          const seatNum = reverse ? start - i : start + i;
+          keys.add(`${prefix}${row}-M${seatNum}`);
+        }
+      }
+    };
+
+    hall.sections.forEach(walk);
+  }
+
+  Object.keys(data.seat_overrides || {}).forEach(k => keys.add(k));
+
+  return Array.from(keys);
+}
+
+function getSellableQuotaSeatsFromHall(hall){
+  return collectHallSeatKeys(hall).filter(key=>{
+    const state = previewSeatState(key);
+    return (
+      state &&
+      state.sale !== false &&
+      state.price !== null &&
+      state.price !== undefined &&
+      state.color
+    );
+  });
+}
+
+async function syncSeanceQuota(seance){
+  const hallName = normalizeHallNameForPreview(
+    getHallNameByVenue(venueSelect.value) || venueSelect.value
+  );
+
+  const hallRes = await fetch(`../data/hall/${hallName}.json`, { cache:"no-store" });
+
+  if(!hallRes.ok){
+    throw new Error(`Не вдалося завантажити схему ${hallName}.json`);
+  }
+
+  const hall = await hallRes.json();
+  const seatKeys = getSellableQuotaSeatsFromHall(hall);
+
+  const headers = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    "Content-Type": "application/json"
+  };
+
+  const delRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/seance_ticket_quota?seance_id=eq.${encodeURIComponent(seance)}&source=eq.va`,
+    {
+      method:"DELETE",
+      headers
+    }
+  );
+
+  if(!delRes.ok){
+    throw new Error(await delRes.text());
+  }
+
+  if(!seatKeys.length){
+    return 0;
+  }
+
+  const rows = seatKeys.map(seat => ({
+    seance_id: seance,
+    source: "va",
+    seat_key: seat,
+    status: "released"
+  }));
+
+  for(let i=0; i<rows.length; i+=500){
+    const chunk = rows.slice(i, i+500);
+
+    const insRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/seance_ticket_quota`,
+      {
+        method:"POST",
+        headers:{
+          ...headers,
+          Prefer:"return=minimal"
+        },
+        body: JSON.stringify(chunk)
+      }
+    );
+
+    if(!insRes.ok){
+      throw new Error(await insRes.text());
+    }
+  }
+
+  return rows.length;
+}
+  
 publish.onclick = async () => {
   const seance = seanceId.value.trim();
   if (!seance) return alert("Вкажи Seance ID");
