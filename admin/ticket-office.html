@@ -786,61 +786,87 @@
 
 async function loadTurnover(seanceId){
 
-  if(!seanceId) return;
+  const safeNum = (v) => Number(v || 0);
+
+  const set = (id,val)=>{
+    const el = document.getElementById(id);
+    if(el) el.innerText = val ?? 0;
+  };
 
   try{
 
-    // =====================
-    const [ticketsRes, ordersRes] = await Promise.all([
+    if(!seanceId){
+      console.warn("NO SEANCE");
+      return;
+    }
 
-      fetch(`${SUPABASE_URL}/rest/v1/tickets?select=price&show_slug=eq.${seanceId}`, {
-        headers:{
-          apikey:SUPABASE_ANON_KEY,
-          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }),
+    const base = `${SUPABASE_URL}/rest/v1`;
 
-      fetch(`${SUPABASE_URL}/rest/v1/orders?select=amount,status,show_slug&show_slug=eq.${seanceId}`, {
-        headers:{
-          apikey:SUPABASE_ANON_KEY,
-          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
-        }
-      })
+    const headers = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    };
 
+    // =========================
+    // SAFE PARALLEL LOAD
+    // =========================
+    const [ticketsRes, ordersRes, cashRes] = await Promise.allSettled([
+      fetch(`${base}/tickets?select=price,show_slug&show_slug=eq.${seanceId}`, {headers}),
+      fetch(`${base}/orders?select=amount,status,show_slug&show_slug=eq.${seanceId}`, {headers}),
+      fetch(`${base}/cash_ops?select=payload,created_at`, {headers})
     ]);
 
-    const tickets = await ticketsRes.json() || [];
-    const orders  = await ordersRes.json() || [];
+    // =========================
+    // SAFE PARSE
+    // =========================
+    const tickets = ticketsRes.status === "fulfilled"
+      ? await ticketsRes.value.json().catch(()=>[])
+      : [];
 
-    // =====================
-    // KPI
-    // =====================
+    const orders = ordersRes.status === "fulfilled"
+      ? await ordersRes.value.json().catch(()=>[])
+      : [];
+
+    const cash = cashRes.status === "fulfilled"
+      ? await cashRes.value.json().catch(()=>[])
+      : [];
+
+    // =========================
+    // KPI LOGIC
+    // =========================
 
     const issued = tickets.length;
 
     const salesOnline = orders
-      .filter(o => o.status === "paid")
-      .reduce((a,b)=>a + (b.amount || 0),0);
+      .filter(o => o?.status === "paid")
+      .reduce((a,b)=>a + safeNum(b.amount),0);
 
-    const revenueTickets = tickets
-      .reduce((a,b)=>a + (b.price || 0),0);
+    const ticketRevenue = tickets
+      .reduce((a,b)=>a + safeNum(b.price),0);
 
-    const used = issued; // пока нет scan логики
+    // cash_ops (если есть ручные продажи/возвраты)
+    const cashRevenue = cash.length; // временно нейтрально
 
-    // =====================
-    const set = (id,val)=>{
-      const el = document.getElementById(id);
-      if(el) el.innerText = val ?? 0;
-    };
+    const total = ticketRevenue + salesOnline;
 
+    // =========================
+    // OUTPUT
+    // =========================
     set("tIssued", issued);
-    set("tIssuedTo", revenueTickets + salesOnline);
+    set("tIssuedTo", total);
     set("tReturns", 0);
     set("tComp", 0);
-    set("tUsed", used);
+    set("tUsed", issued);
+
+    console.log("TURNOVER OK", {
+      issued,
+      total,
+      ticketRevenue,
+      salesOnline
+    });
 
   }catch(e){
-    console.error("TURNOVER ERROR:", e);
+    console.error("TURNOVER HARD FAIL:", e);
   }
 }
     
