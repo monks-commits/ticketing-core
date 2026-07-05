@@ -1064,6 +1064,101 @@ function formatDateTime(value){
     minute:"2-digit"
   });
 }
+
+async function syncQuotaFromPricing(){
+  const seanceId = selectedSeanceId();
+
+  if(!seanceId){
+    alert("Оберіть сеанс.");
+    return;
+  }
+
+  const btn = document.getElementById("quotaSyncBtn");
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = "Оновлюю…";
+  }
+
+  try{
+    const headers = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json"
+    };
+
+    const ticketsRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(seanceId)}&select=seat_label`,
+      { headers, cache:"no-store" }
+    );
+
+    if(!ticketsRes.ok){
+      throw new Error(await ticketsRes.text());
+    }
+
+    const tickets = await ticketsRes.json();
+
+    const seatKeys = [...new Set(
+      tickets
+        .map(t => t.seat_label)
+        .filter(Boolean)
+    )];
+
+    if(!seatKeys.length){
+      alert("Для цього сеансу поки немає місць для формування квоти.");
+      return;
+    }
+
+    const delRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/seance_ticket_quota?seance_id=eq.${encodeURIComponent(seanceId)}&source=eq.va`,
+      {
+        method:"DELETE",
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    if(!delRes.ok){
+      throw new Error(await delRes.text());
+    }
+
+    const rows = seatKeys.map(seat => ({
+      seance_id: seanceId,
+      source: "va",
+      seat_key: seat,
+      status: "released"
+    }));
+
+    const insRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/seance_ticket_quota`,
+      {
+        method:"POST",
+        headers:{
+          ...headers,
+          Prefer:"return=minimal"
+        },
+        body: JSON.stringify(rows)
+      }
+    );
+
+    if(!insRes.ok){
+      throw new Error(await insRes.text());
+    }
+
+    await loadTurnover(seanceId);
+    alert(`Квоту VA оновлено: ${rows.length} місць.`);
+
+  }catch(e){
+    console.error("sync quota error:", e);
+    alert("Помилка оновлення квоти VA: " + String(e.message || e));
+  }finally{
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = "Оновити квоту VA";
+    }
+  }
+}
     
   </script>
 </body>
