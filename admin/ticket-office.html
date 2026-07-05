@@ -568,22 +568,28 @@
     let SEANCES = [];
 
     function showModule(name){
-      const modules = {
-        seances: ["tabSeances", "moduleSeances"],
-        turnover: ["tabTurnover", "moduleTurnover"],
-        reports: ["tabReports", "moduleReports"]
-      };
+  const modules = {
+    seances: ["tabSeances", "moduleSeances"],
+    turnover: ["tabTurnover", "moduleTurnover"],
+    reports: ["tabReports", "moduleReports"]
+  };
 
-      Object.values(modules).forEach(([tabId, bodyId]) => {
-        document.getElementById(tabId).classList.remove("active");
-        document.getElementById(bodyId).classList.add("hidden");
-      });
+  Object.values(modules).forEach(([tabId, bodyId]) => {
+    const tab = document.getElementById(tabId);
+    const body = document.getElementById(bodyId);
 
-      const current = modules[name] || modules.seances;
-      document.getElementById(current[0]).classList.add("active");
-      document.getElementById(current[1]).classList.remove("hidden");
-    }
+    if(tab) tab.classList.remove("active");
+    if(body) body.classList.add("hidden");
+  });
 
+  const current = modules[name] || modules.seances;
+
+  const activeTab = document.getElementById(current[0]);
+  const activeBody = document.getElementById(current[1]);
+
+  if(activeTab) activeTab.classList.add("active");
+  if(activeBody) activeBody.classList.remove("hidden");
+}
     function goHome(){
       location.href = "./director-dashboard.html";
     }
