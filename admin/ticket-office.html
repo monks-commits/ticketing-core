@@ -779,6 +779,96 @@
         showModule("turnover");
       }
     });
+
+async function loadTurnover(seanceId){
+
+  if(!seanceId) return;
+
+  try{
+
+    // 1. tickets = фактический оборот
+    const ticketsRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${seanceId}&select=*`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const tickets = ticketsRes.ok ? await ticketsRes.json() : [];
+
+    // 2. orders = деньги
+    const ordersRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?seance_id=eq.${seanceId}&select=*`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+
+    const orders = ordersRes.ok ? await ordersRes.json() : [];
+
+    // ===== KPI =====
+
+    const issued = tickets.length;
+
+    const returns = tickets.filter(t => t.status === "returned").length;
+
+    const used = tickets.filter(t => t.checked_in_at != null).length;
+
+    const issuedNet = issued - returns;
+
+    const sales = orders.reduce((s,o)=> s + (Number(o.amount)||0),0);
+
+    // ===== UI =====
+
+    const set = (id,val)=>{
+      const el = document.getElementById(id);
+      if(el) el.innerText = val ?? 0;
+    };
+
+    set("tIssued", issued);
+    set("tIssuedTo", issuedNet);
+    set("tReturns", returns);
+    set("tComp", 0); // пока нет отдельной таблицы компенсаций
+    set("tUsed", used);
+
+    // дополнительные блоки (если есть)
+    const types = document.getElementById("tTypes");
+    if(types){
+      const byType = {};
+      tickets.forEach(t=>{
+        const k = t.ticket_type || "unknown";
+        byType[k] = (byType[k] || 0) + 1;
+      });
+
+      types.innerHTML = Object.entries(byType)
+        .map(([k,v])=>`${k}: ${v}`)
+        .join("<br>");
+    }
+
+    const pricing = document.getElementById("tPricing");
+    if(pricing){
+      const byPrice = {};
+      tickets.forEach(t=>{
+        const p = t.price || 0;
+        byPrice[p] = (byPrice[p] || 0) + 1;
+      });
+
+      pricing.innerHTML = Object.entries(byPrice)
+        .map(([k,v])=>`${k}₴ → ${v}`)
+        .join("<br>");
+    }
+
+  }catch(e){
+    console.error("turnover error:", e);
+  }
+}
+    
   </script>
 </body>
 </html>
