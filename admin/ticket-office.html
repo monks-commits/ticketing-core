@@ -1066,6 +1066,7 @@ function formatDateTime(value){
 }
 
 async function syncQuotaFromPricing(){
+
   const seanceId = selectedSeanceId();
 
   if(!seanceId){
@@ -1073,91 +1074,170 @@ async function syncQuotaFromPricing(){
     return;
   }
 
-  const btn = document.getElementById("quotaSyncBtn");
+  const btn=document.getElementById("quotaSyncBtn");
+
   if(btn){
-    btn.disabled = true;
-    btn.textContent = "Оновлюю…";
+    btn.disabled=true;
+    btn.textContent="Оновлюю…";
   }
 
   try{
-    const headers = {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      "Content-Type": "application/json"
+
+    const headers={
+      apikey:SUPABASE_ANON_KEY,
+      Authorization:`Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type":"application/json"
     };
 
-    const ticketsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(seanceId)}&select=seat_label`,
-      { headers, cache:"no-store" }
+    //-------------------------------------------------
+    // Загружаем pricing сеанса
+    //-------------------------------------------------
+
+    const pricingRes=await fetch(
+
+      `${SUPABASE_URL}/rest/v1/seances_pricing`+
+      `?seance_id=eq.${encodeURIComponent(seanceId)}`+
+      `&select=pricing`,
+
+      {
+        headers,
+        cache:"no-store"
+      }
+
     );
 
-    if(!ticketsRes.ok){
-      throw new Error(await ticketsRes.text());
+    if(!pricingRes.ok){
+      throw new Error(await pricingRes.text());
     }
 
-    const tickets = await ticketsRes.json();
+    const pricingRows=await pricingRes.json();
 
-    const seatKeys = [...new Set(
-      tickets
-        .map(t => t.seat_label)
-        .filter(Boolean)
-    )];
+    if(!pricingRows.length){
 
-    if(!seatKeys.length){
-      alert("Для цього сеансу поки немає місць для формування квоти.");
+      alert("Для сеансу немає pricing.");
+
       return;
     }
 
-    const delRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/seance_ticket_quota?seance_id=eq.${encodeURIComponent(seanceId)}&source=eq.va`,
-      {
-        method:"DELETE",
-        headers:{
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    );
+    const pricing=pricingRows[0].pricing || {};
 
-    if(!delRes.ok){
-      throw new Error(await delRes.text());
+    //-------------------------------------------------
+    // Собираем места VA
+    //-------------------------------------------------
+
+    const seatKeys=[];
+
+    Object.entries(pricing).forEach(([seatKey,row])=>{
+
+      if(!row) return;
+
+      if(row.sale===false) return;
+
+      if(row.price==null) return;
+
+      seatKeys.push(seatKey);
+
+    });
+
+    //-------------------------------------------------
+
+    if(!seatKeys.length){
+
+      alert("Немає місць, випущених у продаж.");
+
+      return;
     }
 
-    const rows = seatKeys.map(seat => ({
-      seance_id: seanceId,
-      source: "va",
-      seat_key: seat,
-      status: "released"
+    //-------------------------------------------------
+    // Удаляем старую квоту
+    //-------------------------------------------------
+
+    await fetch(
+
+      `${SUPABASE_URL}/rest/v1/seance_ticket_quota`+
+      `?seance_id=eq.${encodeURIComponent(seanceId)}`+
+      `&source=eq.va`,
+
+      {
+
+        method:"DELETE",
+
+        headers:{
+          apikey:SUPABASE_ANON_KEY,
+          Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+        }
+
+      }
+
+    );
+
+    //-------------------------------------------------
+    // Создаем новую
+    //-------------------------------------------------
+
+    const quotaRows=seatKeys.map(seat=>({
+
+      seance_id:seanceId,
+
+      source:"va",
+
+      seat_key:seat,
+
+      status:"released"
+
     }));
 
-    const insRes = await fetch(
+    const ins=await fetch(
+
       `${SUPABASE_URL}/rest/v1/seance_ticket_quota`,
+
       {
+
         method:"POST",
+
         headers:{
           ...headers,
           Prefer:"return=minimal"
         },
-        body: JSON.stringify(rows)
+
+        body:JSON.stringify(quotaRows)
+
       }
+
     );
 
-    if(!insRes.ok){
-      throw new Error(await insRes.text());
+    if(!ins.ok){
+
+      throw new Error(await ins.text());
+
     }
 
     await loadTurnover(seanceId);
-    alert(`Квоту VA оновлено: ${rows.length} місць.`);
 
-  }catch(e){
-    console.error("sync quota error:", e);
-    alert("Помилка оновлення квоти VA: " + String(e.message || e));
-  }finally{
-    if(btn){
-      btn.disabled = false;
-      btn.textContent = "Оновити квоту VA";
-    }
+    alert(`Квоту VA сформовано.\n\nВипущено місць: ${quotaRows.length}`);
+
   }
+
+  catch(e){
+
+    console.error(e);
+
+    alert(e.message);
+
+  }
+
+  finally{
+
+    if(btn){
+
+      btn.disabled=false;
+
+      btn.textContent="Оновити квоту VA";
+
+    }
+
+  }
+
 }
     
   </script>
