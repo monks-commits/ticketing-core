@@ -1858,16 +1858,18 @@ function collectHallSeatKeys(hall){
   return Array.from(keys);
 }
 function getSellableQuotaSeatsFromHall(hall){
-  return collectHallSeatKeys(hall).filter(key=>{
-    const state = previewSeatState(key);
-    return (
-      state &&
-      state.sale !== false &&
-      state.price !== null &&
-      state.price !== undefined &&
-      state.color
-    );
-  });
+  return Object.entries(data.seat_overrides || {})
+    .filter(([key, state]) => {
+      return (
+        key &&
+        state &&
+        state.sale !== false &&
+        state.price !== null &&
+        state.price !== undefined &&
+        state.color
+      );
+    })
+    .map(([key]) => key);
 }
 
 async function syncSeanceQuota(seance){
