@@ -1593,36 +1593,22 @@ function addRule(){
   const z = zone.value;
   const from = Number(fromRow.value);
   const to = Number(toRow.value);
+  const p = Number(price.value);
+  const c = color.value;
   const saleAllowed = sale.checked;
 
-  if (!z || !from || !to) {
-    alert("Вкажи зону і ряди");
-    return;
-  }
-
-  if (to < from) {
-    alert("Кінець рядів не може бути менше початку");
+  if (!z || !from || !to || !p) {
+    alert("Вкажи зону, ряди і ціну");
     return;
   }
 
   const key = `${z}${from}-${to}`;
 
   data.pricing[key] = {
+    price: p,
+    color: c,
     sale: saleAllowed
   };
-
-  if (saleAllowed) {
-    const p = Number(price.value);
-    const c = color.value;
-
-    if (!p || !c) {
-      alert("Для продажу вкажи ціну і колір");
-      return;
-    }
-
-    data.pricing[key].price = p;
-    data.pricing[key].color = c;
-  }
 
   render();
   renderPreview();
@@ -1761,218 +1747,6 @@ function copyJson(){
   alert("Скопійовано");
 }
 
-function collectHallSeatKeys(hall){
-  const keys = new Set();
-
-  const addKey = (key) => {
-    if(key) keys.add(String(key));
-  };
-
-  const addSeatObj = (s, fallbackPrefix = "P", fallbackRow = null) => {
-    if(!s) return;
-
-    if(s.key) return addKey(s.key);
-    if(s.seat_key) return addKey(s.seat_key);
-    if(s.id && String(s.id).includes("-M")) return addKey(s.id);
-
-    const prefix = s.prefix || fallbackPrefix || "P";
-    const row = s.row ?? fallbackRow;
-    const seat = s.seat ?? s.num ?? s.number ?? s.n;
-
-    if(row != null && seat != null){
-      addKey(`${prefix}${row}-M${seat}`);
-    }
-  };
-
-  const walk = (node, inheritedPrefix = "P") => {
-    if(!node || node.hidden === true) return;
-
-    const prefix = node.prefix || inheritedPrefix || "P";
-
-    if(Array.isArray(node.seats)){
-      node.seats.forEach(s => addSeatObj(s, prefix, node.row));
-    }
-
-    if(Array.isArray(node.items)){
-      node.items.forEach(item => {
-        if(typeof item === "object") walk(item, prefix);
-      });
-    }
-
-    if(Array.isArray(node.rows)){
-      node.rows.forEach(r => {
-        const row = r.row ?? r.n ?? r.number;
-
-        if(Array.isArray(r.seats)){
-          r.seats.forEach(s => {
-            if(typeof s === "object") addSeatObj(s, prefix, row);
-            else addKey(`${prefix}${row}-M${s}`);
-          });
-        }
-
-        if(Number(r.seats) > 0){
-          for(let i = 1; i <= Number(r.seats); i++){
-            addKey(`${prefix}${row}-M${i}`);
-          }
-        }
-
-        if(Array.isArray(r.blocks)){
-          r.blocks.forEach(block => {
-            const start = Number(block.start || 1);
-            const count = Number(block.count || 0);
-            const reverse = block.reverse === true;
-
-            for(let i = 0; i < count; i++){
-              const seatNum = reverse ? start - i : start + i;
-              addKey(`${prefix}${row}-M${seatNum}`);
-            }
-          });
-        }
-      });
-    }
-
-    if(node.type === "side_vertical"){
-      const row = Number(node.row || 1);
-      const start = Number(node.start || 1);
-      const count = Number(node.count || 0);
-      const reverse = node.reverse === true;
-
-      for(let i = 0; i < count; i++){
-        const seatNum = reverse ? start - i : start + i;
-        addKey(`${prefix}${row}-M${seatNum}`);
-      }
-    }
-
-    if(Array.isArray(node.children)){
-      node.children.forEach(child => walk(child, prefix));
-    }
-  };
-
-  if(Array.isArray(hall.seats)){
-    hall.seats.forEach(s => addSeatObj(s));
-  }
-
-  if(Array.isArray(hall.sections)){
-    const map = new Map();
-    hall.sections.forEach(s => {
-      if(s && s.id) map.set(s.id, s);
-    });
-
-    hall.sections.forEach(sec => {
-      if(sec.type === "horizontal_group"){
-        (sec.items || []).forEach(id => walk(map.get(id)));
-      } else {
-        walk(sec);
-      }
-    });
-  }
-
-  Object.keys(data.seat_overrides || {}).forEach(k => addKey(k));
-
-  return Array.from(keys);
-}
-function getSellableQuotaSeatsFromHall(hall){
-  const hallKeys = new Set(collectHallSeatKeys(hall));
-  const quota = new Set();
-
-  const addIfExists = (key, rule) => {
-    if(!hallKeys.has(key)) return;
-    if(!rule) return;
-    if(rule.sale === false) return;
-    if(rule.price === null || rule.price === undefined) return;
-    if(!rule.color) return;
-    quota.add(key);
-  };
-
-  Object.entries(data.pricing || {}).forEach(([ruleKey, rule]) => {
-    const m = String(ruleKey).match(/^([A-Z]+)(\d+)-(\d+)$/i);
-    if(!m) return;
-
-    const prefix = m[1].toUpperCase();
-    const fromRow = Number(m[2]);
-    const toRow = Number(m[3]);
-
-    for(let row = fromRow; row <= toRow; row++){
-      for(const key of hallKeys){
-        if(key.startsWith(`${prefix}${row}-M`)){
-          addIfExists(key, rule);
-        }
-      }
-    }
-  });
-
-  Object.entries(data.seat_overrides || {}).forEach(([key, rule]) => {
-    addIfExists(key, rule);
-  });
-
-  return Array.from(quota);
-}
-async function syncSeanceQuota(seance){
-  const hallName = normalizeHallNameForPreview(
-    getHallNameByVenue(venueSelect.value) || venueSelect.value
-  );
-
-  const hallRes = await fetch(`../data/hall/${hallName}.json`, { cache:"no-store" });
-
-  if(!hallRes.ok){
-    throw new Error(`Не вдалося завантажити схему ${hallName}.json`);
-  }
-
-  const hall = await hallRes.json();
-  const seatKeys = getSellableQuotaSeatsFromHall(hall);
-
-  const headers = {
-    apikey: SUPABASE_ANON_KEY,
-    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    "Content-Type": "application/json"
-  };
-
-  const delRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/seance_ticket_quota?seance_id=eq.${encodeURIComponent(seance)}&source=eq.va`,
-    {
-      method:"DELETE",
-      headers
-    }
-  );
-
-  if(!delRes.ok){
-    throw new Error(await delRes.text());
-  }
-
-  if(!seatKeys.length){
-    return 0;
-  }
-
-  const rows = seatKeys.map(seat => ({
-    seance_id: seance,
-    source: "va",
-    seat_key: seat,
-    status: "released"
-  }));
-
-  for(let i=0; i<rows.length; i+=500){
-    const chunk = rows.slice(i, i+500);
-
-    const insRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/seance_ticket_quota`,
-      {
-        method:"POST",
-        headers:{
-          ...headers,
-          Prefer:"return=minimal"
-        },
-        body: JSON.stringify(chunk)
-      }
-    );
-
-    if(!insRes.ok){
-      throw new Error(await insRes.text());
-    }
-  }
-
-  return rows.length;
-}
-  
 publish.onclick = async () => {
   const seance = seanceId.value.trim();
   if (!seance) return alert("Вкажи Seance ID");
@@ -2035,15 +1809,9 @@ if (
       return;
     }
 
-    const quotaCount = await syncSeanceQuota(seance);
-
-alert(
-  "✅ Сеанс створено / оновлено\n\n" +
-  "🎫 VA-квота випущена: " + quotaCount + " місць"
-);
-
+    alert("✅ Сеанс створено / оновлено");
   } catch (err) {
-    alert("❌ Помилка: " + (err.message || err));
+    alert("❌ Помилка: " + err.message);
   }
 };
 
