@@ -1031,110 +1031,186 @@ function setTurnoverJournal(type){
     
 function renderTicketFlowJournal({ quota, tickets, bookings }){
   const body = document.getElementById("flowJournalBody");
+  const title = document.getElementById("turnoverJournalTitle");
+
   if(!body) return;
 
   const rows = [];
 
-  quota.forEach(q=>{
-    rows.push({
-      date: q.created_at || "",
-      op: "Випуск VA",
-      seat: q.seat_key || "",
-      type: "",
-      channel: q.source || "va",
-      amount: "",
-      note: q.status || "released"
-    });
-  });
+  switch(CURRENT_TURNOVER_JOURNAL){
 
-  bookings.forEach(b=>{
-    const seats =
-      Array.isArray(b.seats) ? b.seats :
-      Array.isArray(b.seat_labels) ? b.seat_labels :
-      b.seat_label ? [b.seat_label] :
-      [""];
+    // ---------------- ПРОДАЖІ ----------------
+    case "sales":
 
-    seats.forEach(seat=>{
-      rows.push({
-        date: b.created_at || "",
-        op: "Бронь",
-        seat,
-        type: b.ticket_type || "",
-        channel: b.channel || "booking",
-        amount: "",
-        note: b.status || ""
+      if(title) title.innerText = "Журнал продажів";
+
+      tickets.forEach(t=>{
+        rows.push({
+          date: t.created_at || "",
+          op: "Продаж",
+          seat: t.seat_label || "",
+          type: t.ticket_type || "",
+          channel: t.channel || "",
+          amount: t.price ?? "",
+          note: t.buyer_name || ""
+        });
       });
-    });
-  });
 
-  tickets.forEach(t=>{
-    rows.push({
-      date: t.created_at || "",
-      op: "Продаж",
-      seat: t.seat_label || "",
-      type: t.ticket_type || "",
-      channel: t.channel || "",
-      amount: t.price ?? "",
-      note: t.buyer_name || t.order_id || ""
-    });
+      break;
 
-    if(t.compensation_allowed === true || t.compensation_used === true){
-      rows.push({
-        date: t.compensation_granted_at || t.created_at || "",
-        op: "Компенсація",
-        seat: t.seat_label || "",
-        type: t.ticket_type || "",
-        channel: t.channel || "",
-        amount: t.price ?? "",
-        note: t.compensation_reason || ""
+    // ---------------- БРОНЬ ----------------
+    case "booking":
+
+      if(title) title.innerText = "Журнал бронювання";
+
+      bookings.forEach(b=>{
+
+        const seats =
+          Array.isArray(b.seats) ? b.seats :
+          Array.isArray(b.seat_labels) ? b.seat_labels :
+          b.seat_label ? [b.seat_label] :
+          [""];
+
+        seats.forEach(seat=>{
+
+          rows.push({
+            date: b.created_at || "",
+            op: "Бронь",
+            seat,
+            type: "",
+            channel: b.channel || "",
+            amount: "",
+            note:
+              b.buyer_name ||
+              b.organization ||
+              b.contact_name ||
+              ""
+          });
+
+        });
+
       });
-    }
 
-    if(t.checked_in_at){
-      rows.push({
-        date: t.checked_in_at,
-        op: "Погашення",
-        seat: t.seat_label || "",
-        type: t.ticket_type || "",
-        channel: t.channel || "",
-        amount: "",
-        note: t.checked_in_by || t.checkin_note || ""
-      });
-    }
+      break;
 
-    if(String(t.status || "").toLowerCase() === "returned"){
-      rows.push({
-        date: t.updated_at || t.created_at || "",
-        op: "Повернення",
-        seat: t.seat_label || "",
-        type: t.ticket_type || "",
-        channel: t.channel || "",
-        amount: t.price ?? "",
-        note: t.status || ""
+    // ---------------- ПОВЕРНЕННЯ ----------------
+    case "returns":
+
+      if(title) title.innerText = "Журнал повернень";
+
+      tickets
+        .filter(t=>String(t.status||"").toLowerCase()==="returned")
+        .forEach(t=>{
+
+          rows.push({
+            date: t.updated_at || t.created_at || "",
+            op: "Повернення",
+            seat: t.seat_label || "",
+            type: t.ticket_type || "",
+            channel: t.channel || "",
+            amount: t.price ?? "",
+            note: t.buyer_name || ""
+          });
+
+        });
+
+      break;
+
+    // ---------------- КОМПЕНСАЦІЇ ----------------
+    case "comp":
+
+      if(title) title.innerText = "Журнал компенсацій";
+
+      tickets
+        .filter(t=>
+          t.compensation_allowed===true ||
+          t.compensation_used===true
+        )
+        .forEach(t=>{
+
+          rows.push({
+            date:
+              t.compensation_granted_at ||
+              t.created_at ||
+              "",
+            op:"Компенсація",
+            seat:t.seat_label || "",
+            type:t.ticket_type || "",
+            channel:t.channel || "",
+            amount:t.price ?? "",
+            note:t.compensation_reason || ""
+          });
+
+        });
+
+      break;
+
+    // ---------------- ПОГАШЕННЯ ----------------
+    case "used":
+
+      if(title) title.innerText = "Журнал погашення";
+
+      tickets
+        .filter(t=>t.checked_in_at)
+        .forEach(t=>{
+
+          rows.push({
+            date:t.checked_in_at,
+            op:"Погашення",
+            seat:t.seat_label || "",
+            type:t.ticket_type || "",
+            channel:t.channel || "",
+            amount:"",
+            note:t.checked_in_by || ""
+          });
+
+        });
+
+      break;
+
+    // ---------------- ВИПУСК ----------------
+    case "issue":
+
+      if(title) title.innerText = "Журнал випуску";
+
+      quota.forEach(q=>{
+
+        rows.push({
+          date:q.created_at || "",
+          op:"Випуск",
+          seat:q.seat_key || "",
+          type:"",
+          channel:"VA",
+          amount:"",
+          note:q.status || ""
+        });
+
       });
-    }
-  });
+
+      break;
+
+  }
 
   rows.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
 
   if(!rows.length){
-    body.innerHTML = `<tr><td colspan="7" style="padding:10px;">Журнал порожній.</td></tr>`;
+    body.innerHTML =
+      `<tr><td colspan="7" style="padding:10px;">Немає записів.</td></tr>`;
     return;
   }
 
-  body.innerHTML = rows.slice(0,250).map(r=>`
-    <tr>
-      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(formatDateTime(r.date))}</td>
-      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.op)}</td>
-      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.seat)}</td>
-      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.type)}</td>
-      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.channel)}</td>
-      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.amount)}</td>
-      <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.note)}</td>
-    </tr>
-  `).join("");
+  body.innerHTML = rows.map(r=>`
+<tr>
+<td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(formatDateTime(r.date))}</td>
+<td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.op)}</td>
+<td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.seat)}</td>
+<td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.type)}</td>
+<td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.channel)}</td>
+<td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.amount)}</td>
+<td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.note)}</td>
+</tr>
+`).join("");
 }
-
 function formatDateTime(value){
   if(!value) return "";
   const d = new Date(value);
