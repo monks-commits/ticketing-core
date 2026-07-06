@@ -862,13 +862,19 @@ async function loadTurnover(seanceId){
   }
 
   try{
-    const seances = await api(
-      "seances",
-      `?id=eq.${encodeURIComponent(seanceId)}&select=id,capacity`
-    );
+    const selectedSeance =
+  SEANCES.find(s => String(s.id) === String(seanceId)) || {};
 
-    const seance = seances[0] || {};
-    const issued = Number(seance.capacity || 0);
+let issued = Number(selectedSeance.capacity || 0);
+
+if (!issued) {
+  const seances = await api(
+    "seances",
+    `?id=eq.${encodeURIComponent(seanceId)}&select=id,capacity`
+  );
+
+  issued = Number(seances?.[0]?.capacity || 0);
+}
 
     const quota = await api(
       "seance_ticket_quota",
