@@ -1858,20 +1858,41 @@ function collectHallSeatKeys(hall){
   return Array.from(keys);
 }
 function getSellableQuotaSeatsFromHall(hall){
-  return Object.entries(data.seat_overrides || {})
-    .filter(([key, state]) => {
-      return (
-        key &&
-        state &&
-        state.sale !== false &&
-        state.price !== null &&
-        state.price !== undefined &&
-        state.color
-      );
-    })
-    .map(([key]) => key);
-}
+  const hallKeys = new Set(collectHallSeatKeys(hall));
+  const quota = new Set();
 
+  const addIfExists = (key, rule) => {
+    if(!hallKeys.has(key)) return;
+    if(!rule) return;
+    if(rule.sale === false) return;
+    if(rule.price === null || rule.price === undefined) return;
+    if(!rule.color) return;
+    quota.add(key);
+  };
+
+  Object.entries(data.pricing || {}).forEach(([ruleKey, rule]) => {
+    const m = String(ruleKey).match(/^([A-Z]+)(\d+)-(\d+)$/i);
+    if(!m) return;
+
+    const prefix = m[1].toUpperCase();
+    const fromRow = Number(m[2]);
+    const toRow = Number(m[3]);
+
+    for(let row = fromRow; row <= toRow; row++){
+      for(const key of hallKeys){
+        if(key.startsWith(`${prefix}${row}-M`)){
+          addIfExists(key, rule);
+        }
+      }
+    }
+  });
+
+  Object.entries(data.seat_overrides || {}).forEach(([key, rule]) => {
+    addIfExists(key, rule);
+  });
+
+  return Array.from(quota);
+}
 async function syncSeanceQuota(seance){
   const hallName = normalizeHallNameForPreview(
     getHallNameByVenue(venueSelect.value) || venueSelect.value
