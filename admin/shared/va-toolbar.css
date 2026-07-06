@@ -1,0 +1,34 @@
+.va-toolbar{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin:12px 0;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;
+  background:rgba(255,255,255,.06);
+}
+
+.va-toolbar input,
+.va-toolbar select,
+.va-toolbar button{
+  min-height:38px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.14);
+  padding:0 10px;
+  font:inherit;
+}
+
+.va-toolbar input,
+.va-toolbar select{
+  background:#10233f;
+  color:#fff;
+}
+
+.va-toolbar button{
+  background:#4c86f7;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
