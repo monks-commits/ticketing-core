@@ -964,6 +964,13 @@ channelMap[channel] = (channelMap[channel] || 0) + 1;
       Object.entries(typeMap).map(([k,v])=>`${k}: ${v}`).join("<br>") || "—"
     );
 
+set("tSalesChannels",
+  "Канали:<br>" +
+  (Object.entries(channelMap)
+    .map(([k,v])=>`${k}: ${v}`)
+    .join("<br>") || "—")
+);
+    
     set("tPricing",
       Object.entries(priceMap)
         .sort((a,b)=>Number(a[0])-Number(b[0]))
@@ -1023,7 +1030,7 @@ function renderTicketFlowJournal({ quota, tickets, bookings }){
   tickets.forEach(t=>{
     rows.push({
       date: t.created_at || "",
-      op: "Видача",
+      op: "Продаж",
       seat: t.seat_label || "",
       type: t.ticket_type || "",
       channel: t.channel || "",
