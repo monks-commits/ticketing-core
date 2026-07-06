@@ -1593,22 +1593,36 @@ function addRule(){
   const z = zone.value;
   const from = Number(fromRow.value);
   const to = Number(toRow.value);
-  const p = Number(price.value);
-  const c = color.value;
   const saleAllowed = sale.checked;
 
-  if (!z || !from || !to || !p) {
-    alert("Вкажи зону, ряди і ціну");
+  if (!z || !from || !to) {
+    alert("Вкажи зону і ряди");
+    return;
+  }
+
+  if (to < from) {
+    alert("Кінець рядів не може бути менше початку");
     return;
   }
 
   const key = `${z}${from}-${to}`;
 
   data.pricing[key] = {
-    price: p,
-    color: c,
     sale: saleAllowed
   };
+
+  if (saleAllowed) {
+    const p = Number(price.value);
+    const c = color.value;
+
+    if (!p || !c) {
+      alert("Для продажу вкажи ціну і колір");
+      return;
+    }
+
+    data.pricing[key].price = p;
+    data.pricing[key].color = c;
+  }
 
   render();
   renderPreview();
