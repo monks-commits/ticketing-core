@@ -1,0 +1,2424 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Редактор сеансу — VA Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#061a3a;
+  --card:#1d2d47;
+  --card-2:#223552;
+  --text:#ffffff;
+  --muted:#b8c4d6;
+  --line:rgba(255,255,255,.10);
+
+  --primary:#4c86f7;
+  --primary-hover:#3f78e6;
+
+  --success:#2ecc71;
+  --success-hover:#28b864;
+
+  --neutral:#50627d;
+  --neutral-hover:#44556d;
+
+  --danger:#f44336;
+  --danger-hover:#df392d;
+
+  --field:#10233f;
+  --field-border:rgba(255,255,255,.12);
+
+  --shadow:0 18px 40px rgba(0,0,0,.22);
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:14px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+body{
+  min-height:100vh;
+}
+
+.page-wrap{
+  width:min(1240px, calc(100% - 48px));
+  margin:0 auto;
+  padding:48px 0 56px;
+}
+
+.topbar{
+  margin-bottom:28px;
+}
+
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  background:#fff;
+  color:#111827;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+}
+
+.hero{
+  margin-bottom:28px;
+}
+
+.hero h1{
+  margin:0 0 10px;
+  font-size:56px;
+  line-height:1.05;
+  font-weight:800;
+}
+
+.hero p{
+  margin:0 0 14px;
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.45;
+  max-width:860px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  font-size:12px;
+  line-height:1;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  color:#fff;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:minmax(0, 1.2fr) minmax(320px, .8fr);
+  gap:20px;
+  align-items:start;
+}
+
+.stack{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius-xl);
+  padding:22px 20px;
+  box-shadow:var(--shadow);
+}
+
+.card h2,
+.card h3{
+  margin:0 0 10px;
+  font-size:22px;
+  line-height:1.15;
+}
+
+.card p,
+.card small{
+  color:var(--muted);
+  line-height:1.45;
+}
+
+.row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:end;
+  margin-top:12px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:140px;
+}
+
+.field--grow{
+  flex:1 1 260px;
+}
+
+.field label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+input,select,textarea,button{
+  font:inherit;
+}
+
+input,select,textarea{
+  width:100%;
+  border:1px solid var(--field-border);
+  background:var(--field);
+  color:#fff;
+  border-radius:14px;
+  padding:11px 12px;
+  outline:none;
+}
+
+input::placeholder,
+textarea::placeholder{
+  color:#8fa0b8;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:rgba(76,134,247,.6);
+  box-shadow:0 0 0 3px rgba(76,134,247,.16);
+}
+
+textarea{
+  min-height:340px;
+  resize:vertical;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:132px;
+  min-height:46px;
+  padding:0 18px;
+  border:none;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  text-decoration:none;
+  transition:.15s ease;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+
+.btn-primary:hover{
+  background:var(--primary-hover);
+}
+
+.btn-success{
+  background:var(--success);
+  color:#08111f;
+}
+
+.btn-success:hover{
+  background:var(--success-hover);
+}
+
+.btn-neutral{
+  background:var(--neutral);
+  color:#fff;
+}
+
+.btn-neutral:hover{
+  background:var(--neutral-hover);
+}
+
+.rule-list,
+.list-box{
+  max-height:260px;
+  overflow:auto;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  background:rgba(0,0,0,.10);
+}
+
+.rule-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  font-size:14px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.rule-row:last-child{
+  border-bottom:none;
+}
+
+.color-chip{
+  display:inline-block;
+  width:16px;
+  height:16px;
+  border-radius:4px;
+  border:1px solid rgba(255,255,255,.20);
+}
+
+.muted{
+  color:var(--muted);
+}
+
+.sticky{
+  position:sticky;
+  top:22px;
+}
+
+.note{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
+}
+
+@media (max-width:1100px){
+  .layout{
+    grid-template-columns:1fr;
+  }
+
+  .sticky{
+    position:static;
+  }
+}
+
+@media (max-width:720px){
+  .page-wrap{
+    width:min(100% - 24px, 1240px);
+    padding:24px 0 32px;
+  }
+
+  .hero h1{
+    font-size:38px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .card{
+    padding:18px 16px;
+    border-radius:20px;
+  }
+
+  .row{
+    gap:10px;
+  }
+
+  .field,
+  .field--grow{
+    flex:1 1 100%;
+    min-width:100%;
+  }
+
+  .btn{
+    width:100%;
+  }
+
+  textarea{
+    min-height:240px;
+  }
+}
+
+.preview-full-card{
+  grid-column:1 / -1;
+}
+
+.preview-full-wrap{
+  margin-top:14px;
+  height:620px;
+  overflow:auto;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  background:rgba(0,0,0,.16);
+  padding:18px;
+}
+
+#previewStage{
+  min-width:max-content;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+}
+
+  
+</style>
+</head>
+
+<body>
+<div class="page-wrap">
+
+  <div class="topbar">
+    <a class="back-btn" href="./panel.html">← Назад</a>
+  </div>
+
+  <section class="hero">
+    <h1>🎛️ Редактор сеансу</h1>
+    <p>Назва вистави — для глядача.
+Seance ID — технічний ключ.
+Афіша, Live Poster, відеофон і опис події налаштовуються в окремому візуальному редакторі.</p>
+    <span class="badge">VA Admin • seance editor</span>
+  </section>
+
+  <div class="layout">
+
+    <div class="stack">
+
+      <section class="card">
+        <h2>Сеанс</h2>
+        <p>Завантаження існуючого сеансу або створення нового.</p>
+
+        <div class="row">
+          <div class="field field--grow">
+            <label for="seanceId">Seance ID</label>
+            <input id="seanceId" placeholder="akakiy-2026-05-10-18-00">
+          </div>
+
+      <div class="field">
+  <label for="venueSelect">Майданчик</label>
+  <select id="venueSelect"></select>
+</div>
+
+<div class="field field--grow">
+  <label for="venueSeanceSelect">Сеанси майданчика</label>
+  <select id="venueSeanceSelect">
+    <option value="">Оберіть майданчик...</option>
+  </select>
+</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-neutral" onclick="loadSeance()">Завантажити</button>
+          <button class="btn btn-success" onclick="createNewSeance()">➕ Новий сеанс</button>
+      
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>🧾 Дані сеансу</h2>
+
+        <div class="row">
+          <div class="field field--grow">
+            <label for="showName">Назва вистави</label>
+            <input id="showName" placeholder="Акакій">
+          </div>
+
+     <div class="field">
+  <label for="eventType">Тип події</label>
+  <label>
+  Жанр
+  <select id="genre">
+    <option value="">Оберіть жанр</option>
+  </select>
+</label>     
+  <select id="eventType">
+  <option value="">Оберіть тип</option>
+  <option value="Концерт">Концерт</option>
+  <option value="Вистава">Вистава</option>
+  <option value="Кінопоказ">Кінопоказ</option>
+  <option value="Лекція">Лекція</option>
+  <option value="Фестиваль">Фестиваль</option>
+  <option value="Інше">Інше</option>
+</select>
+</div>
+
+          
+          <div class="field">
+            <label for="showDate">Дата</label>
+            <input id="showDate" type="date">
+          </div>
+
+          <div class="field">
+            <label for="showTime">Час</label>
+            <input id="showTime" type="time">
+          </div>
+        </div>
+
+       
+
+        <div class="row">
+          <div class="field">
+            <label for="showStatus">Статус сеансу</label>
+           <select id="showStatus">
+  <option value="draft">Чернетка</option>
+  <option value="published">Опубліковано</option>
+  <option value="sales_open">Продаж відкрито</option>
+  <option value="sales_closed">Продаж закрито</option>
+  <option value="archived">Архів</option>
+  <option value="cancelled">Скасовано</option>
+</select>
+          </div>
+
+          <div class="field">
+            <label for="showActive">Показувати на сайті</label>
+            <select id="showActive">
+              <option value="true">Так</option>
+              <option value="false">Ні</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="note">
+         Назва вистави — для глядача. Seance ID — технічний ключ.
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>➕ Правило по рядах</h2>
+
+        <div class="row">
+          <div class="field">
+            <label for="zone">Зона</label>
+            <select id="zone">
+              <option value="P">Партер</option>
+              <option value="A">Амфітеатр</option>
+              <option value="B">Балкон</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="fromRow">Ряди від</label>
+            <input id="fromRow" type="number" placeholder="від">
+          </div>
+
+          <div class="field">
+            <label for="toRow">Ряди до</label>
+            <input id="toRow" type="number" placeholder="до">
+          </div>
+
+          <div class="field">
+            <label for="price">Ціна</label>
+            <input id="price" type="number" placeholder="200">
+          </div>
+
+          <div class="field">
+            <label for="color">Колір</label>
+            <input id="color" type="color" value="#9333ea">
+          </div>
+
+          <div class="field">
+            <label for="sale">Продаж</label>
+            <select id="saleSelectTemp" onchange="document.getElementById('sale').checked = (this.value === 'true')">
+              <option value="true">Продається</option>
+              <option value="false">Заборонено</option>
+            </select>
+            <input type="checkbox" id="sale" checked hidden>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" onclick="addRule()">Додати</button>
+        </div>
+
+        <div class="note">Для суцільних рядів. Наприклад: P1-3, P4-8.</div>
+      </section>
+
+      <section class="card">
+        <h2>🎨 Діапазон місць у рядах</h2>
+
+        <div class="row">
+          <div class="field">
+            <label for="segZone">Зона</label>
+            <select id="segZone">
+              <option value="P">Партер</option>
+              <option value="A">Амфітеатр</option>
+              <option value="B">Балкон</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="segFromRow">Ряди від</label>
+            <input id="segFromRow" type="number" placeholder="від">
+          </div>
+
+          <div class="field">
+            <label for="segToRow">Ряди до</label>
+            <input id="segToRow" type="number" placeholder="до">
+          </div>
+
+          <div class="field">
+            <label for="segFromSeat">Місця від</label>
+            <input id="segFromSeat" type="number" placeholder="від">
+          </div>
+
+          <div class="field">
+            <label for="segToSeat">Місця до</label>
+            <input id="segToSeat" type="number" placeholder="до">
+          </div>
+
+          <div class="field">
+            <label for="segPrice">Ціна</label>
+            <input id="segPrice" type="number" placeholder="200">
+          </div>
+
+          <div class="field">
+            <label for="segColor">Колір</label>
+            <input id="segColor" type="color" value="#06b6d4">
+          </div>
+
+          <div class="field">
+            <label for="segSaleSelectTemp">Продаж</label>
+            <select id="segSaleSelectTemp" onchange="document.getElementById('segSale').checked = (this.value === 'true')">
+              <option value="true">Продається</option>
+              <option value="false">Заборонено</option>
+            </select>
+            <input type="checkbox" id="segSale" checked hidden>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" onclick="addSeatSegment()">Додати</button>
+        </div>
+
+        <div class="note">
+          Для випадків типу: ряд 7, місця 1–6 одна ціна/колір, 7–17 інша, 18–23 третя.
+          Записується в <b>seat_overrides</b> автоматично.
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>🎭 Ложі</h2>
+
+        <div class="row">
+          <div class="field">
+            <label for="lodgeZone">Ложа</label>
+            <select id="lodgeZone">
+              <option value="A0">Ложа А</option>
+              <option value="B0">Ложа Б</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="lodgeFromSeat">Місця від</label>
+            <input id="lodgeFromSeat" type="number" placeholder="від">
+          </div>
+
+          <div class="field">
+            <label for="lodgeToSeat">Місця до</label>
+            <input id="lodgeToSeat" type="number" placeholder="до">
+          </div>
+
+          <div class="field">
+            <label for="lodgePrice">Ціна</label>
+            <input id="lodgePrice" type="number" placeholder="100">
+          </div>
+
+          <div class="field">
+            <label for="lodgeColor">Колір</label>
+            <input id="lodgeColor" type="color" value="#42f0e4">
+          </div>
+
+          <div class="field">
+            <label for="lodgeSaleSelectTemp">Продаж</label>
+            <select id="lodgeSaleSelectTemp" onchange="document.getElementById('lodgeSale').checked = (this.value === 'true')">
+              <option value="true">Продається</option>
+              <option value="false">Заборонено</option>
+            </select>
+            <input type="checkbox" id="lodgeSale" checked hidden>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" onclick="addLodgeRange()">Додати</button>
+        </div>
+
+        <div class="note">
+          Ложа А = <b>A0-M1...A0-M18</b>, Ложа Б = <b>B0-M1...B0-M18</b>.
+          Також записується в <b>seat_overrides</b>.
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>🎯 Окреме місце</h2>
+
+        <div class="row">
+          <div class="field field--grow">
+            <label for="seatKey">Ключ місця</label>
+            <input id="seatKey" placeholder="P3-M5 / A0-M1 / B0-M7">
+          </div>
+
+          <div class="field">
+            <label for="seatPrice">Ціна</label>
+            <input id="seatPrice" type="number" placeholder="ціна">
+          </div>
+
+          <div class="field">
+            <label for="seatColor">Колір</label>
+            <input id="seatColor" type="color" value="#ef4444">
+          </div>
+
+          <div class="field">
+            <label for="seatSaleSelectTemp">Продаж</label>
+            <select id="seatSaleSelectTemp" onchange="document.getElementById('seatSale').checked = (this.value === 'false')">
+              <option value="true">Продається</option>
+              <option value="false">Заборонити продаж</option>
+            </select>
+            <input type="checkbox" id="seatSale" hidden>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" onclick="addSeatOverride()">Додати</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="stack sticky">
+
+      <section class="card">
+        <h3>📋 Правила цього сеансу</h3>
+        <div id="rulesList" class="rule-list"></div>
+      </section>
+
+      <section class="card">
+        <h3>🪑 Seat overrides</h3>
+        <div id="seatOverridesList" class="list-box"></div>
+      </section>
+
+
+      <section class="card">
+        <h3>📦 Випуск VA</h3>
+        <p>Фіксує квоту VA як факт: рівно N місць отримують продаж, ціну і колір; решта місць цього сеансу стають забороненими для продажу VA.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="vaReleaseCount">Кількість місць VA</label>
+            <input id="vaReleaseCount" type="number" placeholder="200" value="200">
+          </div>
+
+          <div class="field">
+            <label for="vaReleasePrice">Ціна</label>
+            <input id="vaReleasePrice" type="number" placeholder="200" value="200">
+          </div>
+
+          <div class="field">
+            <label for="vaReleaseColor">Колір</label>
+            <input id="vaReleaseColor" type="color" value="#22c55e">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-success" onclick="releaseVaQuota()">🎫 Випустити квоту VA</button>
+        </div>
+
+        <div class="note" id="vaReleaseNote">
+          Після натискання seance_release і seance_ticket_quota будуть пересоздані для поточного сеансу.
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>📄 seance.json</h3>
+        <textarea id="output"></textarea>
+
+        <div class="actions">
+          <button class="btn btn-neutral" onclick="copyJson()">📋 Скопіювати</button>
+          <button id="publish" class="btn btn-success">🚀 Опублікувати</button>
+        </div>
+
+        <div class="note">
+          JSON формується автоматично на основі поточних правил і параметрів сеансу.
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</div>
+<script src="../shared/config.js"></script>
+<script src="../shared/config-helper.js"></script>
+  
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const SUPABASE_FUNCTION_URL =
+  "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/save-seance";
+
+const data = {
+  pricing: {},
+  seat_overrides: {}
+};
+
+  const GENRES_BY_TYPE = {
+  "Концерт": [
+    ["symphonic", "Симфонічна музика"],
+    ["chamber", "Камерна музика"],
+    ["jazz", "Джаз"],
+    ["pop_ua", "Естрада українська"],
+    ["pop_world", "Естрада зарубіжна"],
+    ["rock", "Рок"],
+    ["folk", "Фолк"],
+    ["choir", "Хорова музика"],
+    ["organ", "Органна музика"],
+    ["other", "Інше"]
+  ],
+
+  "Вистава": [
+    ["drama", "Драма"],
+    ["comedy", "Комедія"],
+    ["tragedy", "Трагедія"],
+    ["fairytale", "Казка"],
+    ["children", "Дитяча вистава"],
+    ["musical", "Мюзикл"],
+    ["opera", "Опера"],
+    ["ballet", "Балет"],
+    ["operetta", "Оперета"],
+    ["mono", "Моно вистава"],
+    ["other", "Інше"]
+  ],
+
+  "Кінопоказ": [
+    ["fiction", "Художній фільм"],
+    ["documentary", "Документальний фільм"],
+    ["children", "Дитячий фільм"],
+    ["arthouse", "Артхаус"],
+    ["retro", "Ретроспектива"],
+    ["other", "Інше"]
+  ],
+
+  "Лекція": [
+    ["art", "Мистецтво"],
+    ["history", "Історія"],
+    ["music", "Музика"],
+    ["literature", "Література"],
+    ["education", "Освіта"],
+    ["meeting", "Зустріч"],
+    ["other", "Інше"]
+  ],
+
+  "Фестиваль": [
+    ["music", "Музичний"],
+    ["theatre", "Театральний"],
+    ["cinema", "Кіно"],
+    ["children", "Дитячий"],
+    ["city", "Міський"],
+    ["other", "Інше"]
+  ],
+
+  "Інше": [
+    ["excursion", "Екскурсія"],
+    ["presentation", "Презентація"],
+    ["contest", "Конкурс"],
+    ["charity", "Благодійна подія"],
+    ["rental", "Орендна подія"],
+    ["other", "Інше"]
+  ]
+};
+
+const showStatus = document.getElementById("showStatus");
+const showActive = document.getElementById("showActive");
+const seanceId = document.getElementById("seanceId");
+const venueSelect = document.getElementById("venueSelect");
+let CLIENT_CONFIG = null;
+let CONFIG_VENUES = [];
+let currentActive = true;
+
+  
+  
+function fillVenueSelectFromConfig(){
+
+  const forcedVenues = [
+    { id: "academy", title: "Академія руху" },
+    { id: "shevchenko", title: "Театр Шевченка" },
+    { id: "filarmoniya", title: "Філармонія" },
+   
+    { id: "client-x", title: "Client X" },
+    { id: "big-stage-demo", title: "Велика сцена Demo" },
+    { id: "club-demo", title: "Club Demo" }
+  ];
+
+  forcedVenues.forEach(v => {
+    if (!CONFIG_VENUES.some(x => x.id === v.id)) {
+      CONFIG_VENUES.push(v);
+    }
+  });
+
+  if (!venueSelect) return;
+
+  venueSelect.innerHTML = CONFIG_VENUES.map(v => `
+    <option value="${v.id}">${v.title || v.id}</option>
+  `).join("");
+
+  const qs = new URLSearchParams(location.search);
+  const venueFromUrl = qs.get("venue");
+
+  if (venueFromUrl && CONFIG_VENUES.some(v => v.id === venueFromUrl)) {
+    venueSelect.value = venueFromUrl;
+  }
+}
+  
+const venueSeanceSelect = document.getElementById("venueSeanceSelect");  
+const showName = document.getElementById("showName");
+const showDate = document.getElementById("showDate");
+const showTime = document.getElementById("showTime");
+
+const eventType = document.getElementById("eventType");  
+
+const zone = document.getElementById("zone");
+const fromRow = document.getElementById("fromRow");
+const toRow = document.getElementById("toRow");
+const price = document.getElementById("price");
+const color = document.getElementById("color");
+const sale = document.getElementById("sale");
+const genre = document.getElementById("genre");
+  
+const segZone = document.getElementById("segZone");
+const segFromRow = document.getElementById("segFromRow");
+const segToRow = document.getElementById("segToRow");
+const segFromSeat = document.getElementById("segFromSeat");
+const segToSeat = document.getElementById("segToSeat");
+const segPrice = document.getElementById("segPrice");
+const segColor = document.getElementById("segColor");
+const segSale = document.getElementById("segSale");
+
+const lodgeZone = document.getElementById("lodgeZone");
+const lodgeFromSeat = document.getElementById("lodgeFromSeat");
+const lodgeToSeat = document.getElementById("lodgeToSeat");
+const lodgePrice = document.getElementById("lodgePrice");
+const lodgeColor = document.getElementById("lodgeColor");
+const lodgeSale = document.getElementById("lodgeSale");
+
+const seatKey = document.getElementById("seatKey");
+const seatPrice = document.getElementById("seatPrice");
+const seatColor = document.getElementById("seatColor");
+const seatSale = document.getElementById("seatSale");
+
+const output = document.getElementById("output");
+const rulesList = document.getElementById("rulesList");
+const seatOverridesList = document.getElementById("seatOverridesList");
+const publish = document.getElementById("publish");
+
+function getVenueConfig(id){
+  return VAConfigHelper.getVenueConfig(CONFIG_VENUES, id);
+}
+
+function getHallNameByVenue(id){
+  return VAConfigHelper.getHallNameByVenue(CONFIG_VENUES, id);
+}
+
+function normalizeHallNameForPreview(v){
+  if (!v) return "academy";
+  if (v === "shevchenko" || v === "shevchenko-v2") return "shevchenko-v2";
+  if (v === "academy-ruhu") return "academy";
+  return v;
+}
+
+function setVenueByHallName(hallName){
+
+  if (!hallName || !venueSelect) return;
+
+  const found =
+    VAConfigHelper.getVenueByHall(CONFIG_VENUES, hallName);
+
+  if (found) {
+    venueSelect.value = found.id;
+  }
+}
+
+function updateGenreSelect(selectedGenre = "") {
+  if (!eventType || !genre) return;
+
+  const type = eventType.value;
+  const list = GENRES_BY_TYPE[type] || [];
+
+  genre.innerHTML =
+    `<option value="">Оберіть жанр</option>` +
+    list
+      .map(([value, label]) =>
+        `<option value="${value}">${label}</option>`
+      )
+      .join("");
+
+  if (selectedGenre) {
+    genre.value = selectedGenre;
+  }
+}
+
+eventType?.addEventListener("change", () => {
+  updateGenreSelect();
+});
+  
+function ensurePreviewUi() {
+  let previewSection = document.getElementById("previewSection");
+  if (previewSection) return;
+
+  const leftStack = document.querySelector(".layout > .stack:not(.sticky)");
+  if (!leftStack) {
+    console.warn("Preview: left stack not found");
+    return;
+  }
+
+  const cards = Array.from(leftStack.querySelectorAll(".card"));
+  const dataCard =
+    cards.find(card => card.textContent.includes("Дані сеансу")) ||
+    cards[1] ||
+    cards[0];
+
+  if (!dataCard) {
+    console.warn("Preview: data card not found");
+    return;
+  }
+
+  previewSection = document.createElement("section");
+  previewSection.className = "card preview-full-card";
+  previewSection.id = "previewSection";
+  previewSection.innerHTML = `
+    <h2>👁 Попередній перегляд схеми</h2>
+    <div id="previewInfo" class="note">Схема ще не завантажена</div>
+    <div id="previewWrap" class="preview-full-wrap">
+      <div id="previewStage"></div>
+    </div>
+  `;
+
+  dataCard.insertAdjacentElement("afterend", previewSection);
+}
+  
+function previewSeatState(key){
+  const override = data.seat_overrides[key] || null;
+
+  if (override) {
+    return {
+      price: override.price ?? null,
+      color: override.color || null,
+      sale: override.sale !== false
+    };
+  }
+
+  const m = String(key).match(/^([A-Z]+)(\d+)-M(\d+)$/i);
+  if (!m) {
+    return { price:null, color:null, sale:true };
+  }
+
+  const zoneCode = m[1].toUpperCase();
+  const row = Number(m[2]);
+
+  for (const [ruleKey, rule] of Object.entries(data.pricing)) {
+    const mm = String(ruleKey).match(/^([A-Z]+)(\d+)-(\d+)$/i);
+    if (!mm) continue;
+
+    const rz = mm[1].toUpperCase();
+    const from = Number(mm[2]);
+    const to = Number(mm[3]);
+
+    if (rz === zoneCode && row >= from && row <= to) {
+      return {
+        price: rule.price ?? null,
+        color: rule.color || null,
+        sale: rule.sale !== false
+      };
+    }
+  }
+
+  return { price:null, color:null, sale:true };
+}
+  
+function makePreviewSeatEl(key, num){
+  const state = previewSeatState(key);
+  const el = document.createElement("div");
+  el.style.width = "22px";
+  el.style.height = "22px";
+  el.style.borderRadius = "6px";
+  el.style.border = "1px solid rgba(255,255,255,.14)";
+  el.style.display = "flex";
+  el.style.alignItems = "center";
+  el.style.justifyContent = "center";
+  el.style.fontSize = "9px";
+  el.style.fontWeight = "700";
+  el.style.color = "#fff";
+  el.style.flex = "0 0 22px";
+  el.textContent = String(num);
+
+  if (state.color) {
+    el.style.background = state.color;
+  } else {
+    el.style.background = "#374151";
+  }
+
+  if (state.sale === false) {
+    el.style.opacity = ".55";
+    el.style.background = "#4b5563";
+  }
+
+  const priceText = state.price != null ? `${state.price} грн` : "без ціни";
+  const saleText = state.sale === false ? "заборонено" : "продається";
+  el.title = `${key} • ${priceText} • ${saleText}`;
+
+  return el;
+}
+
+function makeSpacer(width){
+  const el = document.createElement("div");
+  el.style.width = `${width}px`;
+  el.style.height = "22px";
+  el.style.flex = `0 0 ${width}px`;
+  el.style.opacity = "0";
+  return el;
+}
+
+function makeGap(width = 10){
+  const el = document.createElement("div");
+  el.style.width = `${width}px`;
+  el.style.height = "22px";
+  el.style.flex = `0 0 ${width}px`;
+  return el;
+}
+
+function renderRowsPreview(sectionTitle, rows, zoneCode){
+  const zone = document.createElement("div");
+  zone.style.width = "100%";
+  zone.style.display = "flex";
+  zone.style.flexDirection = "column";
+  zone.style.gap = "8px";
+  zone.style.alignItems = "flex-start";
+
+  const title = document.createElement("div");
+  title.style.fontSize = "14px";
+  title.style.fontWeight = "700";
+  title.style.color = "#b8c4d6";
+  title.textContent = sectionTitle;
+  zone.appendChild(title);
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.style.display = "flex";
+    rowLine.style.alignItems = "center";
+    rowLine.style.gap = "8px";
+    rowLine.style.flexWrap = "nowrap";
+
+    const lab = document.createElement("div");
+    lab.style.width = "36px"; 
+    lab.style.flex = "0 0 36px";
+    lab.style.fontSize = "12px";
+    lab.style.color = "#b8c4d6";
+    lab.style.textAlign = "right";
+    lab.textContent = r.row ?? "";
+    rowLine.appendChild(lab);
+
+    const seatsWrap = document.createElement("div");
+    seatsWrap.style.display = "flex";
+    seatsWrap.style.alignItems = "center";
+    seatsWrap.style.gap = "4px";
+    seatsWrap.style.flexWrap = "nowrap";
+
+    const offset = Number(r.offset || 0);
+    for (let i = 0; i < offset; i++) {
+      seatsWrap.appendChild(makeSpacer(22));
+    }
+
+    if (r._academyLeadGap) {
+      seatsWrap.appendChild(makeGap(10));
+    }
+
+    const seats = Number(r.seats || 0);
+    const aisles = Array.isArray(r.aisles) ? r.aisles : [];
+
+    for (let s = 1; s <= seats; s++) {
+      const key = `${zoneCode}${r.row}-M${s}`;
+      seatsWrap.appendChild(makePreviewSeatEl(key, s));
+
+      if (aisles.includes(s)) {
+        seatsWrap.appendChild(makeGap(10));
+      }
+    }
+
+    rowLine.appendChild(seatsWrap);
+    zone.appendChild(rowLine);
+  });
+
+  return zone;
+}
+
+function renderLodgePreview(titleText, prefix, count){
+  const zone = document.createElement("div");
+  zone.style.width = "100%";
+  zone.style.display = "flex";
+  zone.style.flexDirection = "column";
+  zone.style.gap = "8px";
+  zone.style.alignItems = "flex-start";
+
+  const title = document.createElement("div");
+  title.style.fontSize = "14px";
+  title.style.fontWeight = "700";
+  title.style.color = "#b8c4d6";
+  title.textContent = titleText;
+  zone.appendChild(title);
+
+  const rowLine = document.createElement("div");
+  rowLine.style.display = "flex";
+  rowLine.style.alignItems = "center";
+  rowLine.style.gap = "8px";
+
+  const lab = document.createElement("div");
+  lab.style.width = "36px";
+  lab.style.flex = "0 0 36px";
+  lab.style.fontSize = "12px";
+  lab.style.color = "#b8c4d6";
+  lab.style.textAlign = "right";
+  lab.textContent = "0";
+  rowLine.appendChild(lab);
+
+  const seatsWrap = document.createElement("div");
+  seatsWrap.style.display = "flex";
+  seatsWrap.style.alignItems = "center";
+  seatsWrap.style.gap = "4px";
+
+  for (let s = 1; s <= count; s++) {
+    const key = `${prefix}-M${s}`;
+    seatsWrap.appendChild(makePreviewSeatEl(key, s));
+  }
+
+  rowLine.appendChild(seatsWrap);
+  zone.appendChild(rowLine);
+
+  return zone;
+}
+
+function renderMultiBlockPreview(section){
+  const zone = document.createElement("div");
+  zone.style.width = "100%";
+  zone.style.display = "flex";
+  zone.style.flexDirection = "column";
+  zone.style.gap = "8px";
+  zone.style.alignItems = "flex-start";
+
+  const title = document.createElement("div");
+  title.style.fontSize = "14px";
+  title.style.fontWeight = "700";
+  title.style.color = "#b8c4d6";
+  title.textContent = section.title || section.zone || "Секція";
+  zone.appendChild(title);
+
+  const prefix = section.prefix || "P";
+  const rows = Array.isArray(section.rows) ? section.rows : [];
+
+  rows.forEach(r => {
+    const rowLine = document.createElement("div");
+    rowLine.style.display = "flex";
+    rowLine.style.alignItems = "center";
+    rowLine.style.gap = "8px";
+    rowLine.style.flexWrap = "nowrap";
+
+    const lab = document.createElement("div");
+    lab.style.width = "36px";
+    lab.style.flex = "0 0 36px";
+    lab.style.fontSize = "12px";
+    lab.style.color = "#b8c4d6";
+    lab.style.textAlign = "right";
+    lab.textContent = r.row ?? "";
+    rowLine.appendChild(lab);
+
+    const blocks = Array.isArray(r.blocks) ? r.blocks : [];
+
+    blocks.forEach((block, index) => {
+      const seatsWrap = document.createElement("div");
+      seatsWrap.style.display = "flex";
+      seatsWrap.style.alignItems = "center";
+      seatsWrap.style.gap = "4px";
+      seatsWrap.style.flexWrap = "nowrap";
+
+      const start = Number(block.start || 1);
+      const count = Number(block.count || 0);
+      const reverse = block.reverse === true;
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = reverse ? start - i : start + i;
+        const key = `${prefix}${r.row}-M${seatNum}`;
+        seatsWrap.appendChild(makePreviewSeatEl(key, seatNum));
+      }
+
+      rowLine.appendChild(seatsWrap);
+
+      if (index < blocks.length - 1) {
+        rowLine.appendChild(makeGap(14));
+      }
+    });
+
+    zone.appendChild(rowLine);
+  });
+
+  return zone;
+}
+
+function renderSideVerticalPreview(section){
+  const zone = document.createElement("div");
+  zone.style.display = "flex";
+  zone.style.flexDirection = "column";
+  zone.style.gap = "4px";
+  zone.style.alignItems = "center";
+
+  const title = document.createElement("div");
+  title.style.fontSize = "12px";
+  title.style.fontWeight = "700";
+  title.style.color = "#b8c4d6";
+  title.textContent = section.zone || section.title || "Сектор";
+  zone.appendChild(title);
+
+  const prefix = section.prefix || "S";
+  const row = Number(section.row || 1);
+  const start = Number(section.start || 1);
+  const count = Number(section.count || 0);
+  const reverse = section.reverse === true;
+
+  for (let i = 0; i < count; i++) {
+    const seatNum = reverse ? start - i : start + i;
+    const key = `${prefix}${row}-M${seatNum}`;
+    zone.appendChild(makePreviewSeatEl(key, seatNum));
+  }
+
+  return zone;
+}
+  
+
+async function renderPreview(){
+  ensurePreviewUi();
+
+  const previewStage = document.getElementById("previewStage");
+  const previewInfo = document.getElementById("previewInfo");
+  const previewWrap = document.getElementById("previewWrap");
+  if (!previewStage || !previewInfo) return;
+
+  previewStage.innerHTML = "";
+  previewInfo.textContent = "Завантаження схеми…";
+
+  const hallName = normalizeHallNameForPreview(
+    getHallNameByVenue(venueSelect.value) || venueSelect.value
+  );
+
+  try {
+    const res = await fetch(`../data/hall/${hallName}.json`, { cache:"no-store" });
+    if (!res.ok) {
+      previewInfo.textContent = `Не вдалося завантажити схему: ${hallName}.json`;
+      return;
+    }
+
+    const hall = await res.json();
+
+    if (Array.isArray(hall.seats)) {
+      renderBuilderPreview(hall, previewStage, previewWrap);
+      previewInfo.textContent = `Builder-схема: ${hallName} • ${hall.seats.length} місць`;
+      return;
+    }
+
+    if (Array.isArray(hall.sections)) {
+      renderSectionsPreview(hall, previewStage);
+      previewInfo.textContent = `Схема: ${hallName} • Seance: ${seanceId.value.trim() || "новий сеанс"}`;
+      return;
+    }
+
+    previewInfo.textContent = "У hall JSON немає seats або sections для preview.";
+
+  } catch (e) {
+    previewInfo.textContent = `Помилка preview: ${e.message || e}`;
+  }
+}
+
+function renderBuilderPreview(hall, previewStage, previewWrap){
+  previewStage.innerHTML = "";
+
+  const w = Number(hall.width || 1600);
+  const h = Number(hall.height || 1000);
+  const maxW = Math.max(420, Number(previewWrap?.clientWidth || 900) - 46);
+  const maxH = 560;
+  const scale = Math.min(0.55, maxW / w, maxH / h);
+
+  const box = document.createElement("div");
+  box.style.position = "relative";
+  box.style.width = (w * scale) + "px";
+  box.style.height = (h * scale) + "px";
+  box.style.background = "#f8fafc";
+  box.style.border = "1px solid rgba(255,255,255,.18)";
+  box.style.borderRadius = "14px";
+  box.style.overflow = "hidden";
+
+  (hall.decor || []).forEach(d => {
+    const el = document.createElement("div");
+    el.style.position = "absolute";
+    el.style.left = (Number(d.x || 0) * scale) + "px";
+    el.style.top = (Number(d.y || 0) * scale) + "px";
+    el.style.pointerEvents = "none";
+    el.style.zIndex = String(d.z || 10);
+
+    if (d.type === "text" || d.type === "label") {
+      el.style.transform = `translate(-50%, -50%) rotate(${Number(d.rotate || 0)}deg)`;
+      el.style.fontSize = Math.max(8, Number(d.size || 24) * scale) + "px";
+      el.style.fontFamily = d.fontFamily || "Arial";
+      el.style.fontWeight = d.fontWeight || d.weight || "700";
+      el.style.color = d.textColor || d.color || "#111827";
+      el.style.whiteSpace = "nowrap";
+      el.style.webkitTextStroke = `${Math.max(0, Number(d.strokeWidth || 0) * scale)}px ${d.strokeColor || "transparent"}`;
+      el.style.textShadow = Number(d.textGlow || 0) > 0
+        ? `0 0 ${Math.max(1, Number(d.textGlow) * scale)}px ${d.textColor || d.color || "#ffffff"}`
+        : "none";
+      el.style.opacity = Number(d.opacity ?? 1);
+      el.textContent = d.text || "";
+    }
+
+    if (d.type === "stage") {
+      el.style.transform = `translate(-50%, -50%) rotate(${Number(d.rotate || 0)}deg)`;
+      el.style.width = (Number(d.w || 600) * scale) + "px";
+      el.style.height = (Number(d.h || 80) * scale) + "px";
+      el.style.background = d.fill || d.background || "#04a9e8";
+      el.style.color = d.textColor || d.color || "#fff";
+      el.style.display = "flex";
+      el.style.alignItems = "center";
+      el.style.justifyContent = "center";
+      el.style.fontSize = Math.max(10, Number(d.size || 44) * scale) + "px";
+      el.style.fontFamily = d.fontFamily || "Arial";
+      el.style.fontWeight = d.fontWeight || d.weight || "900";
+      el.style.letterSpacing = d.letterSpacing || ".08em";
+      el.style.webkitTextStroke = `${Math.max(0, Number(d.strokeWidth || 0) * scale)}px ${d.strokeColor || "transparent"}`;
+      el.style.textShadow = Number(d.textGlow || 0) > 0
+        ? `0 0 ${Math.max(1, Number(d.textGlow) * scale)}px ${d.textColor || d.color || "#ffffff"}`
+        : "none";
+      el.style.opacity = Number(d.opacity ?? 1);
+      el.textContent = d.text || "СЦЕНА";
+    }
+
+    box.appendChild(el);
+  });
+
+  hall.seats.forEach(s => {
+    const key = s.key || `${s.prefix || ""}${s.row}-M${s.seat}`;
+    const state = previewSeatState(key);
+    const dot = document.createElement("div");
+    dot.style.position = "absolute";
+    dot.style.left = (Number(s.x || 0) * scale) + "px";
+    dot.style.top = (Number(s.y || 0) * scale) + "px";
+    dot.style.width = Math.max(5, Number(s.size || 18) * scale) + "px";
+    dot.style.height = Math.max(5, Number(s.size || 18) * scale) + "px";
+    dot.style.borderRadius = "50%";
+    dot.style.transform = "translate(-50%, -50%)";
+    dot.style.background = state.color || "#9ca3af";
+    dot.style.border = "1px solid rgba(255,255,255,.9)";
+    dot.title = key;
+    if (state.sale === false) dot.style.opacity = ".45";
+    box.appendChild(dot);
+  });
+
+  previewStage.appendChild(box);
+}
+
+function renderSectionsPreview(hall, previewStage){
+  previewStage.innerHTML = "";
+
+  const stage = document.createElement("div");
+  stage.style.display = "inline-flex";
+  stage.style.alignItems = "center";
+  stage.style.justifyContent = "center";
+  stage.style.minWidth = "140px";
+  stage.style.padding = "8px 16px";
+  stage.style.borderRadius = "999px";
+  stage.style.background = "rgba(255,255,255,.08)";
+  stage.style.color = "#fff";
+  stage.style.fontWeight = "700";
+  stage.style.letterSpacing = ".04em";
+  stage.textContent = hall.title || hall.name || "Сцена";
+  previewStage.appendChild(stage);
+
+  const sectionsMap = new Map();
+  hall.sections.forEach(sec => {
+    if (sec && sec.id) sectionsMap.set(sec.id, sec);
+  });
+
+  hall.sections.forEach(sec => {
+    if (!sec || sec.hidden === true) return;
+
+    if (sec.type === "horizontal_group") {
+      const group = document.createElement("div");
+      group.style.display = "flex";
+      group.style.alignItems = "flex-start";
+      group.style.justifyContent = "center";
+      group.style.gap = "18px";
+      group.style.width = "100%";
+
+      (sec.items || []).forEach(id => {
+        const child = sectionsMap.get(id);
+        if (!child) return;
+        if (child.type === "multi_block_rows") group.appendChild(renderMultiBlockPreview(child));
+        if (child.type === "side_vertical") group.appendChild(renderSideVerticalPreview(child));
+        if (child.type === "rows") {
+          group.appendChild(renderRowsPreview(child.title || child.zone || "Секція", child.rows || [], child.prefix || "P"));
+        }
+      });
+
+      previewStage.appendChild(group);
+      return;
+    }
+
+    if (sec.type === "multi_block_rows") previewStage.appendChild(renderMultiBlockPreview(sec));
+    if (sec.type === "side_vertical") previewStage.appendChild(renderSideVerticalPreview(sec));
+    if (sec.type === "rows") previewStage.appendChild(renderRowsPreview(sec.title || sec.zone || "Секція", sec.rows || [], sec.prefix || "P"));
+    if (sec.type === "custom_rows") {
+      const title = document.createElement("div");
+      title.style.fontSize = "14px";
+      title.style.fontWeight = "700";
+      title.style.color = "#b8c4d6";
+      title.style.marginTop = "8px";
+      title.textContent = sec.title || sec.zone || "Секція";
+      previewStage.appendChild(title);
+    }
+  });
+}
+
+
+function venueToDbVenueId(v){
+  if (v === "shevchenko-v2") return "shevchenko";
+  return v || "academy";
+}
+
+function dbVenueIdToVenue(v){
+  if (v === "shevchenko") return "shevchenko-v2";
+  return v || "academy";
+}
+
+async function loadVenueSeances(){
+  if (!venueSeanceSelect) return;
+
+  const venueId = venueToDbVenueId(venueSelect.value);
+
+  venueSeanceSelect.innerHTML =
+    `<option value="">Завантаження сеансів…</option>`;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances` +
+      `?venue_id=eq.${encodeURIComponent(venueId)}` +
+     `&select=id,show,date,time,active,event_type` +
+      `&order=date.asc,time.asc`,
+      {
+        headers:{
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        cache:"no-store"
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+
+    const rows = await res.json();
+
+    const activeRows = Array.isArray(rows)
+      ? rows.filter(s => s.active !== false)
+      : [];
+
+    if (!activeRows.length) {
+      venueSeanceSelect.innerHTML =
+        `<option value="">Активних сеансів немає</option>`;
+      return;
+    }
+
+    venueSeanceSelect.innerHTML =
+      `<option value="">Оберіть сеанс…</option>` +
+      activeRows.map(s => {
+        const title = s.show || s.id;
+        const dt = [s.date, s.time].filter(Boolean).join(" ");
+        return `
+          <option value="${s.id}">
+            ${dt ? dt + " — " : ""}${title}
+          </option>
+        `;
+      }).join("");
+
+    if (seanceId.value.trim()) {
+      venueSeanceSelect.value = seanceId.value.trim();
+    }
+
+  } catch (e) {
+    console.warn("loadVenueSeances error", e);
+    venueSeanceSelect.innerHTML =
+      `<option value="">Помилка завантаження</option>`;
+  }
+}
+
+function applyUrlParams(){
+  const qs = new URLSearchParams(location.search);
+
+  const venue = qs.get("venue") || qs.get("hall");
+  const seance = qs.get("seance") || qs.get("seance_id");
+
+  if (venue) {
+    venueSelect.value = dbVenueIdToVenue(venue);
+  }
+
+  if (seance) {
+    seanceId.value = seance;
+  }
+}
+  
+function createNewSeance(){
+  const venue = venueSelect.value;
+
+  if (!venue) {
+    alert("Спочатку оберіть майданчик");
+    return;
+  }
+
+  const showSlug = prompt("Назва show для Seance ID (латиниця):", "akakiy");
+  if(!showSlug) return;
+
+  const date = prompt("Дата YYYY-MM-DD:", "2026-05-10");
+  if(!date) return;
+
+  const time = prompt("Час HH-MM:", "18-00");
+  if(!time) return;
+
+  const id = `${showSlug}-${date}-${time}`;
+  seanceId.value = id;
+
+  if (!showName.value.trim()) showName.value = showSlug;
+  if (!showDate.value) showDate.value = date;
+  if (!showTime.value) showTime.value = time.replace("-", ":");
+
+  data.pricing = {};
+  data.seat_overrides = {};
+  currentActive = true;
+  if (showActive) showActive.value = "true";
+
+  render();
+  renderPreview();
+
+  if (typeof loadVenueSeances === "function") {
+    loadVenueSeances();
+  }
+
+  alert(
+    "Створено новий seance_id:\n\n" +
+    id +
+    "\n\nМайданчик: " + venue +
+    "\n\nТепер заповніть назву вистави, дату, час, poster URL і натисніть «Опублікувати»."
+  );
+}
+
+function addRule(){
+  const z = zone.value;
+  const from = Number(fromRow.value);
+  const to = Number(toRow.value);
+  const saleAllowed = sale.checked;
+
+  if (!z || !from || !to) {
+    alert("Вкажи зону і ряди");
+    return;
+  }
+
+  if (to < from) {
+    alert("Кінець рядів не може бути менше початку");
+    return;
+  }
+
+  const key = `${z}${from}-${to}`;
+
+  data.pricing[key] = {
+    sale: saleAllowed
+  };
+
+  if (saleAllowed) {
+    const p = Number(price.value);
+    const c = color.value;
+
+    if (!p || !c) {
+      alert("Для продажу вкажи ціну і колір");
+      return;
+    }
+
+    data.pricing[key].price = p;
+    data.pricing[key].color = c;
+  }
+
+  render();
+  renderPreview();
+}
+
+function addSeatSegment(){
+  const z = segZone.value;
+  const rowFrom = Number(segFromRow.value);
+  const rowTo = Number(segToRow.value);
+  const seatFrom = Number(segFromSeat.value);
+  const seatTo = Number(segToSeat.value);
+  const p = Number(segPrice.value);
+  const c = segColor.value;
+  const saleAllowed = segSale.checked;
+
+  if (!z || !rowFrom || !rowTo || !seatFrom || !seatTo || !p) {
+    alert("Вкажи зону, ряди, місця і ціну");
+    return;
+  }
+
+  if (rowTo < rowFrom) {
+    alert("Кінець рядів не може бути менше початку");
+    return;
+  }
+
+  if (seatTo < seatFrom) {
+    alert("Кінець місць не може бути менше початку");
+    return;
+  }
+
+  for (let row = rowFrom; row <= rowTo; row++) {
+    for (let seat = seatFrom; seat <= seatTo; seat++) {
+      const key = `${z}${row}-M${seat}`;
+      data.seat_overrides[key] = {
+        price: p,
+        color: c,
+        sale: saleAllowed
+      };
+    }
+  }
+
+  render();
+  renderPreview();
+}
+
+function addLodgeRange(){
+  const lodge = lodgeZone.value;
+  const from = Number(lodgeFromSeat.value);
+  const to = Number(lodgeToSeat.value);
+  const p = Number(lodgePrice.value);
+  const c = lodgeColor.value;
+  const saleAllowed = lodgeSale.checked;
+
+  if (!lodge || !from || !to || !p) {
+    alert("Вкажи ложу, місця і ціну");
+    return;
+  }
+
+  if (to < from) {
+    alert("Кінець місць не може бути менше початку");
+    return;
+  }
+
+  for (let seat = from; seat <= to; seat++) {
+    const key = `${lodge}-M${seat}`;
+    data.seat_overrides[key] = {
+      price: p,
+      color: c,
+      sale: saleAllowed
+    };
+  }
+
+  render();
+  renderPreview();
+}
+
+function addSeatOverride(){
+  const key = seatKey.value.trim();
+  if(!key) return alert("Вкажи ключ місця");
+
+  const obj = {};
+
+  if (seatPrice.value) obj.price = Number(seatPrice.value);
+  if (seatColor.value) obj.color = seatColor.value;
+  obj.sale = !seatSale.checked;
+
+  data.seat_overrides[key] = obj;
+  render();
+  renderPreview();
+}
+
+function render(){
+ output.value = JSON.stringify({
+  seance_id: seanceId.value.trim(),
+  venue: venueSelect.value,
+  show: showName.value.trim(),
+  event_type: eventType.value || null,
+   genre: genre.value || null,
+  date: showDate.value || null,
+    time: showTime.value || null,
+    
+    pricing: data.pricing,
+    seat_overrides: data.seat_overrides
+  }, null, 2);
+
+  rulesList.innerHTML =
+    Object.entries(data.pricing).map(([k,r])=>`
+      <div class="rule-row">
+        <b>${k}</b>
+        <span>${r.price} грн</span>
+        <span class="color-chip" style="background:${r.color}"></span>
+        <span>${r.sale === false ? "❌" : "✔"}</span>
+      </div>
+    `).join("")
+    || "<span class='muted'>Поки що правил немає</span>";
+
+  const overrideEntries = Object.entries(data.seat_overrides);
+  seatOverridesList.innerHTML =
+    overrideEntries.length
+      ? overrideEntries
+          .sort((a, b) => a[0].localeCompare(b[0], "uk"))
+          .map(([k, r]) => `
+            <div class="rule-row">
+              <b>${k}</b>
+              <span>${r.price ?? "—"} грн</span>
+              <span class="color-chip" style="background:${r.color || "#fff"}"></span>
+              <span>${r.sale === false ? "❌" : "✔"}</span>
+            </div>
+          `).join("")
+      : `<span class="muted">Поки що seat_overrides немає</span>`;
+}
+
+function copyJson(){
+  output.select();
+  document.execCommand("copy");
+  alert("Скопійовано");
+}
+
+function collectHallSeatKeys(hall){
+  const keys = new Set();
+
+  const addKey = (key) => {
+    if(key) keys.add(String(key));
+  };
+
+  const addSeatObj = (s, fallbackPrefix = "P", fallbackRow = null) => {
+    if(!s) return;
+
+    if(s.key) return addKey(s.key);
+    if(s.seat_key) return addKey(s.seat_key);
+    if(s.id && String(s.id).includes("-M")) return addKey(s.id);
+
+    const prefix = s.prefix || fallbackPrefix || "P";
+    const row = s.row ?? fallbackRow;
+    const seat = s.seat ?? s.num ?? s.number ?? s.n;
+
+    if(row != null && seat != null){
+      addKey(`${prefix}${row}-M${seat}`);
+    }
+  };
+
+  const walk = (node, inheritedPrefix = "P") => {
+    if(!node || node.hidden === true) return;
+
+    const prefix = node.prefix || inheritedPrefix || "P";
+
+    if(Array.isArray(node.seats)){
+      node.seats.forEach(s => addSeatObj(s, prefix, node.row));
+    }
+
+    if(Array.isArray(node.items)){
+      node.items.forEach(item => {
+        if(typeof item === "object") walk(item, prefix);
+      });
+    }
+
+    if(Array.isArray(node.rows)){
+      node.rows.forEach(r => {
+        const row = r.row ?? r.n ?? r.number;
+
+        if(Array.isArray(r.seats)){
+          r.seats.forEach(s => {
+            if(typeof s === "object") addSeatObj(s, prefix, row);
+            else addKey(`${prefix}${row}-M${s}`);
+          });
+        }
+
+        if(Number(r.seats) > 0){
+          for(let i = 1; i <= Number(r.seats); i++){
+            addKey(`${prefix}${row}-M${i}`);
+          }
+        }
+
+        if(Array.isArray(r.blocks)){
+          r.blocks.forEach(block => {
+            const start = Number(block.start || 1);
+            const count = Number(block.count || 0);
+            const reverse = block.reverse === true;
+
+            for(let i = 0; i < count; i++){
+              const seatNum = reverse ? start - i : start + i;
+              addKey(`${prefix}${row}-M${seatNum}`);
+            }
+          });
+        }
+      });
+    }
+
+    if(node.type === "side_vertical"){
+      const row = Number(node.row || 1);
+      const start = Number(node.start || 1);
+      const count = Number(node.count || 0);
+      const reverse = node.reverse === true;
+
+      for(let i = 0; i < count; i++){
+        const seatNum = reverse ? start - i : start + i;
+        addKey(`${prefix}${row}-M${seatNum}`);
+      }
+    }
+
+    if(Array.isArray(node.children)){
+      node.children.forEach(child => walk(child, prefix));
+    }
+  };
+
+  if(Array.isArray(hall.seats)){
+    hall.seats.forEach(s => addSeatObj(s));
+  }
+
+  if(Array.isArray(hall.sections)){
+    const map = new Map();
+    hall.sections.forEach(s => {
+      if(s && s.id) map.set(s.id, s);
+    });
+
+    hall.sections.forEach(sec => {
+      if(sec.type === "horizontal_group"){
+        (sec.items || []).forEach(id => walk(map.get(id)));
+      } else {
+        walk(sec);
+      }
+    });
+  }
+
+  Object.keys(data.seat_overrides || {}).forEach(k => addKey(k));
+
+  return Array.from(keys);
+}
+function getSellableQuotaSeatsFromHall(hall){
+  const hallKeys = new Set(collectHallSeatKeys(hall));
+  const quota = new Set();
+
+  const addIfExists = (key, rule) => {
+    if(!hallKeys.has(key)) return;
+    if(!rule) return;
+    if(rule.sale === false) return;
+    if(rule.price === null || rule.price === undefined) return;
+    if(!rule.color) return;
+    quota.add(key);
+  };
+
+  Object.entries(data.pricing || {}).forEach(([ruleKey, rule]) => {
+    const m = String(ruleKey).match(/^([A-Z]+)(\d+)-(\d+)$/i);
+    if(!m) return;
+
+    const prefix = m[1].toUpperCase();
+    const fromRow = Number(m[2]);
+    const toRow = Number(m[3]);
+
+    for(let row = fromRow; row <= toRow; row++){
+      for(const key of hallKeys){
+        if(key.startsWith(`${prefix}${row}-M`)){
+          addIfExists(key, rule);
+        }
+      }
+    }
+  });
+
+  Object.entries(data.seat_overrides || {}).forEach(([key, rule]) => {
+    addIfExists(key, rule);
+  });
+
+  return Array.from(quota);
+}
+async function syncSeanceQuota(seance){
+  const hallName = normalizeHallNameForPreview(
+    getHallNameByVenue(venueSelect.value) || venueSelect.value
+  );
+
+  const hallRes = await fetch(`../data/hall/${hallName}.json`, { cache:"no-store" });
+
+  if(!hallRes.ok){
+    throw new Error(`Не вдалося завантажити схему ${hallName}.json`);
+  }
+
+  const hall = await hallRes.json();
+  const seatKeys = getSellableQuotaSeatsFromHall(hall);
+
+  const headers = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    "Content-Type": "application/json"
+  };
+
+  const delRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/seance_ticket_quota?seance_id=eq.${encodeURIComponent(seance)}&source=eq.va`,
+    {
+      method:"DELETE",
+      headers
+    }
+  );
+
+  if(!delRes.ok){
+    throw new Error(await delRes.text());
+  }
+
+  if(!seatKeys.length){
+    return 0;
+  }
+
+  const rows = seatKeys.map(seat => ({
+    seance_id: seance,
+    source: "va",
+    seat_key: seat,
+    status: "released"
+  }));
+
+  for(let i=0; i<rows.length; i+=500){
+    const chunk = rows.slice(i, i+500);
+
+    const insRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/seance_ticket_quota`,
+      {
+        method:"POST",
+        headers:{
+          ...headers,
+          Prefer:"return=minimal"
+        },
+        body: JSON.stringify(chunk)
+      }
+    );
+
+    if(!insRes.ok){
+      throw new Error(await insRes.text());
+    }
+  }
+
+  return rows.length;
+}
+  
+
+function naturalSeatCompare(a,b){
+  const pa = parseSeatKey(a);
+  const pb = parseSeatKey(b);
+
+  if(pa.prefix !== pb.prefix) return pa.prefix.localeCompare(pb.prefix, "uk");
+  if(pa.row !== pb.row) return pa.row - pb.row;
+  return pa.seat - pb.seat;
+}
+
+function parseSeatKey(key){
+  const m = String(key || "").match(/^([A-Z]+)(\d+)-M(\d+)$/i);
+  if(!m){
+    return { prefix:String(key || ""), row:999999, seat:999999 };
+  }
+  return {
+    prefix:m[1].toUpperCase(),
+    row:Number(m[2]),
+    seat:Number(m[3])
+  };
+}
+
+function currentVenueIdForDb(){
+  const hall = venueSelect.value;
+  return (
+    hall === "academy" ? "academy" :
+    hall === "shevchenko-v2" ? "shevchenko" :
+    hall === "big-stage-demo" ? "big-stage-demo" :
+    hall
+  );
+}
+
+function buildCurrentSeancePayload(){
+  return {
+    seance_id: seanceId.value.trim(),
+    venue_id: currentVenueIdForDb(),
+    hall: venueSelect.value,
+    show: showName.value.trim(),
+    event_type: eventType.value || null,
+    genre: genre.value || null,
+    date: showDate.value || null,
+    time: showTime.value || null,
+    status: showStatus.value,
+    active: showActive ? showActive.value === "true" : currentActive,
+    pricing: data.pricing,
+    seat_overrides: data.seat_overrides
+  };
+}
+
+async function saveCurrentSeanceToSupabase(){
+  const payload = buildCurrentSeancePayload();
+
+  const res = await fetch(SUPABASE_FUNCTION_URL, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(payload)
+  });
+
+  const text = await res.text();
+
+  if(!res.ok){
+    throw new Error(text);
+  }
+
+  return payload;
+}
+
+async function releaseVaQuota(){
+  const seance = seanceId.value.trim();
+  const count = Number(document.getElementById("vaReleaseCount")?.value || 0);
+  const p = Number(document.getElementById("vaReleasePrice")?.value || 0);
+  const c = document.getElementById("vaReleaseColor")?.value || "#22c55e";
+  const note = document.getElementById("vaReleaseNote");
+
+  if(!seance) return alert("Вкажи Seance ID");
+  if(!showName.value.trim()) return alert("Вкажи назву вистави");
+  if(!showDate.value) return alert("Вкажи дату");
+  if(!showTime.value) return alert("Вкажи час");
+  if(!count || count <= 0) return alert("Вкажи кількість місць VA");
+  if(!p || p <= 0) return alert("Вкажи ціну для квоти VA");
+
+  const ok = confirm(
+    "Випустити VA-квоту: " + count + " місць?\n\n" +
+    "Це замінить поточні правила продажу цього сеансу:\n" +
+    "— перші " + count + " місць отримають ціну і колір;\n" +
+    "— усі інші місця будуть заборонені для продажу VA."
+  );
+  if(!ok) return;
+
+  try{
+    if(note) note.textContent = "Формую квоту…";
+
+    const hallName = normalizeHallNameForPreview(
+      getHallNameByVenue(venueSelect.value) || venueSelect.value
+    );
+
+    const hallRes = await fetch(`../data/hall/${hallName}.json`, { cache:"no-store" });
+    if(!hallRes.ok){
+      throw new Error(`Не вдалося завантажити схему ${hallName}.json`);
+    }
+
+    const hall = await hallRes.json();
+    const allSeats = collectHallSeatKeys(hall)
+      .filter(Boolean)
+      .sort(naturalSeatCompare);
+
+    if(allSeats.length < count){
+      throw new Error(`У схемі лише ${allSeats.length} місць. Неможливо випустити ${count}.`);
+    }
+
+    const released = new Set(allSeats.slice(0, count));
+
+    data.pricing = {};
+    data.seat_overrides = {};
+
+    allSeats.forEach(key => {
+      if(released.has(key)){
+        data.seat_overrides[key] = {
+          price:p,
+          color:c,
+          sale:true
+        };
+      } else {
+        data.seat_overrides[key] = {
+          sale:false
+        };
+      }
+    });
+
+    render();
+    await renderPreview();
+
+    await saveCurrentSeanceToSupabase();
+
+    const headers = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json"
+    };
+
+    const delRelease = await fetch(
+      `${SUPABASE_URL}/rest/v1/seance_release?seance_id=eq.${encodeURIComponent(seance)}`,
+      {
+        method:"DELETE",
+        headers
+      }
+    );
+    if(!delRelease.ok) throw new Error(await delRelease.text());
+
+    const insRelease = await fetch(
+      `${SUPABASE_URL}/rest/v1/seance_release`,
+      {
+        method:"POST",
+        headers:{ ...headers, Prefer:"return=minimal" },
+        body:JSON.stringify([{
+          seance_id:seance,
+          released_by:"va",
+          released_count:count
+        }])
+      }
+    );
+    if(!insRelease.ok) throw new Error(await insRelease.text());
+
+    const delQuota = await fetch(
+      `${SUPABASE_URL}/rest/v1/seance_ticket_quota?seance_id=eq.${encodeURIComponent(seance)}&source=eq.va`,
+      {
+        method:"DELETE",
+        headers
+      }
+    );
+    if(!delQuota.ok) throw new Error(await delQuota.text());
+
+    const quotaRows = Array.from(released).map(seat => ({
+      seance_id:seance,
+      source:"va",
+      seat_key:seat,
+      status:"released"
+    }));
+
+    for(let i=0; i<quotaRows.length; i+=500){
+      const chunk = quotaRows.slice(i, i+500);
+
+      const insQuota = await fetch(
+        `${SUPABASE_URL}/rest/v1/seance_ticket_quota`,
+        {
+          method:"POST",
+          headers:{ ...headers, Prefer:"return=minimal" },
+          body:JSON.stringify(chunk)
+        }
+      );
+      if(!insQuota.ok) throw new Error(await insQuota.text());
+    }
+
+    if(note){
+      note.textContent = `Випущено VA-квоту: ${count} місць. Решта місць заборонені для продажу VA.`;
+    }
+
+    alert(
+      "✅ VA-квоту випущено\n\n" +
+      "Місць: " + count + "\n" +
+      "Ціна: " + p + " грн"
+    );
+
+  }catch(e){
+    console.error("releaseVaQuota error", e);
+    if(note) note.textContent = "Помилка випуску квоти: " + String(e.message || e);
+    alert("❌ Помилка випуску квоти:\n" + String(e.message || e));
+  }
+}
+
+
+publish.onclick = async () => {
+  const seance = seanceId.value.trim();
+  if (!seance) return alert("Вкажи Seance ID");
+
+  const show = showName.value.trim();
+  const date = showDate.value || null;
+  const time = showTime.value || null;
+  
+  const status = showStatus.value;
+  const hall = venueSelect.value;
+
+  const venueId =
+    hall === "academy" ? "academy" :
+    hall === "shevchenko-v2" ? "shevchenko" :
+    hall === "big-stage-demo" ? "big-stage-demo" :
+    hall;
+
+  if (!show) return alert("Вкажи назву вистави");
+  if (!date) return alert("Вкажи дату");
+  if (!time) return alert("Вкажи час");
+
+if (
+  Object.keys(data.pricing || {}).length === 0 &&
+  Object.keys(data.seat_overrides || {}).length === 0
+) {
+  const ok = confirm(
+    "УВАГА: pricing і seat_overrides порожні.\n\n" +
+    "Якщо зберегти зараз — ціни та кольори для цього сеансу будуть стерті.\n\n" +
+    "Продовжити?"
+  );
+  if (!ok) return;
+}
+  
+  try {
+   const res = await fetch(SUPABASE_FUNCTION_URL, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    seance_id: seance,
+    venue_id: venueId,
+    hall: hall,
+    show: show,
+    event_type: eventType.value || null,
+    genre: genre.value || null,
+    date: date,
+    time: time,
+    
+    status: status,
+    active: showActive ? showActive.value === "true" : currentActive,
+    pricing: data.pricing,
+    seat_overrides: data.seat_overrides
+  })
+});
+    const text = await res.text();
+
+    if (!res.ok) {
+      alert("❌ Помилка збереження:\n" + text);
+      return;
+    }
+
+    alert("✅ Сеанс створено / оновлено");
+
+  } catch (err) {
+    alert("❌ Помилка: " + (err.message || err));
+  }
+};
+
+async function loadSeance(){
+  const seance = seanceId.value.trim();
+  if(!seance) return;
+
+  const seanceRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=show,date,time,poster_url,venue_id,status,event_type,active`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
+  );
+
+  const seanceRows = await seanceRes.json();
+  const seanceRow = Array.isArray(seanceRows) && seanceRows.length ? seanceRows[0] : null;
+
+  if (seanceRow) {
+    showName.value = seanceRow.show || "";
+    showDate.value = seanceRow.date || "";
+    showTime.value = seanceRow.time || "";
+   
+showStatus.value = seanceRow.status || "draft";
+ currentActive = seanceRow.active !== false;
+    if (showActive) showActive.value = currentActive ? "true" : "false";
+    
+    if (seanceRow.venue_id === "academy") {
+  venueSelect.value = "academy";
+} else if (seanceRow.venue_id === "shevchenko") {
+  venueSelect.value = "shevchenko-v2";
+} else if (seanceRow.venue_id === "big-stage-demo") {
+  venueSelect.value = "big-stage-demo";
+}
+  }
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(seance)}&select=pricing,seat_overrides,hall,venue_id`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    }
+  );
+
+  const rows = await res.json();
+  if(!rows.length){
+    data.pricing = {};
+    data.seat_overrides = {};
+    render();
+    renderPreview();
+    return;
+  }
+
+  data.pricing = rows[0].pricing || {};
+  data.seat_overrides = rows[0].seat_overrides || {};
+
+  if (rows[0].hall) {
+  setVenueByHallName(rows[0].hall);
+}
+
+  render();
+  renderPreview();
+}
+
+["showName","showDate","showTime","seanceId","showStatus","showActive"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("input", render);
+  if (el) el.addEventListener("change", render);
+});
+
+if (venueSelect) {
+  venueSelect.addEventListener("change", async () => {
+    render();
+    renderPreview();
+    await loadVenueSeances();
+  });
+}
+
+if (venueSeanceSelect) {
+  venueSeanceSelect.addEventListener("change", async () => {
+    const selectedSeance = venueSeanceSelect.value;
+    if (!selectedSeance) return;
+
+    seanceId.value = selectedSeance;
+    await loadSeance();
+  });
+}
+
+function applyEditorUrlParams(){
+  const qs = new URLSearchParams(location.search);
+
+  const seance =
+    qs.get("seance") ||
+    qs.get("seance_id") ||
+    "";
+
+  const venue = qs.get("venue") || "";
+
+  if (venue && venueSelect && CONFIG_VENUES.some(v => v.id === venue)) {
+    venueSelect.value = venue;
+  }
+
+  if (seance && seanceId) {
+    seanceId.value = seance;
+  }
+}
+
+
+  
+async function bootEditor(){
+  try {
+    CLIENT_CONFIG = await loadVAConfig();
+  } catch (e) {
+    console.warn("loadVAConfig error", e);
+    CLIENT_CONFIG = null;
+  }
+
+  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+    ? CLIENT_CONFIG.venues
+    : [];
+
+  fillVenueSelectFromConfig();
+  applyEditorUrlParams();
+
+  ensurePreviewUi();
+  render();
+  await renderPreview();
+
+  if (typeof loadVenueSeances === "function") {
+    await loadVenueSeances();
+  }
+}
+
+bootEditor();
+</script>
+</body>
+</html>
