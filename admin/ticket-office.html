@@ -936,12 +936,16 @@ async function loadTurnover(seanceId){
 
     const typeMap = {};
     const priceMap = {};
+    const channelMap = {};
 
     tickets.forEach(t=>{
       const type = t.ticket_type || "unknown";
-      const price = Number(t.price || 0);
-      typeMap[type] = (typeMap[type] || 0) + 1;
-      priceMap[price] = (priceMap[price] || 0) + 1;
+const price = Number(t.price || 0);
+const channel = t.channel || t.ref_code || "unknown";
+
+typeMap[type] = (typeMap[type] || 0) + 1;
+priceMap[price] = (priceMap[price] || 0) + 1;
+channelMap[channel] = (channelMap[channel] || 0) + 1;
     });
 
     set("tIssued", issued);
