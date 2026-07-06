@@ -1044,21 +1044,11 @@ function renderTicketFlowJournal({ quota, tickets, bookings }){
     // ---------------- ПРОДАЖІ ----------------
     case "sales":
 
-      if(title) title.innerText = "Журнал продажів";
+  if(title) title.innerText = "Журнал продажів";
 
-      tickets.forEach(t=>{
-        rows.push({
-          date: t.created_at || "",
-          op: "Продаж",
-          seat: t.seat_label || "",
-          type: t.ticket_type || "",
-          channel: t.channel || "",
-          amount: t.price ?? "",
-          note: t.buyer_name || ""
-        });
-      });
+  rows.push(...VASalesJournal.buildRows(tickets));
 
-      break;
+  break;
 
     // ---------------- БРОНЬ ----------------
     case "booking":
