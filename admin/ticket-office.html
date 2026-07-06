@@ -531,7 +531,16 @@
   </div>
 
   <div class="stub" style="margin-top:14px;">
-    <h4>Журнал руху квитків</h4>
+    <h4 id="turnoverJournalTitle">Журнал продажів</h4>
+
+<div class="buttons" style="margin:10px 0 12px;">
+  <button class="btn ghost" onclick="setTurnoverJournal('sales')">Продажі</button>
+  <button class="btn ghost" onclick="setTurnoverJournal('booking')">Бронь</button>
+  <button class="btn ghost" onclick="setTurnoverJournal('returns')">Повернення</button>
+  <button class="btn ghost" onclick="setTurnoverJournal('comp')">Компенсації</button>
+  <button class="btn ghost" onclick="setTurnoverJournal('used')">Погашення</button>
+  <button class="btn ghost" onclick="setTurnoverJournal('issue')">Випуск</button>
+</div>
 <div id="ticketJournalToolbar"></div>
     
     <div style="overflow:auto; margin-top:12px;">
