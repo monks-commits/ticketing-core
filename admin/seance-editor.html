@@ -1593,11 +1593,11 @@ function addRule(){
   const z = zone.value;
   const from = Number(fromRow.value);
   const to = Number(toRow.value);
-  const p = Number(price.value);
+  const p = price.value === "" ? null : Number(price.value);
   const c = color.value;
   const saleAllowed = sale.checked;
 
-  if (!z || !from || !to || !p) {
+  if (!z || !from || !to || p === null) {
     alert("Вкажи зону, ряди і ціну");
     return;
   }
@@ -1613,7 +1613,6 @@ function addRule(){
   render();
   renderPreview();
 }
-
 function addSeatSegment(){
   const z = segZone.value;
   const rowFrom = Number(segFromRow.value);
