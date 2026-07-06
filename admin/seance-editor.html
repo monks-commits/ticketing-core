@@ -1750,72 +1750,113 @@ function copyJson(){
 function collectHallSeatKeys(hall){
   const keys = new Set();
 
-  if(Array.isArray(hall.seats)){
-    hall.seats.forEach(s=>{
-      const key = s.key || `${s.prefix || ""}${s.row}-M${s.seat}`;
-      if(key) keys.add(key);
-    });
-  }
+  const addKey = (key) => {
+    if(key) keys.add(String(key));
+  };
 
-  if(Array.isArray(hall.sections)){
-    const map = new Map();
-    hall.sections.forEach(s=>{ if(s?.id) map.set(s.id, s); });
+  const addSeatObj = (s, fallbackPrefix = "P", fallbackRow = null) => {
+    if(!s) return;
 
-    const walk = (sec)=>{
-      if(!sec || sec.hidden === true) return;
+    if(s.key) return addKey(s.key);
+    if(s.seat_key) return addKey(s.seat_key);
+    if(s.id && String(s.id).includes("-M")) return addKey(s.id);
 
-      if(sec.type === "horizontal_group"){
-        (sec.items || []).forEach(id => walk(map.get(id)));
-        return;
-      }
+    const prefix = s.prefix || fallbackPrefix || "P";
+    const row = s.row ?? fallbackRow;
+    const seat = s.seat ?? s.num ?? s.number ?? s.n;
 
-      if(sec.type === "rows"){
-        const prefix = sec.prefix || "P";
-        (sec.rows || []).forEach(r=>{
-          for(let i=1; i<=Number(r.seats || 0); i++){
-            keys.add(`${prefix}${r.row}-M${i}`);
+    if(row != null && seat != null){
+      addKey(`${prefix}${row}-M${seat}`);
+    }
+  };
+
+  const walk = (node, inheritedPrefix = "P") => {
+    if(!node || node.hidden === true) return;
+
+    const prefix = node.prefix || inheritedPrefix || "P";
+
+    if(Array.isArray(node.seats)){
+      node.seats.forEach(s => addSeatObj(s, prefix, node.row));
+    }
+
+    if(Array.isArray(node.items)){
+      node.items.forEach(item => {
+        if(typeof item === "object") walk(item, prefix);
+      });
+    }
+
+    if(Array.isArray(node.rows)){
+      node.rows.forEach(r => {
+        const row = r.row ?? r.n ?? r.number;
+
+        if(Array.isArray(r.seats)){
+          r.seats.forEach(s => {
+            if(typeof s === "object") addSeatObj(s, prefix, row);
+            else addKey(`${prefix}${row}-M${s}`);
+          });
+        }
+
+        if(Number(r.seats) > 0){
+          for(let i = 1; i <= Number(r.seats); i++){
+            addKey(`${prefix}${row}-M${i}`);
           }
-        });
-      }
+        }
 
-      if(sec.type === "multi_block_rows"){
-        const prefix = sec.prefix || "P";
-        (sec.rows || []).forEach(r=>{
-          (r.blocks || []).forEach(block=>{
+        if(Array.isArray(r.blocks)){
+          r.blocks.forEach(block => {
             const start = Number(block.start || 1);
             const count = Number(block.count || 0);
             const reverse = block.reverse === true;
 
-            for(let i=0; i<count; i++){
+            for(let i = 0; i < count; i++){
               const seatNum = reverse ? start - i : start + i;
-              keys.add(`${prefix}${r.row}-M${seatNum}`);
+              addKey(`${prefix}${row}-M${seatNum}`);
             }
           });
-        });
-      }
-
-      if(sec.type === "side_vertical"){
-        const prefix = sec.prefix || "S";
-        const row = Number(sec.row || 1);
-        const start = Number(sec.start || 1);
-        const count = Number(sec.count || 0);
-        const reverse = sec.reverse === true;
-
-        for(let i=0; i<count; i++){
-          const seatNum = reverse ? start - i : start + i;
-          keys.add(`${prefix}${row}-M${seatNum}`);
         }
-      }
-    };
+      });
+    }
 
-    hall.sections.forEach(walk);
+    if(node.type === "side_vertical"){
+      const row = Number(node.row || 1);
+      const start = Number(node.start || 1);
+      const count = Number(node.count || 0);
+      const reverse = node.reverse === true;
+
+      for(let i = 0; i < count; i++){
+        const seatNum = reverse ? start - i : start + i;
+        addKey(`${prefix}${row}-M${seatNum}`);
+      }
+    }
+
+    if(Array.isArray(node.children)){
+      node.children.forEach(child => walk(child, prefix));
+    }
+  };
+
+  if(Array.isArray(hall.seats)){
+    hall.seats.forEach(s => addSeatObj(s));
   }
 
-  Object.keys(data.seat_overrides || {}).forEach(k => keys.add(k));
+  if(Array.isArray(hall.sections)){
+    const map = new Map();
+    hall.sections.forEach(s => {
+      if(s && s.id) map.set(s.id, s);
+    });
+
+    hall.sections.forEach(sec => {
+      if(sec.type === "horizontal_group"){
+        (sec.items || []).forEach(id => walk(map.get(id)));
+      } else {
+        walk(sec);
+      }
+    });
+  }
+
+  Object.keys(data.seat_overrides || {}).forEach(k => addKey(k));
 
   return Array.from(keys);
 }
-
 function getSellableQuotaSeatsFromHall(hall){
   return collectHallSeatKeys(hall).filter(key=>{
     const state = previewSeatState(key);
