@@ -760,7 +760,7 @@
       try{
         const url =
           `${SUPABASE_URL}/rest/v1/seances` +
-          "?select=id,show,date,time,status,active,archived,venue_id" +
+         "?select=id,show,date,time,status,active,archived,venue_id,capacity" +
           "&order=date.asc,time.asc";
 
         const res = await fetch(url, {
