@@ -1010,15 +1010,23 @@ set("tSalesChannels",
         .join("<br>") || "—"
     );
 
-    renderTicketFlowJournal({
-      quota: [],
-      tickets,
-      bookings: activeBookings
-    });
+   LAST_TURNOVER_DATA = {
+  quota: [],
+  tickets,
+  bookings: activeBookings,
+  issued
+};
+
+renderTicketFlowJournal(LAST_TURNOVER_DATA);
 
   }catch(e){
     console.error("turnover error:", e);
   }
+}
+
+function setTurnoverJournal(type){
+  CURRENT_TURNOVER_JOURNAL = type || "sales";
+  renderTicketFlowJournal(LAST_TURNOVER_DATA);
 }
     
 function renderTicketFlowJournal({ quota, tickets, bookings }){
