@@ -862,24 +862,12 @@ async function loadTurnover(seanceId){
   }
 
   try{
-    const selectedSeance =
-  SEANCES.find(s => String(s.id) === String(seanceId)) || {};
-
-let issued = Number(selectedSeance.capacity || 0);
-
-if (!issued) {
-  const seances = await api(
-    "seances",
-    `?id=eq.${encodeURIComponent(seanceId)}&select=id,capacity`
-  );
-
-  issued = Number(seances?.[0]?.capacity || 0);
-}
-
-    const quota = await api(
-      "seance_ticket_quota",
-      `?seance_id=eq.${encodeURIComponent(seanceId)}&source=eq.va&select=*`
+    const seances = await api(
+      "seances",
+      `?id=eq.${encodeURIComponent(seanceId)}&select=id,capacity`
     );
+
+    const issued = Number(seances?.[0]?.capacity || 0);
 
     const tickets = await api(
       "tickets",
@@ -891,19 +879,45 @@ if (!issued) {
       `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
     );
 
-    const issuedTo = tickets.length;
+    const soldSeats = new Set(
+      tickets
+        .map(t => String(t.seat_label || "").trim())
+        .filter(Boolean)
+    );
+
+    const nowIso = new Date().toISOString();
 
     const activeBookings = bookings.filter(b => {
       const st = String(b.status || "").toLowerCase();
-      return !["cancelled","canceled","expired","released"].includes(st);
+
+      if (!["hold","reserved"].includes(st)) return false;
+
+      if (st === "hold" && b.expires_at && b.expires_at <= nowIso) {
+        return false;
+      }
+
+      return true;
     });
 
-    const booked = activeBookings.reduce((sum,b)=>{
-      if(Array.isArray(b.seats)) return sum + b.seats.length;
-      if(Array.isArray(b.seat_labels)) return sum + b.seat_labels.length;
-      if(b.seat_label) return sum + 1;
-      return sum + 1;
-    },0);
+    const bookedSeats = new Set();
+
+    activeBookings.forEach(b=>{
+      const seats =
+        Array.isArray(b.seats) ? b.seats :
+        Array.isArray(b.seat_labels) ? b.seat_labels :
+        b.seat_label ? [b.seat_label] :
+        [];
+
+      seats.forEach(seat=>{
+        const key = String(seat || "").trim();
+        if(!key) return;
+        if(soldSeats.has(key)) return;
+        bookedSeats.add(key);
+      });
+    });
+
+    const issuedTo = tickets.length;
+    const booked = bookedSeats.size;
 
     const returned = tickets.filter(t => String(t.status || "").toLowerCase() === "returned").length;
 
@@ -952,12 +966,17 @@ if (!issued) {
         .join("<br>") || "—"
     );
 
-    renderTicketFlowJournal({ quota, tickets, bookings, issued });
+    renderTicketFlowJournal({
+      quota: [],
+      tickets,
+      bookings: activeBookings
+    });
 
   }catch(e){
     console.error("turnover error:", e);
   }
 }
+    
 function renderTicketFlowJournal({ quota, tickets, bookings }){
   const body = document.getElementById("flowJournalBody");
   if(!body) return;
