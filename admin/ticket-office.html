@@ -862,6 +862,14 @@ async function loadTurnover(seanceId){
   }
 
   try{
+    const seances = await api(
+      "seances",
+      `?id=eq.${encodeURIComponent(seanceId)}&select=id,capacity`
+    );
+
+    const seance = seances[0] || {};
+    const issued = Number(seance.capacity || 0);
+
     const quota = await api(
       "seance_ticket_quota",
       `?seance_id=eq.${encodeURIComponent(seanceId)}&source=eq.va&select=*`
@@ -877,7 +885,6 @@ async function loadTurnover(seanceId){
       `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
     );
 
-    const issued = quota.length;
     const issuedTo = tickets.length;
 
     const activeBookings = bookings.filter(b => {
@@ -926,7 +933,7 @@ async function loadTurnover(seanceId){
     set("tFill", `${fill}%`);
     set("tRevenue", `${revenue} грн`);
 
-    set("tQuotaStatus", issued ? "" : "Квота VA ще не випущена.");
+    set("tQuotaStatus", issued ? "Випуск VA зафіксовано в seances.capacity." : "capacity не заповнено.");
 
     set("tTypes",
       Object.entries(typeMap).map(([k,v])=>`${k}: ${v}`).join("<br>") || "—"
@@ -939,13 +946,12 @@ async function loadTurnover(seanceId){
         .join("<br>") || "—"
     );
 
-    renderTicketFlowJournal({ quota, tickets, bookings });
+    renderTicketFlowJournal({ quota, tickets, bookings, issued });
 
   }catch(e){
     console.error("turnover error:", e);
   }
 }
-
 function renderTicketFlowJournal({ quota, tickets, bookings }){
   const body = document.getElementById("flowJournalBody");
   if(!body) return;
