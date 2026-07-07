@@ -193,16 +193,17 @@ window.VABooking = {
     }
 
     const emptyReserved = this.getEmptyReserved();
+    const seats = [];
 
-    if (!emptyReserved.length) {
+    emptyReserved.forEach(b => {
+      this.seatsFromBooking(b).forEach(s => {
+        const key = String(s || "").trim();
+        if (key && !seats.includes(key)) seats.push(key);
+      });
+    });
+
+    if (!seats.length) {
       alert("Немає нових резервів без контактів для заповнення.");
-      return;
-    }
-
-    const withoutId = emptyReserved.filter(b => !b.id);
-    if (withoutId.length) {
-      console.error("reserved rows without id", withoutId);
-      alert("Неможливо оновити бронь: у даних немає id запису.");
       return;
     }
 
@@ -214,56 +215,74 @@ window.VABooking = {
       note ? `Примітка: ${note}` : ""
     ].filter(Boolean).join(" | ");
 
-    const patch = {
-      buyer_name: buyerName,
-      buyer_email: email || null,
-      expires_at: expire ? new Date(expire).toISOString() : null
-    };
-
-    let updatedCount = 0;
-
     try {
-      for (const b of emptyReserved) {
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}&select=id,buyer_name,buyer_email,expires_at`,
-          {
-            method: "PATCH",
-            headers: {
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-              "Content-Type": "application/json",
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify(patch)
-          }
-        );
-
-        const text = await res.text();
-        let data = null;
-
-        try {
-          data = text ? JSON.parse(text) : null;
-        } catch (e) {
-          data = text;
+      const clearRes = await fetch(
+        `https://fhusjlkneckbvnrdhbil.functions.supabase.co/clear-booking-seat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            seance_id: seanceId,
+            seats
+          })
         }
+      );
 
-        if (!res.ok) {
-          console.error("booking patch error", data);
-          alert("Не вдалося оновити бронь. Деталі в консолі.");
-          return;
-        }
+      const clearData = await clearRes.json().catch(() => null);
 
-        if (Array.isArray(data)) {
-          updatedCount += data.length;
-        }
-      }
-
-      if (!updatedCount) {
-        alert("Бронь не оновлена: Supabase не повернув жодного зміненого рядка.");
+      if (!clearRes.ok || !clearData?.ok) {
+        console.error("clear reserve before save error", clearData);
+        alert("Не вдалося зняти старий резерв перед збереженням.");
         return;
       }
 
-      alert(`Контакти додано до броні. Оновлено записів: ${updatedCount}`);
+      let created = 0;
+
+      for (const seat of seats) {
+        const insertPayload = {
+          seance_id: seanceId,
+          show_slug: "ticket-office",
+          seats: [seat],
+          status: "reserved",
+          amount: 0,
+          order_id: `reserved-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+          buyer_name: buyerName,
+          buyer_email: email || null,
+          expires_at: expire ? new Date(expire).toISOString() : null,
+          channel: "office",
+          ticket_type: "full"
+        };
+
+        const insRes = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(insertPayload)
+        });
+
+        const insData = await insRes.json().catch(() => null);
+
+        if (!insRes.ok) {
+          console.error("booking insert with contacts error", insData);
+          alert("Не вдалося створити бронь з контактами.");
+          return;
+        }
+
+        if (Array.isArray(insData)) created += insData.length;
+      }
+
+      if (!created) {
+        alert("Бронь не збережена: Supabase не повернув створені записи.");
+        return;
+      }
+
+      alert(`Бронь збережено. Місць: ${created}`);
 
       this.clear();
 
