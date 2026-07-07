@@ -1184,6 +1184,122 @@ function renderTicketFlowJournal({ quota, tickets, bookings }){
 </tr>
 `).join("");
 }
+
+function renderTurnoverWorkspace(){
+
+    const ws = document.getElementById("turnoverWorkspace");
+
+    if(!ws) return;
+
+    switch(CURRENT_TURNOVER_JOURNAL){
+
+        case "sales":
+
+            ws.innerHTML = `
+                <div style="overflow:auto;margin-top:12px;">
+                    <table
+                        id="flowJournalTable"
+                        style="width:100%;border-collapse:collapse;font-size:14px;">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Операція</th>
+                                <th>Місце</th>
+                                <th>Тип</th>
+                                <th>Канал</th>
+                                <th>Сума</th>
+                                <th>Примітка</th>
+                            </tr>
+                        </thead>
+                        <tbody id="flowJournalBody"></tbody>
+                    </table>
+                </div>
+            `;
+
+            renderTicketFlowJournal(LAST_TURNOVER_DATA);
+
+            break;
+
+        case "booking":
+
+            ws.innerHTML = `
+                <div class="panel">
+
+                    <h3>Бронювання місць</h3>
+
+                    <div style="
+                        display:grid;
+                        grid-template-columns:1fr 1fr;
+                        gap:20px;
+                        margin-top:18px;
+                    ">
+
+                        <div>
+
+                            <label>Організація</label>
+                            <input style="width:100%;">
+
+                            <label>Контактна особа</label>
+                            <input style="width:100%;">
+
+                            <label>Телефон</label>
+                            <input style="width:100%;">
+
+                            <label>Email</label>
+                            <input style="width:100%;">
+
+                        </div>
+
+                        <div>
+
+                            <label>Уповноважений</label>
+                            <input style="width:100%;">
+
+                            <label>Термін броні</label>
+                            <input type="datetime-local" style="width:100%;">
+
+                            <label>Місця</label>
+                            <input style="width:100%;">
+
+                            <label>Примітка</label>
+                            <input style="width:100%;">
+
+                        </div>
+
+                    </div>
+
+                    <div style="margin-top:24px;">
+
+                        <button class="btn green">
+                            💾 Зберегти бронь
+                        </button>
+
+                        <button class="btn ghost">
+                            🖨 Друк
+                        </button>
+
+                        <button class="btn ghost">
+                            📋 Копіювати
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+            break;
+
+        default:
+
+            ws.innerHTML = `
+                <div class="stub">
+                    <h3>Розділ у розробці</h3>
+                </div>
+            `;
+    }
+
+}
+    
 function formatDateTime(value){
   if(!value) return "";
   const d = new Date(value);
