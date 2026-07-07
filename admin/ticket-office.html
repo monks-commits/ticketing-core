@@ -988,10 +988,11 @@ set("tSalesChannels",
         .join("<br>") || "—"
     );
 
-   LAST_TURNOVER_DATA = {
+  LAST_TURNOVER_DATA = {
   quota: [],
   tickets,
-  bookings: activeBookings,
+  bookings,
+  activeBookings,
   issued
 };
 
