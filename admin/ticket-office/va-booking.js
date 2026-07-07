@@ -264,7 +264,7 @@ window.VABooking = {
         );
 
         if (!res.ok) {
-          console.error("booking patch error", await res.text());
+          console.error("booking patch error", await res.text()); 
           alert("Не вдалося оновити бронь.");
           return;
         }
