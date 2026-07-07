@@ -197,7 +197,9 @@ window.VABooking = {
       agent,
       note,
       status: "reserved",
-      expires_at: expire ? new Date(expire).toISOString() : null
+      expires_at: expire
+  ? new Date(expire).toISOString()
+  : new Date(Date.now() + 15 * 60 * 1000).toISOString()
     };
 
     let updated = 0;
