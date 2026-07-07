@@ -828,14 +828,7 @@ function setText(id, value){
       }
       await loadSeances();
 
-VAToolbar.render({
-    targetId: "ticketJournalToolbar",
-    tableId: "flowJournalTable",
-    title: "Журнал руху квитків",
-    onRefresh() {
-        loadTurnover(seanceSelect.value);
-    }
-});
+
       
 seanceSelect.addEventListener("change", () => {
   loadTurnover(seanceSelect.value);
