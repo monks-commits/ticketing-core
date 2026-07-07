@@ -41,7 +41,7 @@ window.VABooking = {
           <div>
             <div class="field">
               <label>Уповноважений</label>
-              <input id="bookingAgent" placeholder="Поки що не зберігається">
+              <input id="bookingAgent" placeholder="Поки що зберігається в buyer_name">
             </div>
 
             <div class="field">
@@ -110,29 +110,37 @@ window.VABooking = {
     }
   },
 
-  getEmptyReserved() {
-    return (this.state.bookings || []).filter(b => {
-      const st = String(b.status || "").toLowerCase();
-
-      const hasContact =
-        b.buyer_name ||
-        b.contact_name ||
-        b.buyer_phone ||
-        b.phone ||
-        b.organization ||
-        b.buyer_email ||
-        b.email ||
-        b.note;
-
-      return st === "reserved" && !hasContact;
-    });
-  },
-
   seatsFromBooking(b) {
     return Array.isArray(b.seats) ? b.seats :
       Array.isArray(b.seat_labels) ? b.seat_labels :
       b.seat_label ? [b.seat_label] :
       [];
+  },
+
+  parseBuyerName(value) {
+    const text = String(value || "");
+    const get = (label) => {
+      const re = new RegExp(label + ":\\s*([^|]+)", "i");
+      const m = text.match(re);
+      return m ? m[1].trim() : "";
+    };
+
+    return {
+      raw: text,
+      org: get("Організація"),
+      person: get("Контакт"),
+      phone: get("Телефон"),
+      agent: get("Уповноважений"),
+      note: get("Примітка")
+    };
+  },
+
+  getEmptyReserved() {
+    return (this.state.bookings || []).filter(b => {
+      const st = String(b.status || "").toLowerCase();
+      const hasContact = Boolean(String(b.buyer_name || "").trim() || String(b.buyer_email || "").trim());
+      return st === "reserved" && !hasContact;
+    });
   },
 
   fillReservedSeatsField() {
@@ -161,17 +169,16 @@ window.VABooking = {
     }
 
     body.innerHTML = bookings.map(b => {
-      const seats = this.seatsFromBooking(b).join(", ");
-
+      const parsed = this.parseBuyerName(b.buyer_name);
       const row = {
         date: b.created_at || "",
-        org: b.organization || b.buyer_org || "",
-        person: b.contact_name || b.buyer_name || "",
-        phone: b.phone || b.buyer_phone || "",
-        seats,
+        org: parsed.org,
+        person: parsed.person || parsed.raw,
+        phone: parsed.phone,
+        seats: this.seatsFromBooking(b).join(", "),
         expires: b.expires_at || "",
         status: this.statusLabel(b.status),
-        note: b.note || b.comment || ""
+        note: parsed.note
       };
 
       return `
@@ -201,6 +208,7 @@ window.VABooking = {
     const person = document.getElementById("bookingPerson")?.value.trim() || "";
     const phone = document.getElementById("bookingPhone")?.value.trim() || "";
     const email = document.getElementById("bookingEmail")?.value.trim() || "";
+    const agent = document.getElementById("bookingAgent")?.value.trim() || "";
     const expire = document.getElementById("bookingExpire")?.value || "";
     const note = document.getElementById("bookingNote")?.value.trim() || "";
 
@@ -221,15 +229,17 @@ window.VABooking = {
       return;
     }
 
+    const buyerName = [
+      org ? `Організація: ${org}` : "",
+      person ? `Контакт: ${person}` : "",
+      phone ? `Телефон: ${phone}` : "",
+      agent ? `Уповноважений: ${agent}` : "",
+      note ? `Примітка: ${note}` : ""
+    ].filter(Boolean).join(" | ");
+
     const patch = {
-      buyer_name: person,
-      buyer_phone: phone,
+      buyer_name: buyerName,
       buyer_email: email,
-      organization: org,
-      contact_name: person,
-      phone,
-      email,
-      note,
       expires_at: expire ? new Date(expire).toISOString() : null
     };
 
