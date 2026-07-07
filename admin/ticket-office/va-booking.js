@@ -42,12 +42,19 @@ window.VABooking = {
       <div class="stub" style="margin-top:14px;">
         <h4>Журнал броней</h4>
         <div id="bookingToolbar"></div>
+
         <div style="overflow:auto;margin-top:12px;">
           <table id="bookingJournalTable" style="width:100%;border-collapse:collapse;font-size:14px;">
             <thead>
               <tr style="text-align:left;color:#b8c4d6;">
-                <th>Дата</th><th>Організація</th><th>Контакт</th><th>Телефон</th>
-                <th>Місця</th><th>До</th><th>Статус</th><th>Примітка</th>
+                <th>Дата</th>
+                <th>Організація</th>
+                <th>Контакт</th>
+                <th>Телефон</th>
+                <th>Місця</th>
+                <th>До</th>
+                <th>Статус</th>
+                <th>Примітка</th>
               </tr>
             </thead>
             <tbody id="bookingJournalBody"></tbody>
@@ -72,16 +79,24 @@ window.VABooking = {
   },
 
   seatsFromBooking(b) {
-    return Array.isArray(b.seats) ? b.seats : [];
+    return Array.isArray(b.seats) ? b.seats :
+      Array.isArray(b.seat_labels) ? b.seat_labels :
+      b.seat_label ? [b.seat_label] :
+      [];
   },
 
-  getEmptyReserved() {
+  getReservedWithoutContacts() {
     return (this.state.bookings || []).filter(b => {
-      return String(b.status || "").toLowerCase() === "reserved" &&
-        !String(b.buyer_name || "").trim() &&
-        !String(b.organization || "").trim() &&
-        !String(b.contact_name || "").trim() &&
-        !String(b.buyer_phone || "").trim();
+      const st = String(b.status || "").toLowerCase();
+
+      const hasContacts =
+        String(b.buyer_name || "").trim() ||
+        String(b.buyer_email || "").trim() ||
+        String(b.buyer_phone || "").trim() ||
+        String(b.organization || "").trim() ||
+        String(b.contact_name || "").trim();
+
+      return st === "reserved" && !hasContacts;
     });
   },
 
@@ -90,11 +105,15 @@ window.VABooking = {
     if (!input) return;
 
     const seats = [];
-    this.getEmptyReserved().forEach(b => {
-      this.seatsFromBooking(b).forEach(s => seats.push(String(s).trim()));
+
+    this.getReservedWithoutContacts().forEach(b => {
+      this.seatsFromBooking(b).forEach(s => {
+        const key = String(s || "").trim();
+        if (key && !seats.includes(key)) seats.push(key);
+      });
     });
 
-    input.value = seats.filter(Boolean).join(", ");
+    input.value = seats.join(", ");
   },
 
   renderJournal(bookings = []) {
@@ -122,7 +141,10 @@ window.VABooking = {
 
   async save() {
     const seanceId = this.state.seanceId;
-    if (!seanceId) return alert("Не обрано сеанс.");
+    if (!seanceId) {
+      alert("Не обрано сеанс.");
+      return;
+    }
 
     const org = document.getElementById("bookingOrg")?.value.trim() || "";
     const person = document.getElementById("bookingPerson")?.value.trim() || "";
@@ -131,12 +153,40 @@ window.VABooking = {
     const agent = document.getElementById("bookingAgent")?.value.trim() || "";
     const expire = document.getElementById("bookingExpire")?.value || "";
     const note = document.getElementById("bookingNote")?.value.trim() || "";
+    const seatsRaw = document.getElementById("bookingSeats")?.value.trim() || "";
 
-    if (!person && !org) return alert("Вкажіть контактну особу або організацію.");
-    if (!phone) return alert("Вкажіть телефон.");
+    if (!person && !org) {
+      alert("Вкажіть контактну особу або організацію.");
+      return;
+    }
 
-    const rows = this.getEmptyReserved();
-    if (!rows.length) return alert("Немає нових резервів без контактів.");
+    if (!phone) {
+      alert("Вкажіть телефон.");
+      return;
+    }
+
+    const selectedSeats = seatsRaw
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (!selectedSeats.length) {
+      alert("Немає місць для оновлення.");
+      return;
+    }
+
+    const rowsToUpdate = (this.state.bookings || []).filter(b => {
+      const st = String(b.status || "").toLowerCase();
+      if (st !== "reserved") return false;
+
+      const rowSeats = this.seatsFromBooking(b).map(s => String(s || "").trim());
+      return rowSeats.some(seat => selectedSeats.includes(seat));
+    });
+
+    if (!rowsToUpdate.length) {
+      alert("Не знайдено записів броні для цих місць.");
+      return;
+    }
 
     const patch = {
       buyer_name: person || org,
@@ -151,44 +201,67 @@ window.VABooking = {
 
     let updated = 0;
 
-    for (const b of rows) {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}&select=id`,
-        {
-          method: "PATCH",
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            "Content-Type": "application/json",
-            Prefer: "return=representation"
-          },
-          body: JSON.stringify(patch)
+    try {
+      for (const b of rowsToUpdate) {
+        if (!b.id) {
+          console.error("booking row without id", b);
+          continue;
         }
-      );
 
-      const data = await res.json().catch(() => null);
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}&select=id`,
+          {
+            method: "PATCH",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
+            },
+            body: JSON.stringify(patch)
+          }
+        );
 
-      if (!res.ok) {
-        console.error("booking save error", data);
-        return alert("Не вдалося оновити бронь.");
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          console.error("booking save error", data);
+          alert("Не вдалося оновити бронь.");
+          return;
+        }
+
+        if (Array.isArray(data)) updated += data.length;
       }
 
-      updated += Array.isArray(data) ? data.length : 0;
-    }
+      if (!updated) {
+        alert("Бронь не оновлена. Записів: 0");
+        return;
+      }
 
-    alert(`Бронь оновлено. Записів: ${updated}`);
+      alert(`Бронь оновлено. Записів: ${updated}`);
 
-    this.clear();
+      this.clear();
 
-    if (typeof loadTurnover === "function") {
-      await loadTurnover(seanceId);
+      if (typeof loadTurnover === "function") {
+        await loadTurnover(seanceId);
+      }
+
+    } catch (e) {
+      console.error("booking save exception", e);
+      alert("Помилка збереження броні.");
     }
   },
 
   clear() {
     [
-      "bookingOrg","bookingPerson","bookingPhone","bookingEmail",
-      "bookingAgent","bookingExpire","bookingSeats","bookingNote"
+      "bookingOrg",
+      "bookingPerson",
+      "bookingPhone",
+      "bookingEmail",
+      "bookingAgent",
+      "bookingExpire",
+      "bookingSeats",
+      "bookingNote"
     ].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = "";
@@ -198,11 +271,15 @@ window.VABooking = {
   },
 
   print() {
-    if (window.VAToolbar) VAToolbar.printTable("bookingJournalTable", "Журнал броней");
+    if (window.VAToolbar) {
+      VAToolbar.printTable("bookingJournalTable", "Журнал броней");
+    }
   },
 
   copy() {
-    if (window.VAToolbar) VAToolbar.copyTable("bookingJournalTable");
+    if (window.VAToolbar) {
+      VAToolbar.copyTable("bookingJournalTable");
+    }
   },
 
   statusLabel(status) {
@@ -210,9 +287,12 @@ window.VABooking = {
       reserved: "Активна",
       hold: "Тимчасова",
       cancelled: "Скасована",
+      canceled: "Скасована",
       expired: "Прострочена",
+      released: "Знята",
       paid: "Викуплена"
     };
+
     return map[String(status || "").toLowerCase()] || status || "";
   },
 
@@ -220,9 +300,13 @@ window.VABooking = {
     if (!value) return "";
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return String(value);
+
     return d.toLocaleString("uk-UA", {
-      day: "2-digit", month: "2-digit", year: "2-digit",
-      hour: "2-digit", minute: "2-digit"
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
     });
   },
 
