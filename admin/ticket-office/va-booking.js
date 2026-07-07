@@ -234,11 +234,11 @@ if (!res.ok) {
 
 const data = raw ? JSON.parse(raw) : null;
 
-        if (Array.isArray(data) && data.length) {
-          updated += data.length;
-        } else {
-          updated += 1;
-        }
+if (Array.isArray(data) && data.length) {
+  updated += data.length;
+} else {
+  updated += 1;
+}
       }
 
       alert(`Бронь оновлено. Записів: ${updated}`);
