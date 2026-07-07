@@ -1,17 +1,16 @@
 window.VABooking = {
-
   state: {
     seanceId: "",
     bookings: []
   },
-  
+
   render({ targetId, seanceId, bookings = [] }) {
     const target = document.getElementById(targetId);
     if (!target) return;
 
     this.state.seanceId = seanceId || "";
     this.state.bookings = Array.isArray(bookings) ? bookings : [];
-    
+
     target.innerHTML = `
       <div class="panel">
         <h3>Бронювання місць</h3>
@@ -52,7 +51,7 @@ window.VABooking = {
 
             <div class="field">
               <label>Місця</label>
-              <input id="bookingSeats" placeholder="P1-M1, P1-M2">
+              <input id="bookingSeats" placeholder="Заповнюється з резерву" readonly>
             </div>
 
             <div class="field">
@@ -63,7 +62,8 @@ window.VABooking = {
         </div>
 
         <div class="buttons">
-          <button class="btn green" onclick="VABooking.save()">💾 Зберегти бронь</button>
+          <button class="btn green" onclick="VABooking.save()">💾 Зберегти</button>
+          <button class="btn ghost" onclick="VABooking.clear()">🗑 Очистити</button>
           <button class="btn ghost" onclick="VABooking.print()">🖨 Друк</button>
           <button class="btn ghost" onclick="VABooking.copy()">📋 Копіювати</button>
         </div>
@@ -93,7 +93,8 @@ window.VABooking = {
       </div>
     `;
 
-    this.renderJournal(bookings);
+    this.fillReservedSeatsField();
+    this.renderJournal(this.state.bookings);
 
     if (window.VAToolbar) {
       VAToolbar.render({
@@ -107,6 +108,40 @@ window.VABooking = {
         }
       });
     }
+  },
+
+  fillReservedSeatsField() {
+    const input = document.getElementById("bookingSeats");
+    if (!input) return;
+
+    const emptyReserved = (this.state.bookings || []).filter(b => {
+      const st = String(b.status || "").toLowerCase();
+      const hasContact =
+        b.buyer_name ||
+        b.contact_name ||
+        b.buyer_phone ||
+        b.phone ||
+        b.organization;
+
+      return st === "reserved" && !hasContact;
+    });
+
+    const seats = [];
+
+    emptyReserved.forEach(b => {
+      const arr =
+        Array.isArray(b.seats) ? b.seats :
+        Array.isArray(b.seat_labels) ? b.seat_labels :
+        b.seat_label ? [b.seat_label] :
+        [];
+
+      arr.forEach(s => {
+        const key = String(s || "").trim();
+        if (key) seats.push(key);
+      });
+    });
+
+    input.value = seats.join(", ");
   },
 
   renderJournal(bookings = []) {
@@ -134,7 +169,7 @@ window.VABooking = {
         phone: b.phone || b.buyer_phone || "",
         seats: seats.join(", "),
         expires: b.expires_at || "",
-        status: b.status || "",
+        status: this.statusLabel(b.status),
         note: b.note || b.comment || ""
       });
     });
@@ -154,97 +189,164 @@ window.VABooking = {
   },
 
   async save() {
-  const seanceId = this.state.seanceId;
+    const seanceId = this.state.seanceId;
 
-  if (!seanceId) {
-    alert("Не обрано сеанс.");
-    return;
-  }
+    if (!seanceId) {
+      alert("Не обрано сеанс.");
+      return;
+    }
 
-  const org = document.getElementById("bookingOrg")?.value.trim() || "";
-  const person = document.getElementById("bookingPerson")?.value.trim() || "";
-  const phone = document.getElementById("bookingPhone")?.value.trim() || "";
-  const email = document.getElementById("bookingEmail")?.value.trim() || "";
-  const agent = document.getElementById("bookingAgent")?.value.trim() || "";
-  const expire = document.getElementById("bookingExpire")?.value || "";
-  const note = document.getElementById("bookingNote")?.value.trim() || "";
+    const org = document.getElementById("bookingOrg")?.value.trim() || "";
+    const person = document.getElementById("bookingPerson")?.value.trim() || "";
+    const phone = document.getElementById("bookingPhone")?.value.trim() || "";
+    const email = document.getElementById("bookingEmail")?.value.trim() || "";
+    const agent = document.getElementById("bookingAgent")?.value.trim() || "";
+    const expire = document.getElementById("bookingExpire")?.value || "";
+    const note = document.getElementById("bookingNote")?.value.trim() || "";
 
-  if (!person && !org) {
-    alert("Вкажіть контактну особу або організацію.");
-    return;
-  }
+    if (!person && !org) {
+      alert("Вкажіть контактну особу або організацію.");
+      return;
+    }
 
-  if (!phone) {
-    alert("Вкажіть телефон.");
-    return;
-  }
+    if (!phone) {
+      alert("Вкажіть телефон.");
+      return;
+    }
 
-  const emptyReserved = (this.state.bookings || []).filter(b => {
-    const st = String(b.status || "").toLowerCase();
-    const hasContact =
-      b.buyer_name ||
-      b.contact_name ||
-      b.buyer_phone ||
-      b.phone ||
-      b.organization;
+    const emptyReserved = (this.state.bookings || []).filter(b => {
+      const st = String(b.status || "").toLowerCase();
+      const hasContact =
+        b.buyer_name ||
+        b.contact_name ||
+        b.buyer_phone ||
+        b.phone ||
+        b.organization;
 
-    return st === "reserved" && !hasContact;
-  });
+      return st === "reserved" && !hasContact;
+    });
 
-  if (!emptyReserved.length) {
-    alert("Немає нових резервів без контактів для заповнення.");
-    return;
-  }
+    if (!emptyReserved.length) {
+      alert("Немає нових резервів без контактів для заповнення.");
+      return;
+    }
 
-  const patch = {
-    buyer_name: person,
-    buyer_phone: phone,
-    buyer_email: email,
+    const patch = {
+      buyer_name: person,
+      buyer_phone: phone,
+      buyer_email: email,
 
-    organization: org,
-    contact_name: person,
-    phone,
-    email,
-    agent,
-    note,
+      organization: org,
+      contact_name: person,
+      phone,
+      email,
+      agent,
+      note,
 
-    expires_at: expire ? new Date(expire).toISOString() : null
-  };
+      expires_at: expire ? new Date(expire).toISOString() : null
+    };
 
-  try {
-    for (const b of emptyReserved) {
-      if (!b.id) continue;
+    try {
+      for (const b of emptyReserved) {
+        if (!b.id) continue;
 
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}`,
-        {
-          method: "PATCH",
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(patch)
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}`,
+          {
+            method: "PATCH",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(patch)
+          }
+        );
+
+        if (!res.ok) {
+          console.error("booking patch error", await res.text());
+          alert("Не вдалося оновити бронь.");
+          return;
         }
-      );
-
-      if (!res.ok) {
-        console.error("booking patch error", await res.text());
-        alert("Не вдалося оновити бронь.");
-        return;
       }
+
+      alert("Контакти додано до броні.");
+
+      this.clear();
+
+      if (typeof loadTurnover === "function") {
+        await loadTurnover(seanceId);
+      }
+
+    } catch (e) {
+      console.error("booking save exception", e);
+      alert("Помилка збереження броні.");
     }
+  },
 
-    alert("Контакти додано до броні.");
+  clear() {
+    [
+      "bookingOrg",
+      "bookingPerson",
+      "bookingPhone",
+      "bookingEmail",
+      "bookingAgent",
+      "bookingExpire",
+      "bookingSeats",
+      "bookingNote"
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+  },
 
-    this.clear();
-
-    if (typeof loadTurnover === "function") {
-      await loadTurnover(seanceId);
+  print() {
+    if (window.VAToolbar) {
+      VAToolbar.printTable("bookingJournalTable", "Журнал броней");
     }
+  },
 
-  } catch (e) {
-    console.error("booking save exception", e);
-    alert("Помилка збереження броні.");
+  copy() {
+    if (window.VAToolbar) {
+      VAToolbar.copyTable("bookingJournalTable");
+    }
+  },
+
+  statusLabel(status) {
+    const st = String(status || "").toLowerCase();
+
+    const map = {
+      reserved: "Активна",
+      hold: "Тимчасова",
+      cancelled: "Скасована",
+      canceled: "Скасована",
+      expired: "Прострочена",
+      released: "Знята",
+      paid: "Викуплена"
+    };
+
+    return map[st] || status || "";
+  },
+
+  formatDate(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+
+    return d.toLocaleString("uk-UA", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  },
+
+  escape(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
-},
+};
