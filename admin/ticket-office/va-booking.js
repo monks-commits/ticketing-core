@@ -223,13 +223,16 @@ window.VABooking = {
           }
         );
 
-        const data = await res.json().catch(() => null);
+       const raw = await res.text();
 
-        if (!res.ok) {
-          console.error("booking save error", data);
-          alert("Не вдалося оновити бронь.");
-          return;
-        }
+if (!res.ok) {
+  console.error("PATCH STATUS:", res.status);
+  console.error("PATCH RESPONSE:", raw);
+  alert(raw);
+  return;
+}
+
+const data = raw ? JSON.parse(raw) : null;
 
         if (Array.isArray(data) && data.length) {
           updated += data.length;
