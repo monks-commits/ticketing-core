@@ -41,7 +41,7 @@ window.VABooking = {
           <div>
             <div class="field">
               <label>Уповноважений</label>
-              <input id="bookingAgent" placeholder="Хто передав бронь">
+              <input id="bookingAgent" placeholder="Поки що не зберігається">
             </div>
 
             <div class="field">
@@ -110,32 +110,39 @@ window.VABooking = {
     }
   },
 
-  fillReservedSeatsField() {
-    const input = document.getElementById("bookingSeats");
-    if (!input) return;
-
-    const emptyReserved = (this.state.bookings || []).filter(b => {
+  getEmptyReserved() {
+    return (this.state.bookings || []).filter(b => {
       const st = String(b.status || "").toLowerCase();
+
       const hasContact =
         b.buyer_name ||
         b.contact_name ||
         b.buyer_phone ||
         b.phone ||
-        b.organization;
+        b.organization ||
+        b.buyer_email ||
+        b.email ||
+        b.note;
 
       return st === "reserved" && !hasContact;
     });
+  },
+
+  seatsFromBooking(b) {
+    return Array.isArray(b.seats) ? b.seats :
+      Array.isArray(b.seat_labels) ? b.seat_labels :
+      b.seat_label ? [b.seat_label] :
+      [];
+  },
+
+  fillReservedSeatsField() {
+    const input = document.getElementById("bookingSeats");
+    if (!input) return;
 
     const seats = [];
 
-    emptyReserved.forEach(b => {
-      const arr =
-        Array.isArray(b.seats) ? b.seats :
-        Array.isArray(b.seat_labels) ? b.seat_labels :
-        b.seat_label ? [b.seat_label] :
-        [];
-
-      arr.forEach(s => {
+    this.getEmptyReserved().forEach(b => {
+      this.seatsFromBooking(b).forEach(s => {
         const key = String(s || "").trim();
         if (key) seats.push(key);
       });
@@ -153,39 +160,33 @@ window.VABooking = {
       return;
     }
 
-    const rows = [];
+    body.innerHTML = bookings.map(b => {
+      const seats = this.seatsFromBooking(b).join(", ");
 
-    bookings.forEach(b => {
-      const seats =
-        Array.isArray(b.seats) ? b.seats :
-        Array.isArray(b.seat_labels) ? b.seat_labels :
-        b.seat_label ? [b.seat_label] :
-        [];
-
-      rows.push({
+      const row = {
         date: b.created_at || "",
         org: b.organization || b.buyer_org || "",
         person: b.contact_name || b.buyer_name || "",
         phone: b.phone || b.buyer_phone || "",
-        seats: seats.join(", "),
+        seats,
         expires: b.expires_at || "",
         status: this.statusLabel(b.status),
         note: b.note || b.comment || ""
-      });
-    });
+      };
 
-    body.innerHTML = rows.map(r => `
-      <tr>
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(this.formatDate(r.date))}</td>
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(r.org)}</td>
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(r.person)}</td>
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(r.phone)}</td>
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(r.seats)}</td>
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(this.formatDate(r.expires))}</td>
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(r.status)}</td>
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(r.note)}</td>
-      </tr>
-    `).join("");
+      return `
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(this.formatDate(row.date))}</td>
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.org)}</td>
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.person)}</td>
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.phone)}</td>
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.seats)}</td>
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(this.formatDate(row.expires))}</td>
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.status)}</td>
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.note)}</td>
+        </tr>
+      `;
+    }).join("");
   },
 
   async save() {
@@ -200,7 +201,6 @@ window.VABooking = {
     const person = document.getElementById("bookingPerson")?.value.trim() || "";
     const phone = document.getElementById("bookingPhone")?.value.trim() || "";
     const email = document.getElementById("bookingEmail")?.value.trim() || "";
-    const agent = document.getElementById("bookingAgent")?.value.trim() || "";
     const expire = document.getElementById("bookingExpire")?.value || "";
     const note = document.getElementById("bookingNote")?.value.trim() || "";
 
@@ -214,17 +214,7 @@ window.VABooking = {
       return;
     }
 
-    const emptyReserved = (this.state.bookings || []).filter(b => {
-      const st = String(b.status || "").toLowerCase();
-      const hasContact =
-        b.buyer_name ||
-        b.contact_name ||
-        b.buyer_phone ||
-        b.phone ||
-        b.organization;
-
-      return st === "reserved" && !hasContact;
-    });
+    const emptyReserved = this.getEmptyReserved();
 
     if (!emptyReserved.length) {
       alert("Немає нових резервів без контактів для заповнення.");
@@ -235,14 +225,11 @@ window.VABooking = {
       buyer_name: person,
       buyer_phone: phone,
       buyer_email: email,
-
       organization: org,
       contact_name: person,
       phone,
       email,
-      agent,
       note,
-
       expires_at: expire ? new Date(expire).toISOString() : null
     };
 
@@ -264,7 +251,7 @@ window.VABooking = {
         );
 
         if (!res.ok) {
-          console.error("booking patch error", await res.text()); 
+          console.error("booking patch error", await res.text());
           alert("Не вдалося оновити бронь.");
           return;
         }
@@ -298,6 +285,8 @@ window.VABooking = {
       const el = document.getElementById(id);
       if (el) el.value = "";
     });
+
+    this.fillReservedSeatsField();
   },
 
   print() {
