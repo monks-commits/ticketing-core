@@ -153,8 +153,97 @@ window.VABooking = {
     `).join("");
   },
 
-  save() {
-    alert("Збереження броні підключимо наступним кроком.");
+   async save() {
+    const seanceId = this.state.seanceId;
+
+    if (!seanceId) {
+      alert("Не обрано сеанс.");
+      return;
+    }
+
+    const org = document.getElementById("bookingOrg")?.value.trim() || "";
+    const person = document.getElementById("bookingPerson")?.value.trim() || "";
+    const phone = document.getElementById("bookingPhone")?.value.trim() || "";
+    const email = document.getElementById("bookingEmail")?.value.trim() || "";
+    const agent = document.getElementById("bookingAgent")?.value.trim() || "";
+    const expire = document.getElementById("bookingExpire")?.value || "";
+    const seatsRaw = document.getElementById("bookingSeats")?.value.trim() || "";
+    const note = document.getElementById("bookingNote")?.value.trim() || "";
+
+    const seats = seatsRaw
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (!person && !org) {
+      alert("Вкажіть контактну особу або організацію.");
+      return;
+    }
+
+    if (!phone) {
+      alert("Вкажіть телефон.");
+      return;
+    }
+
+    if (!seats.length) {
+      alert("Вкажіть місця.");
+      return;
+    }
+
+    const payload = {
+      seance_id: seanceId,
+      show_slug: "ticket-office",
+      seats,
+      status: "reserved",
+      amount: 0,
+      order_id: `reserved-${Date.now()}`,
+
+      buyer_name: person,
+      buyer_phone: phone,
+      buyer_email: email,
+
+      organization: org,
+      contact_name: person,
+      phone,
+      email,
+      agent,
+      note,
+
+      expires_at: expire ? new Date(expire).toISOString() : null
+    };
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        console.error("booking save error", data);
+        alert("Не вдалося зберегти бронь.");
+        return;
+      }
+
+      alert("Бронь збережено.");
+
+      this.clear();
+
+      if (typeof loadTurnover === "function") {
+        await loadTurnover(seanceId);
+      }
+
+    } catch (e) {
+      console.error("booking save exception", e);
+      alert("Помилка збереження броні.");
+    }
   },
 
   print() {
