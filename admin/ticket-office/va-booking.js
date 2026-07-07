@@ -24,9 +24,9 @@ window.VABooking = {
           </div>
 
           <div>
-            <div class="field"><label>Уповноважений</label><input id="bookingAgent" placeholder="Зберігається в buyer_name"></div>
+            <div class="field"><label>Уповноважений</label><input id="bookingAgent" placeholder="Хто передав бронь"></div>
             <div class="field"><label>Дійсна до</label><input id="bookingExpire" type="datetime-local"></div>
-            <div class="field"><label>Місця</label><input id="bookingSeats" placeholder="Заповнюється з резерву" readonly></div>
+            <div class="field"><label>Місця</label><input id="bookingSeats" readonly></div>
             <div class="field"><label>Примітка</label><input id="bookingNote" placeholder="Коментар"></div>
           </div>
         </div>
@@ -42,19 +42,12 @@ window.VABooking = {
       <div class="stub" style="margin-top:14px;">
         <h4>Журнал броней</h4>
         <div id="bookingToolbar"></div>
-
         <div style="overflow:auto;margin-top:12px;">
           <table id="bookingJournalTable" style="width:100%;border-collapse:collapse;font-size:14px;">
             <thead>
               <tr style="text-align:left;color:#b8c4d6;">
-                <th style="padding:8px;border-bottom:1px solid rgba(255,255,255,.14);">Дата</th>
-                <th style="padding:8px;border-bottom:1px solid rgba(255,255,255,.14);">Організація</th>
-                <th style="padding:8px;border-bottom:1px solid rgba(255,255,255,.14);">Контакт</th>
-                <th style="padding:8px;border-bottom:1px solid rgba(255,255,255,.14);">Телефон</th>
-                <th style="padding:8px;border-bottom:1px solid rgba(255,255,255,.14);">Місця</th>
-                <th style="padding:8px;border-bottom:1px solid rgba(255,255,255,.14);">До</th>
-                <th style="padding:8px;border-bottom:1px solid rgba(255,255,255,.14);">Статус</th>
-                <th style="padding:8px;border-bottom:1px solid rgba(255,255,255,.14);">Примітка</th>
+                <th>Дата</th><th>Організація</th><th>Контакт</th><th>Телефон</th>
+                <th>Місця</th><th>До</th><th>Статус</th><th>Примітка</th>
               </tr>
             </thead>
             <tbody id="bookingJournalBody"></tbody>
@@ -79,36 +72,16 @@ window.VABooking = {
   },
 
   seatsFromBooking(b) {
-    return Array.isArray(b.seats) ? b.seats :
-      Array.isArray(b.seat_labels) ? b.seat_labels :
-      b.seat_label ? [b.seat_label] : [];
-  },
-
-  parseBuyerName(value) {
-    const text = String(value || "");
-    const get = (label) => {
-      const m = text.match(new RegExp(label + ":\\s*([^|]+)", "i"));
-      return m ? m[1].trim() : "";
-    };
-
-    return {
-      raw: text,
-      org: get("Організація"),
-      person: get("Контакт"),
-      phone: get("Телефон"),
-      agent: get("Уповноважений"),
-      note: get("Примітка")
-    };
+    return Array.isArray(b.seats) ? b.seats : [];
   },
 
   getEmptyReserved() {
     return (this.state.bookings || []).filter(b => {
-      const st = String(b.status || "").toLowerCase();
-      const hasContact =
-        String(b.buyer_name || "").trim() ||
-        String(b.buyer_email || "").trim();
-
-      return st === "reserved" && !hasContact;
+      return String(b.status || "").toLowerCase() === "reserved" &&
+        !String(b.buyer_name || "").trim() &&
+        !String(b.organization || "").trim() &&
+        !String(b.contact_name || "").trim() &&
+        !String(b.buyer_phone || "").trim();
     });
   },
 
@@ -117,15 +90,11 @@ window.VABooking = {
     if (!input) return;
 
     const seats = [];
-
     this.getEmptyReserved().forEach(b => {
-      this.seatsFromBooking(b).forEach(s => {
-        const key = String(s || "").trim();
-        if (key) seats.push(key);
-      });
+      this.seatsFromBooking(b).forEach(s => seats.push(String(s).trim()));
     });
 
-    input.value = seats.join(", ");
+    input.value = seats.filter(Boolean).join(", ");
   },
 
   renderJournal(bookings = []) {
@@ -137,42 +106,23 @@ window.VABooking = {
       return;
     }
 
-    body.innerHTML = bookings.map(b => {
-      const parsed = this.parseBuyerName(b.buyer_name);
-
-      const row = {
-        date: b.created_at || "",
-        org: parsed.org,
-        person: parsed.person || parsed.raw,
-        phone: parsed.phone,
-        seats: this.seatsFromBooking(b).join(", "),
-        expires: b.expires_at || "",
-        status: this.statusLabel(b.status),
-        note: parsed.note
-      };
-
-      return `
-        <tr>
-          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(this.formatDate(row.date))}</td>
-          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.org)}</td>
-          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.person)}</td>
-          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.phone)}</td>
-          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.seats)}</td>
-          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(this.formatDate(row.expires))}</td>
-          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.status)}</td>
-          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${this.escape(row.note)}</td>
-        </tr>
-      `;
-    }).join("");
+    body.innerHTML = bookings.map(b => `
+      <tr>
+        <td>${this.escape(this.formatDate(b.created_at))}</td>
+        <td>${this.escape(b.organization || "")}</td>
+        <td>${this.escape(b.contact_name || b.buyer_name || "")}</td>
+        <td>${this.escape(b.buyer_phone || "")}</td>
+        <td>${this.escape(this.seatsFromBooking(b).join(", "))}</td>
+        <td>${this.escape(this.formatDate(b.expires_at))}</td>
+        <td>${this.escape(this.statusLabel(b.status))}</td>
+        <td>${this.escape(b.note || "")}</td>
+      </tr>
+    `).join("");
   },
 
   async save() {
     const seanceId = this.state.seanceId;
-
-    if (!seanceId) {
-      alert("Не обрано сеанс.");
-      return;
-    }
+    if (!seanceId) return alert("Не обрано сеанс.");
 
     const org = document.getElementById("bookingOrg")?.value.trim() || "";
     const person = document.getElementById("bookingPerson")?.value.trim() || "";
@@ -182,130 +132,63 @@ window.VABooking = {
     const expire = document.getElementById("bookingExpire")?.value || "";
     const note = document.getElementById("bookingNote")?.value.trim() || "";
 
-    if (!person && !org) {
-      alert("Вкажіть контактну особу або організацію.");
-      return;
-    }
+    if (!person && !org) return alert("Вкажіть контактну особу або організацію.");
+    if (!phone) return alert("Вкажіть телефон.");
 
-    if (!phone) {
-      alert("Вкажіть телефон.");
-      return;
-    }
+    const rows = this.getEmptyReserved();
+    if (!rows.length) return alert("Немає нових резервів без контактів.");
 
-    const emptyReserved = this.getEmptyReserved();
-    const seats = [];
+    const patch = {
+      buyer_name: person || org,
+      buyer_email: email || null,
+      buyer_phone: phone,
+      organization: org,
+      contact_name: person,
+      agent,
+      note,
+      expires_at: expire ? new Date(expire).toISOString() : null
+    };
 
-    emptyReserved.forEach(b => {
-      this.seatsFromBooking(b).forEach(s => {
-        const key = String(s || "").trim();
-        if (key && !seats.includes(key)) seats.push(key);
-      });
-    });
+    let updated = 0;
 
-    if (!seats.length) {
-      alert("Немає нових резервів без контактів для заповнення.");
-      return;
-    }
-
-    const buyerName = [
-      org ? `Організація: ${org}` : "",
-      person ? `Контакт: ${person}` : "",
-      phone ? `Телефон: ${phone}` : "",
-      agent ? `Уповноважений: ${agent}` : "",
-      note ? `Примітка: ${note}` : ""
-    ].filter(Boolean).join(" | ");
-
-    try {
-      const clearRes = await fetch(
-        `https://fhusjlkneckbvnrdhbil.functions.supabase.co/clear-booking-seat`,
+    for (const b of rows) {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}&select=id`,
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            seance_id: seanceId,
-            seats
-          })
-        }
-      );
-
-      const clearData = await clearRes.json().catch(() => null);
-
-      if (!clearRes.ok || !clearData?.ok) {
-        console.error("clear reserve before save error", clearData);
-        alert("Не вдалося зняти старий резерв перед збереженням.");
-        return;
-      }
-
-      let created = 0;
-
-      for (const seat of seats) {
-        const insertPayload = {
-          seance_id: seanceId,
-          show_slug: "ticket-office",
-          seats: [seat],
-          status: "reserved",
-          amount: 0,
-          order_id: `reserved-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
-          buyer_name: buyerName,
-          buyer_email: email || null,
-          expires_at: expire ? new Date(expire).toISOString() : null,
-          channel: "office",
-          ticket_type: "full"
-        };
-
-        const insRes = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-          method: "POST",
+          method: "PATCH",
           headers: {
             apikey: SUPABASE_ANON_KEY,
             Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
             "Content-Type": "application/json",
             Prefer: "return=representation"
           },
-          body: JSON.stringify(insertPayload)
-        });
-
-        const insData = await insRes.json().catch(() => null);
-
-        if (!insRes.ok) {
-          console.error("booking insert with contacts error", insData);
-          alert("Не вдалося створити бронь з контактами.");
-          return;
+          body: JSON.stringify(patch)
         }
+      );
 
-        if (Array.isArray(insData)) created += insData.length;
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        console.error("booking save error", data);
+        return alert("Не вдалося оновити бронь.");
       }
 
-      if (!created) {
-        alert("Бронь не збережена: Supabase не повернув створені записи.");
-        return;
-      }
+      updated += Array.isArray(data) ? data.length : 0;
+    }
 
-      alert(`Бронь збережено. Місць: ${created}`);
+    alert(`Бронь оновлено. Записів: ${updated}`);
 
-      this.clear();
+    this.clear();
 
-      if (typeof loadTurnover === "function") {
-        await loadTurnover(seanceId);
-      }
-
-    } catch (e) {
-      console.error("booking save exception", e);
-      alert("Помилка збереження броні.");
+    if (typeof loadTurnover === "function") {
+      await loadTurnover(seanceId);
     }
   },
 
   clear() {
     [
-      "bookingOrg",
-      "bookingPerson",
-      "bookingPhone",
-      "bookingEmail",
-      "bookingAgent",
-      "bookingExpire",
-      "bookingSeats",
-      "bookingNote"
+      "bookingOrg","bookingPerson","bookingPhone","bookingEmail",
+      "bookingAgent","bookingExpire","bookingSeats","bookingNote"
     ].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = "";
@@ -315,44 +198,31 @@ window.VABooking = {
   },
 
   print() {
-    if (window.VAToolbar) {
-      VAToolbar.printTable("bookingJournalTable", "Журнал броней");
-    }
+    if (window.VAToolbar) VAToolbar.printTable("bookingJournalTable", "Журнал броней");
   },
 
   copy() {
-    if (window.VAToolbar) {
-      VAToolbar.copyTable("bookingJournalTable");
-    }
+    if (window.VAToolbar) VAToolbar.copyTable("bookingJournalTable");
   },
 
   statusLabel(status) {
-    const st = String(status || "").toLowerCase();
-
     const map = {
       reserved: "Активна",
       hold: "Тимчасова",
       cancelled: "Скасована",
-      canceled: "Скасована",
       expired: "Прострочена",
-      released: "Знята",
       paid: "Викуплена"
     };
-
-    return map[st] || status || "";
+    return map[String(status || "").toLowerCase()] || status || "";
   },
 
   formatDate(value) {
     if (!value) return "";
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return String(value);
-
     return d.toLocaleString("uk-UA", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
+      day: "2-digit", month: "2-digit", year: "2-digit",
+      hour: "2-digit", minute: "2-digit"
     });
   },
 
