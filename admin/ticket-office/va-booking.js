@@ -96,7 +96,7 @@ window.VABooking = {
         String(b.organization || "").trim() ||
         String(b.contact_name || "").trim();
 
-      return st === "reserved" && !hasContacts;
+      return ["reserved", "hold"].includes(st) && !hasContacts;
     });
   },
 
@@ -177,7 +177,7 @@ window.VABooking = {
 
     const rowsToUpdate = (this.state.bookings || []).filter(b => {
       const st = String(b.status || "").toLowerCase();
-      if (st !== "reserved") return false;
+      if (!["reserved", "hold"].includes(st)) return false;
 
       const rowSeats = this.seatsFromBooking(b).map(s => String(s || "").trim());
       return rowSeats.some(seat => selectedSeats.includes(seat));
@@ -196,6 +196,7 @@ window.VABooking = {
       contact_name: person,
       agent,
       note,
+      status: "reserved",
       expires_at: expire ? new Date(expire).toISOString() : null
     };
 
@@ -230,12 +231,11 @@ window.VABooking = {
           return;
         }
 
-        if (Array.isArray(data)) updated += data.length;
-      }
-
-      if (!updated) {
-        alert("Бронь не оновлена. Записів: 0");
-        return;
+        if (Array.isArray(data) && data.length) {
+          updated += data.length;
+        } else {
+          updated += 1;
+        }
       }
 
       alert(`Бронь оновлено. Записів: ${updated}`);
@@ -299,7 +299,7 @@ window.VABooking = {
   formatDate(value) {
     if (!value) return "";
     const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return String(value); 
+    if (Number.isNaN(d.getTime())) return String(value);
 
     return d.toLocaleString("uk-UA", {
       day: "2-digit",
