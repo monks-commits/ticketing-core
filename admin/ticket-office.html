@@ -1018,32 +1018,52 @@ function renderTurnoverWorkspace(){
 
     switch(CURRENT_TURNOVER_JOURNAL){
 
-        case "sales":
+      case "sales":
 
-            ws.innerHTML = `
-                <div style="overflow:auto;margin-top:12px;">
-                    <table
-                        id="flowJournalTable"
-                        style="width:100%;border-collapse:collapse;font-size:14px;">
-                        <thead>
-                            <tr>
-                                <th>Дата</th>
-                                <th>Операція</th>
-                                <th>Місце</th>
-                                <th>Тип</th>
-                                <th>Канал</th>
-                                <th>Сума</th>
-                                <th>Примітка</th>
-                            </tr>
-                        </thead>
-                        <tbody id="flowJournalBody"></tbody>
-                    </table>
-                </div>
-            `;
+  ws.innerHTML = `
+    <div style="overflow:auto;margin-top:12px;">
+      <table
+        id="flowJournalTable"
+        style="width:100%;border-collapse:collapse;font-size:14px;">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Операція</th>
+            <th>Місце</th>
+            <th>Тип</th>
+            <th>Канал</th>
+            <th>Сума</th>
+            <th>Примітка</th>
+          </tr>
+        </thead>
+        <tbody id="flowJournalBody"></tbody>
+      </table>
+    </div>
+  `;
 
-            renderTicketFlowJournal(LAST_TURNOVER_DATA);
+  const rows = window.VASalesJournal
+    ? VASalesJournal.buildRows(LAST_TURNOVER_DATA.tickets || [])
+    : [];
 
-            break;
+  const body = document.getElementById("flowJournalBody");
+
+  if (body) {
+    body.innerHTML = rows.length
+      ? rows.map(r => `
+        <tr>
+          <td>${escapeHtml(formatDateTime(r.date))}</td>
+          <td>${escapeHtml(r.op)}</td>
+          <td>${escapeHtml(r.seat)}</td>
+          <td>${escapeHtml(r.type)}</td>
+          <td>${escapeHtml(r.channel)}</td>
+          <td>${escapeHtml(r.amount)}</td>
+          <td>${escapeHtml(r.note)}</td>
+        </tr>
+      `).join("")
+      : `<tr><td colspan="7" style="padding:10px;">Немає продажів.</td></tr>`;
+  }
+
+  break;
 
        case "booking":
 
