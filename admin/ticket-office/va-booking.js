@@ -17,47 +17,17 @@ window.VABooking = {
 
         <div class="work-grid">
           <div>
-            <div class="field">
-              <label>Організація</label>
-              <input id="bookingOrg" placeholder="Назва організації">
-            </div>
-
-            <div class="field">
-              <label>Контактна особа</label>
-              <input id="bookingPerson" placeholder="ПІБ">
-            </div>
-
-            <div class="field">
-              <label>Телефон</label>
-              <input id="bookingPhone" placeholder="+380...">
-            </div>
-
-            <div class="field">
-              <label>Email</label>
-              <input id="bookingEmail" placeholder="email">
-            </div>
+            <div class="field"><label>Організація</label><input id="bookingOrg" placeholder="Назва організації"></div>
+            <div class="field"><label>Контактна особа</label><input id="bookingPerson" placeholder="ПІБ"></div>
+            <div class="field"><label>Телефон</label><input id="bookingPhone" placeholder="+380..."></div>
+            <div class="field"><label>Email</label><input id="bookingEmail" placeholder="email"></div>
           </div>
 
           <div>
-            <div class="field">
-              <label>Уповноважений</label>
-              <input id="bookingAgent" placeholder="Поки що зберігається в buyer_name">
-            </div>
-
-            <div class="field">
-              <label>Дійсна до</label>
-              <input id="bookingExpire" type="datetime-local">
-            </div>
-
-            <div class="field">
-              <label>Місця</label>
-              <input id="bookingSeats" placeholder="Заповнюється з резерву" readonly>
-            </div>
-
-            <div class="field">
-              <label>Примітка</label>
-              <input id="bookingNote" placeholder="Коментар">
-            </div>
+            <div class="field"><label>Уповноважений</label><input id="bookingAgent" placeholder="Зберігається в buyer_name"></div>
+            <div class="field"><label>Дійсна до</label><input id="bookingExpire" type="datetime-local"></div>
+            <div class="field"><label>Місця</label><input id="bookingSeats" placeholder="Заповнюється з резерву" readonly></div>
+            <div class="field"><label>Примітка</label><input id="bookingNote" placeholder="Коментар"></div>
           </div>
         </div>
 
@@ -102,9 +72,7 @@ window.VABooking = {
         tableId: "bookingJournalTable",
         title: "Журнал броней",
         onRefresh() {
-          if (typeof loadTurnover === "function") {
-            loadTurnover(seanceId);
-          }
+          if (typeof loadTurnover === "function") loadTurnover(seanceId);
         }
       });
     }
@@ -113,15 +81,13 @@ window.VABooking = {
   seatsFromBooking(b) {
     return Array.isArray(b.seats) ? b.seats :
       Array.isArray(b.seat_labels) ? b.seat_labels :
-      b.seat_label ? [b.seat_label] :
-      [];
+      b.seat_label ? [b.seat_label] : [];
   },
 
   parseBuyerName(value) {
     const text = String(value || "");
     const get = (label) => {
-      const re = new RegExp(label + ":\\s*([^|]+)", "i");
-      const m = text.match(re);
+      const m = text.match(new RegExp(label + ":\\s*([^|]+)", "i"));
       return m ? m[1].trim() : "";
     };
 
@@ -138,7 +104,10 @@ window.VABooking = {
   getEmptyReserved() {
     return (this.state.bookings || []).filter(b => {
       const st = String(b.status || "").toLowerCase();
-      const hasContact = Boolean(String(b.buyer_name || "").trim() || String(b.buyer_email || "").trim());
+      const hasContact =
+        String(b.buyer_name || "").trim() ||
+        String(b.buyer_email || "").trim();
+
       return st === "reserved" && !hasContact;
     });
   },
@@ -170,6 +139,7 @@ window.VABooking = {
 
     body.innerHTML = bookings.map(b => {
       const parsed = this.parseBuyerName(b.buyer_name);
+
       const row = {
         date: b.created_at || "",
         org: parsed.org,
@@ -229,6 +199,13 @@ window.VABooking = {
       return;
     }
 
+    const withoutId = emptyReserved.filter(b => !b.id);
+    if (withoutId.length) {
+      console.error("reserved rows without id", withoutId);
+      alert("Неможливо оновити бронь: у даних немає id запису.");
+      return;
+    }
+
     const buyerName = [
       org ? `Організація: ${org}` : "",
       person ? `Контакт: ${person}` : "",
@@ -239,35 +216,54 @@ window.VABooking = {
 
     const patch = {
       buyer_name: buyerName,
-      buyer_email: email,
+      buyer_email: email || null,
       expires_at: expire ? new Date(expire).toISOString() : null
     };
 
+    let updatedCount = 0;
+
     try {
       for (const b of emptyReserved) {
-        if (!b.id) continue;
-
         const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}`,
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(b.id)}&select=id,buyer_name,buyer_email,expires_at`,
           {
             method: "PATCH",
             headers: {
               apikey: SUPABASE_ANON_KEY,
               Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              Prefer: "return=representation"
             },
             body: JSON.stringify(patch)
           }
         );
 
+        const text = await res.text();
+        let data = null;
+
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch (e) {
+          data = text;
+        }
+
         if (!res.ok) {
-          console.error("booking patch error", await res.text());
-          alert("Не вдалося оновити бронь.");
+          console.error("booking patch error", data);
+          alert("Не вдалося оновити бронь. Деталі в консолі.");
           return;
+        }
+
+        if (Array.isArray(data)) {
+          updatedCount += data.length;
         }
       }
 
-      alert("Контакти додано до броні.");
+      if (!updatedCount) {
+        alert("Бронь не оновлена: Supabase не повернув жодного зміненого рядка.");
+        return;
+      }
+
+      alert(`Контакти додано до броні. Оновлено записів: ${updatedCount}`);
 
       this.clear();
 
