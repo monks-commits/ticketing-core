@@ -1,8 +1,17 @@
 window.VABooking = {
+
+  state: {
+    seanceId: "",
+    bookings: []
+  },
+  
   render({ targetId, seanceId, bookings = [] }) {
     const target = document.getElementById(targetId);
     if (!target) return;
 
+    this.state.seanceId = seanceId || "";
+    this.state.bookings = Array.isArray(bookings) ? bookings : [];
+    
     target.innerHTML = `
       <div class="panel">
         <h3>Бронювання місць</h3>
