@@ -171,7 +171,7 @@ fillContacts(){
             booking.buyer_email ||
             "";
 
-}
+},
 
   fillSeats(){
 
