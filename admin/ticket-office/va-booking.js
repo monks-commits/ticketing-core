@@ -31,12 +31,17 @@ window.VABooking = {
           </div>
         </div>
 
-        <div class="buttons">
-          <button class="btn green" onclick="VABooking.save()">💾 Зберегти</button>
-          <button class="btn ghost" onclick="VABooking.clear()">🗑 Очистити</button>
-          <button class="btn ghost" onclick="VABooking.print()">🖨 Друк</button>
-          <button class="btn ghost" onclick="VABooking.copy()">📋 Копіювати</button>
-        </div>
+       <div class="buttons">
+  <button class="btn green" onclick="VABooking.save()">💾 Зберегти</button>
+
+  <button class="btn green" onclick="VABooking.issue()">🎫 Видати квитки</button>
+
+  <button class="btn ghost" onclick="VABooking.clear()">🗑 Очистити</button>
+
+  <button class="btn ghost" onclick="VABooking.print()">🖨 Друк</button>
+
+  <button class="btn ghost" onclick="VABooking.copy()">📋 Копіювати</button>
+</div>
       </div>
 
       <div class="stub" style="margin-top:14px;">
