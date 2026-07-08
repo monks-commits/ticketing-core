@@ -262,6 +262,153 @@ if (Array.isArray(data) && data.length) {
     }
   },
 
+async issue() {
+
+  const seanceId = this.state.seanceId;
+
+  if (!seanceId) {
+    alert("Не обрано сеанс.");
+    return;
+  }
+
+
+  const org =
+    document.getElementById("bookingOrg")?.value.trim() || "";
+
+  const person =
+    document.getElementById("bookingPerson")?.value.trim() || "";
+
+  const seats =
+    document.getElementById("bookingSeats")?.value
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+
+  if (!seats.length) {
+    alert("Немає місць для видачі.");
+    return;
+  }
+
+
+  if (!org && !person) {
+    alert("Вкажіть отримувача.");
+    return;
+  }
+
+
+  const booking = (this.state.bookings || []).find(b => {
+
+    const bSeats = this.seatsFromBooking(b);
+
+    return bSeats.some(s => seats.includes(s))
+      && ["reserved","hold"].includes(
+          String(b.status || "").toLowerCase()
+        );
+
+  });
+
+
+  if (!booking) {
+
+    alert(
+      "Не знайдено бронь для цих місць."
+    );
+
+    return;
+  }
+
+
+
+  const payload = {
+
+    booking_id: booking.id,
+
+    seance_id: seanceId,
+
+    organization:
+      booking.organization || org,
+
+    partner_name:
+      booking.organization || org || person,
+
+
+    seats: seats,
+
+    booking_seats: this.seatsFromBooking(booking),
+
+
+    issued_at: new Date().toISOString(),
+
+    issued_by: "ticket-admin",
+
+    status: "issued",
+
+    note:
+      document.getElementById("bookingNote")?.value || ""
+
+  };
+
+
+
+  try {
+
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/ticket_issues`,
+      {
+        method:"POST",
+
+        headers:{
+          apikey:SUPABASE_ANON_KEY,
+          Authorization:
+            `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type":"application/json",
+          Prefer:"return=representation"
+        },
+
+        body:JSON.stringify(payload)
+
+      }
+    );
+
+
+    const raw = await res.text();
+
+
+    if(!res.ok){
+
+      console.error(raw);
+      alert(raw);
+      return;
+
+    }
+
+
+    alert(
+      "Квитки видані."
+    );
+
+
+    if(typeof loadTurnover==="function"){
+
+      await loadTurnover(seanceId);
+
+    }
+
+
+  } catch(e){
+
+    console.error(e);
+
+    alert(
+      "Помилка видачі квитків."
+    );
+
+  }
+
+},
+  
   clear() {
     [
       "bookingOrg",
