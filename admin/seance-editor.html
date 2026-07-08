@@ -815,7 +815,9 @@ const venueSelect = document.getElementById("venueSelect");
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];
 let currentActive = true;
-
+let CURRENT_PREVIEW_HALL = null;
+let CURRENT_VA_CAPACITY = 0;
+let CURRENT_VA_PRICE_SEGMENTS = {};
   
   
 function fillVenueSelectFromConfig(){
