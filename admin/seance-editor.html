@@ -1760,6 +1760,7 @@ function render(){
 
   const overrideEntries = Object.entries(data.seat_overrides);
   seatOverridesList.innerHTML =
+    updateVACounter();
     overrideEntries.length
       ? overrideEntries
           .sort((a, b) => a[0].localeCompare(b[0], "uk"))
