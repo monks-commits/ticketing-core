@@ -1011,13 +1011,13 @@ function setTurnoverJournal(type){
 
 }
 
-function renderTurnoverWorkspace(){
+function renderTurnoverWorkspace() {
 
     const ws = document.getElementById("turnoverWorkspace");
 
-    if(!ws) return;
+    if (!ws) return;
 
-    switch(CURRENT_TURNOVER_JOURNAL){
+    switch (CURRENT_TURNOVER_JOURNAL) {
 
         case "sales":
 
@@ -1025,7 +1025,7 @@ function renderTurnoverWorkspace(){
                 <div style="overflow:auto;margin-top:12px;">
                     <table
                         id="flowJournalTable"
-                        style="width:100%;border-collapse:collapse;font-size:14px;"> 
+                        style="width:100%;border-collapse:collapse;font-size:14px;">
                         <thead>
                             <tr>
                                 <th>Дата</th>
@@ -1043,38 +1043,63 @@ function renderTurnoverWorkspace(){
             `;
 
             const salesRows = window.VASalesJournal
-              ? VASalesJournal.buildRows(LAST_TURNOVER_DATA.tickets || [])
-              : [];
+                ? VASalesJournal.buildRows(LAST_TURNOVER_DATA.tickets || [])
+                : [];
 
             const salesBody = document.getElementById("flowJournalBody");
 
             if (salesBody) {
-              salesBody.innerHTML = salesRows.length
-                ? salesRows.map(r => `
-                  <tr>
-                    <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(formatDateTime(r.date))}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.op)}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.seat)}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.type)}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.channel)}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.amount)}</td>
-                    <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.note)}</td>
-                  </tr>
-                `).join("")
-                : `<tr><td colspan="7" style="padding:10px;">Немає продажів.</td></tr>`;
+                salesBody.innerHTML = salesRows.length
+                    ? salesRows.map(r => `
+                        <tr>
+                            <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(formatDateTime(r.date))}</td>
+                            <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.op)}</td>
+                            <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.seat)}</td>
+                            <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.type)}</td>
+                            <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.channel)}</td>
+                            <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.amount)}</td>
+                            <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">${escapeHtml(r.note)}</td>
+                        </tr>
+                    `).join("")
+                    : `<tr><td colspan="7" style="padding:10px;">Немає продажів.</td></tr>`;
             }
 
             break;
 
-       case "booking":
 
-  VABooking.render({
-    targetId: "turnoverWorkspace",
-    seanceId: selectedSeanceId(),
-    bookings: LAST_TURNOVER_DATA.bookings || []
-  });
+        case "booking":
 
-  break;
+            VABooking.render({
+                targetId: "turnoverWorkspace",
+                seanceId: selectedSeanceId(),
+                bookings: LAST_TURNOVER_DATA.bookings || []
+            });
+
+            break;
+
+
+        case "returns":
+
+            if (window.VAReturns) {
+
+                VAReturns.render({
+                    targetId: "turnoverWorkspace",
+                    seanceId: selectedSeanceId(),
+                    bookings: LAST_TURNOVER_DATA.bookings || []
+                });
+
+            } else {
+
+                ws.innerHTML = `
+                    <div class="stub">
+                        <h3>VAReturns не підключено</h3>
+                    </div>
+                `;
+
+            }
+
+            break;
+
 
         default:
 
@@ -1083,6 +1108,7 @@ function renderTurnoverWorkspace(){
                     <h3>Розділ у розробці</h3>
                 </div>
             `;
+
     }
 
 }
