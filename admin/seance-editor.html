@@ -1706,6 +1706,33 @@ function addSeatOverride(){
   renderPreview();
 }
 
+function updateVACounter(){
+
+  let count = 0;
+
+  // места, которые переопределены индивидуально
+  Object.values(data.seat_overrides || {}).forEach(seat => {
+
+    if (seat.sale !== false) {
+      count++;
+    }
+
+  });
+
+
+  // TODO:
+  // позже добавим сюда точный расчет рядов из hall JSON,
+  // потому что pricing сейчас хранит правила, а не список мест
+
+
+  const el = document.getElementById("vaCapacityCounter");
+
+  if (el) {
+    el.textContent = count;
+  }
+
+}
+  
 function render(){
  output.value = JSON.stringify({
   seance_id: seanceId.value.trim(),
