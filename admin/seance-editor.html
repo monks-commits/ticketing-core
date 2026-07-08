@@ -1509,6 +1509,9 @@ async function renderPreview(){
 
     const hall = await res.json();
 
+    CURRENT_PREVIEW_HALL = hall;
+updateVACapacityCounter();
+
     if (Array.isArray(hall.seats)) {
       renderBuilderPreview(hall, previewStage, previewWrap);
       previewInfo.textContent = `Builder-схема: ${hallName} • ${hall.seats.length} місць`;
