@@ -133,7 +133,43 @@ window.VAReturns = {
     return [];
 
   },
+fillContacts(){
 
+    const booking = this.state.bookings
+        .find(b => String(b.status || "").toLowerCase() === "reserved");
+
+    if (!booking) return;
+
+
+    const org = document.getElementById("returnOrg");
+    const person = document.getElementById("returnPerson");
+    const phone = document.getElementById("returnPhone");
+    const email = document.getElementById("returnEmail");
+
+
+    if (org)
+        org.value = booking.organization || "";
+
+
+    if (person)
+        person.value =
+            booking.contact_name ||
+            booking.buyer_name ||
+            "";
+
+
+    if (phone)
+        phone.value =
+            booking.buyer_phone ||
+            "";
+
+
+    if (email)
+        email.value =
+            booking.buyer_email ||
+            "";
+
+}
 
   fillSeats(){
 
