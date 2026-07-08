@@ -942,6 +942,8 @@ function updateGenreSelect(selectedGenre = "") {
 eventType?.addEventListener("change", () => {
   updateGenreSelect();
 });
+
+
   
 function ensurePreviewUi() {
   let previewSection = document.getElementById("previewSection");
@@ -967,15 +969,224 @@ function ensurePreviewUi() {
   previewSection = document.createElement("section");
   previewSection.className = "card preview-full-card";
   previewSection.id = "previewSection";
+
   previewSection.innerHTML = `
     <h2>👁 Попередній перегляд схеми</h2>
+
+    <div style="
+      margin:12px 0 14px;
+      padding:14px 16px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+      background:rgba(0,0,0,.12);
+    ">
+      <div style="font-size:14px;color:#b8c4d6;margin-bottom:4px;">
+        🎟️ Випуск VA
+      </div>
+
+      <div style="font-size:34px;font-weight:900;line-height:1;">
+        <span id="vaCapacityCounter">0</span>
+        <span style="font-size:16px;font-weight:700;color:#b8c4d6;">місць</span>
+      </div>
+
+      <div id="vaCapacityDetails" class="note">
+        Схема ще не завантажена.
+      </div>
+
+      <div id="vaCapacityByPrice" class="note"></div>
+    </div>
+
     <div id="previewInfo" class="note">Схема ще не завантажена</div>
+
     <div id="previewWrap" class="preview-full-wrap">
       <div id="previewStage"></div>
     </div>
   `;
 
   dataCard.insertAdjacentElement("afterend", previewSection);
+}
+
+function addVASeatKey(set, key){
+  key = String(key || "").trim();
+  if (key) set.add(key);
+}
+
+function collectVAKeysFromSection(section, sectionsMap, set, visited){
+  if (!section || section.hidden === true) return;
+
+  if (section.id) {
+    if (visited.has(section.id)) return;
+    visited.add(section.id);
+  }
+
+  const type = section.type || "";
+  const prefix = section.prefix || "P";
+
+  if (type === "horizontal_group") {
+    (section.items || []).forEach(id => {
+      collectVAKeysFromSection(sectionsMap.get(id), sectionsMap, set, visited);
+    });
+    return;
+  }
+
+  if (type === "rows") {
+    (section.rows || []).forEach(r => {
+      const row = r.row;
+      const seats = Number(r.seats || 0);
+
+      for (let s = 1; s <= seats; s++) {
+        addVASeatKey(set, `${prefix}${row}-M${s}`);
+      }
+    });
+    return;
+  }
+
+  if (type === "multi_block_rows") {
+    (section.rows || []).forEach(r => {
+      const row = r.row;
+
+      (r.blocks || []).forEach(block => {
+        const start = Number(block.start || 1);
+        const count = Number(block.count || 0);
+        const reverse = block.reverse === true;
+
+        for (let i = 0; i < count; i++) {
+          const seatNum = reverse ? start - i : start + i;
+          addVASeatKey(set, `${prefix}${row}-M${seatNum}`);
+        }
+      });
+    });
+    return;
+  }
+
+  if (type === "side_vertical") {
+    const row = Number(section.row || 1);
+    const start = Number(section.start || 1);
+    const count = Number(section.count || 0);
+    const reverse = section.reverse === true;
+
+    for (let i = 0; i < count; i++) {
+      const seatNum = reverse ? start - i : start + i;
+      addVASeatKey(set, `${prefix}${row}-M${seatNum}`);
+    }
+    return;
+  }
+
+  if (type === "lodges_vertical") {
+    const row = Number(section.row || 0);
+    const start = Number(section.start || 1);
+    const count = Number(section.count || 0);
+    const reverse = section.reverse === true;
+
+    if (count > 0) {
+      for (let i = 0; i < count; i++) {
+        const seatNum = reverse ? start - i : start + i;
+        addVASeatKey(set, `${prefix}${row}-M${seatNum}`);
+      }
+    }
+  }
+}
+
+function collectVASeatKeys(hall){
+  const set = new Set();
+
+  if (!hall) return set;
+
+  if (Array.isArray(hall.seats)) {
+    hall.seats.forEach(s => {
+      const key =
+        s.key ||
+        `${s.prefix || ""}${s.row}-M${s.seat}`;
+
+      addVASeatKey(set, key);
+    });
+
+    return set;
+  }
+
+  if (Array.isArray(hall.sections)) {
+    const sectionsMap = new Map();
+
+    hall.sections.forEach(sec => {
+      if (sec && sec.id) sectionsMap.set(sec.id, sec);
+    });
+
+    const visited = new Set();
+
+    hall.sections.forEach(sec => {
+      collectVAKeysFromSection(sec, sectionsMap, set, visited);
+    });
+  }
+
+  return set;
+}
+
+function getVACapacityStats(){
+  const keys = collectVASeatKeys(CURRENT_PREVIEW_HALL);
+
+  const byPrice = new Map();
+
+  let released = 0;
+  let noPrice = 0;
+  let blocked = 0;
+
+  keys.forEach(key => {
+    const state = previewSeatState(key);
+    const price = state.price == null ? null : Number(state.price);
+
+    if (state.sale === false) {
+      blocked++;
+      return;
+    }
+
+    if (!Number.isFinite(price)) {
+      noPrice++;
+      return;
+    }
+
+    released++;
+    byPrice.set(price, (byPrice.get(price) || 0) + 1);
+  });
+
+  return {
+    totalSeats: keys.size,
+    released,
+    blocked,
+    noPrice,
+    byPrice
+  };
+}
+
+function updateVACapacityCounter(){
+  const stats = getVACapacityStats();
+
+  CURRENT_VA_CAPACITY = stats.released;
+  CURRENT_VA_PRICE_SEGMENTS = Object.fromEntries(stats.byPrice.entries());
+
+  const totalEl = document.getElementById("vaCapacityCounter");
+  const detailEl = document.getElementById("vaCapacityDetails");
+  const priceEl = document.getElementById("vaCapacityByPrice");
+
+  if (totalEl) {
+    totalEl.textContent = String(stats.released);
+  }
+
+  if (detailEl) {
+    detailEl.textContent =
+      `Всього у схемі: ${stats.totalSeats} • ` +
+      `без ціни: ${stats.noPrice} • ` +
+      `заборонено: ${stats.blocked}`;
+  }
+
+  if (priceEl) {
+    const rows = Array.from(stats.byPrice.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([price, count]) => `${price} грн → ${count}`);
+
+    priceEl.innerHTML = rows.length
+      ? rows.map(x => `<div>${x}</div>`).join("")
+      : `<span class="muted">Немає місць з ціною.</span>`;
+  }
 }
   
 function previewSeatState(key){
