@@ -112,9 +112,11 @@ window.VAReturns = {
     `;
 
 
-    this.fillSeats();
+  this.fillContacts();
 
-    this.loadJournal();
+this.fillSeats();
+
+this.loadJournal();
 
   },
 
