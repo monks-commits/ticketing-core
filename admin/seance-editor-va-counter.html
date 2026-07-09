@@ -1969,6 +1969,28 @@ function addSeatOverride(){
   renderPreview();
 }
 
+function getVAPayloadStats(){
+  const stats = getVACapacityStats();
+
+  const capacity = Number(stats.released || 0);
+
+  const byPrice = Object.fromEntries(
+    Array.from(stats.byPrice.entries()).map(([price, count]) => [
+      String(price),
+      count
+    ])
+  );
+
+  return {
+    capacity: capacity,
+    capacity_source: "va_editor_counter",
+    capacity_total_hall: Number(stats.totalSeats || 0),
+    capacity_no_price: Number(stats.noPrice || 0),
+    capacity_blocked: Number(stats.blocked || 0),
+    capacity_by_price: byPrice
+  };
+}
+  
 function render(){
   const payload = buildSeanceEditorPayload();
   output.value = JSON.stringify(payload, null, 2);
@@ -2031,9 +2053,10 @@ if (
   Object.keys(data.pricing || {}).length === 0 &&
   Object.keys(data.seat_overrides || {}).length === 0
 ) {
+ 
   const ok = confirm(
     "УВАГА: pricing і seat_overrides порожні.\n\n" +
-    "Якщо зберегти зараз — ціни та кольори для цього сеансу будуть стерті.\n\n" +
+    "Якщо зберегти зараз — ціни та кольори для цього сеансу будуть стерті.\n\n" + 
     "Продовжити?"
   );
   if (!ok) return;
