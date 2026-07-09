@@ -952,17 +952,36 @@ openKG7PrintWindow({ docNo, meta, rows, printWindow = null }) {
 </body>
 </html>`;
 
- const w = printWindow || window.open("", "_blank");
+ const oldFrame = document.getElementById("va-kg7-print-frame");
+if (oldFrame) oldFrame.remove();
 
-if (!w) {
-  alert("Браузер заблокував вікно друку.");
-  return;
-}
+const frame = document.createElement("iframe");
+frame.id = "va-kg7-print-frame";
+frame.style.position = "fixed";
+frame.style.right = "0";
+frame.style.bottom = "0";
+frame.style.width = "0";
+frame.style.height = "0";
+frame.style.border = "0";
+frame.style.opacity = "0";
 
-w.document.open();
-w.document.write(html);
-w.document.close();
-},
+document.body.appendChild(frame);
+
+const doc = frame.contentWindow.document;
+
+doc.open();
+doc.write(html);
+doc.close();
+
+setTimeout(() => {
+  try {
+    frame.contentWindow.focus();
+    frame.contentWindow.print();
+  } catch (e) {
+    console.error("KG-7 print error:", e);
+    alert("Не вдалося відкрити друк КГ-7.");
+  }
+}, 600);
   
   seatsFromBooking(b) {
     return Array.isArray(b?.seats) ? b.seats :
