@@ -17,31 +17,62 @@ window.VABooking = {
 
         <div class="work-grid">
           <div>
-            <div class="field"><label>Організація</label><input id="bookingOrg" placeholder="Назва організації"></div>
-            <div class="field"><label>Контактна особа</label><input id="bookingPerson" placeholder="ПІБ"></div>
-            <div class="field"><label>Телефон</label><input id="bookingPhone" placeholder="+380..."></div>
-            <div class="field"><label>Email</label><input id="bookingEmail" placeholder="email"></div>
+            <div class="field">
+              <label>Організація</label>
+              <input id="bookingOrg" placeholder="Назва організації">
+            </div>
+
+            <div class="field">
+              <label>Контактна особа</label>
+              <input id="bookingPerson" placeholder="ПІБ">
+            </div>
+
+            <div class="field">
+              <label>Телефон</label>
+              <input id="bookingPhone" placeholder="+380...">
+            </div>
+
+            <div class="field">
+              <label>Email</label>
+              <input id="bookingEmail" placeholder="email">
+            </div>
           </div>
 
           <div>
-            <div class="field"><label>Уповноважений</label><input id="bookingAgent" placeholder="Хто передав бронь"></div>
-            <div class="field"><label>Дійсна до</label><input id="bookingExpire" type="datetime-local"></div>
-            <div class="field"><label>Місця</label><input id="bookingSeats" readonly></div>
-            <div class="field"><label>Примітка</label><input id="bookingNote" placeholder="Коментар"></div>
+            <div class="field">
+              <label>Уповноважений</label>
+              <input id="bookingAgent" placeholder="Хто передав бронь">
+            </div>
+
+            <div class="field">
+              <label>Дійсна до</label>
+              <input id="bookingExpire" type="datetime-local">
+            </div>
+
+            <div class="field">
+              <label>Місця</label>
+              <input id="bookingSeats" readonly>
+            </div>
+
+            <div class="field">
+              <label>Примітка</label>
+              <input id="bookingNote" placeholder="Коментар">
+            </div>
           </div>
         </div>
 
-       <div class="buttons">
-  <button class="btn green" onclick="VABooking.save()">💾 Зберегти</button>
+        <div class="buttons">
+          <button class="btn green" onclick="VABooking.save()">💾 Зберегти</button>
+          <button class="btn green" onclick="VABooking.issue()">🎫 Видати квитки</button>
+          <button class="btn ghost" onclick="VABooking.clear()">🗑 Очистити</button>
+          <button class="btn ghost" onclick="VABooking.print()">🖨 Друк</button>
+          <button class="btn ghost" onclick="VABooking.copy()">📋 Копіювати</button>
+        </div>
 
-  <button class="btn green" onclick="VABooking.issue()">🎫 Видати квитки</button>
-
-  <button class="btn ghost" onclick="VABooking.clear()">🗑 Очистити</button>
-
-  <button class="btn ghost" onclick="VABooking.print()">🖨 Друк</button>
-
-  <button class="btn ghost" onclick="VABooking.copy()">📋 Копіювати</button>
-</div>
+        <div class="note">
+          Порядок V1: каса ставить місця у резерв → квитковий відділ прив’язує резерв до організації →
+          видає квитки за КГ-7. Після видачі статус броні змінюється на “Видано КГ-7”.
+        </div>
       </div>
 
       <div class="stub" style="margin-top:14px;">
@@ -60,6 +91,7 @@ window.VABooking = {
                 <th>До</th>
                 <th>Статус</th>
                 <th>Примітка</th>
+                <th>Дія</th>
               </tr>
             </thead>
             <tbody id="bookingJournalBody"></tbody>
@@ -121,31 +153,97 @@ window.VABooking = {
     input.value = seats.join(", ");
   },
 
+  pickBooking(id) {
+    const booking = (this.state.bookings || []).find(b => String(b.id) === String(id));
+    if (!booking) {
+      alert("Бронь не знайдено.");
+      return;
+    }
+
+    const org = document.getElementById("bookingOrg");
+    const person = document.getElementById("bookingPerson");
+    const phone = document.getElementById("bookingPhone");
+    const email = document.getElementById("bookingEmail");
+    const agent = document.getElementById("bookingAgent");
+    const expire = document.getElementById("bookingExpire");
+    const seats = document.getElementById("bookingSeats");
+    const note = document.getElementById("bookingNote");
+
+    if (org) org.value = booking.organization || "";
+    if (person) person.value = booking.contact_name || booking.buyer_name || "";
+    if (phone) phone.value = booking.buyer_phone || "";
+    if (email) email.value = booking.buyer_email || "";
+    if (agent) agent.value = booking.agent || "";
+    if (note) note.value = booking.note || "";
+
+    if (expire && booking.expires_at) {
+      const d = new Date(booking.expires_at);
+      if (!Number.isNaN(d.getTime())) {
+        expire.value = d.toISOString().slice(0, 16);
+      }
+    }
+
+    if (seats) {
+      seats.value = this.seatsFromBooking(booking).join(", ");
+    }
+  },
+
   renderJournal(bookings = []) {
     const body = document.getElementById("bookingJournalBody");
     if (!body) return;
 
     if (!bookings.length) {
-      body.innerHTML = `<tr><td colspan="8" style="padding:10px;">Броней немає.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="9" style="padding:10px;">Броней немає.</td></tr>`;
       return;
     }
 
     body.innerHTML = bookings.map(b => `
       <tr>
-        <td>${this.escape(this.formatDate(b.created_at))}</td>
-        <td>${this.escape(b.organization || "")}</td>
-        <td>${this.escape(b.contact_name || b.buyer_name || "")}</td>
-        <td>${this.escape(b.buyer_phone || "")}</td>
-        <td>${this.escape(this.seatsFromBooking(b).join(", "))}</td>
-        <td>${this.escape(this.formatDate(b.expires_at))}</td>
-        <td>${this.escape(this.statusLabel(b.status))}</td>
-        <td>${this.escape(b.note || "")}</td>
+        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+          ${this.escape(this.formatDate(b.created_at))}
+        </td>
+
+        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+          ${this.escape(b.organization || "")}
+        </td>
+
+        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+          ${this.escape(b.contact_name || b.buyer_name || "")}
+        </td>
+
+        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+          ${this.escape(b.buyer_phone || "")}
+        </td>
+
+        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+          ${this.escape(this.seatsFromBooking(b).join(", "))}
+        </td>
+
+        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+          ${this.escape(this.formatDate(b.expires_at))}
+        </td>
+
+        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+          ${this.escape(this.statusLabel(b.status))}
+        </td>
+
+        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+          ${this.escape(b.note || "")}
+        </td>
+
+        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+          <button class="btn ghost" style="min-height:32px;padding:0 10px;"
+            onclick="VABooking.pickBooking('${this.escapeJs(b.id)}')">
+            Обрати
+          </button>
+        </td>
       </tr>
     `).join("");
   },
 
   async save() {
     const seanceId = this.state.seanceId;
+
     if (!seanceId) {
       alert("Не обрано сеанс.");
       return;
@@ -203,8 +301,8 @@ window.VABooking = {
       note,
       status: "reserved",
       expires_at: expire
-  ? new Date(expire).toISOString()
-  : new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        ? new Date(expire).toISOString()
+        : new Date(Date.now() + 15 * 60 * 1000).toISOString()
     };
 
     let updated = 0;
@@ -230,27 +328,25 @@ window.VABooking = {
           }
         );
 
-       const raw = await res.text();
+        const raw = await res.text();
 
-if (!res.ok) {
-  console.error("PATCH STATUS:", res.status);
-  console.error("PATCH RESPONSE:", raw);
-  alert(raw);
-  return;
-}
+        if (!res.ok) {
+          console.error("PATCH STATUS:", res.status);
+          console.error("PATCH RESPONSE:", raw);
+          alert(raw);
+          return;
+        }
 
-const data = raw ? JSON.parse(raw) : null;
+        const data = raw ? JSON.parse(raw) : null;
 
-if (Array.isArray(data) && data.length) {
-  updated += data.length;
-} else {
-  updated += 1;
-}
+        if (Array.isArray(data) && data.length) {
+          updated += data.length;
+        } else {
+          updated += 1;
+        }
       }
 
       alert(`Бронь оновлено. Записів: ${updated}`);
-
-      this.clear();
 
       if (typeof loadTurnover === "function") {
         await loadTurnover(seanceId);
@@ -262,153 +358,165 @@ if (Array.isArray(data) && data.length) {
     }
   },
 
-async issue() {
+  async issue() {
+    const seanceId = this.state.seanceId;
 
-  const seanceId = this.state.seanceId;
+    if (!seanceId) {
+      alert("Не обрано сеанс.");
+      return;
+    }
 
-  if (!seanceId) {
-    alert("Не обрано сеанс.");
-    return;
-  }
+    const org =
+      document.getElementById("bookingOrg")?.value.trim() || "";
 
+    const person =
+      document.getElementById("bookingPerson")?.value.trim() || "";
 
-  const org =
-    document.getElementById("bookingOrg")?.value.trim() || "";
+    const seats =
+      document.getElementById("bookingSeats")?.value
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean) || [];
 
-  const person =
-    document.getElementById("bookingPerson")?.value.trim() || "";
+    if (!seats.length) {
+      alert("Немає місць для видачі.");
+      return;
+    }
 
-  const seats =
-    document.getElementById("bookingSeats")?.value
-      .split(",")
-      .map(s => s.trim())
-      .filter(Boolean);
+    const rowsToIssue = (this.state.bookings || []).filter(b => {
+      const st = String(b.status || "").toLowerCase();
 
+      if (!["reserved", "hold"].includes(st)) return false;
 
-  if (!seats.length) {
-    alert("Немає місць для видачі.");
-    return;
-  }
+      const bSeats = this.seatsFromBooking(b)
+        .map(s => String(s || "").trim());
 
+      return bSeats.some(s => seats.includes(s));
+    });
 
-  if (!org && !person) {
-    alert("Вкажіть отримувача.");
-    return;
-  }
+    if (!rowsToIssue.length) {
+      alert("Не знайдено бронь для цих місць.");
+      return;
+    }
 
+    const booking = rowsToIssue[0];
 
-  const booking = (this.state.bookings || []).find(b => {
+    const partnerName =
+      booking.organization ||
+      org ||
+      booking.contact_name ||
+      booking.buyer_name ||
+      person ||
+      "";
 
-    const bSeats = this.seatsFromBooking(b);
+    if (!partnerName) {
+      alert("Вкажіть отримувача.");
+      return;
+    }
 
-    return bSeats.some(s => seats.includes(s))
-      && ["reserved","hold"].includes(
-          String(b.status || "").toLowerCase()
+    const kg7Doc = prompt("Номер документа КГ-7:", "") || "";
+
+    const baseNote =
+      document.getElementById("bookingNote")?.value.trim() ||
+      booking.note ||
+      "";
+
+    const issueNote = [
+      kg7Doc ? `КГ-7: ${kg7Doc}` : "",
+      baseNote
+    ].filter(Boolean).join(" | ");
+
+    const payload = {
+      booking_id: booking.id,
+
+      seance_id: seanceId,
+
+      organization:
+        booking.organization || org,
+
+      partner_name: partnerName,
+
+      seats: seats,
+
+      booking_seats: seats,
+
+      issued_at: new Date().toISOString(),
+
+      issued_by: "ticket-admin",
+
+      status: "issued",
+
+      note: issueNote
+    };
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/ticket_issues`,
+        {
+          method: "POST",
+
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const raw = await res.text();
+
+      if (!res.ok) {
+        console.error(raw);
+        alert(raw);
+        return;
+      }
+
+      for (const row of rowsToIssue) {
+        if (!row.id) continue;
+
+        const patch = {
+          status: "issued_to_partner"
+        };
+
+        if (issueNote) {
+          patch.note = issueNote;
+        }
+
+        const upd = await fetch(
+          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
+          {
+            method: "PATCH",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(patch)
+          }
         );
 
-  });
-
-
-  if (!booking) {
-
-    alert(
-      "Не знайдено бронь для цих місць."
-    );
-
-    return;
-  }
-
-
-
-  const payload = {
-
-    booking_id: booking.id,
-
-    seance_id: seanceId,
-
-    organization:
-      booking.organization || org,
-
-    partner_name:
-      booking.organization || org || person,
-
-
-    seats: seats,
-
-    booking_seats: this.seatsFromBooking(booking),
-
-
-    issued_at: new Date().toISOString(),
-
-    issued_by: "ticket-admin",
-
-    status: "issued",
-
-    note:
-      document.getElementById("bookingNote")?.value || ""
-
-  };
-
-
-
-  try {
-
-
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/ticket_issues`,
-      {
-        method:"POST",
-
-        headers:{
-          apikey:SUPABASE_ANON_KEY,
-          Authorization:
-            `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type":"application/json",
-          Prefer:"return=representation"
-        },
-
-        body:JSON.stringify(payload)
-
+        if (!upd.ok) {
+          console.error("booking status update error:", await upd.text());
+        }
       }
-    );
 
+      alert("Квитки видані за КГ-7.");
 
-    const raw = await res.text();
+      this.clear();
 
+      if (typeof loadTurnover === "function") {
+        await loadTurnover(seanceId);
+      }
 
-    if(!res.ok){
-
-      console.error(raw);
-      alert(raw);
-      return;
-
+    } catch (e) {
+      console.error(e);
+      alert("Помилка видачі квитків.");
     }
+  },
 
-
-    alert(
-      "Квитки видані."
-    );
-
-
-    if(typeof loadTurnover==="function"){
-
-      await loadTurnover(seanceId);
-
-    }
-
-
-  } catch(e){
-
-    console.error(e);
-
-    alert(
-      "Помилка видачі квитків."
-    );
-
-  }
-
-},
-  
   clear() {
     [
       "bookingOrg",
@@ -443,6 +551,8 @@ async issue() {
     const map = {
       reserved: "Активна",
       hold: "Тимчасова",
+      issued_to_partner: "Видано КГ-7",
+      partner_returned: "Повернуто КГ-8",
       cancelled: "Скасована",
       canceled: "Скасована",
       expired: "Прострочена",
@@ -455,6 +565,7 @@ async issue() {
 
   formatDate(value) {
     if (!value) return "";
+
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return String(value);
 
@@ -473,5 +584,14 @@ async issue() {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  },
+
+  escapeJs(value) {
+    return String(value ?? "")
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'")
+      .replace(/"/g, "&quot;")
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "");
   }
 };
