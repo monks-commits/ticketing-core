@@ -862,7 +862,7 @@ openKG7PrintWindow({ docNo, meta, rows, printWindow = null }) {
 
   @media print {
     body {
-      padding: 12mm;
+      padding: 12mm; 
     }
   }
 </style>
