@@ -286,12 +286,16 @@ window.VAPartners = {
     });
 
     byId("partnerIssueSelected")?.addEventListener("click", () => {
-      this.issueSelected();
-    });
+  this.issueSelected();
+});
 
-    byId("partnerReturnSelected")?.addEventListener("click", () => {
-      this.returnSelected();
-    });
+byId("partnerPrintKG7")?.addEventListener("click", () => {
+  this.printKG7Selected();
+});
+
+byId("partnerReturnSelected")?.addEventListener("click", () => {
+  this.returnSelected();
+});
   },
 
   selectByStatus(status) {
