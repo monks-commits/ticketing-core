@@ -328,68 +328,95 @@ byId("partnerReturnSelected")?.addEventListener("click", () => {
   },
 
   async issueSelected() {
-    const items = this.selectedItems()
-      .filter(x => ["reserved", "hold"].includes(x.status));
+  const items = this.selectedItems()
+    .filter(x => ["reserved", "hold"].includes(x.status));
 
-    if (!items.length) {
-      alert("Немає вибраних активних броней для видачі.");
+  if (!items.length) {
+    alert("Немає вибраних активних броней для видачі.");
+    return;
+  }
+
+  const docNo = prompt("Номер документа КГ-7:", "") || "";
+  if (!docNo) return;
+
+  const seats = items.map(x => x.seat);
+  const bookingIds = Array.from(new Set(items.map(x => x.booking_id)));
+  const first = items[0];
+
+  const payload = {
+    booking_id: first.booking_id,
+    seance_id: this.state.seanceId,
+    organization: first.booking.organization || "",
+    partner_name:
+      first.booking.organization ||
+      first.booking.contact_name ||
+      first.booking.buyer_name ||
+      "",
+    seats,
+    booking_seats: seats,
+    issued_at: new Date().toISOString(),
+    issued_by: "ticket-admin",
+    status: "issued",
+    note: `КГ-7: ${docNo}`
+  };
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_issues`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      alert(await res.text());
       return;
     }
 
-    const docNo = prompt("Номер документа КГ-7:", "") || "";
-    if (!docNo) return;
-
-    const seats = items.map(x => x.seat);
-    const bookingIds = Array.from(new Set(items.map(x => x.booking_id)));
-    const first = items[0];
-
-    const payload = {
-      booking_id: first.booking_id,
-      seance_id: this.state.seanceId,
-      organization: first.booking.organization || "",
-      partner_name: first.booking.organization || first.booking.contact_name || first.booking.buyer_name || "",
-      seats,
-      booking_seats: seats,
-      issued_at: new Date().toISOString(),
-      issued_by: "ticket-admin",
-      status: "issued",
-      note: `КГ-7: ${docNo}`
-    };
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_issues`, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify(payload)
+    for (const id of bookingIds) {
+      await this.patchBooking(id, {
+        status: "issued_to_partner",
+        note: `КГ-7: ${docNo}`
       });
-
-      if (!res.ok) {
-        alert(await res.text());
-        return;
-      }
-
-      for (const id of bookingIds) {
-        await this.patchBooking(id, {
-          status: "issued_to_partner",
-          note: `КГ-7: ${docNo}`
-        });
-      }
-
-      alert(`Видано за КГ-7: ${seats.length} квитків.`);
-
-      await this.reload();
-
-    } catch (e) {
-      console.error(e);
-      alert("Помилка видачі КГ-7.");
     }
-  },
 
+    const meta = await this.loadSeanceMeta();
+    const pricing = await this.loadSeancePricing();
+
+    const rows = items.map(item => {
+      const price = this.priceForSeat(item.seat, pricing);
+
+      return {
+        seat: item.seat,
+        price,
+        amount: price,
+        status: "issued_to_partner",
+        organization: item.booking.organization || "",
+        contact_name: item.booking.contact_name || item.booking.buyer_name || "",
+        phone: item.booking.buyer_phone || "",
+        note: `КГ-7: ${docNo}`
+      };
+    });
+
+    this.openKG7PrintWindow({
+      docNo,
+      meta,
+      rows
+    });
+
+    alert(`Видано за КГ-7 №${docNo}: ${seats.length} квитків.`);
+
+    await this.reload();
+
+  } catch (e) {
+    console.error(e);
+    alert("Помилка видачі КГ-7.");
+  }
+},
   async returnSelected() {
     const items = this.selectedItems()
       .filter(x => x.status === "issued_to_partner");
