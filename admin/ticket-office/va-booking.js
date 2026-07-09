@@ -189,57 +189,61 @@ window.VABooking = {
   },
 
   renderJournal(bookings = []) {
-    const body = document.getElementById("bookingJournalBody");
-    if (!body) return;
+  const body = document.getElementById("bookingJournalBody");
+  if (!body) return;
 
-    if (!bookings.length) {
-      body.innerHTML = `<tr><td colspan="9" style="padding:10px;">Броней немає.</td></tr>`;
-      return;
-    }
+  if (!bookings.length) {
+    body.innerHTML = `<tr><td colspan="9" style="padding:10px;">Броней немає.</td></tr>`;
+    return;
+  }
 
-    body.innerHTML = bookings.map(b => `
-      <tr>
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
-          ${this.escape(this.formatDate(b.created_at))}
-        </td>
+  body.innerHTML = bookings.map((b, index) => `
+    <tr>
+      <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+        ${this.escape(this.formatDate(b.created_at))}
+      </td>
 
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
-          ${this.escape(b.organization || "")}
-        </td>
+      <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+        ${this.escape(b.organization || "")}
+      </td>
 
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
-          ${this.escape(b.contact_name || b.buyer_name || "")}
-        </td>
+      <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+        ${this.escape(b.contact_name || b.buyer_name || "")}
+      </td>
 
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
-          ${this.escape(b.buyer_phone || "")}
-        </td>
+      <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+        ${this.escape(b.buyer_phone || "")}
+      </td>
 
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
-          ${this.escape(this.seatsFromBooking(b).join(", "))}
-        </td>
+      <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+        ${this.escape(this.seatsFromBooking(b).join(", "))}
+      </td>
 
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
-          ${this.escape(this.formatDate(b.expires_at))}
-        </td>
+      <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+        ${this.escape(this.formatDate(b.expires_at))}
+      </td>
 
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
-          ${this.escape(this.statusLabel(b.status))}
-        </td>
+      <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+        ${this.escape(this.statusLabel(b.status))}
+      </td>
 
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
-          ${this.escape(b.note || "")}
-        </td>
+      <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+        ${this.escape(b.note || "")}
+      </td>
 
-        <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
-          <button class="btn ghost" style="min-height:32px;padding:0 10px;"
-            onclick="VABooking.pickBooking('${this.escapeJs(b.id)}')">
-            Обрати
-          </button>
-        </td>
-      </tr>
-    `).join("");
-  },
+      <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+        <button
+          type="button"
+          class="btn ghost"
+          style="min-height:32px;padding:0 10px;"
+          onclick="window.VABooking.pickBookingByIndex(${index})"
+        >
+          Обрати
+        </button>
+      </td>
+    </tr>
+  `).join("");
+},
 
   async save() {
     const seanceId = this.state.seanceId;
