@@ -982,6 +982,7 @@ setTimeout(() => {
     alert("Не вдалося відкрити друк КГ-7.");
   }
 }, 600);
+},
   
   seatsFromBooking(b) {
     return Array.isArray(b?.seats) ? b.seats :
