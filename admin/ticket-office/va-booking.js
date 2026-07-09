@@ -636,3 +636,158 @@ pickBookingByIndex(index) {
       .replace(/\r/g, "");
   }
 };
+
+// ===== VA BOOKING PICK FIX =====
+// Вставить в самый конец va-booking.js
+
+(function(){
+  if (!window.VABooking) {
+    console.error("VABooking not found");
+    return;
+  }
+
+  window.VABooking.applyBookingToForm = function(booking) {
+    if (!booking) {
+      alert("Бронь не знайдено.");
+      return;
+    }
+
+    const org = document.getElementById("bookingOrg");
+    const person = document.getElementById("bookingPerson");
+    const phone = document.getElementById("bookingPhone");
+    const email = document.getElementById("bookingEmail");
+    const agent = document.getElementById("bookingAgent");
+    const expire = document.getElementById("bookingExpire");
+    const seats = document.getElementById("bookingSeats");
+    const note = document.getElementById("bookingNote");
+
+    if (org) org.value = booking.organization || "";
+    if (person) person.value = booking.contact_name || booking.buyer_name || "";
+    if (phone) phone.value = booking.buyer_phone || "";
+    if (email) email.value = booking.buyer_email || "";
+    if (agent) agent.value = booking.agent || "";
+    if (note) note.value = booking.note || "";
+
+    if (expire) {
+      expire.value = "";
+
+      if (booking.expires_at) {
+        const d = new Date(booking.expires_at);
+
+        if (!Number.isNaN(d.getTime())) {
+          const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+          expire.value = local.toISOString().slice(0, 16);
+        }
+      }
+    }
+
+    if (seats) {
+      const arr =
+        Array.isArray(booking.seats) ? booking.seats :
+        Array.isArray(booking.seat_labels) ? booking.seat_labels :
+        booking.seat_label ? [booking.seat_label] :
+        [];
+
+      seats.value = arr.join(", ");
+    }
+
+    const top = document.getElementById("bookingOrg");
+    if (top) {
+      top.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
+  window.VABooking.pickBookingByIndex = function(index) {
+    const booking = (this.state.bookings || [])[Number(index)];
+
+    if (!booking) {
+      alert("Бронь не знайдено.");
+      return;
+    }
+
+    this.applyBookingToForm(booking);
+  };
+
+  window.VABooking.renderJournal = function(bookings = []) {
+    const body = document.getElementById("bookingJournalBody");
+    if (!body) return;
+
+    const rows = Array.isArray(bookings) ? bookings : [];
+
+    if (!rows.length) {
+      body.innerHTML = `<tr><td colspan="9" style="padding:10px;">Броней немає.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = rows.map((b, index) => {
+      const seats =
+        Array.isArray(b.seats) ? b.seats :
+        Array.isArray(b.seat_labels) ? b.seat_labels :
+        b.seat_label ? [b.seat_label] :
+        [];
+
+      return `
+        <tr data-booking-index="${index}" style="cursor:pointer;">
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            ${this.escape(this.formatDate(b.created_at))}
+          </td>
+
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            ${this.escape(b.organization || "")}
+          </td>
+
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            ${this.escape(b.contact_name || b.buyer_name || "")}
+          </td>
+
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            ${this.escape(b.buyer_phone || "")}
+          </td>
+
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            ${this.escape(seats.join(", "))}
+          </td>
+
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            ${this.escape(this.formatDate(b.expires_at))}
+          </td>
+
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            ${this.escape(this.statusLabel(b.status))}
+          </td>
+
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            ${this.escape(b.note || "")}
+          </td>
+
+          <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            <button
+              type="button"
+              class="btn ghost booking-pick-btn"
+              data-booking-index="${index}"
+              style="min-height:32px;padding:0 10px;"
+            >
+              Обрати
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    body.querySelectorAll("tr[data-booking-index]").forEach(row => {
+      row.addEventListener("click", () => {
+        this.pickBookingByIndex(row.getAttribute("data-booking-index"));
+      });
+    });
+
+    body.querySelectorAll(".booking-pick-btn").forEach(btn => {
+      btn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.pickBookingByIndex(btn.getAttribute("data-booking-index"));
+      });
+    });
+  };
+
+  console.log("VA BOOKING PICK FIX loaded");
+})();
