@@ -745,7 +745,7 @@ money(n) {
   });
 },
 
-openKG7PrintWindow({ docNo, meta, rows }) {
+openKG7PrintWindow({ docNo, meta, rows, printWindow = null }) {
   const grouped = this.groupKG7Rows(rows);
 
   const partner =
