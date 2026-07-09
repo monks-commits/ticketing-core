@@ -479,6 +479,492 @@ byId("partnerReturnSelected")?.addEventListener("click", () => {
     }
   },
 
+async printKG7Selected() {
+  const items = this.selectedItems();
+
+  if (!items.length) {
+    alert("Оберіть квитки для друку КГ-7.");
+    return;
+  }
+
+  const docNo = prompt("Номер накладної КГ-7:", "") || "";
+  if (!docNo) return;
+
+  const meta = await this.loadSeanceMeta();
+  const pricing = await this.loadSeancePricing();
+
+  const rows = items.map(item => {
+    const price = this.priceForSeat(item.seat, pricing);
+
+    return {
+      seat: item.seat,
+      price,
+      amount: price,
+      status: item.status,
+      organization: item.booking.organization || "",
+      contact_name: item.booking.contact_name || item.booking.buyer_name || "",
+      phone: item.booking.buyer_phone || "",
+      note: item.note || ""
+    };
+  });
+
+  this.openKG7PrintWindow({
+    docNo,
+    meta,
+    rows
+  });
+},
+
+async loadSeanceMeta() {
+  const fallback = {
+    show: this.state.seanceId || "",
+    date: "",
+    time: "",
+    id: this.state.seanceId || ""
+  };
+
+  if (!this.state.seanceId) return fallback;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(this.state.seanceId)}&select=id,show,date,time,venue_id`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        cache: "no-store"
+      }
+    );
+
+    const arr = await res.json();
+
+    if (Array.isArray(arr) && arr.length) {
+      return {
+        ...fallback,
+        ...arr[0]
+      };
+    }
+
+    return fallback;
+
+  } catch(e) {
+    console.warn("loadSeanceMeta error", e);
+    return fallback;
+  }
+},
+
+async loadSeancePricing() {
+  const empty = {
+    pricing: {},
+    seat_overrides: {}
+  };
+
+  if (!this.state.seanceId) return empty;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/seances_pricing?seance_id=eq.${encodeURIComponent(this.state.seanceId)}&select=pricing,seat_overrides`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        cache: "no-store"
+      }
+    );
+
+    const arr = await res.json();
+
+    if (Array.isArray(arr) && arr.length) {
+      return {
+        pricing: arr[0].pricing || {},
+        seat_overrides: arr[0].seat_overrides || {}
+      };
+    }
+
+    return empty;
+
+  } catch(e) {
+    console.warn("loadSeancePricing error", e);
+    return empty;
+  }
+},
+
+priceForSeat(seat, cfg) {
+  const key = String(seat || "").trim();
+
+  const overrides = cfg?.seat_overrides || {};
+  const pricing = cfg?.pricing || {};
+
+  if (overrides[key] && overrides[key].price !== undefined) {
+    return Number(overrides[key].price || 0);
+  }
+
+  const m = key.match(/^([PAB])(\d+)-M(\d+)$/i);
+  if (!m) return 0;
+
+  const prefix = m[1].toUpperCase();
+  const row = Number(m[2]);
+
+  for (const rule in pricing) {
+    const rm = String(rule).match(/^([PAB])(\d+)-(\d+)$/i);
+    if (!rm) continue;
+
+    const rPrefix = rm[1].toUpperCase();
+    const from = Number(rm[2]);
+    const to = Number(rm[3]);
+
+    if (rPrefix === prefix && row >= from && row <= to) {
+      return Number(pricing[rule]?.price || 0);
+    }
+  }
+
+  return 0;
+},
+
+compactSeatList(seats) {
+  const groups = new Map();
+
+  seats.forEach(seat => {
+    const s = String(seat || "").trim();
+    const m = s.match(/^([A-Za-z]+)(\d+)-M(\d+)$/);
+
+    if (!m) {
+      if (!groups.has("Інше")) groups.set("Інше", []);
+      groups.get("Інше").push(s);
+      return;
+    }
+
+    const zone = m[1].toUpperCase();
+    const row = Number(m[2]);
+    const place = Number(m[3]);
+
+    const key = `${zone}${row}`;
+
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(place);
+  });
+
+  const parts = [];
+
+  for (const [rowKey, places] of groups.entries()) {
+    const nums = places
+      .filter(n => Number.isFinite(n))
+      .sort((a,b) => a - b);
+
+    if (!nums.length) {
+      parts.push(`${rowKey}: ${places.join(", ")}`);
+      continue;
+    }
+
+    const ranges = [];
+    let start = nums[0];
+    let prev = nums[0];
+
+    for (let i = 1; i < nums.length; i++) {
+      const n = nums[i];
+
+      if (n === prev + 1) {
+        prev = n;
+        continue;
+      }
+
+      ranges.push(start === prev ? String(start) : `${start}-${prev}`);
+      start = prev = n;
+    }
+
+    ranges.push(start === prev ? String(start) : `${start}-${prev}`);
+
+    parts.push(`${rowKey}: ${ranges.join(", ")}`);
+  }
+
+  return parts.join("; ");
+},
+
+groupKG7Rows(rows) {
+  const map = new Map();
+
+  rows.forEach(r => {
+    const price = Number(r.price || 0);
+    const key = String(price);
+
+    if (!map.has(key)) {
+      map.set(key, {
+        price,
+        seats: [],
+        count: 0,
+        amount: 0
+      });
+    }
+
+    const g = map.get(key);
+    g.seats.push(r.seat);
+    g.count += 1;
+    g.amount += price;
+  });
+
+  return Array.from(map.values())
+    .sort((a,b) => a.price - b.price);
+},
+
+money(n) {
+  return Number(n || 0).toLocaleString("uk-UA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+},
+
+openKG7PrintWindow({ docNo, meta, rows }) {
+  const grouped = this.groupKG7Rows(rows);
+
+  const partner =
+    rows[0]?.organization ||
+    rows[0]?.contact_name ||
+    "—";
+
+  const contact =
+    rows[0]?.contact_name || "—";
+
+  const totalCount = rows.length;
+  const totalAmount = rows.reduce((s, r) => s + Number(r.amount || 0), 0);
+
+  const showTitle = meta?.show || meta?.id || this.state.seanceId || "—";
+
+  const dateTime = [meta?.date, meta?.time]
+    .filter(Boolean)
+    .join(" ");
+
+  const today = new Date().toLocaleDateString("uk-UA");
+
+  const linesHtml = grouped.map(g => `
+    <tr>
+      <td>Квитки</td>
+      <td>—</td>
+      <td class="num">${this.money(g.price)}</td>
+      <td>${this.escape(this.compactSeatList(g.seats))}</td>
+      <td class="num">${g.count}</td>
+      <td class="num">${this.money(g.amount)}</td>
+    </tr>
+  `).join("");
+
+  const html = `<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>КГ-7 № ${this.escape(docNo)}</title>
+<style>
+  body {
+    margin: 0;
+    padding: 24px;
+    font-family: Arial, sans-serif;
+    color: #111;
+    background: #fff;
+    font-size: 13px;
+  }
+
+  .sheet {
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  .top {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 20px;
+    margin-bottom: 22px;
+  }
+
+  .small {
+    font-size: 11px;
+    color: #444;
+    line-height: 1.35;
+  }
+
+  .form {
+    text-align: right;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  h1 {
+    margin: 18px 0 8px;
+    text-align: center;
+    font-size: 20px;
+    text-transform: uppercase;
+  }
+
+  .docline {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 18px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 10px;
+    margin: 8px 0;
+  }
+
+  .label {
+    color: #444;
+  }
+
+  .value {
+    border-bottom: 1px solid #111;
+    min-height: 18px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+  }
+
+  th, td {
+    border: 1px solid #111;
+    padding: 7px 8px;
+    vertical-align: top;
+  }
+
+  th {
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .num {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .totals {
+    margin-top: 16px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .signs {
+    margin-top: 38px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+  }
+
+  .sign {
+    border-top: 1px solid #111;
+    text-align: center;
+    padding-top: 6px;
+    font-size: 12px;
+  }
+
+  @media print {
+    body {
+      padding: 12mm;
+    }
+  }
+</style>
+</head>
+
+<body>
+  <div class="sheet">
+
+    <div class="top">
+      <div class="small">
+        Дніпровський національний академічний український музично-драматичний театр ім. Т. Г. Шевченка<br>
+        Ідентифікаційний код за ЄДРПОУ: __________
+      </div>
+
+      <div class="form">
+        Форма № КГ-7<br>
+        Накладна на видачу квитків / абонементів
+      </div>
+    </div>
+
+    <h1>Накладна на видачу квитків</h1>
+
+    <div class="docline">
+      <div>№ ${this.escape(docNo)}</div>
+      <div>від ${this.escape(today)}</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Видав</div>
+      <div class="value">Квитковий відділ</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Одержав</div>
+      <div class="value">${this.escape(partner)} / ${this.escape(contact)}</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Захід</div>
+      <div class="value">${this.escape(showTitle)}</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Дата / час</div>
+      <div class="value">${this.escape(dateTime)}</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Вид квитків</th>
+          <th>Сектор</th>
+          <th>Ціна квитка, грн</th>
+          <th>Місця</th>
+          <th>Кількість</th>
+          <th>Сума, грн</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${linesHtml}
+        <tr>
+          <td colspan="4" class="num"><b>Разом</b></td>
+          <td class="num"><b>${totalCount}</b></td>
+          <td class="num"><b>${this.money(totalAmount)}</b></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <div><b>Усього кількість:</b> ${totalCount}</div>
+      <div><b>Усього на суму:</b> ${this.money(totalAmount)} грн</div>
+    </div>
+
+    <div class="signs">
+      <div class="sign">Видав</div>
+      <div class="sign">Одержав</div>
+    </div>
+
+  </div>
+
+  <script>
+    window.addEventListener("load", () => {
+      setTimeout(() => window.print(), 400);
+    });
+  <\/script>
+</body>
+</html>`;
+
+  const w = window.open("", "_blank");
+
+  if (!w) {
+    alert("Браузер заблокував вікно друку.");
+    return;
+  }
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+},
+  
   seatsFromBooking(b) {
     return Array.isArray(b?.seats) ? b.seats :
       Array.isArray(b?.seat_labels) ? b.seat_labels :
