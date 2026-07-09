@@ -63,8 +63,9 @@ window.VAPartners = {
         </div>
 
         <div class="buttons" style="margin-top:10px;">
-          <button class="btn green" id="partnerIssueSelected">📄 Видати вибрані за КГ-7</button>
-          <button class="btn orange" id="partnerReturnSelected">↩ Прийняти вибрані за КГ-8</button>
+         <button class="btn green" id="partnerIssueSelected">📄 Видати вибрані за КГ-7</button>
+<button class="btn ghost" id="partnerPrintKG7">🖨 Друк КГ-7</button>
+<button class="btn orange" id="partnerReturnSelected">↩ Прийняти вибрані за КГ-8</button>
         </div>
 
         <div style="overflow:auto;margin-top:14px;">
