@@ -495,6 +495,11 @@ Seance ID — технічний ключ.
   🎟️ Випуск VA:
   <b class="vaCapacityCounterValue">0</b> місць
   <div id="vaCapacityCounterMiniDetails" style="margin-top:4px;">Схема ще не завантажена.</div>
+
+  <div class="actions" style="margin-top:10px;">
+    <button class="btn btn-neutral" onclick="autoBlockOutsideVA()">🔒 Заблокувати все поза VA</button>
+    <button class="btn btn-neutral" onclick="clearAutoBlockOutsideVA()">↩️ Зняти авто-блокування</button>
+  </div>
 </div>
         
       </section>
@@ -995,6 +1000,11 @@ function ensurePreviewUi() {
       </div>
 
       <div id="vaCapacityByPrice" class="note"></div>
+
+      <div class="actions" style="margin-top:12px;">
+        <button class="btn btn-neutral" onclick="autoBlockOutsideVA()">🔒 Заблокувати все поза VA</button>
+        <button class="btn btn-neutral" onclick="clearAutoBlockOutsideVA()">↩️ Зняти авто-блокування</button>
+      </div>
     </div>
 
     <div id="previewInfo" class="note">Схема ще не завантажена</div>
@@ -1231,6 +1241,137 @@ function buildSeanceEditorPayload(){
     pricing: data.pricing,
     seat_overrides: data.seat_overrides
   };
+}
+
+function clonePlainObject(obj){
+  if (!obj || typeof obj !== "object") return null;
+
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch (e) {
+    return { ...obj };
+  }
+}
+
+function getOutsideVACandidateKeys(){
+  const keys = collectVASeatKeys(CURRENT_PREVIEW_HALL);
+  const result = [];
+
+  keys.forEach(key => {
+    const state = previewSeatState(key);
+    const price = state.price == null ? null : Number(state.price);
+
+    // Уже заборонені місця не чіпаємо.
+    if (state.sale === false) return;
+
+    // Місця з ціною — це VA-випуск, їх не чіпаємо.
+    if (Number.isFinite(price)) return;
+
+    // Все без ціни — поза VA-випуском, кандидат на блокування.
+    result.push(key);
+  });
+
+  return result.sort((a, b) => a.localeCompare(b, "uk", { numeric:true }));
+}
+
+async function autoBlockOutsideVA(){
+  if (!CURRENT_PREVIEW_HALL) {
+    alert("Схема ще не завантажена. Спочатку оберіть майданчик або завантажте сеанс.");
+    return;
+  }
+
+  const before = getVACapacityStats();
+  const candidates = getOutsideVACandidateKeys();
+
+  if (!candidates.length) {
+    alert(
+      "Немає місць без ціни для авто-блокування.\n\n" +
+      `Випуск VA: ${before.released}\n` +
+      `Заборонено: ${before.blocked}\n` +
+      `Без ціни: ${before.noPrice}`
+    );
+    return;
+  }
+
+  const ok = confirm(
+    `Буде заблоковано ${candidates.length} місць без ціни.\n\n` +
+    `Випуск VA залишиться: ${before.released}\n` +
+    `Було без ціни: ${before.noPrice}\n` +
+    `Було заборонено: ${before.blocked}\n\n` +
+    "Продовжити?"
+  );
+
+  if (!ok) return;
+
+  candidates.forEach(key => {
+    const current = data.seat_overrides[key] || null;
+    const prev = clonePlainObject(current);
+
+    data.seat_overrides[key] = {
+      ...(prev || {}),
+      sale: false,
+      color: (prev && prev.color) || "#4b5563",
+      auto_blocked: true,
+      block_reason: "outside_va_quota",
+      auto_blocked_prev: prev && prev.auto_blocked !== true
+        ? prev
+        : (prev?.auto_blocked_prev || null)
+    };
+  });
+
+  render();
+  await renderPreview();
+
+  const after = getVACapacityStats();
+  alert(
+    `✅ Заблоковано поза VA: ${candidates.length} місць.\n\n` +
+    `Випуск VA: ${after.released}\n` +
+    `Без ціни: ${after.noPrice}\n` +
+    `Заборонено: ${after.blocked}`
+  );
+}
+
+async function clearAutoBlockOutsideVA(){
+  const entries = Object.entries(data.seat_overrides || {})
+    .filter(([, item]) =>
+      item &&
+      item.auto_blocked === true &&
+      item.block_reason === "outside_va_quota"
+    );
+
+  if (!entries.length) {
+    alert("Авто-блокувань поза VA немає.");
+    return;
+  }
+
+  const ok = confirm(
+    `Буде знято ${entries.length} авто-блокувань.\n\n` +
+    "Ручні заборони продажу не чіпаємо.\n\n" +
+    "Продовжити?"
+  );
+
+  if (!ok) return;
+
+  entries.forEach(([key, item]) => {
+    const prev = clonePlainObject(item.auto_blocked_prev);
+
+    if (prev) {
+      data.seat_overrides[key] = prev;
+    } else {
+      delete data.seat_overrides[key];
+    }
+  });
+
+  render();
+  await renderPreview();
+
+  const after = getVACapacityStats();
+  alert(
+    `✅ Знято авто-блокувань: ${entries.length}.\n\n` +
+    `Випуск VA: ${after.released}\n` +
+    `Без ціни: ${after.noPrice}\n` +
+    `Заборонено: ${after.blocked}`
+  );
 }
 
 function previewSeatState(key){
