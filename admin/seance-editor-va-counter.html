@@ -2062,7 +2062,7 @@ if (
   if (!ok) return;
 }
   
-  const capacityStats = updateVACapacityCounter();
+  const payload = buildSeanceEditorPayload();
 
   try {
    const res = await fetch(SUPABASE_FUNCTION_URL, {
@@ -2071,6 +2071,8 @@ if (
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
+    ...payload,
+
     seance_id: seance,
     venue_id: venueId,
     hall: hall,
@@ -2085,12 +2087,12 @@ if (
 
     // Випуск VA: записується як seances.capacity
     // і використовується кабінетом квиткового відділу як точка відліку.
-    capacity: CURRENT_VA_CAPACITY,
-    capacity_source: "va_editor_counter",
-    capacity_total_hall: capacityStats.totalSeats,
-    capacity_no_price: capacityStats.noPrice,
-    capacity_blocked: capacityStats.blocked,
-    capacity_by_price: CURRENT_VA_PRICE_SEGMENTS,
+    capacity: payload.capacity,
+    capacity_source: payload.capacity_source,
+    capacity_total_hall: payload.capacity_total_hall,
+    capacity_no_price: payload.capacity_no_price,
+    capacity_blocked: payload.capacity_blocked,
+    capacity_by_price: payload.capacity_by_price,
 
     pricing: data.pricing,
     seat_overrides: data.seat_overrides
