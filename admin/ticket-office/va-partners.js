@@ -507,15 +507,40 @@ byId("partnerReturnSelected")?.addEventListener("click", () => {
   },
 
 async printKG7Selected() {
-  const items = this.selectedItems();
+  const items = this.selectedItems()
+    .filter(x => x.status === "issued_to_partner");
 
   if (!items.length) {
-    alert("Оберіть квитки для друку КГ-7.");
+    alert("Оберіть вже видані квитки КГ-7.");
     return;
   }
 
-  const docNo = prompt("Номер накладної КГ-7:", "") || "";
-  if (!docNo) return;
+  const docNumbers = new Set();
+
+  items.forEach(item => {
+    const note = String(item.note || item.booking?.note || "");
+    const m = note.match(/КГ-7:\s*([^\s|]+)/i);
+
+    if (m && m[1]) {
+      docNumbers.add(m[1].trim());
+    }
+  });
+
+  if (!docNumbers.size) {
+    alert("У вибраних квитків не знайдено номер КГ-7.");
+    return;
+  }
+
+  if (docNumbers.size > 1) {
+    alert(
+      "Вибрані квитки належать до різних КГ-7: " +
+      Array.from(docNumbers).join(", ") +
+      ". Оберіть квитки тільки одного документа."
+    );
+    return;
+  }
+
+  const docNo = Array.from(docNumbers)[0];
 
   const meta = await this.loadSeanceMeta();
   const pricing = await this.loadSeancePricing();
@@ -531,7 +556,7 @@ async printKG7Selected() {
       organization: item.booking.organization || "",
       contact_name: item.booking.contact_name || item.booking.buyer_name || "",
       phone: item.booking.buyer_phone || "",
-      note: item.note || ""
+      note: item.note || item.booking.note || ""
     };
   });
 
