@@ -245,6 +245,43 @@ window.VABooking = {
   `).join("");
 },
 
+pickBookingByIndex(index) {
+  const booking = (this.state.bookings || [])[Number(index)];
+
+  if (!booking) {
+    alert("Бронь не знайдено.");
+    return;
+  }
+
+  const org = document.getElementById("bookingOrg");
+  const person = document.getElementById("bookingPerson");
+  const phone = document.getElementById("bookingPhone");
+  const email = document.getElementById("bookingEmail");
+  const agent = document.getElementById("bookingAgent");
+  const expire = document.getElementById("bookingExpire");
+  const seats = document.getElementById("bookingSeats");
+  const note = document.getElementById("bookingNote");
+
+  if (org) org.value = booking.organization || "";
+  if (person) person.value = booking.contact_name || booking.buyer_name || "";
+  if (phone) phone.value = booking.buyer_phone || "";
+  if (email) email.value = booking.buyer_email || "";
+  if (agent) agent.value = booking.agent || "";
+  if (note) note.value = booking.note || "";
+
+  if (expire && booking.expires_at) {
+    const d = new Date(booking.expires_at);
+
+    if (!Number.isNaN(d.getTime())) {
+      expire.value = d.toISOString().slice(0, 16);
+    }
+  }
+
+  if (seats) {
+    seats.value = this.seatsFromBooking(booking).join(", ");
+  }
+},
+  
   async save() {
     const seanceId = this.state.seanceId;
 
