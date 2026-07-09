@@ -1081,6 +1081,27 @@ function renderTurnoverWorkspace() {
 
             break;
 
+                case "partners":
+
+            if (window.VAPartners) {
+
+                VAPartners.render({
+                    targetId: "turnoverWorkspace",
+                    seanceId: selectedSeanceId(),
+                    bookings: LAST_TURNOVER_DATA.bookings || []
+                });
+
+            } else {
+
+                ws.innerHTML = `
+                    <div class="stub">
+                        <h3>VAPartners не підключено</h3>
+                    </div>
+                `;
+
+            }
+
+            break;
 
         case "returns":
 
