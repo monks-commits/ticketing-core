@@ -490,36 +490,6 @@ async printKG7Selected() {
   const docNo = prompt("Номер накладної КГ-7:", "") || "";
   if (!docNo) return;
 
-  // ВАЖНО: окно открываем сразу после клика,
-  // иначе браузер считает это pop-up и блокирует.
-  const printWindow = window.open("", "_blank");
-
-  if (!printWindow) {
-    alert("Браузер заблокував вікно друку. Дозвольте pop-up для цього сайту.");
-    return;
-  }
-
-  printWindow.document.open();
-  printWindow.document.write(`
-    <!doctype html>
-    <html lang="uk">
-    <head>
-      <meta charset="utf-8">
-      <title>Підготовка КГ-7</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          padding: 30px;
-        }
-      </style>
-    </head>
-    <body>
-      <h2>Формую КГ-7...</h2>
-    </body>
-    </html>
-  `);
-  printWindow.document.close();
-
   const meta = await this.loadSeanceMeta();
   const pricing = await this.loadSeancePricing();
 
@@ -541,8 +511,7 @@ async printKG7Selected() {
   this.openKG7PrintWindow({
     docNo,
     meta,
-    rows,
-    printWindow
+    rows
   });
 },
 async loadSeanceMeta() {
