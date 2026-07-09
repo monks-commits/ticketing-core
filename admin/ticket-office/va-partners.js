@@ -983,16 +983,16 @@ openKG7PrintWindow({ docNo, meta, rows, printWindow = null }) {
 </body>
 </html>`;
 
-  const w = window.open("", "_blank");
+ const w = printWindow || window.open("", "_blank");
 
-  if (!w) {
-    alert("Браузер заблокував вікно друку.");
-    return;
-  }
+if (!w) {
+  alert("Браузер заблокував вікно друку.");
+  return;
+}
 
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+w.document.open();
+w.document.write(html);
+w.document.close();
 },
   
   seatsFromBooking(b) {
