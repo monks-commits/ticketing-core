@@ -580,6 +580,145 @@ openPartnerHallPicker() {
     return all.filter(item => this.state.selected.has(item.key));
   },
 
+currentDocYear() {
+  return new Date().getFullYear();
+},
+
+async getSuggestedDocNo(docType) {
+  const year = this.currentDocYear();
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/doc_counters?doc_type=eq.${encodeURIComponent(docType)}&year=eq.${encodeURIComponent(year)}&select=*`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        cache: "no-store"
+      }
+    );
+
+    const rows = await res.json();
+
+    if (Array.isArray(rows) && rows.length) {
+      const row = rows[0];
+      const prefix = row.prefix || "";
+      const nextNo = Number(row.current_no || 0) + 1;
+
+      return `${prefix}${nextNo}`;
+    }
+
+    const createRes = await fetch(`${SUPABASE_URL}/rest/v1/doc_counters`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({
+        doc_type: docType,
+        year,
+        prefix: "",
+        current_no: 0
+      })
+    });
+
+    if (!createRes.ok) {
+      console.error("doc counter create error:", await createRes.text());
+    }
+
+    return "1";
+
+  } catch(e) {
+    console.error("getSuggestedDocNo error:", e);
+    return "";
+  }
+},
+
+docNumberValue(docNo) {
+  const m = String(docNo || "").trim().match(/(\d+)\s*$/);
+  return m ? Number(m[1]) : 0;
+},
+
+docPrefixValue(docNo) {
+  return String(docNo || "")
+    .trim()
+    .replace(/(\d+)\s*$/, "")
+    .trim();
+},
+
+async commitDocNo(docType, docNo) {
+  const year = this.currentDocYear();
+  const numberValue = this.docNumberValue(docNo);
+
+  if (!numberValue) return;
+
+  const prefix = this.docPrefixValue(docNo);
+
+  try {
+    const getRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/doc_counters?doc_type=eq.${encodeURIComponent(docType)}&year=eq.${encodeURIComponent(year)}&select=*`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        cache: "no-store"
+      }
+    );
+
+    const rows = await getRes.json();
+    const current = Array.isArray(rows) && rows.length ? rows[0] : null;
+
+    if (!current) {
+      await fetch(`${SUPABASE_URL}/rest/v1/doc_counters`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          doc_type: docType,
+          year,
+          prefix,
+          current_no: numberValue
+        })
+      });
+
+      return;
+    }
+
+    const currentNo = Number(current.current_no || 0);
+
+    if (numberValue <= currentNo) {
+      return;
+    }
+
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/doc_counters?doc_type=eq.${encodeURIComponent(docType)}&year=eq.${encodeURIComponent(year)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          prefix,
+          current_no: numberValue,
+          updated_at: new Date().toISOString()
+        })
+      }
+    );
+
+  } catch(e) {
+    console.error("commitDocNo error:", e);
+  }
+},
+  
   async issueSelected() {
     const items = this.selectedItems().filter(x => ["reserved", "hold"].includes(x.status));
 
