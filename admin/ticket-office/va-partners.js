@@ -331,42 +331,83 @@ docLabelFromBooking(b) {
   return note || "—";
 },
   
- renderPartnerCard() {
+renderPartnerCard() {
   const partner = this.currentPartner();
-  const box = document.getElementById("partnerCardBox");
 
-  if (!box) return;
+  const summary = document.getElementById("partnerSummary");
+  const body = document.getElementById("partnerSeatsBody");
+  const title = document.getElementById("partnerCardTitle");
+
+  if (!summary || !body) return;
 
   if (!partner) {
-    box.innerHTML = `
+    summary.innerHTML = `
       <div class="stub">
-        <h3>Комісіонера не обрано</h3>
+        <h4>Комісіонера не обрано</h4>
       </div>
     `;
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="7" style="padding:14px 8px;">
+          Комісіонера не обрано.
+        </td>
+      </tr>
+    `;
     return;
+  }
+
+  if (title) {
+    title.textContent = partner.name || "Комісіонер";
   }
 
   const items = this.buildSeatItems();
 
   const reserved = items.filter(x => x.status === "reserved");
+  const hold = items.filter(x => x.status === "hold");
   const issued = items.filter(x => x.status === "issued_to_partner");
   const returned = items.filter(x => x.status === "partner_returned");
-  const hold = items.filter(x => x.status === "hold");
 
-  const activeWorkCount = reserved.length + issued.length + hold.length;
+  const activeWorkCount = reserved.length + hold.length + issued.length;
+
+  summary.innerHTML = `
+    <div class="stub">
+      <h4>В роботі</h4>
+      <b>${activeWorkCount}</b>
+      <div class="note">Активна бронь + КГ-7</div>
+    </div>
+
+    <div class="stub">
+      <h4>Активна бронь</h4>
+      <b>${reserved.length}</b>
+      <div class="note">Закріплено, ще не видано</div>
+    </div>
+
+    <div class="stub">
+      <h4>Видано КГ-7</h4>
+      <b>${issued.length}</b>
+      <div class="note">Блокує місця на схемі</div>
+    </div>
+
+    <div class="stub">
+      <h4>Повернуто КГ-8</h4>
+      <b>${returned.length}</b>
+      <div class="note">Історія, місце вільне</div>
+    </div>
+  `;
+
+  const order = {
+    reserved: 1,
+    hold: 2,
+    issued_to_partner: 3,
+    partner_returned: 4,
+    cancelled: 5,
+    canceled: 5,
+    expired: 6,
+    released: 7
+  };
 
   const sortedItems = [...items].sort((a, b) => {
-    const order = {
-      reserved: 1,
-      hold: 2,
-      issued_to_partner: 3,
-      partner_returned: 4,
-      cancelled: 5,
-      canceled: 5,
-      expired: 6,
-      released: 7
-    };
-
     const ao = order[a.status] || 99;
     const bo = order[b.status] || 99;
 
@@ -375,114 +416,60 @@ docLabelFromBooking(b) {
     return String(a.seat || "").localeCompare(String(b.seat || ""), "uk");
   });
 
-  const rowsHtml = sortedItems.length
-    ? sortedItems.map(x => {
-        const checked = this.state.selected.has(x.key) ? "checked" : "";
-        const b = x.booking || {};
-
-        return `
-          <tr>
-            <td style="width:42px;">
-              <input
-                type="checkbox"
-                class="partnerSeatCheck"
-                data-key="${this.escape(x.key)}"
-                ${checked}
-              />
-            </td>
-
-            <td>
-              <b>${this.escape(x.seat)}</b>
-            </td>
-
-            <td>
-              ${this.escape(this.statusLabel(x.status))}
-            </td>
-
-            <td>
-              ${this.escape(b.contact_name || b.buyer_name || partner.contact_name || "—")}
-            </td>
-
-            <td>
-              ${this.escape(b.buyer_phone || b.phone || partner.phone || "—")}
-            </td>
-
-            <td>
-              ${this.escape(this.formatDate(b.expires_at || b.created_at || ""))}
-            </td>
-
-            <td>
-              ${this.escape(this.docLabelFromBooking(b))}
-            </td>
-          </tr>
-        `;
-      }).join("")
-    : `
+  if (!sortedItems.length) {
+    body.innerHTML = `
       <tr>
         <td colspan="7" style="padding:14px 8px;">
           По цьому сеансу місця ще не закріплені.
         </td>
       </tr>
     `;
+    return;
+  }
 
-  box.innerHTML = `
-    <div class="partner-top-grid">
-      <div class="partner-info-card">
-        <h3>${this.escape(partner.name || "Комісіонер")}</h3>
-        <div>Контакт: ${this.escape(partner.contact_name || "—")}</div>
-        <div>Телефон: ${this.escape(partner.phone || "—")}</div>
-        <div>Email: ${this.escape(partner.email || "—")}</div>
-        <div>Договір: ${this.escape(partner.contract_no || "—")}</div>
-      </div>
-    </div>
+  body.innerHTML = sortedItems.map(x => {
+    const checked = this.state.selected.has(x.key) ? "checked" : "";
+    const b = x.booking || {};
 
-    <div class="partner-stats-grid">
-      <div class="partner-stat-card">
-        <div class="partner-stat-title">В роботі</div>
-        <div class="partner-stat-value">${activeWorkCount}</div>
-        <div class="partner-stat-note">Активна бронь + КГ-7</div>
-      </div>
+    return `
+      <tr>
+        <td style="padding:8px;">
+          <input
+            type="checkbox"
+            class="partnerSeatCheck"
+            data-key="${this.escape(x.key)}"
+            ${checked}
+          />
+        </td>
 
-      <div class="partner-stat-card">
-        <div class="partner-stat-title">Активна бронь</div>
-        <div class="partner-stat-value">${reserved.length}</div>
-        <div class="partner-stat-note">Закріплено, ще не видано</div>
-      </div>
+        <td style="padding:8px;">
+          <b>${this.escape(x.seat)}</b>
+        </td>
 
-      <div class="partner-stat-card">
-        <div class="partner-stat-title">Видано КГ-7</div>
-        <div class="partner-stat-value">${issued.length}</div>
-        <div class="partner-stat-note">Блокує місця на схемі</div>
-      </div>
+        <td style="padding:8px;">
+          ${this.escape(this.statusLabel(x.status))}
+        </td>
 
-      <div class="partner-stat-card">
-        <div class="partner-stat-title">Повернуто КГ-8</div>
-        <div class="partner-stat-value">${returned.length}</div>
-        <div class="partner-stat-note">Історія, місце вільне</div>
-      </div>
-    </div>
+        <td style="padding:8px;">
+          ${this.escape(b.contact_name || b.buyer_name || partner.contact_name || "—")}
+        </td>
 
-    <div class="partner-table-wrap">
-      <table class="partner-table">
-        <thead>
-          <tr>
-            <th style="width:42px;">✓</th>
-            <th>Місце</th>
-            <th>Статус</th>
-            <th>Контакт</th>
-            <th>Телефон</th>
-            <th>Дата</th>
-            <th>Документ</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rowsHtml}
-        </tbody>
-      </table>
-    </div>
-  `;
+        <td style="padding:8px;">
+          ${this.escape(b.buyer_phone || b.phone || partner.phone || "—")}
+        </td>
 
-  box.querySelectorAll(".partnerSeatCheck").forEach(ch => {
+        <td style="padding:8px;">
+          ${this.escape(this.formatDate(b.expires_at || b.created_at || ""))}
+        </td>
+
+        <td style="padding:8px;">
+          ${this.escape(this.docLabelFromBooking(b))}
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  body.querySelectorAll(".partnerSeatCheck").forEach(ch => {
     ch.addEventListener("change", () => {
       const key = ch.dataset.key;
 
@@ -496,7 +483,6 @@ docLabelFromBooking(b) {
     });
   });
 },
-
   
   async addPartnerPrompt() {
     const name = prompt("Назва комісіонера / організації:", "");
