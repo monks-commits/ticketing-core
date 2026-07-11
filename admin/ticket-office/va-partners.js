@@ -1510,22 +1510,23 @@ openKG8PrintWindow({ docNo, meta, partner, rows }) {
       [];
   },
 
-  statusLabel(status) {
-    const map = {
-      reserved: "Активна",
-      hold: "Тимчасова",
-      issued_to_partner: "Видано КГ-7",
-      partner_returned: "Повернуто КГ-8",
-      cancelled: "Скасована",
-      canceled: "Скасована",
-      expired: "Прострочена",
-      released: "Знята",
-      paid: "Викуплена"
-    };
+ statusLabel(status) {
+  const s = String(status || "").trim();
 
-    return map[String(status || "").toLowerCase()] || status || "";
-  },
+  const map = {
+    reserved: "Активна бронь",
+    hold: "Тимчасова бронь",
+    issued_to_partner: "Видано КГ-7",
+    partner_returned: "Повернуто КГ-8",
+    cancelled: "Скасовано",
+    canceled: "Скасовано",
+    expired: "Прострочено",
+    released: "Знято",
+    sold: "Продано"
+  };
 
+  return map[s] || s || "—";
+},
   formatDate(value) {
     if (!value) return "";
     const d = new Date(value);
