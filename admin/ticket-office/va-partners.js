@@ -239,6 +239,32 @@ window.VAPartners = {
     byId("partnerReturnSelected")?.addEventListener("click", () => this.returnSelected());
   },
 
+openPartnerHallPicker() {
+  const partner = this.currentPartner();
+
+  if (!partner) {
+    alert("Оберіть комісіонера.");
+    return;
+  }
+
+  if (!this.state.seanceId) {
+    alert("Оберіть сеанс.");
+    return;
+  }
+
+  const url =
+    `../hybrid/hall-cash.html` +
+    `?seance=${encodeURIComponent(this.state.seanceId)}` +
+    `&partner_attach=1` +
+    `&partner_id=${encodeURIComponent(partner.id || "")}` +
+    `&partner_name=${encodeURIComponent(partner.name || "")}` +
+    `&partner_contact=${encodeURIComponent(partner.contact_name || "")}` +
+    `&partner_phone=${encodeURIComponent(partner.phone || "")}` +
+    `&partner_email=${encodeURIComponent(partner.email || "")}`;
+
+  window.open(url, "_blank");
+},
+  
   currentPartner() {
     return this.state.partners.find(p => String(p.id) === String(this.state.partnerId)) || null;
   },
