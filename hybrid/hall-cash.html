@@ -4200,6 +4200,284 @@ async function loadDirectorData() {
       "Помилка завантаження даних: " + e.message;
   }
 })();
+
+// ===== VA RESERVE OWNER SELECT =====
+// Режим: кнопка "ДО РЕЗЕРВУ" остается,
+// но над ней появляется выбор: без комиссионера / Браво / ЗтК / ...
+
+(function initVAReserveOwnerSelect(){
+
+  const params = new URLSearchParams(location.search);
+
+  const partnerAttachMode =
+    params.get("partner_attach") === "1";
+
+  if (!partnerAttachMode) return;
+
+  const preselectPartnerId =
+    (params.get("partner_id") || "").trim();
+
+  const reserveBtnOriginal =
+    document.getElementById("btn-reserve");
+
+  if (!reserveBtnOriginal) {
+    console.error("btn-reserve not found");
+    return;
+  }
+
+  // Убираем старые обработчики кнопки "ДО РЕЗЕРВУ"
+  const reserveBtn = reserveBtnOriginal.cloneNode(true);
+  reserveBtnOriginal.parentNode.replaceChild(reserveBtn, reserveBtnOriginal);
+
+  reserveBtn.id = "btn-reserve";
+  reserveBtn.textContent = "ДО РЕЗЕРВУ";
+
+  const actions =
+    reserveBtn.closest(".cash-actions") ||
+    reserveBtn.parentElement;
+
+  if (!actions || !actions.parentElement) {
+    console.error("cash actions not found");
+    return;
+  }
+
+  const box = document.createElement("div");
+  box.id = "vaReserveOwnerBox";
+  box.style.margin = "14px 0";
+  box.style.padding = "12px";
+  box.style.border = "1px solid rgba(255,255,255,.12)";
+  box.style.borderRadius = "14px";
+  box.style.background = "#10233f";
+  box.style.color = "#fff";
+
+  box.innerHTML = `
+    <label
+      for="vaReserveOwnerSelect"
+      style="
+        display:block;
+        margin-bottom:8px;
+        font-size:13px;
+        opacity:.9;
+      "
+    >
+      Резерв для
+    </label>
+
+    <select
+      id="vaReserveOwnerSelect"
+      style="
+        width:100%;
+        padding:12px;
+        border-radius:12px;
+        border:1px solid rgba(255,255,255,.12);
+        background:#0b1f3a;
+        color:#fff;
+        font:inherit;
+      "
+    >
+      <option value="">Без комісіонера / службова бронь</option>
+    </select>
+
+    <div
+      id="vaReserveOwnerHint"
+      style="
+        margin-top:8px;
+        font-size:12px;
+        opacity:.75;
+        line-height:1.35;
+      "
+    >
+      Якщо обрано комісіонера, місця одразу закріпляться за ним.
+    </div>
+  `;
+
+  actions.parentElement.insertBefore(box, actions);
+
+  let PARTNERS = [];
+
+  async function loadPartnersForReserve(){
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/partners?select=*&active=eq.true&order=name.asc`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          cache: "no-store"
+        }
+      );
+
+      if (!res.ok) {
+        console.error("partners load error:", await res.text());
+        return;
+      }
+
+      const rows = await res.json();
+      PARTNERS = Array.isArray(rows) ? rows : [];
+
+      const select = document.getElementById("vaReserveOwnerSelect");
+      if (!select) return;
+
+      select.innerHTML =
+        `<option value="">Без комісіонера / службова бронь</option>` +
+        PARTNERS.map(p => `
+          <option value="${String(p.id || "").replace(/"/g, "&quot;")}">
+            ${String(p.name || "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+          </option>
+        `).join("");
+
+      if (preselectPartnerId && PARTNERS.some(p => String(p.id) === String(preselectPartnerId))) {
+        select.value = preselectPartnerId;
+      }
+
+    } catch(e) {
+      console.error("loadPartnersForReserve exception:", e);
+    }
+  }
+
+  function selectedPartner(){
+    const id =
+      document.getElementById("vaReserveOwnerSelect")?.value || "";
+
+    if (!id) return null;
+
+    return PARTNERS.find(p => String(p.id) === String(id)) || null;
+  }
+
+  async function reserveSelectedForPartner(partner){
+    const entries = Array.from(selected.entries())
+      .filter(([, meta]) => meta?.reservedRemove !== true);
+
+    const seats = entries
+      .map(([key]) => String(key || "").trim())
+      .filter(Boolean);
+
+    if (!seats.length) {
+      alert("Оберіть місця на схемі.");
+      return;
+    }
+
+    const ok = confirm(
+      `Закріпити за ${partner.name}: ${seats.length} місць?\n\n` +
+      seats.join(", ")
+    );
+
+    if (!ok) return;
+
+    let created = 0;
+
+    try {
+      for (const seat of seats) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify({
+            seance_id: SEANCE_ID,
+            show_slug: showSlug || "partner",
+            seats: [seat],
+            status: "reserved",
+            amount: 0,
+            order_id: `partner-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+
+            buyer_name: partner.contact_name || partner.name,
+            buyer_email: partner.email || null,
+            buyer_phone: partner.phone || null,
+
+            organization: partner.name,
+            contact_name: partner.contact_name || "",
+            agent: partner.name,
+
+            note: `Комісіонер: ${partner.name}`
+          })
+        });
+
+        if (!res.ok) {
+          console.error("partner reserve error:", await res.text());
+          continue;
+        }
+
+        created += 1;
+
+        if (typeof reservedSeatsOnline !== "undefined") {
+          reservedSeatsOnline.add(seat);
+        }
+
+        if (typeof CASH_PATCH !== "undefined") {
+          CASH_PATCH[seat] = {
+            status: "reserved",
+            ts: Date.now(),
+            partner: partner.name
+          };
+        }
+      }
+
+      if (typeof saveCashPatch === "function") {
+        saveCashPatch(CASH_PATCH);
+      }
+
+      if (typeof pushCashLog === "function") {
+        pushCashLog({
+          ts: Date.now(),
+          type: "PARTNER_RESERVE",
+          seats,
+          total: 0
+        });
+      }
+
+      if (typeof clearSelection === "function") {
+        clearSelection();
+      }
+
+      if (typeof loadBookingSeatsOnline === "function") {
+        await loadBookingSeatsOnline();
+      }
+
+      if (typeof reapplyAllStatuses === "function") {
+        reapplyAllStatuses();
+      }
+
+      alert(`Закріплено за ${partner.name}: ${created} місць.`);
+
+      if (window.opener && !window.opener.closed) {
+        try {
+          window.opener.location.reload();
+        } catch(e) {}
+      }
+
+    } catch(e) {
+      console.error("reserveSelectedForPartner exception:", e);
+      alert("Помилка закріплення місць за комісіонером.");
+    }
+  }
+
+  reserveBtn.addEventListener("click", () => {
+    const partner = selectedPartner();
+
+    if (partner) {
+      reserveSelectedForPartner(partner);
+      return;
+    }
+
+    // если комиссионер не выбран — работает обычная бронь кассы
+    applyStatusToSelectedLocal("reserved");
+  });
+
+  const subtitle = document.querySelector(".cash-pos-subtitle");
+  if (subtitle) {
+    subtitle.textContent = "Резерв місць / закріплення за комісіонером";
+  }
+
+  loadPartnersForReserve();
+
+  console.log("VA RESERVE OWNER SELECT loaded");
+})();
+  
 </script>
   
 </body>
