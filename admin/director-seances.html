@@ -402,15 +402,28 @@ async function loadPostponedTicketStats() {
     return;
   }
 
-  list.innerHTML = rows.map(s => {
-    const id = String(s.id);
+ list.innerHTML = rows.map(s => {
+  const id = String(s.id);
 
-    return `
+  const postponedInfo = s.postponed_at
+    ? `
+      <div class="small" style="color:#f0c36a;font-weight:700;margin-top:8px;">
+        📅 Перенесено:
+        було ${formatDate(s.postponed_from_at)}
+        → стало ${formatDate(s.postponed_to_at)}
+      </div>
+    `
+    : "";
+
+  return `
+
+    
       <div class="seance-row" onclick="openSeance('${id}')">
         <div class="date">${formatDate(getStartAt(s))}</div>
         <div>
           <div class="name">${getTitle(s)}</div>
           <div class="small">${getHall(s)}</div>
+${postponedInfo}
         </div>
         <div class="badge">${s.code || id}</div>
       </div>
