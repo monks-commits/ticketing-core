@@ -4431,18 +4431,10 @@ async function loadDirectorData() {
           reservedSeatsOnline.add(seat);
         }
 
-        if (typeof CASH_PATCH !== "undefined") {
-          CASH_PATCH[seat] = {
-            status: "reserved",
-            ts: Date.now(),
-            partner: partner.name
-          };
-        }
+       
       }
 
-      if (typeof saveCashPatch === "function") {
-        saveCashPatch(CASH_PATCH);
-      }
+     
 
       if (typeof pushCashLog === "function") {
         pushCashLog({
