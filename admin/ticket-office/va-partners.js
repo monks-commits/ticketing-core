@@ -727,8 +727,9 @@ async commitDocNo(docType, docNo) {
       return;
     }
 
-    const docNo = prompt("Номер документа КГ-7:", "") || "";
-    if (!docNo) return;
+    const suggestedDocNo = await this.getSuggestedDocNo("kg7");
+const docNo = prompt("Номер документа КГ-7:", suggestedDocNo) || "";
+if (!docNo) return;
 
     const seats = items.map(x => x.seat);
     const bookingIds = Array.from(new Set(items.map(x => x.booking_id)));
