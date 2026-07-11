@@ -152,7 +152,8 @@ window.VAPartners = {
           </div>
 
           <div class="buttons">
-            <button class="btn green" id="partnerAttachBtn">📌 Закріпити за ${this.escape(partner?.name || "комісіонером")}</button>
+            <button class="btn green" id="partnerOpenHallBtn">🎭 Вибрати місця на схемі</button>
+<button class="btn ghost" id="partnerAttachBtn">📌 Закріпити введені вручну</button>
           </div>
         </div>
 
