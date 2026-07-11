@@ -553,9 +553,14 @@ function openPostponedReport(id) {
     "Квитків: " + st.sold + "\n" +
     "Сума: " + st.amount.toLocaleString("uk-UA") + " грн\n\n" +
 
-    "Потребує компенсації:\n" +
-    "Погашених квитків: " + st.checked + "\n" +
-    "Сума: " + st.checkedAmount.toLocaleString("uk-UA") + " грн\n\n" +
+   "Погашені до моменту перенесення:\n" +
+"Квитків: " + st.checked + "\n" +
+"Сума: " + st.checkedAmount.toLocaleString("uk-UA") + " грн\n" +
+(
+  st.checked > 0
+    ? "Увага: ці квитки можуть потребувати компенсаційного проходу.\n\n"
+    : "Компенсація не потрібна: квитки не були погашені.\n\n"
+) +
 
     "Не погашені / залишаються дійсними:\n" +
     "Квитків: " + st.notChecked
