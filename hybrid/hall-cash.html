@@ -1258,7 +1258,8 @@ async function loadBookingSeatsOnline(){
         headers: {
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
+        },
+        cache: "no-store"
       }
     );
 
@@ -1266,19 +1267,41 @@ async function loadBookingSeatsOnline(){
     if (!Array.isArray(rows)) return;
 
     for (const row of rows) {
+      const status = String(row.status || "").trim();
       const seats = Array.isArray(row.seats) ? row.seats : [];
 
-      if (row.status === "hold") {
+      // Эти статусы НЕ блокируют место
+      if (
+        status === "partner_returned" ||
+        status === "cancelled" ||
+        status === "canceled" ||
+        status === "released" ||
+        status === "expired"
+      ) {
+        continue;
+      }
+
+      // Временный hold
+      if (status === "hold") {
         if (row.expires_at && row.expires_at <= nowIso) continue;
+
         for (const s of seats) {
           takenSeatsBooking.add(String(s).trim());
         }
+
+        continue;
       }
 
-      if (row.status === "reserved") {
+      // Активная бронь + выдано комиссионеру по КГ-7
+      if (
+        status === "reserved" ||
+        status === "issued_to_partner"
+      ) {
         for (const s of seats) {
           reservedSeatsOnline.add(String(s).trim());
         }
+
+        continue;
       }
     }
 
