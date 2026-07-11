@@ -847,69 +847,108 @@ await this.commitDocNo("kg7", docNo);
     this.openKG7PrintWindow({ docNo, meta, rows });
   },
 
-  async returnSelected() {
-    const items = this.selectedItems().filter(x => x.status === "issued_to_partner");
+async returnSelected() {
+  const partner = this.currentPartner();
 
-    if (!items.length) {
-      alert("Немає вибраних виданих квитків для повернення.");
+  if (!partner) {
+    alert("Оберіть комісіонера.");
+    return;
+  }
+
+  const items = this.selectedItems()
+    .filter(x => x.status === "issued_to_partner");
+
+  if (!items.length) {
+    alert("Оберіть квитки зі статусом “Видано КГ-7”.");
+    return;
+  }
+
+  const suggestedDocNo = await this.getSuggestedDocNo("kg8");
+  const docNo = prompt("Номер документа КГ-8:", suggestedDocNo) || "";
+
+  if (!docNo.trim()) return;
+
+  const ok = confirm(
+    `Повернути за КГ-8 №${docNo}: ${items.length} квитків?\n\n` +
+    items.map(x => x.seat).join(", ")
+  );
+
+  if (!ok) return;
+
+  const bookingIds = [...new Set(items.map(x => x.booking.id).filter(Boolean))];
+
+  try {
+    const meta = await this.loadSeanceMeta();
+    const pricing = await this.loadSeancePricing();
+
+    const rows = items.map(x => {
+      const price = this.priceForSeat(x.seat, pricing);
+
+      return {
+        seat: x.seat,
+        price,
+        amount: price,
+        row: x.row || "",
+        place: x.place || ""
+      };
+    });
+
+    const totalAmount = rows.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+    const retRes = await fetch(`${SUPABASE_URL}/rest/v1/ticket_returns`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({
+        seance_id: this.state.seanceId,
+        organization: partner.name,
+        contact_name: partner.contact_name || "",
+        phone: partner.phone || "",
+        email: partner.email || "",
+        doc_no: docNo.trim(),
+        seats: items.map(x => x.seat),
+        qty: items.length,
+        amount: totalAmount,
+        note: `КГ-8: ${docNo.trim()}`
+      })
+    });
+
+    if (!retRes.ok) {
+      console.error("ticket_returns insert error:", await retRes.text());
+      alert("Не вдалося створити запис КГ-8.");
       return;
     }
 
-    const suggestedDocNo = await this.getSuggestedDocNo("kg8");
-const docNo = prompt("Номер документа КГ-8:", suggestedDocNo) || "";
-if (!docNo) return;
-
-    const seats = items.map(x => x.seat);
-    const bookingIds = Array.from(new Set(items.map(x => x.booking_id)));
-    const first = items[0];
-
-    const payload = {
-      seance_id: this.state.seanceId,
-      booking_ids: bookingIds,
-      seats,
-      organization: first.booking.organization || "",
-      contact_name: first.booking.contact_name || first.booking.buyer_name || "",
-      buyer_phone: first.booking.buyer_phone || "",
-      buyer_email: first.booking.buyer_email || "",
-      issue_doc: docNo,
-      return_note: `КГ-8: ${docNo}`
-    };
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_returns`, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify(payload)
+    for (const id of bookingIds) {
+      await this.patchBooking(id, {
+        status: "partner_returned",
+        note: `КГ-8: ${docNo.trim()}`
       });
-
-      if (!res.ok) {
-        alert(await res.text());
-        return;
-      }
-
-      for (const id of bookingIds) {
-        await this.patchBooking(id, {
-          status: "partner_returned",
-          note: `КГ-8: ${docNo}`
-        });
-      }
-
-await this.commitDocNo("kg8", docNo);
-      
-      alert(`Повернуто за КГ-8: ${seats.length} квитків.`);
-      await this.reload();
-
-    } catch (e) {
-      console.error(e);
-      alert("Помилка повернення КГ-8.");
     }
-  },
 
+    await this.commitDocNo("kg8", docNo.trim());
+
+    this.openKG8PrintWindow({
+      docNo: docNo.trim(),
+      meta,
+      partner,
+      rows
+    });
+
+    alert(`Повернено за КГ-8: ${items.length} квитків.`);
+
+    await this.reload();
+
+  } catch (e) {
+    console.error("returnSelected error:", e);
+    alert("Помилка повернення за КГ-8.");
+  }
+},
+  
   async patchBooking(id, patch) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH",
