@@ -1255,6 +1255,238 @@ async returnSelected() {
     }, 600);
   },
 
+openKG8PrintWindow({ docNo, meta, partner, rows }) {
+  const groups = this.groupKG7Rows(rows);
+  const totalQty = rows.length;
+  const totalAmount = rows.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+  const today = new Date().toLocaleDateString("uk-UA");
+
+  const showTitle =
+    meta?.title ||
+    meta?.show_title ||
+    meta?.name ||
+    "Сеанс";
+
+  const showDate =
+    meta?.date ||
+    meta?.show_date ||
+    meta?.starts_at ||
+    "";
+
+  const partnerName =
+    partner?.name || "";
+
+  const contactName =
+    partner?.contact_name || "";
+
+  const html = `
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <title>КГ-8 №${this.escape(docNo)}</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      color: #111;
+      margin: 24px;
+      font-size: 14px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #444;
+      line-height: 1.4;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin: 18px 0 6px;
+      text-transform: uppercase;
+    }
+
+    .docno {
+      text-align: center;
+      font-size: 16px;
+      margin-bottom: 18px;
+      font-weight: bold;
+    }
+
+    .meta {
+      margin: 14px 0 18px;
+      line-height: 1.7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid #222;
+      padding: 7px 8px;
+      vertical-align: top;
+    }
+
+    th {
+      text-align: center;
+      background: #f2f2f2;
+    }
+
+    td.num {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    td.center {
+      text-align: center;
+    }
+
+    .totals {
+      margin-top: 14px;
+      text-align: right;
+      font-weight: bold;
+    }
+
+    .signs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      margin-top: 54px;
+    }
+
+    .sign-line {
+      border-top: 1px solid #111;
+      padding-top: 7px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media print {
+      body {
+        margin: 14mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top">
+    <div class="small">
+      Ваш Адмін<br>
+      Облік руху квитків
+    </div>
+    <div class="small" style="text-align:right;">
+      Дата: ${this.escape(today)}<br>
+      Документ: КГ-8
+    </div>
+  </div>
+
+  <h1>Акт повернення квитків</h1>
+  <div class="docno">КГ-8 № ${this.escape(docNo)}</div>
+
+  <div class="meta">
+    <div><b>Комісіонер / уповноважений:</b> ${this.escape(partnerName)}</div>
+    <div><b>Контактна особа:</b> ${this.escape(contactName)}</div>
+    <div><b>Сеанс:</b> ${this.escape(showTitle)}</div>
+    <div><b>Дата / час сеансу:</b> ${this.escape(showDate)}</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:50px;">№</th>
+        <th>Місця</th>
+        <th style="width:90px;">К-сть</th>
+        <th style="width:110px;">Ціна</th>
+        <th style="width:120px;">Сума</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${groups.map((g, i) => `
+        <tr>
+          <td class="center">${i + 1}</td>
+          <td>${this.escape(g.label)}</td>
+          <td class="num">${g.qty}</td>
+          <td class="num">${this.money(g.price)}</td>
+          <td class="num">${this.money(g.amount)}</td>
+        </tr>
+      `).join("")}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    Разом: ${totalQty} квитків / ${this.money(totalAmount)}
+  </div>
+
+  <div class="signs">
+    <div class="sign-line">
+      Здав комісіонер / уповноважений
+    </div>
+    <div class="sign-line">
+      Прийняв представник театру
+    </div>
+  </div>
+
+  <script>
+    window.onload = function(){
+      setTimeout(function(){
+        window.focus();
+        window.print();
+      }, 300);
+    };
+  </script>
+
+</body>
+</html>
+`;
+
+  const oldFrame = document.getElementById("va-kg8-print-frame");
+  if (oldFrame) oldFrame.remove();
+
+  const frame = document.createElement("iframe");
+  frame.id = "va-kg8-print-frame";
+  frame.style.position = "fixed";
+  frame.style.right = "0";
+  frame.style.bottom = "0";
+  frame.style.width = "0";
+  frame.style.height = "0";
+  frame.style.border = "0";
+  frame.style.opacity = "0";
+
+  document.body.appendChild(frame);
+
+  const doc = frame.contentWindow.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    try {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+    } catch (e) {
+      console.error("KG-8 print error:", e);
+      alert("Не вдалося відкрити друк КГ-8.");
+    }
+  }, 600);
+},
+  
   seatsFromBooking(b) {
     return Array.isArray(b?.seats) ? b.seats :
       Array.isArray(b?.seat_labels) ? b.seat_labels :
