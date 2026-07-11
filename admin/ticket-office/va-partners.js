@@ -179,8 +179,8 @@ window.VAPartners = {
                 <th style="padding:8px;">Статус</th>
                 <th style="padding:8px;">Контакт</th>
                 <th style="padding:8px;">Телефон</th>
-                <th style="padding:8px;">До</th>
-                <th style="padding:8px;">Примітка</th>
+                <th style="padding:8px;">Дата</th>
+<th style="padding:8px;">Документ</th>
               </tr>
             </thead>
             <tbody id="partnerSeatsBody"></tbody>
