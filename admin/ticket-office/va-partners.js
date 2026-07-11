@@ -855,8 +855,9 @@ await this.commitDocNo("kg7", docNo);
       return;
     }
 
-    const docNo = prompt("Номер документа КГ-8:", "") || "";
-    if (!docNo) return;
+    const suggestedDocNo = await this.getSuggestedDocNo("kg8");
+const docNo = prompt("Номер документа КГ-8:", suggestedDocNo) || "";
+if (!docNo) return;
 
     const seats = items.map(x => x.seat);
     const bookingIds = Array.from(new Set(items.map(x => x.booking_id)));
@@ -898,6 +899,8 @@ await this.commitDocNo("kg7", docNo);
         });
       }
 
+await this.commitDocNo("kg8", docNo);
+      
       alert(`Повернуто за КГ-8: ${seats.length} квитків.`);
       await this.reload();
 
