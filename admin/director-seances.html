@@ -451,6 +451,20 @@ function renderPostponedList() {
       notChecked: 0
     };
 
+const rightBadge = st.checked > 0
+  ? `
+    ⚠ Погашено до переносу:
+    <br>
+    ${st.checked} квитків
+    <br>
+    ${st.checkedAmount.toLocaleString("uk-UA")} грн
+  `
+  : `
+    Перенос без компенсації
+    <br>
+    Продаж триває
+  `;
+    
     return `
       <div class="seance-row" onclick="openPostponedReport('${id}')">
         <div class="date">${formatDate(s.postponed_at)}</div>
@@ -470,10 +484,8 @@ function renderPostponedList() {
         </div>
 
         <div class="badge">
-          До компенсації: ${st.checked}
-          <br>
-          ${st.checkedAmount.toLocaleString("uk-UA")} грн
-        </div>
+  ${rightBadge}
+</div>
       </div>
     `;
   }).join("");
