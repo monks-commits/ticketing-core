@@ -2009,49 +2009,70 @@ btn.addEventListener("mouseleave", () => {
     }
 
     async function loadBookingSeats() {
-      if (!SEANCE_ID) return;
+  if (!SEANCE_ID) return;
 
-      try {
-        const nowIso = new Date().toISOString();
+  try {
+    const nowIso = new Date().toISOString();
 
-        holdSeats.clear();
-        reservedSeats.clear();
+    holdSeats.clear();
+    reservedSeats.clear();
 
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
-          {
-            headers: {
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-            }
-          }
-        );
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        cache: "no-store"
+      }
+    );
 
-        const bookings = await res.json();
-        if (!Array.isArray(bookings)) return;
+    const bookings = await res.json();
+    if (!Array.isArray(bookings)) return;
 
-        for (const b of bookings) {
-          const arr = Array.isArray(b.seats) ? b.seats : [];
+    for (const b of bookings) {
+      const status = String(b.status || "").trim();
+      const arr = Array.isArray(b.seats) ? b.seats : [];
 
-          if (b.status === "hold") {
-            if (b.expires_at && b.expires_at <= nowIso) continue;
+      // Эти статусы НЕ блокируют место
+      if (
+        status === "partner_returned" ||
+        status === "cancelled" ||
+        status === "canceled" ||
+        status === "released" ||
+        status === "expired"
+      ) {
+        continue;
+      }
 
-            for (const seat of arr) {
-              if (seat) holdSeats.add(String(seat).trim());
-            }
-          }
+      // Временный hold
+      if (status === "hold") {
+        if (b.expires_at && b.expires_at <= nowIso) continue;
 
-          if (b.status === "reserved") {
-            for (const seat of arr) {
-              if (seat) reservedSeats.add(String(seat).trim());
-            }
-          }
+        for (const seat of arr) {
+          if (seat) holdSeats.add(String(seat).trim());
         }
-      } catch (e) {
-        console.warn("loadBookingSeats error", e);
+
+        continue;
+      }
+
+      // Активная бронь + выдано по КГ-7
+      if (
+        status === "reserved" ||
+        status === "issued_to_partner"
+      ) {
+        for (const seat of arr) {
+          if (seat) reservedSeats.add(String(seat).trim());
+        }
+
+        continue;
       }
     }
-
+  } catch (e) {
+    console.warn("loadBookingSeats error", e);
+  }
+}
     async function loadSeanceConfig() {
       if (!SEANCE_ID) return null;
 
