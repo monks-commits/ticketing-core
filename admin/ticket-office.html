@@ -1125,7 +1125,23 @@ function renderTurnoverWorkspace() {
 
             break;
 
-
+case "compensations":
+case "compensation":
+case "comp":
+  if (window.VACompensations) {
+    VACompensations.render({
+      targetId: "turnoverWorkspace",
+      seanceId: selectedSeanceId()
+    });
+  } else {
+    ws.innerHTML = `
+      <div class="stub">
+        <h3>VACompensations не підключено</h3>
+      </div>
+    `;
+  }
+  break;
+        
         default:
 
             ws.innerHTML = `
