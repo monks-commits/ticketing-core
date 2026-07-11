@@ -778,7 +778,7 @@ function matchesFilters(s){
 async function loadCompensationStats(){
 
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/tickets?select=seance_id,compensation_allowed,compensation_used&compensation_allowed=eq.true`,
+    `${SUPABASE_URL}/rest/v1/recovery_tokens?select=source_seance_id,compensation_used`,
     {
       headers:{
         apikey: SUPABASE_ANON_KEY,
@@ -793,27 +793,38 @@ async function loadCompensationStats(){
 
   if (Array.isArray(rows)) {
     rows.forEach(t => {
-      const sid = t.seance_id;
+      const sid = String(t.source_seance_id || "").trim();
       if (!sid) return;
 
       if (!map.has(sid)) {
-        map.set(sid, { total:0, used:0 });
+        map.set(sid, {
+          total: 0,
+          used: 0,
+          unused: 0
+        });
       }
 
       const item = map.get(sid);
-      item.total++;
+
+      item.total += 1;
 
       if (t.compensation_used === true) {
-        item.used++;
+        item.used += 1;
       }
     });
   }
 
+  for (const item of map.values()) {
+    item.unused = Math.max(item.total - item.used, 0);
+  }
+
   ALL_SEANCES = ALL_SEANCES.map(s => ({
     ...s,
-    compensation_stats: map.get(s.id) || null
+    compensation_stats: map.get(String(s.id || "").trim()) || null
   }));
 }
+
+  
 function renderLists(){
   const activeDiv = document.getElementById("active");
   const archDiv = document.getElementById("archived");
