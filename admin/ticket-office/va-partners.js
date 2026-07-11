@@ -223,6 +223,8 @@ window.VAPartners = {
 
     byId("partnerAttachBtn")?.addEventListener("click", () => this.attachSeatsToPartner());
 
+    byId("partnerOpenHallBtn")?.addEventListener("click", () => this.openPartnerHallPicker());
+
     byId("partnerSelectAll")?.addEventListener("click", () => this.selectByStatus("all"));
     byId("partnerSelectReserved")?.addEventListener("click", () => this.selectByStatus("reserved"));
     byId("partnerSelectIssued")?.addEventListener("click", () => this.selectByStatus("issued_to_partner"));
