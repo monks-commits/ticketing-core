@@ -921,52 +921,254 @@ if (currentVenue && view !== "all") {
 renderLists();
 
 }
+
+function normalizeRecoveryToken(value) {
+  return String(value || "").trim();
+}
+
+function seanceTitle(s) {
+  return s?.show || s?.title || s?.name || s?.id || "Сеанс";
+}
+
+async function loadSeanceById(seanceId) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seanceId)}&select=*`,
+    {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY
+      },
+      cache: "no-store"
+    }
+  );
+
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length ? rows[0] : null;
+}
+
+async function ensureRecoveryEventForSeance(seanceId, reason, note) {
+  const existingRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/recovery_events?source_seance_id=eq.${encodeURIComponent(seanceId)}&select=*&order=created_at.desc&limit=1`,
+    {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY
+      },
+      cache: "no-store"
+    }
+  );
+
+  const existingRows = await existingRes.json();
+
+  if (Array.isArray(existingRows) && existingRows.length) {
+    return existingRows[0];
+  }
+
+  const seance = await loadSeanceById(seanceId);
+
+  if (!seance) {
+    throw new Error("Сеанс не знайдено: " + seanceId);
+  }
+
+  const title = seanceTitle(seance);
+
+  const createRes = await fetch(`${SUPABASE_URL}/rest/v1/recovery_events`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify({
+      title: `Компенсація: ${title}`,
+      original_event: title,
+      recovery_event: "Компенсаційний прохід без місця",
+      source_seance_id: seanceId,
+      venue_id: seance.venue_id || seance.hall || "",
+      venue_name: seance.venue_id || seance.hall || "",
+      locality: "",
+      event_scope: "repertoire",
+      incident_type: "interrupted_after_start",
+      incident_reason: reason || "other",
+      incident_note: note || "",
+      target_policy: "any_repertoire",
+      operational_status: "ACTIVE",
+      status: "active"
+    })
+  });
+
+  const txt = await createRes.text();
+
+  if (!createRes.ok) {
+    throw new Error(txt);
+  }
+
+  const rows = txt ? JSON.parse(txt) : [];
+  return rows[0];
+}
+
+async function getExistingRecoveryTokens(recoveryEventId) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/recovery_tokens?recovery_event_id=eq.${encodeURIComponent(recoveryEventId)}&select=token`,
+    {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY
+      },
+      cache: "no-store"
+    }
+  );
+
+  const rows = await res.json();
+  const set = new Set();
+
+  if (Array.isArray(rows)) {
+    rows.forEach(r => {
+      const token = normalizeRecoveryToken(r.token);
+      if (token) set.add(token);
+    });
+  }
+
+  return set;
+}
+
+async function createRecoveryToken(payload) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/recovery_tokens`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const txt = await res.text();
+
+  if (!res.ok) {
+    throw new Error(txt);
+  }
+
+  return txt ? JSON.parse(txt) : [];
+}
+  
 async function activateCompensation(id){
 
+  const reason = prompt(
+    "Причина компенсації:\n\n" +
+    "air_alert — повітряна тривога\n" +
+    "blackout — відсутність електроенергії\n" +
+    "technical — технічний збій\n" +
+    "other — інше",
+    "air_alert"
+  ) || "other";
+
+  const note = prompt(
+    "Коментар до компенсації:",
+    "Мероприятие было прервано после начала. Компенсационный проход без предоставления места."
+  ) || "";
+
   const ok = confirm(
-    "Активувати компенсацію для ВСІХ квитків цього сеансу?"
+    "Створити компенсаційний борг театру по ПОГАШЕНИХ квитках цього сеансу?\n\n" +
+    "Важливо:\n" +
+    "• місця НЕ переносяться\n" +
+    "• створюється право одного проходу\n" +
+    "• компенсація може бути використана на іншому репертуарному сеансі"
   );
 
   if (!ok) return;
 
   try {
+    const recoveryEvent = await ensureRecoveryEventForSeance(id, reason, note);
 
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(id)}`,
+    const ticketsRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(id)}&checked_in_at=not.is.null&select=id,order_id,seance_id,show_slug,seat_label,price,buyer_name,buyer_email,qr_payload,checked_in_at`,
       {
-        method:"PATCH",
-        headers:{
+        headers: {
           apikey: SUPABASE_ANON_KEY,
-          Authorization:"Bearer " + SUPABASE_ANON_KEY,
-          "Content-Type":"application/json",
-          Prefer:"return=representation"
+          Authorization: "Bearer " + SUPABASE_ANON_KEY
         },
-        body: JSON.stringify({
-          compensation_allowed: true,
-          compensation_used: false,
-          compensation_granted_at: new Date().toISOString(),
-          compensation_reason: "air_alert"
-        })
+        cache: "no-store"
       }
     );
 
-    if (!res.ok) {
-      console.error(await res.text());
-      alert("Помилка активації компенсації");
+    const tickets = await ticketsRes.json();
+
+    if (!Array.isArray(tickets) || !tickets.length) {
+      alert(
+        "Погашених квитків для компенсації не знайдено.\n\n" +
+        "Це варіант звичайного переносу до початку: квитки живі, місця зберігаються, компенсація не потрібна."
+      );
       return;
     }
 
-    const rows = await res.json();
+    const existing = await getExistingRecoveryTokens(recoveryEvent.id);
+
+    let created = 0;
+    let skipped = 0;
+    let errors = 0;
+
+    for (const t of tickets) {
+      const token = normalizeRecoveryToken(t.qr_payload || t.id);
+
+      if (!token) {
+        errors++;
+        continue;
+      }
+
+      if (existing.has(token)) {
+        skipped++;
+        continue;
+      }
+
+      try {
+        await createRecoveryToken({
+          recovery_event_id: recoveryEvent.id,
+
+          token,
+          seat_label: "",
+
+          owner_name: t.buyer_name || "",
+          owner_email: t.buyer_email || null,
+
+          compensation_allowed: true,
+          compensation_used: false,
+
+          source_seance_id: id,
+          source_ticket_id: String(t.id || ""),
+          source_order_id: String(t.order_id || ""),
+          source_show_slug: t.show_slug || "",
+          source_seat_label: t.seat_label || "",
+          source_checked_in_at: t.checked_in_at || null,
+
+          note: "Компенсаційний прохід без місця"
+        });
+
+        existing.add(token);
+        created++;
+
+      } catch(e) {
+        console.error("create recovery token error:", e);
+        errors++;
+      }
+    }
 
     alert(
-      `🟡 Компенсацію активовано\nКвитків: ${rows.length}`
+      "🟡 Компенсацію створено\n\n" +
+      "Recovery event: " + recoveryEvent.id + "\n" +
+      "Погашених квитків: " + tickets.length + "\n" +
+      "Нових компенсацій: " + created + "\n" +
+      "Вже існували: " + skipped + "\n" +
+      "Помилок: " + errors
     );
 
     await load();
 
   } catch(e){
     console.error(e);
-    alert("Помилка");
+    alert("Помилка створення компенсації:\n\n" + String(e.message || e));
   }
 }
 async function activateTicketCompensation(seanceId){
