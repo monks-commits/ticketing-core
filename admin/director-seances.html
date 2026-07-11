@@ -253,11 +253,14 @@ function getHall(s) {
     function classifySeance(s) {
   if (s.archived === true) return "archive";
 
-  if (s.postponed_at) return "postponed";
-
   const rawStatus = String(s.status || "").toLowerCase();
 
-  if (rawStatus === "cancelled" || rawStatus === "canceled") return "cancelled";
+  if (
+    rawStatus === "cancelled" ||
+    rawStatus === "canceled"
+  ) {
+    return "cancelled";
+  }
 
   const startRaw = getStartAt(s);
   if (!startRaw) return "sale";
