@@ -1256,7 +1256,23 @@ async returnSelected() {
   },
 
 openKG8PrintWindow({ docNo, meta, partner, rows }) {
-  const groups = this.groupKG7Rows(rows);
+  const groups = (rows || []).map(r => {
+  const label =
+    r.seat ||
+    r.label ||
+    [r.row, r.place].filter(Boolean).join("-") ||
+    "—";
+
+  const price = Number(r.price || 0);
+  const amount = Number(r.amount || price || 0);
+
+  return {
+    label,
+    qty: 1,
+    price,
+    amount
+  };
+});
   const totalQty = rows.length;
   const totalAmount = rows.reduce((sum, r) => sum + Number(r.amount || 0), 0);
 
