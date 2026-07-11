@@ -315,6 +315,22 @@ openPartnerHallPicker() {
     return items;
   },
 
+docLabelFromBooking(b) {
+  const note = String(b?.note || "").trim();
+
+  const kg7 = note.match(/КГ-7:\s*([^\s|]+)/i);
+  if (kg7) return `КГ-7: ${kg7[1]}`;
+
+  const kg8 = note.match(/КГ-8:\s*([^\s|]+)/i);
+  if (kg8) return `КГ-8: ${kg8[1]}`;
+
+  if (note.includes("Комісіонер")) {
+    return "Закріплено";
+  }
+
+  return note || "—";
+},
+  
   renderPartnerCard() {
     const items = this.buildSeatItems();
 
