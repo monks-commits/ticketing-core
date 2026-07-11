@@ -772,6 +772,8 @@ if (!docNo) return;
         });
       }
 
+await this.commitDocNo("kg7", docNo);
+      
       const meta = await this.loadSeanceMeta();
       const pricing = await this.loadSeancePricing();
 
