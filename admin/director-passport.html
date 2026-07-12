@@ -436,26 +436,56 @@ async function renderAudience(){
 }
 
 async function renderRecovery(){
-  const allowed = TICKETS.filter(t => t.compensation_allowed === true).length;
-  const used = TICKETS.filter(t => t.compensation_used === true).length;
+  try {
+    const { data: tokens, error: tokensError } = await vaDb
+      .from("recovery_tokens")
+      .select(`
+        id,
+        recovery_event_id,
+        token,
+        source_seance_id,
+        source_seat_label,
+        compensation_used,
+        compensation_used_at,
+        compensation_used_by
+      `)
+      .eq("source_seance_id", seanceId);
 
-  let recoveryEvents = [];
+    if (tokensError) throw tokensError;
 
-  const { data } = await vaDb
-    .from("recovery_events")
-    .select("*")
-    .or(`original_event.ilike.%${seanceId}%,recovery_event.ilike.%${seanceId}%`);
+    const list = Array.isArray(tokens) ? tokens : [];
 
-  recoveryEvents = data || [];
+    const total = list.length;
+    const used = list.filter(t => t.compensation_used === true).length;
+    const unused = Math.max(total - used, 0);
 
-  document.getElementById("recovery-body").innerHTML = `
-    <div class="line"><b>Компенсацій дозволено:</b> ${allowed}</div>
-    <div class="line"><b>Використано:</b> ${used}</div>
-    <div class="line"><b>Не використано:</b> ${Math.max(allowed - used, 0)}</div>
-    <div class="line"><b>Recovery-подій:</b> ${recoveryEvents.length}</div>
-  `;
+    const eventIds = new Set(
+      list
+        .map(t => t.recovery_event_id)
+        .filter(Boolean)
+        .map(String)
+    );
+
+    document.getElementById("recovery-body").innerHTML = `
+      <div class="line"><b>Компенсацій дозволено:</b> ${total}</div>
+      <div class="line"><b>Використано:</b> ${used}</div>
+      <div class="line"><b>Не використано:</b> ${unused}</div>
+      <div class="line"><b>Recovery-подій:</b> ${eventIds.size}</div>
+      <div class="hr"></div>
+      <div class="line"><b>Тип:</b> прохід без місця</div>
+    `;
+
+  } catch(e) {
+    console.error("renderRecovery error:", e);
+
+    document.getElementById("recovery-body").innerHTML = `
+      <div class="error">
+        Помилка завантаження компенсацій:<br>
+        ${esc(e.message || e)}
+      </div>
+    `;
+  }
 }
-
 function renderCompare(){
   const sameGenre = SEANCE.genre
     ? "Можна порівняти по жанру"
