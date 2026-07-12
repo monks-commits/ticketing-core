@@ -658,6 +658,10 @@ let LAST_TURNOVER_DATA = {
       history.replaceState(null, "", `ticket-office.html?seance=${encodeURIComponent(id)}#turnover`);
     }
 
+function openCompensationCabinet(){
+  window.open("./compensation-cabinet.html", "_blank");
+}
+    
     function openCompensation(){
       const id = requireSeance();
       if(!id) return;
