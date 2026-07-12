@@ -23,7 +23,7 @@
     .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     select,input,button{background:#111118;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
     button{cursor:pointer;background:var(--accent);border-color:#9f1239}
-    .grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
+    .grid5{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
     .card{background:linear-gradient(180deg,var(--card),#101018);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.25)}
     .metric-title{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
     .metric-value{font-size:30px;font-weight:800;line-height:1}
@@ -36,8 +36,12 @@
     .bar{height:8px;background:#262632;border-radius:999px;overflow:hidden;margin-top:6px}
     .bar span{display:block;height:100%;background:var(--green);width:0%}
     .empty{color:var(--muted);padding:12px 0}
-    @media(max-width:1050px){.grid5{grid-template-columns:1fr 1fr 1fr}.main{grid-template-columns:1fr}}
+    @media(max-width:1050px){.grid5{grid-template-columns:1fr 1fr}.main{grid-template-columns:1fr}}
     @media(max-width:560px){.grid5{grid-template-columns:1fr}.top{display:block}}
+
+
+
+    
   </style>
 </head>
 
@@ -94,12 +98,11 @@
       <div class="metric-note">безоплатні / запрошені</div>
     </div>
 
-    <div class="card">
-      <div class="metric-title">Компенсації</div>
-      <div class="metric-value red" id="compCount">0</div>
-      <div class="metric-note">компенсаційні квитки</div>
-    </div>
-  </div>
+   <div class="card" style="display:none;">
+  <div class="metric-title">Компенсації</div>
+  <div class="metric-value red" id="compCount">0</div>
+  <div class="metric-note">компенсаційні квитки</div>
+</div>
 
   <div class="main">
 
