@@ -903,9 +903,25 @@ async function boot(){
 
   try{
     const [orders, tickets, seances, journal] = await Promise.all([
-      fetchAll("orders", "id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,status"),
-      fetchAll("tickets", "id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"),
-      fetchAll("seances", "id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity")
+      fetchAll(
+        "orders",
+        "id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,status"
+      ),
+
+      fetchAll(
+        "tickets",
+        "id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"
+      ),
+
+      fetchAll(
+        "seances",
+        "id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity"
+      ),
+
+      fetchAll(
+        "marketing_journal",
+        "id,created_at,seance_id,action_date,action_type,channel,budget,comment,result,conclusion,author"
+      )
     ]);
 
     ORDERS = orders || [];
@@ -915,9 +931,13 @@ async function boot(){
 
     buildClients(ORDERS, TICKETS, SEANCES);
     openMarketingSection(0);
+
   }catch(e){
     console.error(e);
-    document.getElementById("activeSectionPanel").innerHTML = `<h2>Помилка</h2><div class="box">${esc(e.message)}</div>`;
+    document.getElementById("activeSectionPanel").innerHTML = `
+      <h2>Помилка</h2>
+      <div class="box">${esc(e.message)}</div>
+    `;
   }
 }
 
