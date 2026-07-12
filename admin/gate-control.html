@@ -370,7 +370,7 @@ async function loadSeances(){
   TODAY_SEANCES = [];
 
   $("currentTitle").textContent = "Завантаження...";
-  $("currentMeta").textContent = "Шукаю сьогоднішній активний сеанс.";
+  $("currentMeta").textContent = "Шукаю поточний сеанс.";
   $("choicesBox").classList.add("hidden");
   setStatus("", "Статус: оновлення даних...");
 
@@ -391,12 +391,25 @@ async function loadSeances(){
 
     const rows = Array.isArray(data) ? data : [];
 
+    const available = rows.filter(s => {
+      if (s.archived === true) return false;
+      if (s.active === false) return false;
+      return true;
+    });
+
+    /*
+      1. Принудительный режим:
+      gate-control.html?seance=ID
+    */
     if (forcedId) {
       CURRENT_SEANCE =
-        rows.find(s => String(s.id) === String(forcedId)) || null;
+        available.find(s => String(s.id) === String(forcedId)) ||
+        rows.find(s => String(s.id) === String(forcedId)) ||
+        null;
 
       if (CURRENT_SEANCE) {
         renderCurrent();
+        setStatus("ok", "Статус: сеанс відкрито за прямим посиланням.");
         return;
       }
     }
@@ -404,61 +417,115 @@ async function loadSeances(){
     const today = localDateKey();
     const now = new Date();
 
-    TODAY_SEANCES = rows.filter(s => {
-      if (s.archived === true) return false;
-      if (s.active === false) return false;
+    /*
+      2. Основной рабочий режим:
+      сегодняшние активные сеансы.
+    */
+    TODAY_SEANCES = available.filter(s => {
       if (String(s.date || "") !== today) return false;
       return true;
     });
 
-    if (!TODAY_SEANCES.length) {
+    if (TODAY_SEANCES.length) {
+      const windowMatches = TODAY_SEANCES
+        .map(s => {
+          const dt = seanceDateTime(s);
+          const diffMin = dt
+            ? Math.round((dt.getTime() - now.getTime()) / 60000)
+            : 999999;
+
+          return {
+            seance:s,
+            diffMin,
+            abs:Math.abs(diffMin)
+          };
+        })
+        .filter(x => {
+          /*
+            Сеанс считается текущим:
+            от 2 часов до начала
+            до 4 часов после начала.
+          */
+          return x.diffMin <= 120 && x.diffMin >= -240;
+        })
+        .sort((a,b) => a.abs - b.abs);
+
+      if (windowMatches.length === 1) {
+        CURRENT_SEANCE = windowMatches[0].seance;
+        renderCurrent();
+        setStatus("ok", "Статус: поточний сеанс визначено автоматично.");
+        return;
+      }
+
+      if (windowMatches.length > 1) {
+        renderChoices(windowMatches.map(x => x.seance));
+        CURRENT_SEANCE = windowMatches[0].seance;
+        renderCurrent();
+        setStatus("warn", "Статус: знайдено кілька поточних сеансів. Оберіть потрібний.");
+        return;
+      }
+
+      /*
+        Сегодня есть сеансы, но не попали во временное окно.
+      */
+      renderChoices(TODAY_SEANCES);
+      CURRENT_SEANCE = TODAY_SEANCES[0];
       renderCurrent();
-      return;
-    }
-
-    const windowMatches = TODAY_SEANCES
-      .map(s => {
-        const dt = seanceDateTime(s);
-        const diffMin = dt ? Math.round((dt.getTime() - now.getTime()) / 60000) : 999999;
-
-        return {
-          seance:s,
-          diffMin,
-          abs:Math.abs(diffMin)
-        };
-      })
-      .filter(x => {
-        /*
-          Сеанс считается текущим:
-          от 2 часов до начала
-          до 4 часов после начала.
-        */
-        return x.diffMin <= 120 && x.diffMin >= -240;
-      })
-      .sort((a,b) => a.abs - b.abs);
-
-    if (windowMatches.length === 1) {
-      CURRENT_SEANCE = windowMatches[0].seance;
-      renderCurrent();
-      return;
-    }
-
-    if (windowMatches.length > 1) {
-      renderChoices(windowMatches.map(x => x.seance));
-      CURRENT_SEANCE = windowMatches[0].seance;
-      renderCurrent();
-      setStatus("warn", "Статус: знайдено кілька поточних сеансів. Оберіть потрібний.");
+      setStatus("warn", "Статус: сьогодні є сеанси, але поточний час не потрапив у вікно. Оберіть потрібний.");
       return;
     }
 
     /*
-      Если нет сеанса в окне времени,
-      но сегодня есть сеансы — показываем выбор большими кнопками.
+      3. Резервный / тестовый режим:
+      если сегодня сеансов нет — показываем ближайшие будущие.
+      Это удобно для теста, но статус будет предупреждением.
     */
-    renderChoices(TODAY_SEANCES);
-    CURRENT_SEANCE = TODAY_SEANCES[0];
+    const futureSeances = available
+      .map(s => {
+        const dt = seanceDateTime(s);
+        return {
+          seance:s,
+          dt
+        };
+      })
+      .filter(x => x.dt && x.dt.getTime() >= now.getTime())
+      .sort((a,b) => a.dt.getTime() - b.dt.getTime())
+      .slice(0, 5)
+      .map(x => x.seance);
+
+    if (futureSeances.length === 1) {
+      CURRENT_SEANCE = futureSeances[0];
+      renderCurrent();
+      setStatus("warn", "Статус: сьогодні сеансів немає. Обрано найближчий майбутній сеанс для тесту.");
+      return;
+    }
+
+    if (futureSeances.length > 1) {
+      CURRENT_SEANCE = futureSeances[0];
+      renderCurrent();
+      renderChoices(futureSeances);
+      setStatus("warn", "Статус: сьогодні сеансів немає. Оберіть найближчий майбутній сеанс для тесту.");
+      return;
+    }
+
+    /*
+      4. Если будущих нет — показываем последние доступные,
+      чтобы экран не был пустым при тестах.
+    */
+    const lastSeances = available
+      .slice()
+      .reverse()
+      .slice(0, 5);
+
+    if (lastSeances.length) {
+      CURRENT_SEANCE = lastSeances[0];
+      renderCurrent();
+      renderChoices(lastSeances);
+      setStatus("warn", "Статус: поточного сеансу немає. Показано останні доступні сеанси.");
+      return;
+    }
+
     renderCurrent();
-    setStatus("warn", "Статус: сьогодні є сеанси, але поточний час не потрапив у вікно. Оберіть вручну.");
 
   } catch(e) {
     console.error("loadSeances error:", e);
@@ -468,7 +535,6 @@ async function loadSeances(){
     setStatus("bad", "Статус: помилка завантаження сеансів.");
   }
 }
-
 function currentSeanceId(){
   if (!CURRENT_SEANCE || !CURRENT_SEANCE.id) {
     alert("Поточний сеанс не визначено.");
