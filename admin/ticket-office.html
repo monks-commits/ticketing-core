@@ -1042,7 +1042,21 @@ function renderTurnoverWorkspace() {
     if (!ws) return;
 
     switch (CURRENT_TURNOVER_JOURNAL) {
+        case "":
+        case null:
+        case undefined:
 
+            ws.innerHTML = `
+                <div class="stub" style="min-height:90px;">
+                    <h3>Оберіть журнал</h3>
+                    <p>
+                        Натисніть потрібний розділ: продажі, бронь, комісіонери,
+                        повернення, компенсації, погашення або випуск.
+                    </p>
+                </div>
+            `;
+
+            break;
         case "sales":
 
             ws.innerHTML = `
