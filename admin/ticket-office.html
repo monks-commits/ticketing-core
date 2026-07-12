@@ -970,7 +970,10 @@ channelMap[channel] = (channelMap[channel] || 0) + 1;
     set("tBooked", booked);
     set("tFree", free);
     set("tReturns", returned);
-    set("tComp", comp);
+  set(
+  "tComp",
+  `${compTotal}<br><span class="note">Використано: ${compUsed}<br>Не використано: ${compUnused}</span>`
+);
     set("tUsed", used);
     set("tFill", `${fill}%`);
     set("tRevenue", `${revenue} грн`);
