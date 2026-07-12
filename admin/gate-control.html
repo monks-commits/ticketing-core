@@ -567,14 +567,27 @@ ALL_SEANCES = rows;
   }
 }
 function currentSeanceId(){
-  if (!CURRENT_SEANCE || !CURRENT_SEANCE.id) {
-    alert("Поточний сеанс не визначено.");
-    return "";
+  if (CURRENT_SEANCE && CURRENT_SEANCE.id) {
+    return String(CURRENT_SEANCE.id);
   }
 
-  return String(CURRENT_SEANCE.id);
-}
+  const saved = localStorage.getItem(GATE_SELECTED_SEANCE_KEY);
 
+  if (saved) {
+    const found = ALL_SEANCES.find(s => String(s.id) === String(saved));
+
+    if (found) {
+      CURRENT_SEANCE = found;
+      renderCurrent();
+      return String(found.id);
+    }
+
+    return String(saved);
+  }
+
+  alert("Поточний сеанс не визначено.");
+  return "";
+}
 function withSeanceUrl(baseUrl, seanceId){
   const url = new URL(baseUrl, location.href);
   url.searchParams.set("seance", seanceId);
