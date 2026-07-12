@@ -85,6 +85,54 @@
       color: #7f8da5;
       font-size: 13px;
     }
+
+.director-actions{
+  width:min(460px, 100%);
+  margin:54px auto 0;
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+
+.director-btn{
+  min-height:74px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  color:#fff;
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  border:0;
+  box-shadow:0 14px 32px rgba(0,0,0,.22);
+}
+
+.director-btn.red{
+  background:#7f0f1a;
+}
+
+.director-btn.blue{
+  background:#2563eb;
+}
+
+.director-btn.yellow{
+  background:#f5b400;
+  color:#111827;
+}
+
+.director-btn.green{
+  background:#22c55e;
+  color:#07111f;
+}
+
+.director-btn:hover{
+  filter:brightness(1.08);
+  transform:translateY(-1px);
+}
+    
   </style>
 </head>
 
