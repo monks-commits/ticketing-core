@@ -13,20 +13,16 @@
   --text:#ffffff;
   --muted:#b8c4d6;
   --line:rgba(255,255,255,.10);
-
   --primary:#4c86f7;
   --primary-hover:#3f78e6;
-
   --success:#2ecc71;
   --success-hover:#28b864;
-
   --field:#10233f;
   --field-border:rgba(255,255,255,.12);
-
+  --warning:#f59e0b;
+  --danger:#ef4444;
   --shadow:0 18px 40px rgba(0,0,0,.22);
   --radius-xl:24px;
-  --radius-lg:18px;
-  --radius-md:14px;
 }
 
 *{box-sizing:border-box}
@@ -41,7 +37,7 @@ html,body{
 }
 
 .page-wrap{
-  width:min(1100px, calc(100% - 48px));
+  width:min(1280px, calc(100% - 48px));
   margin:0 auto;
   padding:48px 0 56px;
 }
@@ -82,7 +78,7 @@ html,body{
   color:var(--muted);
   font-size:18px;
   line-height:1.45;
-  max-width:760px;
+  max-width:920px;
 }
 
 .card{
@@ -90,6 +86,7 @@ html,body{
   border-radius:var(--radius-xl);
   padding:28px 24px;
   box-shadow:var(--shadow);
+  margin-bottom:18px;
 }
 
 .card h2{
@@ -188,6 +185,12 @@ input:focus{
   background:var(--success-hover);
 }
 
+.btn-ghost{
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  border:1px solid var(--line);
+}
+
 .result{
   margin-top:26px;
   background:var(--card-2);
@@ -203,7 +206,7 @@ input:focus{
 
 .result-grid{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
+  grid-template-columns:repeat(4, minmax(0,1fr));
   gap:16px;
 }
 
@@ -226,6 +229,87 @@ input:focus{
   word-break:break-word;
 }
 
+.metric-note{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.35;
+}
+
+.good{color:var(--success)}
+.warn{color:var(--warning)}
+.bad{color:var(--danger)}
+
+.report-section{
+  margin-top:22px;
+}
+
+.report-section h3{
+  margin:0 0 12px;
+  font-size:22px;
+}
+
+.table-wrap{
+  overflow:auto;
+  border-radius:16px;
+  border:1px solid var(--line);
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+
+th,td{
+  padding:11px 10px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  vertical-align:top;
+}
+
+th{
+  color:var(--muted);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+
+tr:last-child td{
+  border-bottom:0;
+}
+
+.tag{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  padding:4px 9px;
+  font-size:12px;
+  font-weight:800;
+  background:rgba(255,255,255,.10);
+  color:#fff;
+}
+
+.tag.good{
+  background:rgba(46,204,113,.16);
+  color:#b8ffd0;
+}
+
+.tag.warn{
+  background:rgba(245,158,11,.16);
+  color:#fff2b8;
+}
+
+.tag.bad{
+  background:rgba(239,68,68,.16);
+  color:#ffd1d1;
+}
+
+.print-title{
+  display:none;
+}
+
 @media print{
   body{
     background:#fff;
@@ -233,8 +317,23 @@ input:focus{
   }
 
   .topbar,
-  .actions{
+  .actions,
+  .hero p{
     display:none;
+  }
+
+  .page-wrap{
+    width:100%;
+    padding:0;
+  }
+
+  .hero{
+    margin-bottom:12px;
+  }
+
+  .hero h1{
+    font-size:28px;
+    color:#000;
   }
 
   .card,
@@ -246,16 +345,50 @@ input:focus{
     border:1px solid #ddd !important;
   }
 
+  .card{
+    padding:0;
+    border:0 !important;
+  }
+
+  .result{
+    padding:12px;
+  }
+
+  .metric-label,
+  .metric-note,
+  th,
+  .muted{
+    color:#444 !important;
+  }
+
   select,input{
     color:#000;
     background:#fff;
     border:1px solid #ccc;
   }
+
+  .print-title{
+    display:block;
+    color:#000;
+    margin:0 0 14px;
+  }
+
+  .tag{
+    border:1px solid #888;
+    color:#000 !important;
+    background:#fff !important;
+  }
+}
+
+@media (max-width:900px){
+  .result-grid{
+    grid-template-columns:1fr 1fr;
+  }
 }
 
 @media (max-width:768px){
   .page-wrap{
-    width:min(100% - 24px, 1100px);
+    width:min(100% - 24px, 1280px);
     padding:24px 0 32px;
   }
 
@@ -298,7 +431,10 @@ input:focus{
 
   <section class="hero">
     <h1>📗 КГ-10</h1>
-    <p>Звіт по окремому сеансу: кількість проданих квитків і загальна сума.</p>
+    <p>
+      Зведений звіт по сеансу: випуск VA, продажі, бронь, КГ-7, КГ-8, залишок, виручка,
+      погашення та маркетинговий сигнал.
+    </p>
   </section>
 
   <section class="card">
@@ -317,6 +453,7 @@ input:focus{
     <div class="actions">
       <button class="btn btn-primary" onclick="run()">Сформувати</button>
       <button class="btn btn-success" onclick="window.print()">Друк</button>
+      <button class="btn btn-ghost" onclick="copyReport()">Копіювати</button>
     </div>
 
     <div id="out" class="result">
@@ -332,6 +469,8 @@ input:focus{
 <script src="../../shared/config-helper.js"></script>
 
 <script>
+"use strict";
+
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
@@ -341,33 +480,97 @@ const URL_SEANCE = qs.get("seance") || qs.get("seance_id") || "";
 
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];
+let SEANCES = [];
+let LAST_REPORT_TEXT = "";
+
+function esc(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function money(value){
+  return Number(value || 0).toLocaleString("uk-UA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function fmtDate(value){
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString("uk-UA");
+}
+
+function fmtDateTime(value){
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString("uk-UA", {
+    day:"2-digit",
+    month:"2-digit",
+    year:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+}
 
 function normalizeVenue(v){
-  const found = CONFIG_VENUES.find(x => x.id === v || x.hall === v);
-  return found?.id || v || "";
+  const raw = String(v || "").trim();
+  if (!raw) return "";
+  const found = CONFIG_VENUES.find(x => x.id === raw || x.hall === raw);
+  return found?.id || raw;
+}
+
+async function fetchRows(table, query){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+    headers:{
+      apikey: SUPABASE_KEY,
+      Authorization: "Bearer " + SUPABASE_KEY
+    },
+    cache:"no-store"
+  });
+
+  if (!res.ok) {
+    console.error(table, await res.text());
+    return [];
+  }
+
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
+async function loadOptionalConfig(){
+  try {
+    if (typeof loadVAConfig === "function") {
+      CLIENT_CONFIG = await loadVAConfig();
+      CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+        ? CLIENT_CONFIG.venues
+        : [];
+    }
+  } catch(e) {
+    console.warn("config load skipped:", e);
+    CLIENT_CONFIG = null;
+    CONFIG_VENUES = [];
+  }
 }
 
 async function loadSeances() {
   const sel = document.getElementById("seance");
   sel.innerHTML = `<option value="">Оберіть сеанс...</option>`;
 
-  CLIENT_CONFIG = await loadVAConfig();
-  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
-    ? CLIENT_CONFIG.venues
-    : [];
+  await loadOptionalConfig();
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,archived,venue_id,show,date,time&archived=eq.false`,
-    {
-      headers:{
-        apikey: SUPABASE_KEY,
-        Authorization: "Bearer " + SUPABASE_KEY
-      },
-      cache:"no-store"
-    }
+  const rows = await fetchRows(
+    "seances",
+    "?select=id,archived,venue_id,show,date,time,status,capacity&archived=eq.false&order=date.asc,time.asc"
   );
 
-  const rows = await res.json();
+  SEANCES = rows;
 
   const filtered = URL_VENUE
     ? rows.filter(s => normalizeVenue(s.venue_id) === normalizeVenue(URL_VENUE))
@@ -386,53 +589,558 @@ async function loadSeances() {
   }
 }
 
-async function run() {
-  const seance = document.getElementById("seance").value;
+function seatsFromRow(row){
+  if (Array.isArray(row?.seats)) return row.seats;
+  if (Array.isArray(row?.seat_labels)) return row.seat_labels;
+  if (row?.seat_label) return [row.seat_label];
+  if (Array.isArray(row?.booking_seats)) return row.booking_seats;
+  return [];
+}
 
-  if (!seance) {
+function activeHoldOrReserved(bookings){
+  const nowIso = new Date().toISOString();
+
+  return bookings.filter(b => {
+    const st = String(b.status || "").toLowerCase();
+
+    if (!["hold","reserved"].includes(st)) return false;
+
+    if (st === "hold" && b.expires_at && b.expires_at <= nowIso) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function bookingsByStatus(bookings, status){
+  return bookings.filter(b => String(b.status || "").toLowerCase() === status);
+}
+
+function uniqueSeatsFromBookings(bookings, excludeSoldSeats = new Set()){
+  const set = new Set();
+
+  bookings.forEach(b => {
+    seatsFromRow(b).forEach(seat => {
+      const key = String(seat || "").trim();
+      if (!key) return;
+      if (excludeSoldSeats.has(key)) return;
+      set.add(key);
+    });
+  });
+
+  return set;
+}
+
+function countSeatsFromRows(rows){
+  let count = 0;
+
+  rows.forEach(r => {
+    const seats = seatsFromRow(r);
+    if (seats.length) {
+      count += seats.length;
+      return;
+    }
+
+    if (r.qty !== undefined && r.qty !== null) {
+      count += Number(r.qty || 0);
+    }
+  });
+
+  return count;
+}
+
+function mapAdd(map, key, amount = 1){
+  const k = String(key || "unknown");
+  map[k] = (map[k] || 0) + amount;
+}
+
+function mapHtml(map, suffix = ""){
+  const entries = Object.entries(map);
+  if (!entries.length) return "—";
+
+  return entries
+    .sort((a,b) => {
+      const na = Number(a[0]);
+      const nb = Number(b[0]);
+      if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+      return String(a[0]).localeCompare(String(b[0]), "uk");
+    })
+    .map(([k,v]) => `${esc(k)}${suffix} → ${v}`)
+    .join("<br>");
+}
+
+function priceForSeat(seat, cfg){
+  const key = String(seat || "").trim();
+  const overrides = cfg?.seat_overrides || {};
+  const pricing = cfg?.pricing || {};
+
+  if (overrides[key] && overrides[key].price !== undefined) {
+    return Number(overrides[key].price || 0);
+  }
+
+  const m = key.match(/^([PAB])([0-9]+)-M([0-9]+)$/i);
+  if (!m) return 0;
+
+  const prefix = m[1].toUpperCase();
+  const row = Number(m[2]);
+
+  for (const rule in pricing) {
+    const rm = String(rule).match(/^([PAB])([0-9]+)-([0-9]+)$/i);
+    if (!rm) continue;
+
+    const rPrefix = rm[1].toUpperCase();
+    const from = Number(rm[2]);
+    const to = Number(rm[3]);
+
+    if (rPrefix === prefix && row >= from && row <= to) {
+      return Number(pricing[rule]?.price || 0);
+    }
+  }
+
+  return 0;
+}
+
+function amountForSeats(seats, pricingCfg){
+  return (seats || []).reduce((sum, seat) => {
+    return sum + Number(priceForSeat(seat, pricingCfg) || 0);
+  }, 0);
+}
+
+function marketingSignal({ issued, sold, activeBookingCount, kg7Open, free, fill, daysLeft, channels }){
+  const reasons = [];
+  const actions = [];
+
+  let status = "Добрий";
+  let tag = "good";
+
+  if (issued <= 0) {
+    return {
+      status:"Немає випуску",
+      tag:"bad",
+      reasons:["Не заповнено випуск VA."],
+      actions:["Перевірити лічильник / capacity у редакторі."]
+    };
+  }
+
+  let planned = 10;
+  if (daysLeft <= 0) planned = 85;
+  else if (daysLeft <= 3) planned = 70;
+  else if (daysLeft <= 7) planned = 50;
+  else if (daysLeft <= 14) planned = 30;
+  else if (daysLeft <= 30) planned = 15;
+
+  const lag = fill - planned;
+
+  if (lag < -20) {
+    status = "Потрібна дія";
+    tag = "bad";
+    reasons.push(`Заповнення відстає від орієнтира на ${Math.abs(lag)}%.`);
+    actions.push("Запустити кампанію по залишку місць.");
+  } else if (lag < 0) {
+    status = "Спостерігати";
+    tag = "warn";
+    reasons.push(`Є відставання від орієнтира на ${Math.abs(lag)}%.`);
+    actions.push("Підсилити слабкі канали продажів.");
+  } else {
+    reasons.push("Заповнення не нижче поточного орієнтира.");
+    actions.push("Підтримувати поточний темп продажів.");
+  }
+
+  if (free > issued * 0.5 && daysLeft <= 7) {
+    reasons.push("Залишок VA-квоти великий для близького сеансу.");
+    actions.push("Дати пріоритет швидким каналам: каса, соцмережі, партнери.");
+  }
+
+  if (activeBookingCount > 0) {
+    actions.push("Перевірити активні броні та терміни викупу.");
+  }
+
+  if (kg7Open > 0) {
+    actions.push("Перевірити комісіонерів: що продано, що повертати по КГ-8.");
+  }
+
+  const channelEntries = Object.entries(channels || {}).sort((a,b) => b[1] - a[1]);
+  if (channelEntries.length > 1) {
+    const weakest = channelEntries[channelEntries.length - 1];
+    actions.push(`Перевірити слабкий канал: ${weakest[0]}.`);
+  }
+
+  return { status, tag, reasons, actions };
+}
+
+async function run() {
+  const seanceId = document.getElementById("seance").value;
+
+  if (!seanceId) {
     alert("Оберіть сеанс");
     return;
   }
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/tickets?select=price,seance_id&seance_id=eq.${encodeURIComponent(seance)}`,
-    {
-      headers:{
-        apikey: SUPABASE_KEY,
-        Authorization: "Bearer " + SUPABASE_KEY
-      },
-      cache:"no-store"
-    }
+  const out = document.getElementById("out");
+  out.innerHTML = `<div class="result-empty">Формую звіт...</div>`;
+
+  const [
+    seances,
+    tickets,
+    bookings,
+    ticketIssues,
+    ticketReturns,
+    recoveryTokens,
+    pricingRows
+  ] = await Promise.all([
+    fetchRows(
+      "seances",
+      `?id=eq.${encodeURIComponent(seanceId)}&select=id,show,date,time,venue_id,status,capacity`
+    ),
+    fetchRows(
+      "tickets",
+      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=id,order_id,seance_id,seat_label,price,channel,ref_code,ticket_type,checked_in_at,checked_in_by,buyer_name,buyer_email,buyer_phone,created_at,status`
+    ),
+    fetchRows(
+      "bookings",
+      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
+    ),
+    fetchRows(
+      "ticket_issues",
+      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
+    ),
+    fetchRows(
+      "ticket_returns",
+      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
+    ),
+    fetchRows(
+      "recovery_tokens",
+      `?source_seance_id=eq.${encodeURIComponent(seanceId)}&select=id,compensation_used`
+    ),
+    fetchRows(
+      "seances_pricing",
+      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=pricing,seat_overrides`
+    )
+  ]);
+
+  const seance = seances[0] || { id:seanceId };
+  const pricingCfg = {
+    pricing: pricingRows?.[0]?.pricing || {},
+    seat_overrides: pricingRows?.[0]?.seat_overrides || {}
+  };
+
+  const issuedVA = Number(seance.capacity || 0);
+
+  const soldTickets = tickets.filter(t => {
+    const st = String(t.status || "").toLowerCase();
+    return st !== "returned" && st !== "cancelled" && st !== "canceled";
+  });
+
+  const soldCount = soldTickets.length;
+  const soldAmount = soldTickets.reduce((sum, t) => sum + Number(t.price || 0), 0);
+
+  const soldSeats = new Set(
+    soldTickets
+      .map(t => String(t.seat_label || "").trim())
+      .filter(Boolean)
   );
 
-  if (!res.ok) {
-    alert("Помилка запиту");
-    return;
+  const activeBookings = activeHoldOrReserved(bookings);
+  const activeBookingSeats = uniqueSeatsFromBookings(activeBookings, soldSeats);
+  const activeBookingCount = activeBookingSeats.size;
+
+  const kg7OpenRows = bookingsByStatus(bookings, "issued_to_partner");
+  const kg7OpenSeats = uniqueSeatsFromBookings(kg7OpenRows, soldSeats);
+  const kg7OpenCount = kg7OpenSeats.size;
+
+  const kg8ReturnedRows = bookingsByStatus(bookings, "partner_returned");
+  const kg8ReturnedSeatsByBookings = uniqueSeatsFromBookings(kg8ReturnedRows, new Set());
+  const kg8ReturnedByBookingsCount = kg8ReturnedSeatsByBookings.size;
+
+  const kg7IssuedCount = countSeatsFromRows(ticketIssues);
+  const kg7IssuedSeats = [];
+  ticketIssues.forEach(r => {
+    seatsFromRow(r).forEach(seat => {
+      const key = String(seat || "").trim();
+      if (key) kg7IssuedSeats.push(key);
+    });
+  });
+
+  const kg7IssuedAmount = amountForSeats(kg7IssuedSeats, pricingCfg);
+
+  const kg8ReturnedCountFromDocs = ticketReturns.reduce((sum, r) => {
+    if (r.qty !== undefined && r.qty !== null) return sum + Number(r.qty || 0);
+    const seats = seatsFromRow(r);
+    return sum + seats.length;
+  }, 0);
+
+  const kg8ReturnedAmount = ticketReturns.reduce((sum, r) => {
+    if (r.amount !== undefined && r.amount !== null) return sum + Number(r.amount || 0);
+    return sum + amountForSeats(seatsFromRow(r), pricingCfg);
+  }, 0);
+
+  const kg8ReturnedCount = Math.max(kg8ReturnedCountFromDocs, kg8ReturnedByBookingsCount);
+
+  const realizedCount = Math.max(soldCount + kg7IssuedCount - kg8ReturnedCount, 0);
+  const realizedAmount = Math.max(soldAmount + kg7IssuedAmount - kg8ReturnedAmount, 0);
+
+  const freeVA = Math.max(issuedVA - soldCount - activeBookingCount - kg7OpenCount, 0);
+  const fill = issuedVA
+    ? Math.round(((soldCount + activeBookingCount + kg7OpenCount) / issuedVA) * 100)
+    : 0;
+
+  const usedCount = soldTickets.filter(t => !!t.checked_in_at).length;
+  const notUsedCount = Math.max(soldCount - usedCount, 0);
+  const attendance = soldCount ? Math.round((usedCount / soldCount) * 100) : 0;
+
+  const compTotal = recoveryTokens.length;
+  const compUsed = recoveryTokens.filter(t => t.compensation_used === true).length;
+  const compUnused = Math.max(compTotal - compUsed, 0);
+
+  const typeMap = {};
+  const channelMap = {};
+  const priceMap = {};
+
+  soldTickets.forEach(t => {
+    mapAdd(typeMap, t.ticket_type || "unknown", 1);
+    mapAdd(channelMap, t.channel || t.ref_code || "unknown", 1);
+    mapAdd(priceMap, Number(t.price || 0), 1);
+  });
+
+  if (kg7IssuedCount) {
+    mapAdd(channelMap, "КГ-7 / комісіонери", Math.max(kg7IssuedCount - kg8ReturnedCount, 0));
   }
 
-  const data = await res.json();
+  const daysLeft = seance.date
+    ? Math.ceil((new Date(seance.date) - new Date()) / 86400000)
+    : 999;
 
-  const count = data.length;
-  const sum = data.reduce((total, t) => total + Number(t.price || 0), 0);
+  const signal = marketingSignal({
+    issued: issuedVA,
+    sold: soldCount,
+    activeBookingCount,
+    kg7Open: kg7OpenCount,
+    free: freeVA,
+    fill,
+    daysLeft,
+    channels: channelMap
+  });
 
-  document.getElementById("out").innerHTML = `
-    <div class="result-grid">
+  const title = seance.show || seance.id || "—";
+  const dateTime = [seance.date, seance.time].filter(Boolean).join(" ");
+  const reportDate = new Date().toLocaleString("uk-UA");
+
+  LAST_REPORT_TEXT = [
+    "КГ-10 — ЗВІТ ПО СЕАНСУ",
+    "Сформовано: " + reportDate,
+    "Сеанс: " + title,
+    "Дата/час: " + dateTime,
+    "",
+    "Випущено VA: " + issuedVA,
+    "Продано: " + soldCount,
+    "Активна бронь: " + activeBookingCount,
+    "Видано КГ-7: " + kg7IssuedCount,
+    "Повернуто КГ-8: " + kg8ReturnedCount,
+    "Реалізовано: " + realizedCount,
+    "Залишок VA: " + freeVA,
+    "Виручка: " + money(realizedAmount) + " грн",
+    "",
+    "Погашено: " + usedCount,
+    "Не пройшло: " + notUsedCount,
+    "Явка: " + attendance + "%",
+    "",
+    "Компенсації створено: " + compTotal,
+    "Компенсації використано: " + compUsed,
+    "Компенсації залишок: " + compUnused,
+    "",
+    "Маркетинговий статус: " + signal.status,
+    "Причини: " + signal.reasons.join("; "),
+    "Дії: " + signal.actions.join("; ")
+  ].join("\\n");
+
+  out.innerHTML = `
+    <h2 class="print-title">КГ-10 — Звіт по сеансу</h2>
+
+    <div class="report-section">
+      <h3>${esc(title)}</h3>
+      <p class="muted">
+        Дата / час: ${esc(dateTime || "—")}<br>
+        Майданчик: ${esc(seance.venue_id || "—")}<br>
+        Сформовано: ${esc(reportDate)}
+      </p>
+    </div>
+
+    <div class="result-grid" style="margin-top:18px;">
       <div class="metric">
-        <div class="metric-label">Сеанс</div>
-        <div class="metric-value">${seance}</div>
+        <div class="metric-label">Випущено VA</div>
+        <div class="metric-value">${issuedVA}</div>
+        <div class="metric-note">Джерело: seances.capacity / лічильник редактора</div>
       </div>
 
       <div class="metric">
-        <div class="metric-label">Кількість квитків</div>
-        <div class="metric-value">${count}</div>
+        <div class="metric-label">Продано</div>
+        <div class="metric-value">${soldCount}</div>
+        <div class="metric-note">tickets по сеансу</div>
       </div>
 
       <div class="metric">
-        <div class="metric-label">Загальна сума</div>
-        <div class="metric-value">${sum} грн</div>
+        <div class="metric-label">Активна бронь</div>
+        <div class="metric-value">${activeBookingCount}</div>
+        <div class="metric-note">bookings: reserved / hold</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Залишок VA</div>
+        <div class="metric-value">${freeVA}</div>
+        <div class="metric-note">випуск мінус продажі / броні / відкритий КГ-7</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Видано КГ-7</div>
+        <div class="metric-value">${kg7IssuedCount}</div>
+        <div class="metric-note">ticket_issues</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Повернуто КГ-8</div>
+        <div class="metric-value">${kg8ReturnedCount}</div>
+        <div class="metric-note">ticket_returns / partner_returned</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Реалізовано</div>
+        <div class="metric-value">${realizedCount}</div>
+        <div class="metric-note">продано + КГ-7 − КГ-8</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Сума реалізації</div>
+        <div class="metric-value">${money(realizedAmount)} грн</div>
+        <div class="metric-note">tickets + КГ-7 − КГ-8</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Погашено</div>
+        <div class="metric-value">${usedCount}</div>
+        <div class="metric-note">tickets.checked_in_at</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Не пройшло</div>
+        <div class="metric-value">${notUsedCount}</div>
+        <div class="metric-note">продано, але не скановано</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Явка</div>
+        <div class="metric-value">${attendance}%</div>
+        <div class="metric-note">погашено / продано</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Заповнення VA</div>
+        <div class="metric-value">${fill}%</div>
+        <div class="metric-note">продано + бронь + відкритий КГ-7</div>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Формула КГ-10</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Показник</th>
+              <th>Значення</th>
+              <th>Джерело</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Випущено VA</td>
+              <td><b>${issuedVA}</b></td>
+              <td>seances.capacity</td>
+            </tr>
+            <tr>
+              <td>Продано</td>
+              <td><b>${soldCount}</b></td>
+              <td>tickets</td>
+            </tr>
+            <tr>
+              <td>Видано КГ-7</td>
+              <td><b>${kg7IssuedCount}</b></td>
+              <td>ticket_issues</td>
+            </tr>
+            <tr>
+              <td>Повернуто КГ-8</td>
+              <td><b>${kg8ReturnedCount}</b></td>
+              <td>ticket_returns / bookings.partner_returned</td>
+            </tr>
+            <tr>
+              <td><b>Реалізовано</b></td>
+              <td><b>${realizedCount}</b></td>
+              <td>Продано + КГ-7 − КГ-8</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Сегментація</h3>
+      <div class="result-grid">
+        <div class="metric">
+          <div class="metric-label">Типи квитків</div>
+          <div>${mapHtml(typeMap)}</div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-label">Канали</div>
+          <div>${mapHtml(channelMap)}</div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-label">Номінали</div>
+          <div>${mapHtml(priceMap, "₴")}</div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-label">Компенсації</div>
+          <div>
+            Створено: <b>${compTotal}</b><br>
+            Використано: <b>${compUsed}</b><br>
+            Не використано: <b>${compUnused}</b>
+          </div>
+          <div class="metric-note">Не входять у продажі / реалізацію</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Маркетинговий сигнал</h3>
+      <div class="metric">
+        <div class="metric-label">Стан</div>
+        <div class="metric-value ${esc(signal.tag)}">${esc(signal.status)}</div>
+        <div class="metric-note">
+          <b>Причини:</b><br>
+          ${signal.reasons.map(esc).join("<br>") || "—"}
+          <br><br>
+          <b>Дії:</b><br>
+          ${signal.actions.map(esc).join("<br>") || "—"}
+        </div>
       </div>
     </div>
   `;
+}
+
+async function copyReport(){
+  if (!LAST_REPORT_TEXT) {
+    alert("Спочатку сформуйте звіт.");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(LAST_REPORT_TEXT);
+    alert("Звіт скопійовано.");
+  } catch(e) {
+    alert("Не вдалося скопіювати звіт.");
+  }
 }
 
 loadSeances();
