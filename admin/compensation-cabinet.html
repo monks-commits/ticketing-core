@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>VA • Компенсаційний облік</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root{
+      --bg:#08111f;
+      --card:#1d2d47;
+      --card2:#263957;
+      --text:#fff;
+      --muted:#b8c7dc;
+      --line:rgba(255,255,255,.14);
+      --green:#22c55e;
+      --yellow:#f5b400;
+      --orange:#f97316;
+      --red:#ef4444;
+      --blue:#38bdf8;
+      --accent:#7f1d1d;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial,Helvetica,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(127,29,29,.32), transparent 34%),
+        radial-gradient(circle at top right, rgba(56,189,248,.14), transparent 30%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    .page{
+      width:min(1480px, calc(100% - 42px));
+      margin:0 auto;
+      padding:28px 0 48px;
+    }
+
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:18px;
+      margin-bottom:22px;
+    }
+
+    h1{
+      margin:0;
+      font-size:42px;
+      line-height:1.05;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+
+    .subtitle{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.45;
+    }
+
+    .buttons{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:flex-end;
+    }
+
+    button,
+    .btn{
+      border:0;
+      border-radius:14px;
+      min-height:42px;
+      padding:0 16px;
+      background:var(--accent);
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      white-space:nowrap;
+    }
+
+    button.green{background:var(--green);color:#06111f}
+    button.dark,.btn.dark{background:#111827;border:1px solid var(--line)}
+    button.ghost{background:rgba(255,255,255,.08);border:1px solid var(--line)}
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(6,1fr);
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .metric{
+      background:linear-gradient(180deg, rgba(38,57,87,.96), rgba(29,45,71,.96));
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:18px;
+      min-height:132px;
+      box-shadow:0 18px 40px rgba(0,0,0,.22);
+    }
+
+    .metric-title{
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.07em;
+      font-size:12px;
+      margin-bottom:12px;
+    }
+
+    .metric-value{
+      font-size:36px;
+      line-height:1;
+      font-weight:900;
+    }
+
+    .metric-note{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .greenText{color:var(--green)}
+    .redText{color:var(--red)}
+    .blueText{color:var(--blue)}
+    .yellowText{color:var(--yellow)}
+    .orangeText{color:var(--orange)}
+
+    .panel{
+      background:linear-gradient(180deg, rgba(38,57,87,.96), rgba(29,45,71,.96));
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:20px;
+      margin-bottom:18px;
+      box-shadow:0 18px 40px rgba(0,0,0,.22);
+    }
+
+    .panel h2{
+      margin:0 0 14px;
+      font-size:26px;
+    }
+
+    .panel-note{
+      color:var(--muted);
+      margin:-6px 0 14px;
+      line-height:1.45;
+      font-size:14px;
+    }
+
+    .two{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:14px;
+    }
+
+    th,td{
+      padding:10px 9px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+      text-align:left;
+    }
+
+    th{
+      color:var(--muted);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      font-weight:800;
+    }
+
+    small{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      padding:4px 9px;
+      font-size:12px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .tag.ok{background:rgba(34,197,94,.18);color:#b8ffd0;border:1px solid rgba(34,197,94,.45)}
+    .tag.open{background:rgba(245,180,0,.16);color:#fff2b8;border:1px solid rgba(245,180,0,.45)}
+    .tag.bad{background:rgba(239,68,68,.16);color:#ffd1d1;border:1px solid rgba(239,68,68,.45)}
+    .tag.info{background:rgba(56,189,248,.14);color:#c5f3ff;border:1px solid rgba(56,189,248,.38)}
+
+    .empty{
+      color:var(--muted);
+      padding:14px 0;
+    }
+
+    .mono{
+      font-family:Consolas, Monaco, monospace;
+      font-size:12px;
+      color:#dbeafe;
+      word-break:break-all;
+    }
+
+    .scroll{
+      overflow:auto;
+      max-height:520px;
+      border-radius:16px;
+    }
+
+    .status{
+      padding:12px 14px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.06);
+      color:var(--muted);
+      margin-bottom:18px;
+      line-height:1.45;
+    }
+
+    .status.ok{border-color:rgba(34,197,94,.45);color:#d9ffe8}
+    .status.bad{border-color:rgba(239,68,68,.45);color:#ffd4d4}
+
+    @media(max-width:1200px){
+      .grid{grid-template-columns:repeat(3,1fr)}
+      .two{grid-template-columns:1fr}
+    }
+
+    @media(max-width:720px){
+      .page{width:min(100% - 24px, 1480px);padding:22px 0 34px}
+      .top{display:block}
+      .buttons{justify-content:flex-start;margin-top:14px}
+      h1{font-size:30px}
+      .grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+
+<body>
+<div class="page">
+
+  <header class="top">
+    <div>
+      <h1>Компенсаційний облік</h1>
+      <div class="subtitle">
+        Окремий кабінет боргу театру: з якого сеансу виникла компенсація, на якому сеансі погашена, що залишилось.
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="green" onclick="loadAll()">Оновити</button>
+      <button class="ghost" onclick="copyReport()">Копіювати звіт</button>
+      <button class="dark" onclick="window.print()">Друк</button>
+      <a class="btn dark" href="./ticket-office.html">← Квитковий відділ</a>
+    </div>
+  </header>
+
+  <div id="status" class="status">Завантаження...</div>
+
+  <section class="grid">
+    <div class="metric">
+      <div class="metric-title">Створено</div>
+      <div class="metric-value" id="mTotal">0</div>
+      <div class="metric-note">усі compensation rights</div>
+    </div>
+
+    <div class="metric">
+      <div class="metric-title">Погашено</div>
+      <div class="metric-value greenText" id="mUsed">0</div>
+      <div class="metric-note">compensation_used = true</div>
+    </div>
+
+    <div class="metric">
+      <div class="metric-title">Залишок боргу</div>
+      <div class="metric-value yellowText" id="mUnused">0</div>
+      <div class="metric-note">ще не використано</div>
+    </div>
+
+    <div class="metric">
+      <div class="metric-title">OK сканів</div>
+      <div class="metric-value blueText" id="mOk">0</div>
+      <div class="metric-note">recovery_audit.result = OK</div>
+    </div>
+
+    <div class="metric">
+      <div class="metric-title">Повтори</div>
+      <div class="metric-value orangeText" id="mRepeated">0</div>
+      <div class="metric-note">ALREADY_USED</div>
+    </div>
+
+    <div class="metric">
+      <div class="metric-title">Не знайдено</div>
+      <div class="metric-value redText" id="mNotFound">0</div>
+      <div class="metric-note">NOT_FOUND / DUPLICATE</div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Борг за сеансами, де виникла компенсація</h2>
+      <div class="panel-note">
+        Показує, скільки театр ще винен по кожному прерваному / компенсованому сеансу.
+      </div>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Сеанс-джерело</th>
+              <th>Створено</th>
+              <th>Погашено</th>
+              <th>Залишок</th>
+              <th>Де погашали</th>
+            </tr>
+          </thead>
+          <tbody id="sourceBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Погашення за сеансами</h2>
+      <div class="panel-note">
+        Показує, на які сеанси фактично прийшли глядачі з компенсаційними правами.
+      </div>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Сеанс погашення</th>
+              <th>Компенсаційних проходів</th>
+              <th>З яких сеансів</th>
+            </tr>
+          </thead>
+          <tbody id="usedBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Матриця “звідки → куди”</h2>
+    <div class="panel-note">
+      Головна управлінська таблиця: з якого сеансу виник борг і на якому сеансі його закрили.
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Компенсація від</th>
+            <th>Погашено на</th>
+            <th>К-сть</th>
+            <th>Останнє погашення</th>
+          </tr>
+        </thead>
+        <tbody id="matrixBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Детальний журнал компенсацій</h2>
+    <div class="panel-note">
+      Кожний compensation token окремо: глядач, старе місце, джерело, погашення, статус.
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Глядач</th>
+            <th>Компенсація від</th>
+            <th>Погашено на</th>
+            <th>Статус</th>
+            <th>Час / Контролер</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Останні сканування Recovery</h2>
+    <div class="panel-note">
+      Сюди потрапляють OK, повтори, помилки, не знайдені QR.
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Час</th>
+            <th>Token</th>
+            <th>Результат</th>
+            <th>Від</th>
+            <th>На сеансі</th>
+            <th>Контролер</th>
+          </tr>
+        </thead>
+        <tbody id="auditBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+"use strict";
+
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let SEANCES = [];
+let TOKENS = [];
+let AUDIT = [];
+
+let SEANCE_MAP = {};
+let LAST_REPORT_TEXT = "";
+
+const $ = (id) => document.getElementById(id);
+
+function esc(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function shortToken(value){
+  const s = String(value || "");
+  if (s.length <= 22) return s || "—";
+  return s.slice(0, 10) + "…" + s.slice(-8);
+}
+
+function fmtDateTime(value){
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+
+  return d.toLocaleString("uk-UA", {
+    day:"2-digit",
+    month:"2-digit",
+    year:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+}
+
+function seanceLabel(id){
+  const sid = String(id || "").trim();
+  if (!sid) {
+    return {
+      title:"—",
+      meta:"не зафіксовано",
+      id:""
+    };
+  }
+
+  const s = SEANCE_MAP[sid];
+
+  if (!s) {
+    return {
+      title:sid,
+      meta:"сеанс не знайдено у seances",
+      id:sid
+    };
+  }
+
+  return {
+    title:s.show || sid,
+    meta:[s.date, s.time, s.venue_id].filter(Boolean).join(" • "),
+    id:sid
+  };
+}
+
+function seanceCell(id){
+  const x = seanceLabel(id);
+
+  return `
+    <strong>${esc(x.title)}</strong><br>
+    <small>${esc(x.meta)}</small>
+    ${x.id ? `<br><small class="mono">${esc(x.id)}</small>` : ""}
+  `;
+}
+
+function setStatus(kind, text){
+  const el = $("status");
+  el.classList.remove("ok","bad");
+  if (kind) el.classList.add(kind);
+  el.textContent = text || "";
+}
+
+async function fetchPaged(table, select, orderColumn){
+  const pageSize = 1000;
+  let from = 0;
+  let all = [];
+
+  while (true) {
+    let q = sb
+      .from(table)
+      .select(select)
+      .range(from, from + pageSize - 1);
+
+    if (orderColumn) {
+      q = q.order(orderColumn, { ascending:false });
+    }
+
+    const { data, error } = await q;
+
+    if (error) throw error;
+
+    const rows = Array.isArray(data) ? data : [];
+    all = all.concat(rows);
+
+    if (rows.length < pageSize) break;
+
+    from += pageSize;
+  }
+
+  return all;
+}
+
+async function loadAll(){
+  setStatus("", "Завантаження компенсаційного обліку...");
+
+  try {
+    const [seances, tokens, audit] = await Promise.all([
+      fetchPaged(
+        "seances",
+        "id,show,date,time,venue_id,status,active,archived",
+        "date"
+      ),
+      fetchPaged(
+        "recovery_tokens",
+        "*",
+        "created_at"
+      ),
+      fetchPaged(
+        "recovery_audit",
+        "*",
+        "created_at"
+      )
+    ]);
+
+    SEANCES = seances;
+    TOKENS = tokens;
+    AUDIT = audit;
+
+    SEANCE_MAP = {};
+    SEANCES.forEach(s => {
+      if (s.id) SEANCE_MAP[String(s.id)] = s;
+    });
+
+    renderAll();
+
+    setStatus("ok", "Дані оновлено: " + new Date().toLocaleTimeString("uk-UA"));
+
+  } catch(e) {
+    console.error(e);
+    setStatus("bad", "Помилка завантаження: " + String(e.message || e));
+  }
+}
+
+function buildAuditByToken(){
+  const map = {};
+
+  AUDIT.forEach(a => {
+    const token = String(a.token || "").trim();
+    if (!token) return;
+
+    if (!map[token]) map[token] = [];
+    map[token].push(a);
+  });
+
+  Object.values(map).forEach(list => {
+    list.sort((a,b) => {
+      const da = new Date(a.created_at || 0).getTime();
+      const db = new Date(b.created_at || 0).getTime();
+      return db - da;
+    });
+  });
+
+  return map;
+}
+
+function latestOkAuditForToken(token, auditByToken){
+  const list = auditByToken[String(token || "").trim()] || [];
+  return list.find(a => String(a.result || "").toUpperCase() === "OK") || null;
+}
+
+function effectiveUsedSeanceId(tokenRow, auditByToken){
+  if (tokenRow.used_seance_id) return String(tokenRow.used_seance_id);
+
+  const ok = latestOkAuditForToken(tokenRow.token, auditByToken);
+  if (ok && ok.scan_seance_id) return String(ok.scan_seance_id);
+
+  return "";
+}
+
+function effectiveSourceSeanceId(tokenRow, auditByToken){
+  if (tokenRow.source_seance_id) return String(tokenRow.source_seance_id);
+
+  const ok = latestOkAuditForToken(tokenRow.token, auditByToken);
+  if (ok && ok.source_seance_id) return String(ok.source_seance_id);
+
+  return "";
+}
+
+function bump(map, key, amount = 1){
+  const k = key || "__none__";
+  map[k] = (map[k] || 0) + amount;
+}
+
+function renderAll(){
+  const auditByToken = buildAuditByToken();
+
+  const total = TOKENS.length;
+  const used = TOKENS.filter(t => t.compensation_used === true).length;
+  const unused = Math.max(total - used, 0);
+
+  const okScans = AUDIT.filter(a => String(a.result || "").toUpperCase() === "OK").length;
+  const repeated = AUDIT.filter(a => String(a.result || "").toUpperCase() === "ALREADY_USED").length;
+  const notFound = AUDIT.filter(a => {
+    const r = String(a.result || "").toUpperCase();
+    return r === "NOT_FOUND" || r === "DUPLICATE_TOKEN";
+  }).length;
+
+  $("mTotal").textContent = total;
+  $("mUsed").textContent = used;
+  $("mUnused").textContent = unused;
+  $("mOk").textContent = okScans;
+  $("mRepeated").textContent = repeated;
+  $("mNotFound").textContent = notFound;
+
+  renderSourceTable(auditByToken);
+  renderUsedTable(auditByToken);
+  renderMatrixTable(auditByToken);
+  renderDetailTable(auditByToken);
+  renderAuditTable();
+
+  LAST_REPORT_TEXT = [
+    "КОМПЕНСАЦІЙНИЙ ОБЛІК",
+    "Створено: " + total,
+    "Погашено: " + used,
+    "Залишок боргу: " + unused,
+    "OK сканів: " + okScans,
+    "Повтори: " + repeated,
+    "Не знайдено / дублікати: " + notFound
+  ].join("\\n");
+}
+
+function renderSourceTable(auditByToken){
+  const groups = {};
+
+  TOKENS.forEach(t => {
+    const sourceId = effectiveSourceSeanceId(t, auditByToken) || "__none__";
+    const usedId = effectiveUsedSeanceId(t, auditByToken) || "__none__";
+
+    if (!groups[sourceId]) {
+      groups[sourceId] = {
+        sourceId,
+        total:0,
+        used:0,
+        unused:0,
+        usedOn:{}
+      };
+    }
+
+    const g = groups[sourceId];
+
+    g.total++;
+
+    if (t.compensation_used === true) {
+      g.used++;
+      bump(g.usedOn, usedId);
+    } else {
+      g.unused++;
+    }
+  });
+
+  const rows = Object.values(groups)
+    .sort((a,b) => b.unused - a.unused || b.total - a.total);
+
+  const body = $("sourceBody");
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="5" class="empty">Компенсацій немає</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(g => {
+    const usedOnHtml = Object.entries(g.usedOn)
+      .sort((a,b) => b[1] - a[1])
+      .map(([id,count]) => {
+        const label = seanceLabel(id === "__none__" ? "" : id);
+        return `<div><strong>${count}</strong> — ${esc(label.title)}<br><small>${esc(label.meta)}</small></div>`;
+      })
+      .join("<br>");
+
+    return `
+      <tr>
+        <td>${seanceCell(g.sourceId === "__none__" ? "" : g.sourceId)}</td>
+        <td><strong>${g.total}</strong></td>
+        <td><span class="tag ok">${g.used}</span></td>
+        <td><span class="tag open">${g.unused}</span></td>
+        <td>${usedOnHtml || `<small>ще не погашали</small>`}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function renderUsedTable(auditByToken){
+  const groups = {};
+
+  TOKENS.forEach(t => {
+    if (t.compensation_used !== true) return;
+
+    const usedId = effectiveUsedSeanceId(t, auditByToken) || "__none__";
+    const sourceId = effectiveSourceSeanceId(t, auditByToken) || "__none__";
+
+    if (!groups[usedId]) {
+      groups[usedId] = {
+        usedId,
+        total:0,
+        sources:{}
+      };
+    }
+
+    groups[usedId].total++;
+    bump(groups[usedId].sources, sourceId);
+  });
+
+  const rows = Object.values(groups)
+    .sort((a,b) => b.total - a.total);
+
+  const body = $("usedBody");
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="3" class="empty">Погашень ще немає</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(g => {
+    const sourceHtml = Object.entries(g.sources)
+      .sort((a,b) => b[1] - a[1])
+      .map(([id,count]) => {
+        const label = seanceLabel(id === "__none__" ? "" : id);
+        return `<div><strong>${count}</strong> — ${esc(label.title)}<br><small>${esc(label.meta)}</small></div>`;
+      })
+      .join("<br>");
+
+    return `
+      <tr>
+        <td>${seanceCell(g.usedId === "__none__" ? "" : g.usedId)}</td>
+        <td><span class="tag ok">${g.total}</span></td>
+        <td>${sourceHtml || "—"}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function renderMatrixTable(auditByToken){
+  const matrix = {};
+
+  TOKENS.forEach(t => {
+    if (t.compensation_used !== true) return;
+
+    const sourceId = effectiveSourceSeanceId(t, auditByToken) || "__none__";
+    const usedId = effectiveUsedSeanceId(t, auditByToken) || "__none__";
+    const key = sourceId + "|||"+ usedId;
+
+    if (!matrix[key]) {
+      matrix[key] = {
+        sourceId,
+        usedId,
+        count:0,
+        latest:""
+      };
+    }
+
+    matrix[key].count++;
+
+    const dt = t.compensation_used_at || "";
+    if (dt && (!matrix[key].latest || new Date(dt) > new Date(matrix[key].latest))) {
+      matrix[key].latest = dt;
+    }
+  });
+
+  const rows = Object.values(matrix)
+    .sort((a,b) => b.count - a.count);
+
+  const body = $("matrixBody");
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="4" class="empty">Матриця поки порожня</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(r => `
+    <tr>
+      <td>${seanceCell(r.sourceId === "__none__" ? "" : r.sourceId)}</td>
+      <td>${seanceCell(r.usedId === "__none__" ? "" : r.usedId)}</td>
+      <td><strong>${r.count}</strong></td>
+      <td>${fmtDateTime(r.latest)}</td>
+    </tr>
+  `).join("");
+}
+
+function renderDetailTable(auditByToken){
+  const rows = TOKENS.slice().sort((a,b) => {
+    const da = new Date(a.created_at || 0).getTime();
+    const db = new Date(b.created_at || 0).getTime();
+    return db - da;
+  });
+
+  const body = $("detailBody");
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="6" class="empty">Компенсаційних token-ів немає</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(t => {
+    const sourceId = effectiveSourceSeanceId(t, auditByToken);
+    const usedId = effectiveUsedSeanceId(t, auditByToken);
+
+    const status = t.compensation_used === true
+      ? `<span class="tag ok">Погашено</span>`
+      : `<span class="tag open">Відкрито</span>`;
+
+    const viewer = [
+      t.owner_name || "",
+      t.owner_email || "",
+      t.owner_phone || ""
+    ].filter(Boolean).join("<br>");
+
+    const oldSeat = t.source_seat_label || t.seat_label || "";
+
+    return `
+      <tr>
+        <td>
+          <div class="mono">${esc(shortToken(t.token))}</div>
+          <small>${esc(t.id || "")}</small>
+        </td>
+        <td>
+          ${viewer ? viewer : "—"}
+          ${oldSeat ? `<br><small>Старе місце: ${esc(oldSeat)}</small>` : ""}
+        </td>
+        <td>${seanceCell(sourceId)}</td>
+        <td>${seanceCell(usedId)}</td>
+        <td>${status}</td>
+        <td>
+          ${fmtDateTime(t.compensation_used_at)}
+          ${t.compensation_used_by ? `<br><small>${esc(t.compensation_used_by)}</small>` : ""}
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function renderAuditTable(){
+  const rows = AUDIT.slice()
+    .sort((a,b) => {
+      const da = new Date(a.created_at || 0).getTime();
+      const db = new Date(b.created_at || 0).getTime();
+      return db - da;
+    })
+    .slice(0, 300);
+
+  const body = $("auditBody");
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="6" class="empty">Сканувань ще немає</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(a => {
+    const result = String(a.result || "").toUpperCase();
+
+    let tagClass = "info";
+    if (result === "OK") tagClass = "ok";
+    if (result === "ALREADY_USED") tagClass = "open";
+    if (result === "NOT_FOUND" || result === "DUPLICATE_TOKEN") tagClass = "bad";
+
+    return `
+      <tr>
+        <td>${fmtDateTime(a.created_at)}</td>
+        <td><span class="mono">${esc(shortToken(a.token))}</span></td>
+        <td><span class="tag ${tagClass}">${esc(result || "—")}</span></td>
+        <td>${seanceCell(a.source_seance_id)}</td>
+        <td>${seanceCell(a.scan_seance_id)}</td>
+        <td>${esc(a.scanned_by || "—")}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+async function copyReport(){
+  try {
+    await navigator.clipboard.writeText(LAST_REPORT_TEXT || "Компенсаційний звіт порожній.");
+    setStatus("ok", "Звіт скопійовано в буфер.");
+  } catch(e) {
+    setStatus("bad", "Не вдалося скопіювати: " + String(e.message || e));
+  }
+}
+
+window.addEventListener("load", loadAll);
+</script>
+
+</body>
+</html>
