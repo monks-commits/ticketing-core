@@ -941,11 +941,9 @@ const recoveryTokens = await api(
 
     const returned = tickets.filter(t => String(t.status || "").toLowerCase() === "returned").length;
 
-    const comp = tickets.filter(t =>
-      t.compensation_allowed === true ||
-      t.compensation_used === true ||
-      String(t.ticket_type || "").toLowerCase() === "compensation"
-    ).length;
+   const compTotal = recoveryTokens.length;
+const compUsed = recoveryTokens.filter(t => t.compensation_used === true).length;
+const compUnused = Math.max(compTotal - compUsed, 0);
 
     const used = tickets.filter(t => !!t.checked_in_at).length;
 
