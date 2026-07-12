@@ -372,17 +372,21 @@ function renderChoices(list){
   const box = $("choicesBox");
   const choices = $("choices");
 
+  CHOICE_SEANCES = Array.isArray(list) ? list : [];
+
   choices.innerHTML = "";
 
-  list.forEach(s => {
+  CHOICE_SEANCES.forEach(s => {
     const label = seanceLabel(s);
 
     const btn = document.createElement("button");
     btn.className = "choice";
+
     btn.innerHTML = `
       ${escapeHtml(label.title)}
       <small>${escapeHtml(label.meta || s.id)}</small>
     `;
+
     btn.onclick = () => chooseSeance(s.id);
 
     choices.appendChild(btn);
@@ -390,7 +394,6 @@ function renderChoices(list){
 
   box.classList.remove("hidden");
 }
-
 async function loadSeances(){
   CURRENT_SEANCE = null;
   TODAY_SEANCES = [];
