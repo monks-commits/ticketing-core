@@ -419,7 +419,8 @@ async function loadSeances(){
     if (error) throw error;
 
     const rows = Array.isArray(data) ? data : [];
-
+ALL_SEANCES = rows;
+    
     const available = rows.filter(s => {
       if (s.archived === true) return false;
       if (s.active === false) return false;
