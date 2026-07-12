@@ -924,7 +924,7 @@ const recoveryTokens = await api(
     const activeBookings = bookings.filter(b => {
       const st = String(b.status || "").toLowerCase();
 
-      if (!["hold","reserved"].includes(st)) return false;
+      if (!["hold","reserved","issued_to_partner"].includes(st)) return false;
 
       if (st === "hold" && b.expires_at && b.expires_at <= nowIso) {
         return false;
