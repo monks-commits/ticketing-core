@@ -894,6 +894,11 @@ async function loadTurnover(seanceId){
       `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
     );
 
+const recoveryTokens = await api(
+  "recovery_tokens",
+  `?source_seance_id=eq.${encodeURIComponent(seanceId)}&select=id,compensation_used`
+);
+    
     const soldSeats = new Set(
       tickets
         .map(t => String(t.seat_label || "").trim())
