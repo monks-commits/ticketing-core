@@ -171,56 +171,58 @@ th,td{
   <div class="metric-note">компенсаційні квитки</div>
 </div>
 
-  <div class="main">
+   <div class="main">
 
-<div class="card" style="margin-top:16px;">
-  <h2>Динаміка продажів</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Дата</th>
-        <th>Квитків</th>
-        <th>Сума</th>
-        <th>Середній чек</th>
-      </tr>
-    </thead>
-    <tbody id="dailyRows"></tbody>
-  </table>
-</div>
-    
     <div class="card">
-      <h2>Канали продажів</h2>
+      <h2>Динаміка продажів</h2>
       <table>
         <thead>
           <tr>
-            <th>Канал</th>
+            <th>Дата</th>
             <th>Квитків</th>
             <th>Сума</th>
-            <th>%</th>
+            <th>Середній чек</th>
           </tr>
         </thead>
-        <tbody id="channelRows"></tbody>
+        <tbody id="dailyRows"></tbody>
       </table>
     </div>
 
-    <div class="card">
-      <h2>Типи квитків</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Тип</th>
-            <th>Квитків</th> 
-            <th>Сума</th>
-            <th>%</th>
-          </tr>
-        </thead>
-        <tbody id="typeRows"></tbody>
-      </table>
+    <div class="side">
+
+      <div class="card">
+        <h2>Канали продажів</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Канал</th>
+              <th>Квитків</th>
+              <th>Сума</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody id="channelRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Типи квитків</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Тип</th>
+              <th>Квитків</th>
+              <th>Сума</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody id="typeRows"></tbody>
+        </table>
+      </div>
+
     </div>
+
   </div>
-
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
