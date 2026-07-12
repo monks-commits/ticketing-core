@@ -405,9 +405,10 @@ async function loadSeances(){
 
   const qs = new URLSearchParams(location.search);
   const forcedId =
-    qs.get("seance") ||
-    qs.get("seance_id") ||
-    "";
+  qs.get("seance") ||
+  qs.get("seance_id") ||
+  localStorage.getItem(GATE_SELECTED_SEANCE_KEY) ||
+  "";
 
   try {
     const { data, error } = await sb
