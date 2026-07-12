@@ -1,183 +1,168 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VA Director Dashboard</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
     }
 
-    body {
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: #0d1728;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    body{
+      min-height:100vh;
+      font-family:Arial, Helvetica, sans-serif;
+      background:#0d1728;
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
     }
 
-    .director-home {
-      width: min(760px, 92vw);
-      background: #1d2a3d;
-      border-radius: 26px;
-      padding: 58px 48px;
-      text-align: center;
-      box-shadow: 0 24px 70px rgba(0,0,0,.42);
-      border: 1px solid rgba(255,255,255,.08);
+    .dashboard{
+      width:min(880px, 100%);
+      background:#1d2a3d;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:28px;
+      padding:70px 40px;
+      text-align:center;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
     }
 
-    .title {
-      font-size: 36px;
-      font-weight: 900;
-      margin-bottom: 12px;
-      letter-spacing: .2px;
+    h1{
+      font-size:46px;
+      line-height:1.1;
+      margin-bottom:20px;
+      font-weight:900;
+      letter-spacing:.02em;
     }
 
-    .subtitle {
-      font-size: 18px;
-      color: #b9c3d5;
-      margin-bottom: 48px;
+    .subtitle{
+      font-size:22px;
+      color:#c8d0dd;
+      margin-bottom:54px;
     }
 
-    .buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      align-items: center;
+    .director-actions{
+      width:min(520px, 100%);
+      margin:0 auto;
+      display:flex;
+      flex-direction:column;
+      gap:20px;
     }
 
-    .director-btn {
-      width: min(360px, 100%);
-      height: 72px;
-      border: 0;
-      border-radius: 999px;
-      color: #fff;
-      font-size: 22px;
-      font-weight: 900;
-      cursor: pointer;
-      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+    .director-btn{
+      width:100%;
+      min-height:74px;
+      border:0;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+      color:#fff;
+      font-size:27px;
+      font-weight:900;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      cursor:pointer;
+      box-shadow:0 14px 34px rgba(0,0,0,.24);
+      transition:.15s ease;
     }
 
-    .director-btn:hover {
-      transform: translateY(-2px);
-      opacity: .96;
+    .director-btn:hover{
+      filter:brightness(1.08);
+      transform:translateY(-1px);
     }
 
-    .director-btn.seances {
-      background: #5b0d16;
-      box-shadow: 0 12px 28px rgba(91,13,22,.42);
+    .director-btn.red{
+      background:#7f0f1a;
     }
 
-    .director-btn.clients {
-      background: #26364f;
-      box-shadow: 0 12px 28px rgba(0,0,0,.28);
-      border: 1px solid rgba(255,255,255,.08);
+    .director-btn.blue{
+      background:#2563eb;
     }
 
-    .note {
-      margin-top: 36px;
-      color: #7f8da5;
-      font-size: 13px;
+    .director-btn.yellow{
+      background:#f5b400;
+      color:#111827;
     }
 
-.director-actions{
-  width:min(460px, 100%);
-  margin:54px auto 0;
-  display:flex;
-  flex-direction:column;
-  gap:22px;
-}
+    .director-btn.green{
+      background:#22c55e;
+      color:#07111f;
+    }
 
-.director-btn{
-  min-height:74px;
-  border-radius:999px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-decoration:none;
-  color:#fff;
-  font-size:28px;
-  font-weight:900;
-  letter-spacing:.03em;
-  text-transform:uppercase;
-  border:0;
-  box-shadow:0 14px 32px rgba(0,0,0,.22);
-}
+    .version{
+      margin-top:46px;
+      color:#7fa0d8;
+      font-size:16px;
+    }
 
-.director-btn.red{
-  background:#7f0f1a;
-}
+    @media(max-width:640px){
+      body{
+        padding:18px;
+      }
 
-.director-btn.blue{
-  background:#2563eb;
-}
+      .dashboard{
+        padding:44px 20px;
+        border-radius:22px;
+      }
 
-.director-btn.yellow{
-  background:#f5b400;
-  color:#111827;
-}
+      h1{
+        font-size:34px;
+      }
 
-.director-btn.green{
-  background:#22c55e;
-  color:#07111f;
-}
+      .subtitle{
+        font-size:18px;
+        margin-bottom:36px;
+      }
 
-.director-btn:hover{
-  filter:brightness(1.08);
-  transform:translateY(-1px);
-}
-    
+      .director-btn{
+        min-height:66px;
+        font-size:21px;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <main class="director-home">
-    <div class="title">VA Director Dashboard</div>
-    <div class="subtitle">Директорська ложа управління театром</div>
 
-   <div class="director-actions">
+  <main class="dashboard">
+    <h1>VA Director Dashboard</h1>
 
-  <a class="director-btn red" href="./director-seances.html#sale">
-    СЕАНСИ
-  </a>
+    <div class="subtitle">
+      Директорська ложа управління театром
+    </div>
 
-  <a class="director-btn blue" href="./ticket-office.html#turnover">
-    КВИТКОВИЙ ВІДДІЛ
-  </a>
+    <div class="director-actions">
 
-  <a class="director-btn yellow" href="./compensation-cabinet.html">
-    КОМПЕНСАЦІЇ
-  </a>
+      <button class="director-btn red" onclick="location.href='./director-seances.html#sale'">
+        Сеанси
+      </button>
 
-  <a class="director-btn green" href="./gate-control.html">
-    КОНТРОЛЬ ДОСТУПУ
-  </a>
+      <button class="director-btn blue" onclick="location.href='./ticket-office.html'">
+        Квитковий відділ
+      </button>
 
-</div>
+      <button class="director-btn yellow" onclick="location.href='./compensation-cabinet.html'">
+        Компенсації
+      </button>
 
-    <div class="note">
+      <button class="director-btn green" onclick="location.href='./access-control.html'">
+        Контроль доступу
+      </button>
+
+    </div>
+
+    <div class="version">
       VA Director V1
     </div>
   </main>
 
-  <script>
-    function openSeances() {
-    window.location.href = "./director-seances.html";
-}
-
-function openSales() {
-    window.location.href = "./sales.html";
-}
-
-function openAccess() {
-    window.location.href = "./access-control.html";
-}
-  </script>
 </body>
 </html>
