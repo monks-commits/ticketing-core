@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VA Content Studio V1</title>
+  <style>
+    :root{
+      --bg:#061426;--panel:#102641;--panel2:#0a1d34;--line:#294563;
+      --text:#f7fbff;--muted:#aebfd4;--blue:#2f8cff;--green:#19a45b;
+      --red:#b54444;--gold:#f2b632;--violet:#7558d6;--shadow:0 16px 42px rgba(0,0,0,.22)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+    button,input,select,textarea{font:inherit}
+    .wrap{max-width:1580px;margin:0 auto;padding:22px 20px 60px}
+    .hero{background:linear-gradient(135deg,#172e4c,#102641);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px}
+    .hero-row{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+    h1{font-size:38px;margin:0 0 7px}.lead{color:var(--muted);font-size:17px;line-height:1.5}
+    h2{font-size:25px;margin:0 0 15px}h3{font-size:18px;margin:0 0 10px}
+    .statusbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:#254768;font-size:12px;font-weight:800}
+    .badge.ok{background:#17613e}.badge.warn{background:#765817}.badge.bad{background:#7a3333}
+    .nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+    .nav-btn,.tab-btn{border:1px solid var(--line);background:#091c31;color:#fff;border-radius:12px;padding:11px 14px;font-weight:800;cursor:pointer}
+    .nav-btn.active,.tab-btn.active{background:var(--blue);border-color:var(--blue)}
+    .section{display:none}.section.active{display:block}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+    .grid-main{display:grid;grid-template-columns:370px minmax(0,1fr);gap:16px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+    .toolbar .grow{flex:1 1 260px}
+    label{display:block;color:var(--muted);font-size:12px;font-weight:800;margin-bottom:6px}
+    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:11px;background:#071a2f;color:#fff;padding:10px 11px}
+    textarea{min-height:115px;resize:vertical;line-height:1.45}
+    .editor{min-height:270px}
+    .field{margin-bottom:12px}
+    .btn{border:0;border-radius:11px;padding:10px 14px;color:white;font-weight:900;cursor:pointer;background:#334f6d}
+    .btn:hover{filter:brightness(1.08)}.btn.blue{background:var(--blue)}.btn.green{background:var(--green)}
+    .btn.red{background:var(--red)}.btn.gold{background:var(--gold);color:#162033}.btn.violet{background:var(--violet)}
+    .btn.small{padding:7px 10px;font-size:12px}.btn:disabled{opacity:.5;cursor:not-allowed}
+    .list{display:grid;gap:9px;max-height:68vh;overflow:auto;padding-right:4px}
+    .list-item{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:13px;cursor:pointer}
+    .list-item:hover,.list-item.active{border-color:var(--blue)}.item-title{font-weight:900;font-size:17px;margin-bottom:6px}
+    .meta{color:var(--muted);font-size:13px;line-height:1.5}.empty{border:1px dashed var(--line);border-radius:13px;padding:17px;color:var(--muted)}
+    .notice{border-radius:13px;padding:13px;margin-bottom:14px;background:#132b48;border:1px solid #31577e;color:#dcecff}
+    .notice.warn{background:#30250c;border-color:#7d621d;color:#ffe9ac}.notice.bad{background:#351919;border-color:#7d3535;color:#ffd0d0}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.subpanel{display:none}.subpanel.active{display:block}
+    table{width:100%;border-collapse:collapse}th,td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{font-size:12px;color:var(--muted)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:13px}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:13px}
+    .kpi span{display:block;color:var(--muted);font-size:12px}.kpi b{font-size:24px;display:block;margin-top:5px}
+    .split-editor{display:grid;grid-template-columns:minmax(300px,1fr) minmax(380px,1.35fr);gap:14px}
+    .checkline{display:flex;gap:8px;align-items:center}.checkline input{width:auto}
+    .code{white-space:pre-wrap;background:#061425;border:1px solid var(--line);border-radius:12px;padding:12px;color:#d9e8fa;font-family:Consolas,monospace;font-size:13px}
+    .right{text-align:right}.nowrap{white-space:nowrap}.muted{color:var(--muted)}
+    .hidden{display:none!important}
+    @media(max-width:1050px){
+      .grid-main,.split-editor{grid-template-columns:1fr}.grid-3,.grid-4,.kpis{grid-template-columns:1fr 1fr}
+      .list{max-height:none}
+    }
+    @media(max-width:650px){
+      .wrap{padding:12px}.grid-2,.grid-3,.grid-4,.kpis{grid-template-columns:1fr}
+      h1{font-size:30px}.nav-btn{flex:1 1 44%}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="hero-row">
+      <div>
+        <h1>VA Content Studio V1</h1>
+        <div class="lead">Проєкт → матеріал → агент → варіанти → кампанія → розсилка → результат → історія.</div>
+      </div>
+      <div class="statusbar">
+        <span class="badge" id="apiBadge">Supabase: перевірка…</span>
+        <span class="badge" id="schemaBadge">Content Studio SQL: перевірка…</span>
+      </div>
+    </div>
+    <nav class="nav" id="mainNav">
+      <button class="nav-btn active" data-section="projects">Проєкти</button>
+      <button class="nav-btn" data-section="tasks">Завдання</button>
+      <button class="nav-btn" data-section="materials">Матеріали</button>
+      <button class="nav-btn" data-section="agents">Агенти</button>
+      <button class="nav-btn" data-section="templates">Шаблони</button>
+      <button class="nav-btn" data-section="campaigns">Кампанії</button>
+      <button class="nav-btn" data-section="mailings">Розсилки / дії</button>
+      <button class="nav-btn" data-section="history">Історія</button>
+    </nav>
+  </header>
+
+  <div id="globalMessage"></div>
+
+  <section class="section active" id="section-projects">
+    <div class="grid-main">
+      <aside class="card">
+        <h2>Проєкти</h2>
+        <div class="toolbar">
+          <button class="btn blue" id="newProjectBtn">+ Новий</button>
+          <button class="btn" id="reloadProjectsBtn">Оновити</button>
+        </div>
+        <div class="field"><input id="projectSearch" placeholder="Пошук за назвою, жанром, тегами"></div>
+        <div class="list" id="projectsList"></div>
+      </aside>
+      <main class="card">
+        <div id="projectEmpty" class="empty">Оберіть проєкт або створіть новий.</div>
+        <div id="projectWorkspace" class="hidden">
+          <div class="toolbar">
+            <h2 id="projectHeading" style="margin:0;flex:1">Проєкт</h2>
+            <button class="btn green" id="saveProjectBtn">Зберегти</button>
+            <button class="btn red" id="deleteProjectBtn">Видалити</button>
+          </div>
+          <div class="tabs">
+            <button class="tab-btn active" data-project-tab="passport">Паспорт</button>
+            <button class="tab-btn" data-project-tab="seances">Сеанси</button>
+            <button class="tab-btn" data-project-tab="summary">Стан роботи</button>
+          </div>
+
+          <div class="subpanel active" id="project-tab-passport">
+            <div class="grid-2">
+              <div class="field"><label>Назва</label><input id="pTitle"></div>
+              <div class="field"><label>Статус</label>
+                <select id="pStatus"><option value="draft">Чернетка</option><option value="active">Активний</option><option value="archive">Архів</option></select>
+              </div>
+            </div>
+            <div class="grid-3">
+              <div class="field"><label>Жанр</label><input id="pGenre" placeholder="опера, балет, джаз…"></div>
+              <div class="field"><label>Тип</label><input id="pType" placeholder="концерт, вистава…"></div>
+              <div class="field"><label>Вікове обмеження</label><input id="pAge" placeholder="12+"></div>
+            </div>
+            <div class="field"><label>Короткий опис</label><textarea id="pShort"></textarea></div>
+            <div class="field"><label>Повний опис / вихідний матеріал</label><textarea class="editor" id="pDescription"></textarea></div>
+            <div class="field"><label>Ключові слова</label><input id="pTags" placeholder="жанр, автор, виконавець, тема"></div>
+          </div>
+
+          <div class="subpanel" id="project-tab-seances">
+            <div class="toolbar">
+              <div class="grow"><input id="seanceSearch" placeholder="Пошук сеансу за назвою, датою, залом"></div>
+              <button class="btn" id="reloadSeancesBtn">Оновити сеанси</button>
+            </div>
+            <h3>Привʼязані сеанси</h3>
+            <div id="linkedSeances"></div>
+            <h3 style="margin-top:18px">Доступні сеанси</h3>
+            <div id="availableSeances"></div>
+          </div>
+
+          <div class="subpanel" id="project-tab-summary">
+            <div class="kpis">
+              <div class="kpi"><span>Сеансів</span><b id="sumSeances">0</b></div>
+              <div class="kpi"><span>Завдань</span><b id="sumTasks">0</b></div>
+              <div class="kpi"><span>Матеріалів</span><b id="sumMaterials">0</b></div>
+              <div class="kpi"><span>Кампаній</span><b id="sumCampaigns">0</b></div>
+            </div>
+            <div class="notice">Цей екран показує єдиний стан проєкту. Детальна робота виконується у глобальних розділах «Завдання», «Матеріали» та «Кампанії».</div>
+            <div class="toolbar">
+              <button class="btn blue" data-jump="tasks">Створити завдання</button>
+              <button class="btn violet" data-jump="materials">Додати матеріал</button>
+              <button class="btn gold" data-jump="campaigns">Створити кампанію</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="section" id="section-tasks">
+    <div class="grid-main">
+      <aside class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1">Завдання</h2><button class="btn blue" id="newTaskBtn">+ Нове</button></div>
+        <div class="grid-2">
+          <div class="field"><label>Проєкт</label><select id="taskProjectFilter"></select></div>
+          <div class="field"><label>Статус</label>
+            <select id="taskStatusFilter"><option value="">Усі</option><option value="new">Нове</option><option value="in_progress">У роботі</option><option value="review">Перевірка</option><option value="approved">Затверджено</option><option value="done">Виконано</option></select>
+          </div>
+        </div>
+        <div class="list" id="tasksList"></div>
+      </aside>
+      <main class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1">Картка завдання</h2><button class="btn green" id="saveTaskBtn">Зберегти</button><button class="btn red" id="deleteTaskBtn">Видалити</button></div>
+        <input type="hidden" id="taskId">
+        <div class="grid-3">
+          <div class="field"><label>Контур</label><select id="taskArea"><option value="project">Проєкт</option><option value="marketing">Маркетинг</option><option value="office">Секретарська робота</option></select></div>
+          <div class="field"><label>Тип роботи</label>
+            <select id="taskType"><option value="write">Написати</option><option value="rewrite">Переписати</option><option value="shorten">Скоротити</option><option value="expand">Розширити</option><option value="adapt">Адаптувати</option><option value="translate">Перекласти</option><option value="proofread">Перевірити</option><option value="prepare_mailing">Підготувати розсилку</option><option value="prepare_letter">Підготувати лист</option><option value="prepare_post">Підготувати публікацію</option><option value="prepare_voiceover">Підготувати озвучення</option><option value="prepare_video_prompt">Підготувати відео / промпт</option></select>
+          </div>
+          <div class="field"><label>Пріоритет</label><select id="taskPriority"><option value="low">Низький</option><option value="normal">Звичайний</option><option value="high">Високий</option><option value="urgent">Терміновий</option></select></div>
+        </div>
+        <div class="field"><label>Назва завдання</label><input id="taskTitle"></div>
+        <div class="grid-3">
+          <div class="field"><label>Проєкт (необовʼязково)</label><select id="taskProject"></select></div>
+          <div class="field"><label>Сеанс (необовʼязково)</label><select id="taskSeance"></select></div>
+          <div class="field"><label>Кампанія (необовʼязково)</label><select id="taskCampaign"></select></div>
+        </div>
+        <div class="field"><label>Що потрібно зробити</label><textarea class="editor" id="taskDescription"></textarea></div>
+        <div class="field"><label>Привід / причина</label><textarea id="taskReason"></textarea></div>
+        <div class="grid-3">
+          <div class="field"><label>Статус</label><select id="taskStatus"><option value="new">Нове</option><option value="in_progress">У роботі</option><option value="review">Перевірка</option><option value="approved">Затверджено</option><option value="done">Виконано</option><option value="cancelled">Скасовано</option></select></div>
+          <div class="field"><label>Виконавець</label><input id="taskAssigned"></div>
+          <div class="field"><label>Строк</label><input type="datetime-local" id="taskDue"></div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="section" id="section-materials">
+    <div class="grid-main">
+      <aside class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1">Матеріали</h2><button class="btn blue" id="newMaterialBtn">+ Новий</button></div>
+        <div class="field"><label>Проєкт</label><select id="materialProjectFilter"></select></div>
+        <div class="list" id="materialsList"></div>
+      </aside>
+      <main class="card">
+        <div id="materialNoSchema" class="notice warn hidden">Спочатку виконайте SQL-файл Content Studio.</div>
+        <div class="toolbar"><h2 style="margin:0;flex:1">Матеріал і варіанти</h2><button class="btn green" id="saveMaterialBtn">Зберегти матеріал</button><button class="btn red" id="deleteMaterialBtn">Видалити</button></div>
+        <div class="split-editor">
+          <div>
+            <input type="hidden" id="materialId">
+            <div class="grid-2">
+              <div class="field"><label>Проєкт</label><select id="materialProject"></select></div>
+              <div class="field"><label>Завдання</label><select id="materialTask"></select></div>
+            </div>
+            <div class="grid-2">
+              <div class="field"><label>Тип матеріалу</label>
+                <select id="materialType"><option value="source">Вихідний матеріал</option><option value="master">Майстер-текст</option><option value="event_description">Опис події</option><option value="poster_ticket">Афіша / квиток</option><option value="social">Соцмережі</option><option value="voiceover">Озвучення</option><option value="video_prompts">Відео / промпти</option><option value="office_letter">Службовий лист</option><option value="other">Інше</option></select>
+              </div>
+              <div class="field"><label>Батьківський матеріал</label><select id="materialParent"></select></div>
+            </div>
+            <div class="field"><label>Назва</label><input id="materialTitle"></div>
+            <div class="field"><label>Текст</label><textarea class="editor" id="materialBody"></textarea></div>
+            <div class="grid-3">
+              <div class="field"><label>Мова</label><select id="materialLanguage"><option value="uk">Українська</option><option value="ru">Російська</option><option value="en">English</option></select></div>
+              <div class="field"><label>Статус</label><select id="materialStatus"><option value="draft">Чернетка</option><option value="review">Перевірка</option><option value="approved">Затверджено</option><option value="archive">Архів</option></select></div>
+              <div class="field"><label>Версія</label><input type="number" min="1" id="materialVersion" value="1"></div>
+            </div>
+            <div class="checkline"><input type="checkbox" id="materialMaster"><label for="materialMaster" style="margin:0">Це майстер-текст</label></div>
+          </div>
+          <div>
+            <div class="toolbar"><h3 style="margin:0;flex:1">Варіанти розміщення</h3><button class="btn violet" id="newVariantBtn">+ Варіант</button></div>
+            <div id="variantEditor" class="notice">Збережіть або оберіть матеріал, а потім створіть версію для конкретного каналу.</div>
+            <div id="variantsList"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="section" id="section-agents">
+    <div class="grid-main">
+      <aside class="card">
+        <h2>Профілі агентів</h2>
+        <div class="list" id="agentsList"></div>
+      </aside>
+      <main class="card">
+        <div class="notice">Цей екран формує та фіксує завдання агенту. Фактичний виклик моделі підключається через окрему Edge Function, щоб ключі та правила не зберігалися у браузері.</div>
+        <div class="toolbar"><h2 style="margin:0;flex:1">Підготовка запуску</h2><button class="btn violet" id="saveAgentRunBtn">Зберегти запуск</button></div>
+        <div class="grid-3">
+          <div class="field"><label>Агент</label><select id="runAgent"></select></div>
+          <div class="field"><label>Завдання</label><select id="runTask"></select></div>
+          <div class="field"><label>Шаблон</label><select id="runTemplate"></select></div>
+        </div>
+        <div class="field"><label>Вихідний матеріал</label><select id="runSource"></select></div>
+        <div class="field"><label>Інструкція для конкретного запуску</label><textarea class="editor" id="runInstruction"></textarea></div>
+        <div class="field"><label>Статус</label><select id="runStatus"><option value="prepared">Підготовлено</option><option value="queued">У черзі</option><option value="running">Виконується</option><option value="review">На перевірці</option><option value="approved">Затверджено</option><option value="failed">Помилка</option></select></div>
+        <h3>Останні запуски</h3>
+        <div id="agentRunsTable"></div>
+      </main>
+    </div>
+  </section>
+
+  <section class="section" id="section-templates">
+    <div class="grid-main">
+      <aside class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1">Шаблони</h2><button class="btn blue" id="newTemplateBtn">+ Новий</button></div>
+        <div class="list" id="templatesList"></div>
+      </aside>
+      <main class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1">Редактор шаблону</h2><button class="btn green" id="saveTemplateBtn">Зберегти</button><button class="btn red" id="deleteTemplateBtn">Видалити</button></div>
+        <input type="hidden" id="templateId">
+        <div class="grid-3">
+          <div class="field"><label>Назва</label><input id="templateName"></div>
+          <div class="field"><label>Категорія</label><input id="templateCategory" placeholder="social_post, reminder…"></div>
+          <div class="field"><label>Контур</label><select id="templateScope"><option value="global">Загальний</option><option value="project">Проєкт</option><option value="marketing">Маркетинг</option><option value="office">Секретарська робота</option><option value="venue">Майданчик</option></select></div>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>Канал</label><input id="templateChannel" placeholder="email, facebook, viber…"></div>
+          <div class="field"><label>Місце розміщення</label><input id="templatePlacement" placeholder="feed, message, letter…"></div>
+          <div class="field"><label>Тон</label><input id="templateTone" placeholder="офіційний, живий…"></div>
+        </div>
+        <div class="field"><label>Призначення</label><input id="templatePurpose"></div>
+        <div class="field"><label>Тема листа</label><input id="templateSubject"></div>
+        <div class="field"><label>Тіло шаблону</label><textarea class="editor" id="templateBody"></textarea></div>
+        <div class="grid-2">
+          <div class="field"><label>Змінні, JSON-масив</label><textarea id="templateVariables" placeholder='["project_title","ticket_link"]'></textarea></div>
+          <div class="field"><label>Ліміти, JSON</label><textarea id="templateLimits" placeholder='{"max_characters":160}'></textarea></div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="section" id="section-campaigns">
+    <div class="grid-main">
+      <aside class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1">Кампанії</h2><button class="btn gold" id="newCampaignBtn">+ Нова</button></div>
+        <div class="field"><label>Проєкт</label><select id="campaignProjectFilter"></select></div>
+        <div class="list" id="campaignsList"></div>
+      </aside>
+      <main class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1">Картка кампанії</h2><button class="btn green" id="saveCampaignBtn">Зберегти</button><button class="btn red" id="deleteCampaignBtn">Видалити</button></div>
+        <input type="hidden" id="campaignId">
+        <div class="grid-3">
+          <div class="field"><label>Назва</label><input id="campaignTitle"></div>
+          <div class="field"><label>Проєкт</label><select id="campaignProject"></select></div>
+          <div class="field"><label>Статус</label><select id="campaignStatus"><option value="draft">Чернетка</option><option value="planned">Заплановано</option><option value="active">Активна</option><option value="paused">Пауза</option><option value="completed">Завершена</option><option value="cancelled">Скасована</option></select></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Мета</label><input id="campaignObjective"></div>
+          <div class="field"><label>Привід</label><input id="campaignReason"></div>
+        </div>
+        <div class="field"><label>Опис кампанії</label><textarea class="editor" id="campaignDescription"></textarea></div>
+        <div class="grid-3">
+          <div class="field"><label>Відповідальний</label><input id="campaignOwner"></div>
+          <div class="field"><label>Початок</label><input type="datetime-local" id="campaignStarts"></div>
+          <div class="field"><label>Завершення</label><input type="datetime-local" id="campaignEnds"></div>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>Канали через кому</label><input id="campaignChannels" placeholder="facebook, viber, email"></div>
+          <div class="field"><label>UTM-код</label><input id="campaignUtm"></div>
+          <div class="field"><label>Реферальний код</label><input id="campaignRef"></div>
+        </div>
+        <div class="field"><label>Правило аудиторії, JSON</label><textarea id="campaignAudience" placeholder='{"segments":["regular"],"genres":["джаз"]}'></textarea></div>
+      </main>
+    </div>
+  </section>
+
+  <section class="section" id="section-mailings">
+    <div class="grid-main">
+      <aside class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1">Дії кампаній</h2><button class="btn blue" id="newActionBtn">+ Нова дія</button></div>
+        <div class="field"><label>Кампанія</label><select id="actionCampaignFilter"></select></div>
+        <div class="list" id="actionsList"></div>
+      </aside>
+      <main class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1">Публікація / лист / розсилка</h2><button class="btn green" id="saveActionBtn">Зберегти</button><button class="btn red" id="deleteActionBtn">Видалити</button></div>
+        <input type="hidden" id="actionId">
+        <div class="grid-3">
+          <div class="field"><label>Кампанія</label><select id="actionCampaign"></select></div>
+          <div class="field"><label>Тип дії</label><select id="actionType"><option value="mailing">Розсилка</option><option value="publication">Публікація</option><option value="letter">Лист</option><option value="call">Дзвінок</option><option value="meeting">Зустріч</option><option value="other">Інше</option></select></div>
+          <div class="field"><label>Канал</label><input id="actionChannel" placeholder="email, sms, viber, facebook…"></div>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>Матеріал / варіант</label><select id="actionVariant"></select></div>
+          <div class="field"><label>Шаблон</label><select id="actionTemplate"></select></div>
+          <div class="field"><label>Статус</label><select id="actionStatus"><option value="draft">Чернетка</option><option value="prepared">Підготовлено</option><option value="approved">Затверджено</option><option value="scheduled">Заплановано</option><option value="running">Виконується</option><option value="completed">Завершено</option><option value="failed">Помилка</option></select></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Заплановано</label><input type="datetime-local" id="actionScheduled"></div>
+          <div class="field"><label>Виконано</label><input type="datetime-local" id="actionExecuted"></div>
+        </div>
+        <div class="field"><label>Правило аудиторії, JSON</label><textarea id="actionAudience" placeholder='{"segment":"lost","days":180}'></textarea></div>
+        <div class="grid-3">
+          <div class="field"><label>Одержувачів</label><input type="number" min="0" id="actionRecipients" value="0"></div>
+          <div class="field"><label>Успішно</label><input type="number" min="0" id="actionSuccess" value="0"></div>
+          <div class="field"><label>Помилок</label><input type="number" min="0" id="actionErrors" value="0"></div>
+        </div>
+        <div class="field"><label>Результат / примітка</label><textarea id="actionResult"></textarea></div>
+        <div class="notice warn">Content Studio зберігає план, текст, одержувачів і результат. Безпосереднє відправлення підключається окремими провайдерами після затвердження правил.</div>
+      </main>
+    </div>
+  </section>
+
+  <section class="section" id="section-history">
+    <div class="card">
+      <div class="toolbar"><h2 style="margin:0;flex:1">Історія Content Studio</h2><button class="btn" id="reloadHistoryBtn">Оновити</button></div>
+      <div class="grid-3">
+        <div class="field"><label>Проєкт</label><select id="historyProjectFilter"></select></div>
+        <div class="field"><label>Контур</label><select id="historyAreaFilter"><option value="">Усі</option><option value="project">Проєкти</option><option value="content">Контент</option><option value="marketing">Маркетинг</option><option value="office">Секретарська робота</option><option value="system">Система</option></select></div>
+        <div class="field"><label>Пошук</label><input id="historySearch" placeholder="дія, сутність, виконавець"></div>
+      </div>
+      <div id="historyTable"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+'use strict';
+
+const SUPABASE_URL = window.SUPABASE_URL || 'https://fhusjlkneckbvnrdhbil.supabase.co';
+const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS';
+
+const $ = id => document.getElementById(id);
+const state = {
+  projects:[], seances:[], tasks:[], materials:[], variants:[], agents:[], agentRuns:[],
+  templates:[], campaigns:[], actions:[], history:[],
+  selectedProject:null, selectedMaterial:null, extendedReady:false
+};
+
+function headers(extra={}){
+  return {
+    apikey:SUPABASE_ANON_KEY,
+    Authorization:`Bearer ${SUPABASE_ANON_KEY}`,
+    'Content-Type':'application/json',
+    ...extra
+  };
+}
+async function sb(path, options={}){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers:headers(options.headers || {})
+  });
+  if(!res.ok){
+    const text = await res.text();
+    const err = new Error(text || res.statusText);
+    err.status = res.status;
+    throw err;
+  }
+  if(res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+function esc(v){
+  return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));
+}
+function fmt(v){
+  if(!v) return '—';
+  const d = new Date(v);
+  return isNaN(d) ? esc(v) : d.toLocaleString('uk-UA');
+}
+function dtLocal(v){
+  if(!v) return '';
+  const d = new Date(v);
+  if(isNaN(d)) return '';
+  const pad=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function isoOrNull(v){ return v ? new Date(v).toISOString() : null; }
+function parseJson(v, fallback){
+  try{return v.trim() ? JSON.parse(v) : fallback;}catch(e){throw new Error('Помилка у JSON: ' + e.message);}
+}
+function setMessage(text='', type=''){
+  $('globalMessage').innerHTML = text ? `<div class="notice ${type}">${esc(text)}</div>` : '';
+}
+function selectedProjectId(){ return state.selectedProject?.id || ''; }
+function projectName(id){ return state.projects.find(x=>String(x.id)===String(id))?.title || 'Без проєкту'; }
+function campaignName(id){ return state.campaigns.find(x=>String(x.id)===String(id))?.title || 'Без кампанії'; }
+function seanceTitle(s){
+  const title=s.show||s.title||s.name||s.show_title||s.id;
+  return `${title}${s.date?' — '+s.date:''}${s.time?' '+s.time:''}`;
+}
+async function saveRow(table, id, payload){
+  if(id){
+    await sb(`${table}?id=eq.${encodeURIComponent(id)}`, {method:'PATCH', body:JSON.stringify(payload)});
+    return id;
+  }
+  const rows = await sb(table, {method:'POST', headers:{Prefer:'return=representation'}, body:JSON.stringify(payload)});
+  return rows?.[0]?.id;
+}
+async function deleteRow(table,id){
+  if(!id) return;
+  await sb(`${table}?id=eq.${encodeURIComponent(id)}`, {method:'DELETE'});
+}
+async function logActivity(action, data={}){
+  if(!state.extendedReady) return;
+  try{
+    await sb('content_activity_log', {
+      method:'POST',
+      body:JSON.stringify({
+        area:data.area||'content',
+        project_id:data.project_id||null,
+        task_id:data.task_id||null,
+        campaign_id:data.campaign_id||null,
+        entity_type:data.entity_type||null,
+        entity_id:data.entity_id?String(data.entity_id):null,
+        action,
+        actor_type:'human',
+        actor_id:data.actor_id||'admin',
+        details:data.details||{}
+      })
+    });
+  }catch(e){ console.warn('Activity log:',e); }
+}
+
+function showSection(name){
+  document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.section===name));
+  $(`section-${name}`).classList.add('active');
+  if(name==='history') renderHistory();
+}
+function optionRows(rows, selected='', empty='— Не вибрано —', labelFn=x=>x.title||x.name||x.id){
+  return `<option value="">${esc(empty)}</option>` + rows.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(selected)?'selected':''}>${esc(labelFn(x))}</option>`).join('');
+}
+function populateProjectSelects(){
+  ['taskProjectFilter','taskProject','materialProjectFilter','materialProject','campaignProjectFilter','campaignProject','historyProjectFilter'].forEach(id=>{
+    const el=$(id); if(!el)return;
+    const keep=el.value;
+    el.innerHTML=optionRows(state.projects,keep,id.includes('Filter')?'Усі проєкти':'— Без проєкту —');
+  });
+}
+function populateGlobalSelects(){
+  populateProjectSelects();
+  $('taskSeance').innerHTML=optionRows(state.seances,$('taskSeance').value,'— Без сеансу —',seanceTitle);
+  $('taskCampaign').innerHTML=optionRows(state.campaigns,$('taskCampaign').value,'— Без кампанії —');
+  $('materialTask').innerHTML=optionRows(state.tasks,$('materialTask').value,'— Без завдання —');
+  $('materialParent').innerHTML=optionRows(state.materials.filter(x=>String(x.id)!==String($('materialId').value)),$('materialParent').value,'— Без батьківського матеріалу —');
+  $('runAgent').innerHTML=optionRows(state.agents,$('runAgent').value,'— Оберіть агента —');
+  $('runTask').innerHTML=optionRows(state.tasks,$('runTask').value,'— Без завдання —');
+  $('runTemplate').innerHTML=optionRows(state.templates,$('runTemplate').value,'— Без шаблону —');
+  $('runSource').innerHTML=optionRows(state.materials,$('runSource').value,'— Оберіть матеріал —');
+  ['actionCampaignFilter','actionCampaign'].forEach(id=>$(id).innerHTML=optionRows(state.campaigns,$(id).value,id.includes('Filter')?'Усі кампанії':'— Оберіть кампанію —'));
+  $('actionTemplate').innerHTML=optionRows(state.templates,$('actionTemplate').value,'— Без шаблону —');
+  $('actionVariant').innerHTML=optionRows(state.variants,$('actionVariant').value,'— Без варіанту —',x=>`${x.channel||'канал'} — ${x.headline||x.placement||x.id}`);
+}
+function renderProjects(){
+  const q=$('projectSearch').value.trim().toLowerCase();
+  const rows=state.projects.filter(p=>`${p.title} ${p.genre} ${p.type} ${p.tags}`.toLowerCase().includes(q));
+  $('projectsList').innerHTML=rows.length?rows.map(p=>`
+    <div class="list-item ${state.selectedProject&&String(state.selectedProject.id)===String(p.id)?'active':''}" data-project-id="${esc(p.id)}">
+      <div class="item-title">${esc(p.title||'Без назви')}</div>
+      <div class="meta">${esc(p.genre||'—')} · ${esc(p.type||'—')}<br>Статус: ${esc(p.status||'draft')}</div>
+    </div>`).join(''):'<div class="empty">Проєктів не знайдено.</div>';
+}
+function fillProject(p){
+  state.selectedProject=p;
+  $('projectEmpty').classList.add('hidden');
+  $('projectWorkspace').classList.remove('hidden');
+  $('projectHeading').textContent=p.title||'Новий проєкт';
+  $('pTitle').value=p.title||'';$('pStatus').value=p.status||'draft';$('pGenre').value=p.genre||'';
+  $('pType').value=p.type||'';$('pAge').value=p.age||'';$('pShort').value=p.short_description||'';
+  $('pDescription').value=p.description||'';$('pTags').value=p.tags||'';
+  renderProjects();renderSeances();renderProjectSummary();
+}
+async function loadProjects(){
+  state.projects=await sb('projects?select=*&order=created_at.desc');
+  renderProjects();populateGlobalSelects();
+}
+async function saveProject(){
+  const payload={
+    title:$('pTitle').value.trim()||'Без назви',status:$('pStatus').value,genre:$('pGenre').value.trim(),
+    type:$('pType').value.trim(),age:$('pAge').value.trim(),short_description:$('pShort').value.trim(),
+    description:$('pDescription').value.trim(),tags:$('pTags').value.trim(),updated_at:new Date().toISOString()
+  };
+  const id=await saveRow('projects',state.selectedProject?.isNew?null:state.selectedProject?.id,payload);
+  await logActivity(state.selectedProject?.isNew?'Створено проєкт':'Оновлено проєкт',{area:'project',project_id:id,entity_type:'project',entity_id:id});
+  await loadProjects();
+  fillProject(state.projects.find(x=>String(x.id)===String(id))||state.projects[0]);
+}
+async function removeProject(){
+  if(!state.selectedProject||state.selectedProject.isNew)return;
+  if(!confirm(`Видалити проєкт «${state.selectedProject.title}»?`))return;
+  const id=state.selectedProject.id;
+  await deleteRow('projects',id);
+  state.selectedProject=null;$('projectWorkspace').classList.add('hidden');$('projectEmpty').classList.remove('hidden');
+  await loadProjects();await logActivity('Видалено проєкт',{area:'project',entity_type:'project',entity_id:id});
+}
+async function loadSeances(){
+  state.seances=await sb('seances?select=*&order=date.asc');
+  renderSeances();populateGlobalSelects();
+}
+function seanceTable(rows,linked){
+  if(!rows.length)return '<div class="empty">Немає сеансів.</div>';
+  return `<div class="table-wrap"><table><thead><tr><th>Подія</th><th>Дата</th><th>Час</th><th>Зал</th><th></th></tr></thead><tbody>${rows.map(s=>`
+    <tr><td><b>${esc(s.show||s.title||s.name||s.id)}</b></td><td>${esc(s.date||'—')}</td><td>${esc(s.time||'—')}</td><td>${esc(s.hall||s.venue||'—')}</td>
+    <td class="right"><button class="btn small ${linked?'red':'blue'}" data-${linked?'unlink':'link'}-seance="${esc(s.id)}">${linked?'Відвʼязати':'Привʼязати'}</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+function renderSeances(){
+  if(!state.selectedProject||state.selectedProject.isNew){$('linkedSeances').innerHTML='<div class="empty">Спочатку збережіть проєкт.</div>';$('availableSeances').innerHTML='';return;}
+  const pid=String(state.selectedProject.id), q=$('seanceSearch').value.trim().toLowerCase();
+  const linked=state.seances.filter(s=>String(s.project_id||'')===pid);
+  const available=state.seances.filter(s=>!s.project_id&&seanceTitle(s).toLowerCase().includes(q));
+  $('linkedSeances').innerHTML=seanceTable(linked,true);$('availableSeances').innerHTML=seanceTable(available,false);
+}
+async function setSeanceProject(id,projectId){
+  await sb(`seances?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify({project_id:projectId})});
+  await loadSeances();await logActivity(projectId?'Привʼязано сеанс':'Відвʼязано сеанс',{area:'project',project_id:projectId||selectedProjectId(),entity_type:'seance',entity_id:id});
+}
+function renderProjectSummary(){
+  const pid=selectedProjectId();
+  $('sumSeances').textContent=state.seances.filter(x=>String(x.project_id||'')===String(pid)).length;
+  $('sumTasks').textContent=state.tasks.filter(x=>String(x.project_id||'')===String(pid)).length;
+  $('sumMaterials').textContent=state.materials.filter(x=>String(x.project_id||'')===String(pid)).length;
+  $('sumCampaigns').textContent=state.campaigns.filter(x=>String(x.project_id||'')===String(pid)).length;
+}
+
+async function loadExtended(){
+  try{
+    const [tasks,materials,variants,agents,runs,templates,campaigns,actions,history]=await Promise.all([
+      sb('content_tasks?select=*&order=created_at.desc'),
+      sb('content_items?select=*&order=updated_at.desc'),
+      sb('content_variants?select=*&order=updated_at.desc'),
+      sb('agent_profiles?select=*&order=name.asc'),
+      sb('agent_runs?select=*&order=created_at.desc&limit=100'),
+      sb('content_templates?select=*&order=name.asc'),
+      sb('marketing_campaigns?select=*&order=created_at.desc'),
+      sb('campaign_actions?select=*&order=created_at.desc'),
+      sb('content_activity_log?select=*&order=created_at.desc&limit=300')
+    ]);
+    Object.assign(state,{tasks,materials,variants,agents,agentRuns:runs,templates,campaigns,actions,history,extendedReady:true});
+    $('schemaBadge').textContent='Content Studio SQL: підключено';$('schemaBadge').className='badge ok';
+    $('materialNoSchema').classList.add('hidden');
+  }catch(e){
+    state.extendedReady=false;
+    $('schemaBadge').textContent='Content Studio SQL: не встановлено';$('schemaBadge').className='badge warn';
+    $('materialNoSchema').classList.remove('hidden');
+    console.warn(e);
+  }
+  populateGlobalSelects();renderTasks();renderMaterials();renderAgents();renderAgentRuns();renderTemplates();renderCampaigns();renderActions();renderHistory();renderProjectSummary();
+}
+
+function renderTasks(){
+  if(!state.extendedReady){$('tasksList').innerHTML='<div class="empty">Виконайте va_content_studio_v1.sql.</div>';return;}
+  const pid=$('taskProjectFilter').value,status=$('taskStatusFilter').value;
+  const rows=state.tasks.filter(x=>(!pid||String(x.project_id)===pid)&&(!status||x.status===status));
+  $('tasksList').innerHTML=rows.length?rows.map(x=>`<div class="list-item" data-task-id="${esc(x.id)}"><div class="item-title">${esc(x.title)}</div><div class="meta">${esc(x.area)} · ${esc(x.task_type)} · ${esc(x.status)}<br>${esc(projectName(x.project_id))}${x.due_at?' · до '+fmt(x.due_at):''}</div></div>`).join(''):'<div class="empty">Завдань немає.</div>';
+}
+function clearTask(){
+  ['taskId','taskTitle','taskDescription','taskReason','taskAssigned','taskDue'].forEach(id=>$(id).value='');
+  $('taskArea').value='project';$('taskType').value='write';$('taskPriority').value='normal';$('taskStatus').value='new';
+  $('taskProject').value=selectedProjectId();$('taskSeance').value='';$('taskCampaign').value='';
+}
+function fillTask(x){
+  $('taskId').value=x.id;$('taskArea').value=x.area||'project';$('taskType').value=x.task_type||'write';$('taskPriority').value=x.priority||'normal';
+  $('taskTitle').value=x.title||'';$('taskProject').value=x.project_id||'';$('taskSeance').value=x.seance_id||'';$('taskCampaign').value=x.campaign_id||'';
+  $('taskDescription').value=x.description||'';$('taskReason').value=x.reason||'';$('taskStatus').value=x.status||'new';$('taskAssigned').value=x.assigned_to||'';$('taskDue').value=dtLocal(x.due_at);
+}
+async function saveTask(){
+  const payload={area:$('taskArea').value,task_type:$('taskType').value,title:$('taskTitle').value.trim()||'Нове завдання',description:$('taskDescription').value.trim(),reason:$('taskReason').value.trim(),project_id:$('taskProject').value||null,seance_id:$('taskSeance').value||null,campaign_id:$('taskCampaign').value||null,priority:$('taskPriority').value,status:$('taskStatus').value,due_at:isoOrNull($('taskDue').value),assigned_to:$('taskAssigned').value.trim()||null};
+  const id=await saveRow('content_tasks',$('taskId').value||null,payload);await logActivity($('taskId').value?'Оновлено завдання':'Створено завдання',{area:payload.area,project_id:payload.project_id,task_id:id,entity_type:'task',entity_id:id});
+  await loadExtended();fillTask(state.tasks.find(x=>String(x.id)===String(id)));
+}
+async function removeTask(){const id=$('taskId').value;if(!id)return;if(!confirm('Видалити завдання?'))return;await deleteRow('content_tasks',id);clearTask();await loadExtended();}
+
+function renderMaterials(){
+  if(!state.extendedReady){$('materialsList').innerHTML='<div class="empty">Виконайте SQL-файл.</div>';return;}
+  const pid=$('materialProjectFilter').value;
+  const rows=state.materials.filter(x=>!pid||String(x.project_id)===pid);
+  $('materialsList').innerHTML=rows.length?rows.map(x=>`<div class="list-item ${state.selectedMaterial&&String(state.selectedMaterial.id)===String(x.id)?'active':''}" data-material-id="${esc(x.id)}"><div class="item-title">${esc(x.title||x.item_type)}</div><div class="meta">${esc(x.item_type)} · v${esc(x.version)} · ${esc(x.status)}<br>${esc(projectName(x.project_id))}${x.is_master?' · майстер-текст':''}</div></div>`).join(''):'<div class="empty">Матеріалів немає.</div>';
+}
+function clearMaterial(){
+  state.selectedMaterial=null;['materialId','materialTitle','materialBody'].forEach(id=>$(id).value='');
+  $('materialProject').value=selectedProjectId();$('materialTask').value='';$('materialType').value='source';$('materialParent').value='';$('materialLanguage').value='uk';$('materialStatus').value='draft';$('materialVersion').value=1;$('materialMaster').checked=false;
+  $('variantEditor').innerHTML='<div class="notice">Спочатку збережіть матеріал.</div>';$('variantsList').innerHTML='';renderMaterials();
+}
+function fillMaterial(x){
+  state.selectedMaterial=x;$('materialId').value=x.id;$('materialProject').value=x.project_id||'';$('materialTask').value=x.task_id||'';$('materialType').value=x.item_type||'source';$('materialParent').value=x.parent_id||'';
+  $('materialTitle').value=x.title||'';$('materialBody').value=x.body||'';$('materialLanguage').value=x.language||'uk';$('materialStatus').value=x.status||'draft';$('materialVersion').value=x.version||1;$('materialMaster').checked=!!x.is_master;
+  renderMaterials();renderVariants();populateGlobalSelects();
+}
+async function saveMaterial(){
+  const payload={project_id:$('materialProject').value||null,task_id:$('materialTask').value||null,parent_id:$('materialParent').value||null,item_type:$('materialType').value,title:$('materialTitle').value.trim()||'Матеріал',body:$('materialBody').value,language:$('materialLanguage').value,is_master:$('materialMaster').checked,status:$('materialStatus').value,version:Number($('materialVersion').value||1),author_type:'human'};
+  const id=await saveRow('content_items',$('materialId').value||null,payload);await logActivity($('materialId').value?'Оновлено матеріал':'Створено матеріал',{area:'content',project_id:payload.project_id,task_id:payload.task_id,entity_type:'content_item',entity_id:id});
+  await loadExtended();fillMaterial(state.materials.find(x=>String(x.id)===String(id)));
+}
+async function removeMaterial(){const id=$('materialId').value;if(!id)return;if(!confirm('Видалити матеріал разом з усіма його варіантами?'))return;await deleteRow('content_items',id);clearMaterial();await loadExtended();}
+function variantForm(x={}){
+  return `<div class="card" style="padding:13px;background:var(--panel2);box-shadow:none">
+    <input type="hidden" id="variantId" value="${esc(x.id||'')}">
+    <div class="grid-3">
+      <div class="field"><label>Канал</label><input id="variantChannel" value="${esc(x.channel||'')}"></div>
+      <div class="field"><label>Розміщення</label><input id="variantPlacement" value="${esc(x.placement||'')}"></div>
+      <div class="field"><label>Тон</label><input id="variantTone" value="${esc(x.tone||'')}"></div>
+    </div>
+    <div class="grid-3">
+      <div class="field"><label>Ліміт символів</label><input type="number" id="variantLimit" value="${esc(x.max_characters||'')}"></div>
+      <div class="field"><label>Тривалість, сек.</label><input type="number" id="variantDuration" value="${esc(x.target_duration_sec||'')}"></div>
+      <div class="field"><label>Статус</label><select id="variantStatus"><option value="draft">Чернетка</option><option value="review">Перевірка</option><option value="approved">Затверджено</option></select></div>
+    </div>
+    <div class="field"><label>Заголовок</label><input id="variantHeadline" value="${esc(x.headline||'')}"></div>
+    <div class="field"><label>Текст</label><textarea class="editor" id="variantBody">${esc(x.body||'')}</textarea></div>
+    <div class="grid-2"><div class="field"><label>Заклик до дії</label><input id="variantCta" value="${esc(x.call_to_action||'')}"></div><div class="field"><label>Посилання</label><input id="variantLink" value="${esc(x.link_url||'')}"></div></div>
+    <div class="toolbar"><button class="btn green" id="saveVariantBtn">Зберегти варіант</button>${x.id?'<button class="btn red" id="deleteVariantBtn">Видалити</button>':''}</div>
+  </div>`;
+}
+function renderVariants(){
+  if(!state.selectedMaterial){$('variantEditor').innerHTML='<div class="notice">Оберіть матеріал.</div>';$('variantsList').innerHTML='';return;}
+  $('variantEditor').innerHTML=variantForm();
+  const rows=state.variants.filter(x=>String(x.content_item_id)===String(state.selectedMaterial.id));
+  $('variantsList').innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>Канал</th><th>Розміщення</th><th>Ліміт</th><th>Статус</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.channel||'—')}</td><td>${esc(x.placement||'—')}</td><td>${esc(x.max_characters||x.target_duration_sec||'—')}</td><td>${esc(x.status)}</td><td><button class="btn small blue" data-edit-variant="${esc(x.id)}">Відкрити</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Варіантів поки немає.</div>';
+}
+async function saveVariant(){
+  if(!state.selectedMaterial)return;
+  const payload={content_item_id:state.selectedMaterial.id,channel:$('variantChannel').value.trim()||null,placement:$('variantPlacement').value.trim()||null,tone:$('variantTone').value.trim()||null,max_characters:Number($('variantLimit').value)||null,target_duration_sec:Number($('variantDuration').value)||null,headline:$('variantHeadline').value.trim()||null,body:$('variantBody').value,call_to_action:$('variantCta').value.trim()||null,link_url:$('variantLink').value.trim()||null,status:$('variantStatus').value,language:'uk'};
+  const id=await saveRow('content_variants',$('variantId').value||null,payload);await logActivity($('variantId').value?'Оновлено варіант':'Створено варіант',{area:'content',project_id:state.selectedMaterial.project_id,entity_type:'content_variant',entity_id:id});
+  await loadExtended();fillMaterial(state.materials.find(x=>String(x.id)===String(state.selectedMaterial.id)));
+}
+async function removeVariant(){const id=$('variantId').value;if(!id)return;await deleteRow('content_variants',id);await loadExtended();fillMaterial(state.selectedMaterial);}
+
+function renderAgents(){
+  $('agentsList').innerHTML=state.agents.length?state.agents.map(x=>`<div class="list-item" data-agent-id="${esc(x.id)}"><div class="item-title">${esc(x.name)}</div><div class="meta">${esc(x.role)} · ${x.is_active?'активний':'вимкнений'}<br>${esc(x.description||'')}</div></div>`).join(''):'<div class="empty">Агенти зʼявляться після виконання SQL.</div>';
+}
+function renderAgentRuns(){
+  const rows=state.agentRuns.slice(0,30);
+  $('agentRunsTable').innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>Дата</th><th>Агент</th><th>Статус</th><th>Інструкція</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${fmt(x.created_at)}</td><td>${esc(state.agents.find(a=>a.id===x.agent_profile_id)?.name||'—')}</td><td>${esc(x.status)}</td><td>${esc((x.instruction||'').slice(0,180))}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Запусків немає.</div>';
+}
+async function saveAgentRun(){
+  const agent=state.agents.find(x=>String(x.id)===String($('runAgent').value));
+  if(!agent)throw new Error('Оберіть агента.');
+  const source=state.materials.find(x=>String(x.id)===String($('runSource').value));
+  const payload={agent_profile_id:agent.id,task_id:$('runTask').value||null,source_content_id:source?.id||null,template_id:$('runTemplate').value||null,instruction:$('runInstruction').value.trim()||agent.instruction,status:$('runStatus').value,input_snapshot:{source_title:source?.title||null,source_body:source?.body||null,agent_code:agent.code},created_by:'admin'};
+  const id=await saveRow('agent_runs',null,payload);await logActivity('Підготовлено запуск агента',{area:'content',project_id:source?.project_id||null,task_id:payload.task_id,entity_type:'agent_run',entity_id:id,details:{agent:agent.code}});
+  $('runInstruction').value='';await loadExtended();
+}
+
+function renderTemplates(){
+  $('templatesList').innerHTML=state.templates.length?state.templates.map(x=>`<div class="list-item" data-template-id="${esc(x.id)}"><div class="item-title">${esc(x.name)}</div><div class="meta">${esc(x.scope)} · ${esc(x.channel||'без каналу')} · ${esc(x.category)}</div></div>`).join(''):'<div class="empty">Шаблонів немає.</div>';
+}
+function clearTemplate(){['templateId','templateName','templateCategory','templateChannel','templatePlacement','templateTone','templatePurpose','templateSubject','templateBody'].forEach(id=>$(id).value='');$('templateScope').value='global';$('templateVariables').value='[]';$('templateLimits').value='{}';}
+function fillTemplate(x){$('templateId').value=x.id;$('templateName').value=x.name||'';$('templateCategory').value=x.category||'';$('templateScope').value=x.scope||'global';$('templateChannel').value=x.channel||'';$('templatePlacement').value=x.placement||'';$('templateTone').value=x.tone||'';$('templatePurpose').value=x.purpose||'';$('templateSubject').value=x.subject_template||'';$('templateBody').value=x.body_template||'';$('templateVariables').value=JSON.stringify(x.variables||[],null,2);$('templateLimits').value=JSON.stringify(x.limits||{},null,2);}
+async function saveTemplate(){
+  const payload={name:$('templateName').value.trim()||'Новий шаблон',category:$('templateCategory').value.trim()||'other',scope:$('templateScope').value,purpose:$('templatePurpose').value.trim()||null,channel:$('templateChannel').value.trim()||null,placement:$('templatePlacement').value.trim()||null,language:'uk',tone:$('templateTone').value.trim()||null,subject_template:$('templateSubject').value||null,body_template:$('templateBody').value,variables:parseJson($('templateVariables').value,[]),limits:parseJson($('templateLimits').value,{})};
+  const id=await saveRow('content_templates',$('templateId').value||null,payload);await logActivity($('templateId').value?'Оновлено шаблон':'Створено шаблон',{area:'content',entity_type:'template',entity_id:id});await loadExtended();fillTemplate(state.templates.find(x=>String(x.id)===String(id)));
+}
+async function removeTemplate(){const id=$('templateId').value;if(!id)return;if(!confirm('Видалити шаблон?'))return;await deleteRow('content_templates',id);clearTemplate();await loadExtended();}
+
+function renderCampaigns(){
+  const pid=$('campaignProjectFilter').value;
+  const rows=state.campaigns.filter(x=>!pid||String(x.project_id)===pid);
+  $('campaignsList').innerHTML=rows.length?rows.map(x=>`<div class="list-item" data-campaign-id="${esc(x.id)}"><div class="item-title">${esc(x.title)}</div><div class="meta">${esc(x.status)} · ${esc(projectName(x.project_id))}<br>${x.starts_at?fmt(x.starts_at):'без дати'}</div></div>`).join(''):'<div class="empty">Кампаній немає.</div>';
+}
+function clearCampaign(){['campaignId','campaignTitle','campaignObjective','campaignReason','campaignDescription','campaignOwner','campaignStarts','campaignEnds','campaignChannels','campaignUtm','campaignRef'].forEach(id=>$(id).value='');$('campaignProject').value=selectedProjectId();$('campaignStatus').value='draft';$('campaignAudience').value='{}';}
+function fillCampaign(x){$('campaignId').value=x.id;$('campaignTitle').value=x.title||'';$('campaignProject').value=x.project_id||'';$('campaignStatus').value=x.status||'draft';$('campaignObjective').value=x.objective||'';$('campaignReason').value=x.reason||'';$('campaignDescription').value=x.description||'';$('campaignOwner').value=x.owner_name||'';$('campaignStarts').value=dtLocal(x.starts_at);$('campaignEnds').value=dtLocal(x.ends_at);$('campaignChannels').value=(x.channels||[]).join(', ');$('campaignUtm').value=x.utm_code||'';$('campaignRef').value=x.ref_code||'';$('campaignAudience').value=JSON.stringify(x.audience_rule||{},null,2);}
+async function saveCampaign(){
+  const payload={project_id:$('campaignProject').value||null,title:$('campaignTitle').value.trim()||'Нова кампанія',objective:$('campaignObjective').value.trim()||null,reason:$('campaignReason').value.trim()||null,description:$('campaignDescription').value.trim()||null,status:$('campaignStatus').value,owner_name:$('campaignOwner').value.trim()||null,starts_at:isoOrNull($('campaignStarts').value),ends_at:isoOrNull($('campaignEnds').value),channels:$('campaignChannels').value.split(',').map(x=>x.trim()).filter(Boolean),utm_code:$('campaignUtm').value.trim()||null,ref_code:$('campaignRef').value.trim()||null,audience_rule:parseJson($('campaignAudience').value,{})};
+  const id=await saveRow('marketing_campaigns',$('campaignId').value||null,payload);await logActivity($('campaignId').value?'Оновлено кампанію':'Створено кампанію',{area:'marketing',project_id:payload.project_id,campaign_id:id,entity_type:'campaign',entity_id:id});await loadExtended();fillCampaign(state.campaigns.find(x=>String(x.id)===String(id)));
+}
+async function removeCampaign(){const id=$('campaignId').value;if(!id)return;if(!confirm('Видалити кампанію та її дії?'))return;await deleteRow('marketing_campaigns',id);clearCampaign();await loadExtended();}
+
+function renderActions(){
+  const cid=$('actionCampaignFilter').value;
+  const rows=state.actions.filter(x=>!cid||String(x.campaign_id)===cid);
+  $('actionsList').innerHTML=rows.length?rows.map(x=>`<div class="list-item" data-action-id="${esc(x.id)}"><div class="item-title">${esc(x.channel||x.action_type)}</div><div class="meta">${esc(x.action_type)} · ${esc(x.status)}<br>${esc(campaignName(x.campaign_id))}${x.scheduled_at?' · '+fmt(x.scheduled_at):''}</div></div>`).join(''):'<div class="empty">Дій немає.</div>';
+}
+function clearAction(){['actionId','actionChannel','actionScheduled','actionExecuted','actionResult'].forEach(id=>$(id).value='');$('actionCampaign').value='';$('actionType').value='mailing';$('actionVariant').value='';$('actionTemplate').value='';$('actionStatus').value='draft';$('actionAudience').value='{}';$('actionRecipients').value=0;$('actionSuccess').value=0;$('actionErrors').value=0;}
+function fillAction(x){$('actionId').value=x.id;$('actionCampaign').value=x.campaign_id||'';$('actionType').value=x.action_type||'mailing';$('actionChannel').value=x.channel||'';$('actionVariant').value=x.content_variant_id||'';$('actionTemplate').value=x.template_id||'';$('actionStatus').value=x.status||'draft';$('actionScheduled').value=dtLocal(x.scheduled_at);$('actionExecuted').value=dtLocal(x.executed_at);$('actionAudience').value=JSON.stringify(x.audience_rule||{},null,2);$('actionRecipients').value=x.recipient_count||0;$('actionSuccess').value=x.success_count||0;$('actionErrors').value=x.error_count||0;$('actionResult').value=x.result_note||'';}
+async function saveAction(){
+  const payload={campaign_id:$('actionCampaign').value||null,action_type:$('actionType').value,channel:$('actionChannel').value.trim()||null,content_variant_id:$('actionVariant').value||null,template_id:$('actionTemplate').value||null,status:$('actionStatus').value,scheduled_at:isoOrNull($('actionScheduled').value),executed_at:isoOrNull($('actionExecuted').value),audience_rule:parseJson($('actionAudience').value,{}),recipient_count:Number($('actionRecipients').value||0),success_count:Number($('actionSuccess').value||0),error_count:Number($('actionErrors').value||0),result_note:$('actionResult').value.trim()||null};
+  const id=await saveRow('campaign_actions',$('actionId').value||null,payload);const campaign=state.campaigns.find(x=>String(x.id)===String(payload.campaign_id));await logActivity($('actionId').value?'Оновлено дію кампанії':'Створено дію кампанії',{area:'marketing',project_id:campaign?.project_id||null,campaign_id:payload.campaign_id,entity_type:'campaign_action',entity_id:id});await loadExtended();fillAction(state.actions.find(x=>String(x.id)===String(id)));
+}
+async function removeAction(){const id=$('actionId').value;if(!id)return;if(!confirm('Видалити дію?'))return;await deleteRow('campaign_actions',id);clearAction();await loadExtended();}
+
+function renderHistory(){
+  if(!state.extendedReady){$('historyTable').innerHTML='<div class="empty">Історія зʼявиться після виконання SQL.</div>';return;}
+  const pid=$('historyProjectFilter').value,area=$('historyAreaFilter').value,q=$('historySearch').value.trim().toLowerCase();
+  const rows=state.history.filter(x=>(!pid||String(x.project_id)===pid)&&(!area||x.area===area)&&(`${x.action} ${x.entity_type} ${x.actor_id}`.toLowerCase().includes(q)));
+  $('historyTable').innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>Дата</th><th>Контур</th><th>Дія</th><th>Проєкт</th><th>Сутність</th><th>Виконавець</th></tr></thead><tbody>${rows.map(x=>`<tr><td class="nowrap">${fmt(x.created_at)}</td><td>${esc(x.area)}</td><td><b>${esc(x.action)}</b></td><td>${esc(projectName(x.project_id))}</td><td>${esc(x.entity_type||'—')}<br><span class="muted">${esc(x.entity_id||'')}</span></td><td>${esc(x.actor_id||x.actor_type||'—')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Записів не знайдено.</div>';
+}
+
+document.addEventListener('click', async e=>{
+  try{
+    const nav=e.target.closest('[data-section]');if(nav){showSection(nav.dataset.section);return;}
+    const jump=e.target.closest('[data-jump]');if(jump){showSection(jump.dataset.jump);if(jump.dataset.jump==='tasks')clearTask();if(jump.dataset.jump==='materials')clearMaterial();if(jump.dataset.jump==='campaigns')clearCampaign();return;}
+    const p=e.target.closest('[data-project-id]');if(p){fillProject(state.projects.find(x=>String(x.id)===String(p.dataset.projectId)));return;}
+    const tab=e.target.closest('[data-project-tab]');if(tab){document.querySelectorAll('[data-project-tab]').forEach(x=>x.classList.toggle('active',x===tab));document.querySelectorAll('[id^="project-tab-"]').forEach(x=>x.classList.remove('active'));$(`project-tab-${tab.dataset.projectTab}`).classList.add('active');return;}
+    const link=e.target.closest('[data-link-seance]');if(link){await setSeanceProject(link.dataset.linkSeance,selectedProjectId());return;}
+    const unlink=e.target.closest('[data-unlink-seance]');if(unlink){await setSeanceProject(unlink.dataset.unlinkSeance,null);return;}
+    const task=e.target.closest('[data-task-id]');if(task){fillTask(state.tasks.find(x=>String(x.id)===String(task.dataset.taskId)));return;}
+    const material=e.target.closest('[data-material-id]');if(material){fillMaterial(state.materials.find(x=>String(x.id)===String(material.dataset.materialId)));return;}
+    const variant=e.target.closest('[data-edit-variant]');if(variant){const x=state.variants.find(v=>String(v.id)===String(variant.dataset.editVariant));$('variantEditor').innerHTML=variantForm(x);$('variantStatus').value=x.status||'draft';return;}
+    const agent=e.target.closest('[data-agent-id]');if(agent){const x=state.agents.find(a=>String(a.id)===String(agent.dataset.agentId));$('runAgent').value=x.id;$('runInstruction').value=x.instruction||'';return;}
+    const template=e.target.closest('[data-template-id]');if(template){fillTemplate(state.templates.find(x=>String(x.id)===String(template.dataset.templateId)));return;}
+    const campaign=e.target.closest('[data-campaign-id]');if(campaign){fillCampaign(state.campaigns.find(x=>String(x.id)===String(campaign.dataset.campaignId)));return;}
+    const action=e.target.closest('[data-action-id]');if(action){fillAction(state.actions.find(x=>String(x.id)===String(action.dataset.actionId)));return;}
+  }catch(err){setMessage(err.message,'bad');console.error(err);}
+});
+
+function bind(id,event,fn){$(id)?.addEventListener(event,async()=>{try{setMessage();await fn();}catch(e){setMessage(e.message,'bad');console.error(e);}});}
+bind('newProjectBtn','click',()=>fillProject({id:'new',isNew:true,title:'Новий проєкт',status:'draft'}));
+bind('reloadProjectsBtn','click',loadProjects);bind('saveProjectBtn','click',saveProject);bind('deleteProjectBtn','click',removeProject);
+bind('reloadSeancesBtn','click',loadSeances);$('projectSearch').addEventListener('input',renderProjects);$('seanceSearch').addEventListener('input',renderSeances);
+bind('newTaskBtn','click',clearTask);bind('saveTaskBtn','click',saveTask);bind('deleteTaskBtn','click',removeTask);$('taskProjectFilter').addEventListener('change',renderTasks);$('taskStatusFilter').addEventListener('change',renderTasks);
+bind('newMaterialBtn','click',clearMaterial);bind('saveMaterialBtn','click',saveMaterial);bind('deleteMaterialBtn','click',removeMaterial);$('materialProjectFilter').addEventListener('change',renderMaterials);
+bind('newVariantBtn','click',()=>{if(state.selectedMaterial)$('variantEditor').innerHTML=variantForm();});
+document.addEventListener('click',e=>{if(e.target.id==='saveVariantBtn')saveVariant().catch(err=>setMessage(err.message,'bad'));if(e.target.id==='deleteVariantBtn')removeVariant().catch(err=>setMessage(err.message,'bad'));});
+bind('saveAgentRunBtn','click',saveAgentRun);
+bind('newTemplateBtn','click',clearTemplate);bind('saveTemplateBtn','click',saveTemplate);bind('deleteTemplateBtn','click',removeTemplate);
+bind('newCampaignBtn','click',clearCampaign);bind('saveCampaignBtn','click',saveCampaign);bind('deleteCampaignBtn','click',removeCampaign);$('campaignProjectFilter').addEventListener('change',renderCampaigns);
+bind('newActionBtn','click',clearAction);bind('saveActionBtn','click',saveAction);bind('deleteActionBtn','click',removeAction);$('actionCampaignFilter').addEventListener('change',renderActions);
+bind('reloadHistoryBtn','click',loadExtended);$('historyProjectFilter').addEventListener('change',renderHistory);$('historyAreaFilter').addEventListener('change',renderHistory);$('historySearch').addEventListener('input',renderHistory);
+
+async function boot(){
+  try{
+    await loadProjects();
+    $('apiBadge').textContent='Supabase: підключено';$('apiBadge').className='badge ok';
+  }catch(e){
+    $('apiBadge').textContent='Supabase: помилка';$('apiBadge').className='badge bad';
+    setMessage('Не вдалося завантажити projects: '+e.message,'bad');return;
+  }
+  try{await loadSeances();}catch(e){console.warn('Seances:',e);}
+  await loadExtended();
+  renderProjects();
+}
+document.addEventListener('DOMContentLoaded',boot);
+</script>
+</body>
+</html>
