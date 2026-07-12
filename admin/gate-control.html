@@ -341,9 +341,31 @@ function renderCurrent(){
 }
 
 function chooseSeance(id){
-  CURRENT_SEANCE = TODAY_SEANCES.find(s => String(s.id) === String(id)) || null;
+  const sid = String(id || "").trim();
+
+  CURRENT_SEANCE =
+    ALL_SEANCES.find(s => String(s.id) === sid) ||
+    CHOICE_SEANCES.find(s => String(s.id) === sid) ||
+    TODAY_SEANCES.find(s => String(s.id) === sid) ||
+    null;
+
+  if (!CURRENT_SEANCE) {
+    renderCurrent();
+    setStatus("bad", "Статус: сеанс не знайдено після вибору.");
+    return;
+  }
+
+  localStorage.setItem(GATE_SELECTED_SEANCE_KEY, CURRENT_SEANCE.id);
+
+  const url = new URL(location.href);
+  url.searchParams.set("seance", CURRENT_SEANCE.id);
+  url.searchParams.set("seance_id", CURRENT_SEANCE.id);
+  history.replaceState(null, "", url.toString());
+
   $("choicesBox").classList.add("hidden");
+
   renderCurrent();
+  setStatus("ok", "Статус: сеанс обрано вручну і зафіксовано.");
 }
 
 function renderChoices(list){
