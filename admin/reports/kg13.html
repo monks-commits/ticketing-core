@@ -20,14 +20,8 @@
   --success:#2ecc71;
   --success-hover:#28b864;
 
-  --neutral:#50627d;
-  --neutral-hover:#44556d;
-
   --field:#10233f;
   --field-border:rgba(255,255,255,.12);
-
-  --warning:#f59e0b;
-  --danger:#ef4444;
 
   --shadow:0 18px 40px rgba(0,0,0,.22);
   --radius-xl:24px;
@@ -86,7 +80,7 @@ html,body{
   color:var(--muted);
   font-size:18px;
   line-height:1.45;
-  max-width:900px;
+  max-width:860px;
 }
 
 .card{
@@ -131,7 +125,7 @@ html,body{
   color:var(--muted);
 }
 
-input,select{
+input{
   width:100%;
   border:1px solid var(--field-border);
   background:var(--field);
@@ -142,8 +136,7 @@ input,select{
   font:inherit;
 }
 
-input:focus,
-select:focus{
+input:focus{
   border-color:rgba(76,134,247,.6);
   box-shadow:0 0 0 3px rgba(76,134,247,.16);
 }
@@ -281,10 +274,6 @@ tr:last-child td{
   border-bottom:0;
 }
 
-.good{color:var(--success)}
-.warn{color:var(--warning)}
-.bad{color:var(--danger)}
-
 .print-title{
   display:none;
 }
@@ -339,7 +328,7 @@ tr:last-child td{
     color:#444 !important;
   }
 
-  input,select{
+  input{
     color:#000;
     background:#fff;
     border:1px solid #ccc;
@@ -404,14 +393,14 @@ tr:last-child td{
   <section class="hero">
     <h1>📘 КГ-13</h1>
     <p>
-      Щоденний звіт касира: продажі за дату, сума каси, повернення, підсумок дня,
-      типи квитків, номінали, канали та сеанси.
+      Щоденний звіт касира. Рахує тільки касовий канал: cash / kasa / каса.
+      Онлайн-продажі, КГ-8 комісіонерів та компенсації у цей звіт не входять.
     </p>
   </section>
 
   <section class="card">
     <h2>Параметри звіту</h2>
-    <p>Оберіть дату та касовий канал. За замовчуванням — cash / kasa / каса.</p>
+    <p>Оберіть дату та сформуйте касовий звіт за день.</p>
 
     <div class="row">
       <div class="field">
@@ -420,16 +409,8 @@ tr:last-child td{
       </div>
 
       <div class="field field--grow">
-        <label for="cashier">Касир / канал</label>
-        <input type="text" id="cashier" value="cash" placeholder="cash, kasa, каса або ім’я касира">
-      </div>
-
-      <div class="field">
-        <label for="mode">Режим</label>
-        <select id="mode">
-          <option value="cash">Тільки каса</option>
-          <option value="all">Усі продажі за день</option>
-        </select>
+        <label for="cashier">Касир</label>
+        <input type="text" id="cashier" value="cash" placeholder="Ім’я касира або cash">
       </div>
     </div>
 
@@ -480,6 +461,12 @@ function money(value){
   });
 }
 
+function localDateInputValue(){
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
 function normalizeVenue(v){
   const raw = String(v || "").trim();
   if (!raw) return "";
@@ -513,20 +500,6 @@ function normalizeChannel(value){
   }
 
   return raw;
-}
-
-function channelLabel(value){
-  const key = normalizeChannel(value);
-
-  const map = {
-    cash: "Каса",
-    online: "Онлайн",
-    referral: "Реферал",
-    operator: "Оператор",
-    unknown: "Не вказано"
-  };
-
-  return map[key] || value || key;
 }
 
 function typeLabel(value){
@@ -608,14 +581,6 @@ function mapMoneyAdd(map, key, amount = 0){
   map[k].sum += Number(amount || 0);
 }
 
-function seatsFromRow(row){
-  if (Array.isArray(row?.seats)) return row.seats;
-  if (Array.isArray(row?.seat_labels)) return row.seat_labels;
-  if (row?.seat_label) return [row.seat_label];
-  if (Array.isArray(row?.booking_seats)) return row.booking_seats;
-  return [];
-}
-
 function seanceTitle(s){
   if (!s) return "—";
   return `${s.date || ""} ${s.time || ""} — ${s.show || s.id || "Сеанс"}`.trim();
@@ -623,13 +588,25 @@ function seanceTitle(s){
 
 function ticketIsActive(t){
   const st = String(t.status || "").toLowerCase();
-  return st !== "returned" && st !== "cancelled" && st !== "canceled";
+  const tp = String(t.ticket_type || "").toLowerCase();
+
+  if (st === "returned" || st === "cancelled" || st === "canceled") return false;
+  if (tp === "compensation") return false;
+
+  return true;
+}
+
+function numberFromNominalLabel(label){
+  return Number(
+    String(label || "")
+      .replace(",", ".")
+      .replace(/[^\d.-]/g, "")
+  );
 }
 
 async function run() {
   const day = document.getElementById("day").value;
-  const cashierRaw = document.getElementById("cashier").value.trim();
-  const mode = document.getElementById("mode").value;
+  const cashierRaw = document.getElementById("cashier").value.trim() || "cash";
 
   if (!day) {
     alert("Вкажіть дату");
@@ -650,16 +627,14 @@ async function run() {
 
   tickets = tickets.filter(ticketIsActive);
 
-  const returns = await fetchRows(
-    "ticket_returns",
-    `?select=*&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
-  );
+  let cashTickets = tickets.filter(t => {
+    return normalizeChannel(channelValue(t)) === "cash";
+  });
 
   const seanceIds = [
     ...new Set(
-      tickets
+      cashTickets
         .map(t => t.seance_id)
-        .concat(returns.map(r => r.seance_id))
         .filter(Boolean)
         .map(String)
     )
@@ -690,65 +665,28 @@ async function run() {
         .map(s => String(s.id))
     );
 
-    tickets = tickets.filter(t => allowed.has(String(t.seance_id)));
+    cashTickets = cashTickets.filter(t => allowed.has(String(t.seance_id)));
   }
 
-  let reportTickets = tickets;
+  const count = cashTickets.length;
+  const sum = cashTickets.reduce((total, t) => total + Number(t.price || 0), 0);
 
-  if (mode === "cash") {
-    const cashierKey = normalizeChannel(cashierRaw || "cash");
-
-    reportTickets = tickets.filter(t => {
-      const ch = normalizeChannel(channelValue(t));
-
-      if (cashierKey === "cash") {
-        return ch === "cash";
-      }
-
-      return ch === cashierKey || String(channelValue(t)).toLowerCase() === String(cashierRaw).toLowerCase();
-    });
-  }
-
-  const allTicketsCount = tickets.length;
-  const allTicketsSum = tickets.reduce((sum, t) => sum + Number(t.price || 0), 0);
-
-  const count = reportTickets.length;
-  const sum = reportTickets.reduce((total, t) => total + Number(t.price || 0), 0);
-
-  const onlineTickets = tickets.filter(t => normalizeChannel(channelValue(t)) === "online");
-  const onlineCount = onlineTickets.length;
-  const onlineSum = onlineTickets.reduce((total, t) => total + Number(t.price || 0), 0);
-
-  const otherTickets = tickets.filter(t => {
-    const ch = normalizeChannel(channelValue(t));
-    return ch !== "cash" && ch !== "online";
-  });
-
-  const otherCount = otherTickets.length;
-  const otherSum = otherTickets.reduce((total, t) => total + Number(t.price || 0), 0);
-
-  const returnQty = returns.reduce((total, r) => {
-    if (r.qty !== undefined && r.qty !== null) return total + Number(r.qty || 0);
-    return total + seatsFromRow(r).length;
-  }, 0);
-
-  const returnSum = returns.reduce((total, r) => {
-    return total + Number(r.amount || 0);
-  }, 0);
-
-  const finalSum = Math.max(sum - returnSum, 0);
+  const returnQty = 0;
+  const returnSum = 0;
+  const finalSum = sum;
 
   const typeMap = {};
   const priceMap = {};
   const channelMap = {};
   const seanceMapStats = {};
 
-  reportTickets.forEach(t => {
+  cashTickets.forEach(t => {
     mapAdd(typeMap, typeLabel(t.ticket_type), 1);
     mapAdd(priceMap, Number(t.price || 0) + " грн", 1);
-    mapMoneyAdd(channelMap, channelLabel(channelValue(t)), Number(t.price || 0));
+    mapMoneyAdd(channelMap, "Каса", Number(t.price || 0));
 
     const sid = String(t.seance_id || "");
+
     if (!seanceMapStats[sid]) {
       seanceMapStats[sid] = {
         seance: seanceMap[sid] || { id:sid },
@@ -762,25 +700,20 @@ async function run() {
   });
 
   const reportDate = new Date().toLocaleString("uk-UA");
-  const cashierLabel = mode === "cash"
-    ? (cashierRaw || "cash")
-    : "усі канали";
 
   LAST_REPORT_TEXT = [
     "КГ-13 — ЩОДЕННИЙ ЗВІТ КАСИРА",
     "Сформовано: " + reportDate,
     "Дата: " + day,
-    "Касир / канал: " + cashierLabel,
+    "Касир: " + cashierRaw,
     "",
-    "Квитків у звіті: " + count,
-    "Сума продажів: " + money(sum) + " грн",
-    "Повернення за день: " + returnQty + " / " + money(returnSum) + " грн",
+    "Квитків: " + count,
+    "Сума каси: " + money(sum) + " грн",
+    "Касові повернення: " + returnQty + " / " + money(returnSum) + " грн",
     "Підсумок дня: " + money(finalSum) + " грн",
     "",
-    "Справочно — всі продажі за день: " + allTicketsCount + " / " + money(allTicketsSum) + " грн",
-    "Онлайн: " + onlineCount + " / " + money(onlineSum) + " грн",
-    "Інші канали: " + otherCount + " / " + money(otherSum) + " грн"
-  ].join("\\n");
+    "Примітка: звіт рахує тільки касовий канал. Онлайн, КГ-8 комісіонерів та компенсації не включаються."
+  ].join("\n");
 
   const typeRows = Object.entries(typeMap)
     .sort((a,b) => b[1] - a[1])
@@ -788,7 +721,7 @@ async function run() {
     .join("") || `<tr><td colspan="2">—</td></tr>`;
 
   const priceRows = Object.entries(priceMap)
-    .sort((a,b) => Number(a[0]) - Number(b[0]))
+    .sort((a,b) => numberFromNominalLabel(a[0]) - numberFromNominalLabel(b[0]))
     .map(([k,v]) => `<tr><td>${esc(k)}</td><td><b>${v}</b></td></tr>`)
     .join("") || `<tr><td colspan="2">—</td></tr>`;
 
@@ -814,17 +747,22 @@ async function run() {
     `)
     .join("") || `<tr><td colspan="3">—</td></tr>`;
 
-  const returnRows = returns.length
-    ? returns.map(r => `
-      <tr>
-        <td>${esc(new Date(r.created_at).toLocaleString("uk-UA"))}</td>
-        <td>${esc(r.organization || r.partner_name || "—")}</td>
-        <td>${esc((seatsFromRow(r) || []).join(", ") || r.qty || "—")}</td>
-        <td>${esc(r.doc_no || r.issue_doc || "—")}</td>
-        <td>${money(r.amount || 0)} грн</td>
-      </tr>
-    `).join("")
-    : `<tr><td colspan="5">Повернень за день немає.</td></tr>`;
+  const ticketRows = cashTickets
+    .map(t => {
+      const s = seanceMap[String(t.seance_id || "")] || { id:t.seance_id || "" };
+
+      return `
+        <tr>
+          <td>${esc(new Date(t.created_at).toLocaleString("uk-UA"))}</td>
+          <td>${esc(seanceTitle(s))}</td>
+          <td>${esc(t.seat_label || "—")}</td>
+          <td>${esc(typeLabel(t.ticket_type))}</td>
+          <td>${money(t.price || 0)} грн</td>
+          <td>${esc(t.buyer_name || t.buyer_phone || t.buyer_email || "—")}</td>
+        </tr>
+      `;
+    })
+    .join("") || `<tr><td colspan="6">Касових продажів за цю дату немає.</td></tr>`;
 
   out.innerHTML = `
     <h2 class="print-title">КГ-13 — Щоденний звіт касира</h2>
@@ -832,64 +770,52 @@ async function run() {
     <div class="report-section">
       <h3>Дата: ${esc(day)}</h3>
       <p>
-        Касир / канал: <b>${esc(cashierLabel)}</b><br>
-        Режим: <b>${mode === "cash" ? "тільки каса" : "усі продажі"}</b><br>
+        Касир: <b>${esc(cashierRaw)}</b><br>
+        Канал: <b>Каса</b><br>
         Сформовано: ${esc(reportDate)}
       </p>
     </div>
 
     <div class="result-grid" style="margin-top:18px;">
       <div class="metric">
-        <div class="metric-label">Квитків у звіті</div>
+        <div class="metric-label">Квитків</div>
         <div class="metric-value">${count}</div>
-        <div class="metric-note">${mode === "cash" ? "касовий канал" : "усі канали"}</div>
+        <div class="metric-note">тільки касовий канал</div>
       </div>
 
       <div class="metric">
-        <div class="metric-label">Сума продажів</div>
+        <div class="metric-label">Сума каси</div>
         <div class="metric-value">${money(sum)} грн</div>
-        <div class="metric-note">tickets.created_at за дату</div>
+        <div class="metric-note">tickets.channel / ref_code = cash / kasa / каса</div>
       </div>
 
       <div class="metric">
-        <div class="metric-label">Повернення</div>
+        <div class="metric-label">Касові повернення</div>
         <div class="metric-value">${returnQty}</div>
-        <div class="metric-note">${money(returnSum)} грн за ticket_returns</div>
+        <div class="metric-note">${money(returnSum)} грн</div>
       </div>
 
       <div class="metric">
         <div class="metric-label">Підсумок дня</div>
         <div class="metric-value">${money(finalSum)} грн</div>
-        <div class="metric-note">продажі мінус повернення</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Онлайн справочно</div>
-        <div class="metric-value">${onlineCount}</div>
-        <div class="metric-note">${money(onlineSum)} грн</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Інші канали</div>
-        <div class="metric-value">${otherCount}</div>
-        <div class="metric-note">${money(otherSum)} грн</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Усього за день</div>
-        <div class="metric-value">${allTicketsCount}</div>
-        <div class="metric-note">${money(allTicketsSum)} грн по всіх каналах</div>
+        <div class="metric-note">каса мінус касові повернення</div>
       </div>
 
       <div class="metric">
         <div class="metric-label">Середній чек</div>
         <div class="metric-value">${count ? money(sum / count) : "0,00"} грн</div>
-        <div class="metric-note">по квитках у звіті</div>
+        <div class="metric-note">по касових квитках</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Не входить</div>
+        <div class="metric-value" style="font-size:18px;">Онлайн / КГ-8 / компенсації</div>
+        <div class="metric-note">для них окремі звіти</div>
       </div>
     </div>
 
     <div class="report-section">
-      <h3>Канали</h3>
+      <h3>Канал</h3>
       <div class="table-wrap">
         <table>
           <thead>
@@ -951,19 +877,20 @@ async function run() {
     </div>
 
     <div class="report-section">
-      <h3>Повернення за день</h3>
+      <h3>Деталізація касових квитків</h3>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>Час</th>
-              <th>Організація</th>
-              <th>Місця / к-сть</th>
-              <th>Документ</th>
+              <th>Сеанс</th>
+              <th>Місце</th>
+              <th>Тип</th>
               <th>Сума</th>
+              <th>Покупець</th>
             </tr>
           </thead>
-          <tbody>${returnRows}</tbody>
+          <tbody>${ticketRows}</tbody>
         </table>
       </div>
     </div>
@@ -984,7 +911,7 @@ async function copyReport(){
   }
 }
 
-document.getElementById("day").value = new Date().toISOString().slice(0, 10);
+document.getElementById("day").value = localDateInputValue();
 </script>
 
 </body>
