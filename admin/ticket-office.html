@@ -1242,6 +1242,150 @@ case "used":
     `;
 
     break;
+
+        case "issue":
+        case "quota":
+
+            const qTickets = LAST_TURNOVER_DATA.tickets || [];
+            const qBookings = LAST_TURNOVER_DATA.activeBookings || [];
+            const qIssued = Number(LAST_TURNOVER_DATA.issued || 0);
+
+            const qSold = qTickets.length;
+
+            const qSoldSeats = new Set(
+                qTickets
+                    .map(t => String(t.seat_label || "").trim())
+                    .filter(Boolean)
+            );
+
+            const qBookedSeats = new Set();
+
+            qBookings.forEach(b => {
+                const seats =
+                    Array.isArray(b.seats) ? b.seats :
+                    Array.isArray(b.seat_labels) ? b.seat_labels :
+                    b.seat_label ? [b.seat_label] :
+                    [];
+
+                seats.forEach(seat => {
+                    const key = String(seat || "").trim();
+                    if (!key) return;
+                    if (qSoldSeats.has(key)) return;
+                    qBookedSeats.add(key);
+                });
+            });
+
+            const qBooked = qBookedSeats.size;
+            const qFree = Math.max(qIssued - qSold - qBooked, 0);
+            const qFill = qIssued
+                ? Math.round(((qSold + qBooked) / qIssued) * 100)
+                : 0;
+
+            const qRevenue = qTickets.reduce((s,t) => {
+                return s + Number(t.price || 0);
+            }, 0);
+
+            const qPriceMap = {};
+            const qTypeMap = {};
+            const qChannelMap = {};
+
+            qTickets.forEach(t => {
+                const price = Number(t.price || 0);
+                const type = t.ticket_type || "unknown";
+                const channel = t.channel || t.ref_code || "unknown";
+
+                qPriceMap[price] = (qPriceMap[price] || 0) + 1;
+                qTypeMap[type] = (qTypeMap[type] || 0) + 1;
+                qChannelMap[channel] = (qChannelMap[channel] || 0) + 1;
+            });
+
+            ws.innerHTML = `
+                <div class="stub-grid" style="margin-top:12px;">
+
+                    <div class="stub">
+                        <h4>Випущено VA</h4>
+                        <p>Місця, випущені в оборот VA по цьому сеансу.</p>
+                        <strong>${qIssued}</strong>
+                        <div class="note">Джерело: seances.capacity / лічильник редактора.</div>
+                    </div>
+
+                    <div class="stub">
+                        <h4>Видано / продано</h4>
+                        <p>Фактично створені квитки по цьому сеансу.</p>
+                        <strong>${qSold}</strong>
+                    </div>
+
+                    <div class="stub">
+                        <h4>Активна бронь</h4>
+                        <p>Місця, зайняті активними бронюваннями.</p>
+                        <strong>${qBooked}</strong>
+                    </div>
+
+                    <div class="stub">
+                        <h4>Залишок VA</h4>
+                        <p>Випуск мінус продажі та активна бронь.</p>
+                        <strong>${qFree}</strong>
+                    </div>
+
+                    <div class="stub">
+                        <h4>Заповнення VA-квоти</h4>
+                        <p>Розрахунок від випущених VA місць.</p>
+                        <strong>${qFill}%</strong>
+                    </div>
+
+                    <div class="stub">
+                        <h4>Виручка</h4>
+                        <p>Сума по виданих / проданих квитках.</p>
+                        <strong>${qRevenue} грн</strong>
+                    </div>
+
+                </div>
+
+                <div class="stub-grid" style="margin-top:14px;">
+
+                    <div class="stub">
+                        <h4>По номіналах</h4>
+                        <p>Сегментація проданих квитків по цінах.</p>
+                        <div>
+                            ${
+                                Object.entries(qPriceMap)
+                                    .sort((a,b) => Number(a[0]) - Number(b[0]))
+                                    .map(([price,count]) => `${escapeHtml(price)}₴ → ${count}`)
+                                    .join("<br>") || "—"
+                            }
+                        </div>
+                    </div>
+
+                    <div class="stub">
+                        <h4>По типах квитків</h4>
+                        <p>Звичайні, пільгові, службові, акційні тощо.</p>
+                        <div>
+                            ${
+                                Object.entries(qTypeMap)
+                                    .sort((a,b) => b[1] - a[1])
+                                    .map(([type,count]) => `${escapeHtml(type)} → ${count}`)
+                                    .join("<br>") || "—"
+                            }
+                        </div>
+                    </div>
+
+                    <div class="stub">
+                        <h4>По каналах</h4>
+                        <p>Каса, онлайн, партнери, оператори.</p>
+                        <div>
+                            ${
+                                Object.entries(qChannelMap)
+                                    .sort((a,b) => b[1] - a[1])
+                                    .map(([channel,count]) => `${escapeHtml(channel)} → ${count}`)
+                                    .join("<br>") || "—"
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            `;
+
+            break;
         
         default:
 
