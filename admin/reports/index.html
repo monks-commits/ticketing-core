@@ -18,18 +18,13 @@
   --primary-hover:#3f78e6;
 
   --success:#2ecc71;
-  --success-hover:#28b864;
-
+  --orange:#f59e0b;
+  --red:#ef4444;
   --neutral:#50627d;
-  --neutral-hover:#44556d;
-
-  --danger:#f44336;
-  --danger-hover:#df392d;
 
   --shadow:0 18px 40px rgba(0,0,0,.22);
   --radius-xl:24px;
   --radius-lg:18px;
-  --radius-md:14px;
 }
 
 *{box-sizing:border-box}
@@ -41,10 +36,6 @@ html,body{
   font-family:Arial, sans-serif;
   background:var(--bg);
   color:var(--text);
-}
-
-body{
-  min-height:100vh;
 }
 
 .page-wrap{
@@ -85,7 +76,7 @@ body{
   margin:0 0 10px;
   font-size:58px;
   line-height:1.05;
-  font-weight:800;
+  font-weight:900;
 }
 
 .hero p{
@@ -93,7 +84,7 @@ body{
   color:var(--muted);
   font-size:18px;
   line-height:1.45;
-  max-width:760px;
+  max-width:840px;
 }
 
 .section-card{
@@ -101,6 +92,7 @@ body{
   border-radius:var(--radius-xl);
   padding:28px 24px;
   box-shadow:var(--shadow);
+  margin-bottom:22px;
 }
 
 .section-head{
@@ -108,12 +100,12 @@ body{
   align-items:flex-start;
   justify-content:space-between;
   gap:16px;
-  margin-bottom:22px;
+  margin-bottom:20px;
 }
 
 .section-head h2{
   margin:0;
-  font-size:24px;
+  font-size:26px;
   line-height:1.15;
 }
 
@@ -122,6 +114,7 @@ body{
   color:var(--muted);
   font-size:15px;
   line-height:1.45;
+  max-width:780px;
 }
 
 .grid{
@@ -135,10 +128,14 @@ body{
   border:1px solid var(--line);
   border-radius:var(--radius-lg);
   padding:18px;
-  min-height:210px;
+  min-height:220px;
   display:flex;
   flex-direction:column;
   justify-content:space-between;
+}
+
+.report.disabled{
+  opacity:.72;
 }
 
 .badge{
@@ -152,11 +149,29 @@ body{
   background:rgba(255,255,255,.10);
   color:#fff;
   margin-bottom:14px;
+  font-weight:800;
+}
+
+.badge.required{
+  background:rgba(76,134,247,.24);
+}
+
+.badge.va{
+  background:rgba(245,158,11,.24);
+}
+
+.badge.ready{
+  background:rgba(34,197,94,.22);
+}
+
+.badge.v2{
+  background:rgba(255,255,255,.10);
+  color:var(--muted);
 }
 
 .report h4{
   margin:0 0 10px;
-  font-size:20px;
+  font-size:21px;
   line-height:1.2;
 }
 
@@ -168,7 +183,10 @@ body{
 }
 
 .report-actions{
-  margin-top:18px;
+  margin-top:20px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
 }
 
 .btn{
@@ -181,7 +199,7 @@ body{
   border:none;
   border-radius:14px;
   font-size:16px;
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
   text-decoration:none;
   transition:.15s ease;
@@ -200,8 +218,44 @@ body{
   background:var(--primary-hover);
 }
 
+.btn-green{
+  background:var(--success);
+  color:#07111f;
+}
+
+.btn-orange{
+  background:var(--orange);
+  color:#111827;
+}
+
+.btn-neutral{
+  background:var(--neutral);
+  color:#fff;
+}
+
+.btn-disabled{
+  background:rgba(255,255,255,.12);
+  color:var(--muted);
+  cursor:not-allowed;
+}
+
+.btn-disabled:hover{
+  transform:none;
+}
+
 .note{
   margin-top:18px;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
+}
+
+.audit-note{
+  margin-top:10px;
+  padding:12px 14px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:14px;
+  background:rgba(255,255,255,.05);
   color:var(--muted);
   font-size:14px;
   line-height:1.45;
@@ -236,6 +290,10 @@ body{
     border-radius:20px;
   }
 
+  .section-head{
+    display:block;
+  }
+
   .grid{
     grid-template-columns:1fr;
     gap:14px;
@@ -254,8 +312,6 @@ body{
 
 <body>
 
-<div id="admin-header"></div>
-
 <main class="page-wrap">
 
   <div class="topbar">
@@ -264,14 +320,20 @@ body{
 
   <section class="hero">
     <h1>📊 Звіти</h1>
-    <p>Робочі звіти квиткового відділу, каси та бронювань. Оберіть потрібний розділ для перегляду або перевірки даних.</p>
+    <p>
+      Офіційні форми, робочі звіти квиткового відділу та аналітика VA.
+      Тут залишаємо тільки те, що має сенс для поточного рівня системи.
+    </p>
   </section>
 
   <section class="section-card">
     <div class="section-head">
       <div>
-        <h2>Каса</h2>
-        <p>Оперативні звіти по щоденній роботі, окремих сеансах і бронюваннях.</p>
+        <h2>Обов’язкові форми</h2>
+        <p>
+          Базові звіти квиткового господарства для АСПК:
+          щоденний касовий звіт, зведений звіт по сеансу, видача та повернення квитків розповсюджувачам.
+        </p>
       </div>
     </div>
 
@@ -279,9 +341,11 @@ body{
 
       <article class="report">
         <div>
-          <span class="badge">звіт</span>
-          <h4>КГ-13 (щоденний)</h4>
-          <p>Звіт касира за день.</p>
+          <span class="badge required">КГ-13</span>
+          <h4>КГ-13 — щоденний касовий звіт</h4>
+          <p>
+            Звіт касира за день. Перший обов’язковий звіт для касової зміни.
+          </p>
         </div>
         <div class="report-actions">
           <button class="btn btn-primary" onclick="openReport('kg13.html')">Відкрити</button>
@@ -290,9 +354,12 @@ body{
 
       <article class="report">
         <div>
-          <span class="badge">звіт</span>
-          <h4>КГ-10 (по сеансу)</h4>
-          <p>Кількість проданих квитків і сума по окремому сеансу.</p>
+          <span class="badge required">КГ-10</span>
+          <h4>КГ-10 — зведений звіт по сеансу</h4>
+          <p>
+            Підсумковий звіт по заходу. Має привести систему до формули:
+            видано − повернуто = реалізовано.
+          </p>
         </div>
         <div class="report-actions">
           <button class="btn btn-primary" onclick="openReport('kg10.html')">Відкрити</button>
@@ -301,67 +368,182 @@ body{
 
       <article class="report">
         <div>
-          <span class="badge">броні</span>
-          <h4>Бронювання</h4>
-          <p>Перегляд активних бронювань і зарезервованих місць.</p>
+          <span class="badge required">КГ-7</span>
+          <h4>КГ-7 — видача квитків</h4>
+          <p>
+            Накладна на видачу квитків комісіонеру / розповсюджувачу.
+            Зараз працює через розділ “Комісіонери” в обороті квитків.
+          </p>
         </div>
         <div class="report-actions">
-          <button class="btn btn-primary" onclick="openReport('bookings.html')">Відкрити</button>
+          <button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Комісіонери</button>
+        </div>
+      </article>
+
+      <article class="report">
+        <div>
+          <span class="badge required">КГ-8</span>
+          <h4>КГ-8 — повернення квитків</h4>
+          <p>
+            Накладна на повернення нереалізованих квитків від комісіонера / розповсюджувача.
+            Зараз працює через розділ “Комісіонери”.
+          </p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Комісіонери</button>
+        </div>
+      </article>
+
+      <article class="report disabled">
+        <div>
+          <span class="badge v2">V2</span>
+          <h4>КГ-12 — акт списання / закриття залишків</h4>
+          <p>
+            Майбутній звіт для закриття нереалізованих / погашених залишків після завершення сеансу.
+          </p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-disabled" disabled>Пізніше</button>
         </div>
       </article>
 
     </div>
-<div class="section-head" style="margin-top:36px;">
-  <div>
-    <h2>Аналітика</h2>
-    <p>Звіти по каналах продажу, майданчиках та операційній активності.</p>
-  </div>
-</div>
 
-<div class="grid">
-
-  <article class="report">
-    <div>
-      <span class="badge">channels</span>
-      <h4>Продажі по каналах</h4>
-      <p>Online / Cash / Partner / Invite / Offline.</p>
-    </div>
-    <div class="report-actions">
-      <button class="btn btn-primary" onclick="openReport('sales-channels.html')">
-        Відкрити
-      </button>
-    </div>
-  </article>
-
-  <article class="report">
-    <div>
-      <span class="badge">venues</span>
-      <h4>Продажі по майданчиках</h4>
-      <p>Статистика продажів по venues та подіях.</p>
-    </div>
-    <div class="report-actions">
-      <button class="btn btn-primary" onclick="openReport('sales-venues.html')">
-        Відкрити
-      </button>
-    </div>
-  </article>
-
-  <article class="report">
-    <div>
-      <span class="badge">audit</span>
-      <h4>Audit Log</h4>
-      <p>Журнал дій каси, онлайн-продажів та системних операцій.</p>
-    </div>
-    <div class="report-actions">
-      <button class="btn btn-primary" onclick="openReport('audit.html')">
-        Відкрити
-      </button>
-    </div>
-  </article>
-
-</div>
     <div class="note">
-      Усі звіти відкриваються в поточному робочому контурі адміністрування.
+      КГ-1 / КГ-2 / КГ-5 / КГ-6 / КГ-9 / КГ-11 поки не виносимо в робочий інтерфейс:
+      для нашого електронного контуру першочергові КГ-10, КГ-13, КГ-7, КГ-8.
+    </div>
+  </section>
+
+  <section class="section-card">
+    <div class="section-head">
+      <div>
+        <h2>Операційні звіти VA</h2>
+        <p>
+          Те, що з’явилося в системі додатково: VA-квота, компенсаційний борг,
+          контроль доступу та реальний оборот квитків.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <article class="report">
+        <div>
+          <span class="badge va">VA</span>
+          <h4>VA-квота / випуск</h4>
+          <p>
+            Скільки місць випущено в оборот VA, скільки продано, заброньовано,
+            повернуто та залишилося.
+          </p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Оборот</button>
+        </div>
+      </article>
+
+      <article class="report">
+        <div>
+          <span class="badge va">борг</span>
+          <h4>Компенсаційний борг</h4>
+          <p>
+            Створені компенсації, погашені компенсації, залишок боргу театру,
+            звідки виникло та де погашено.
+          </p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-orange" onclick="openAdminPage('../compensation-cabinet.html')">Відкрити</button>
+        </div>
+      </article>
+
+      <article class="report">
+        <div>
+          <span class="badge va">контроль</span>
+          <h4>Контроль доступу</h4>
+          <p>
+            Звичайні проходи, компенсаційні проходи, повтори, інциденти та стан входу по сеансу.
+          </p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-orange" onclick="openAdminPage('../access-control.html')">Відкрити</button>
+        </div>
+      </article>
+
+      <article class="report">
+        <div>
+          <span class="badge va">броні</span>
+          <h4>Броні / комісіонери</h4>
+          <p>
+            Старий звіт “Бронювання” більше не відображає повну логіку.
+            Актуальна робота ведеться через оборот квитків та картку комісіонера.
+          </p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Оборот</button>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="section-card">
+    <div class="section-head">
+      <div>
+        <h2>Аналітика та перевірка</h2>
+        <p>
+          Не бухгалтерські форми, а перевірочні та управлінські звіти:
+          канали продажу, системні дії, аудит, CSV.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <article class="report">
+        <div>
+          <span class="badge ready">channels</span>
+          <h4>Продажі по каналах</h4>
+          <p>
+            Канали продажу, суми, середній чек, явка, ціни та типи квитків.
+            Не дублює директорські “Продажі”, а працює як перевірочний звіт.
+          </p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-primary" onclick="openReport('sales-channels.html')">Відкрити</button>
+        </div>
+      </article>
+
+      <article class="report">
+        <div>
+          <span class="badge ready">audit</span>
+          <h4>Журнал контролю та системних дій</h4>
+          <p>
+            Сканування, повтори, службові події, компенсаційні дії та інші записи аудиту.
+          </p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-primary" onclick="openReport('audit.html')">Відкрити</button>
+        </div>
+      </article>
+
+      <article class="report disabled">
+        <div>
+          <span class="badge v2">пізніше</span>
+          <h4>Продажі по майданчиках</h4>
+          <p>
+            Поки приховано з робочого контуру. Повернемо, коли буде стабільна мультиплощадочна аналітика.
+          </p>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-disabled" disabled>Неактивно</button>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="audit-note">
+      Розділ “Звіти” тепер не дублює директорський дашборд і не повторює кухню квиткового відділу.
+      Тут залишаються офіційні форми, друковані звіти та перевірочні журнали.
     </div>
   </section>
 
@@ -385,7 +567,16 @@ function withContext(page){
 function openReport(page){
   location.href = withContext(page);
 }
+
+function openAdminPage(page){
+  location.href = withContext(page);
+}
+
+function openTicketOfficeTurnover(){
+  const url = withContext("../ticket-office.html");
+  location.href = url + (url.includes("#") ? "" : "#turnover");
+}
 </script>
-  
+
 </body>
 </html>
