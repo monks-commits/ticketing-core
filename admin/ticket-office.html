@@ -575,9 +575,16 @@
 let CURRENT_TURNOVER_JOURNAL = "sales";
 let LAST_TURNOVER_DATA = {
   quota: [],
-  tickets: [],
-  bookings: [],
-  issued: 0
+  tickets,
+  bookings,
+  activeBookings,
+  issued,
+  recoveryTokens,
+  compensations: {
+    total: compTotal,
+    used: compUsed,
+    unused: compUnused
+  }
 };
     
     function showModule(name){
