@@ -347,11 +347,11 @@
         <p>Випуск, видача, повернення, продаж, типи, номінали, компенсації та залишки.</p>
       </article>
 
-      <article class="module-card" id="tabReports" onclick="showModule('reports')">
-        <div class="icon">📊</div>
-        <h2>Звіти</h2>
-        <p>Касові, фінансові, по сеансах, каналах, типах квитків, операторах та уповноважених.</p>
-      </article>
+      <article class="module-card" id="tabReports" onclick="openReports()">
+  <div class="icon">📊</div>
+  <h2>Звіти</h2>
+  <p>Касові, фінансові, по сеансах, каналах, типах квитків, операторах та уповноважених.</p>
+</article>
     </section>
 
     <main class="workspace">
@@ -1412,7 +1412,32 @@ function formatDateTime(value){
   });
 }
 
+function openReports(){
+  const params = new URLSearchParams();
+  const qs = new URLSearchParams(location.search);
 
+  ["city", "venue", "hall", "seance", "seance_id", "view"].forEach(key => {
+    const value = qs.get(key);
+    if (value) params.set(key, value);
+  });
+
+  let sid = "";
+
+  if (typeof selectedSeanceId === "function") {
+    sid = selectedSeanceId() || "";
+  }
+
+  sid = sid || qs.get("seance") || qs.get("seance_id") || "";
+
+  if (sid) {
+    params.set("seance", sid);
+    params.set("seance_id", sid);
+  }
+
+  const query = params.toString();
+
+  location.href = "./reports/index.html" + (query ? "?" + query : "");
+}
     
   </script>
 </body>
