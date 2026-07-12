@@ -1175,6 +1175,73 @@ case "comp":
     `;
   }
   break;
+
+case "used":
+
+    const usedTickets = (LAST_TURNOVER_DATA.tickets || [])
+        .filter(t => !!t.checked_in_at)
+        .sort((a,b) => {
+            const da = new Date(a.checked_in_at || 0).getTime();
+            const db = new Date(b.checked_in_at || 0).getTime();
+            return db - da;
+        });
+
+    ws.innerHTML = `
+        <div style="overflow:auto;margin-top:12px;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                <thead>
+                    <tr>
+                        <th>Час проходу</th>
+                        <th>Місце</th>
+                        <th>Тип</th>
+                        <th>Канал</th>
+                        <th>Сума</th>
+                        <th>Контролер</th>
+                        <th>Примітка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${
+                        usedTickets.length
+                        ? usedTickets.map(t => `
+                            <tr>
+                                <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+                                    ${escapeHtml(formatDateTime(t.checked_in_at))}
+                                </td>
+                                <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+                                    ${escapeHtml(t.seat_label || "—")}
+                                </td>
+                                <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+                                    ${escapeHtml(t.ticket_type || "—")}
+                                </td>
+                                <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+                                    ${escapeHtml(t.channel || t.ref_code || "—")}
+                                </td>
+                                <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+                                    ${escapeHtml(String(t.price || 0))}
+                                </td>
+                                <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+                                    ${escapeHtml(t.checked_in_by || "—")}
+                                </td>
+                                <td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+                                    Звичайне погашення квитка
+                                </td>
+                            </tr>
+                        `).join("")
+                        : `
+                            <tr>
+                                <td colspan="7" style="padding:10px;">
+                                    Погашених квитків ще немає.
+                                </td>
+                            </tr>
+                        `
+                    }
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    break;
         
         default:
 
