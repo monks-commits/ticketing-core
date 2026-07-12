@@ -39,7 +39,74 @@
     @media(max-width:1050px){.grid5{grid-template-columns:1fr 1fr}.main{grid-template-columns:1fr}}
     @media(max-width:560px){.grid5{grid-template-columns:1fr}.top{display:block}}
 
+/* ===== VA DIRECTOR SALES CLEAN LAYOUT ===== */
 
+.wrap{
+  max-width:1480px;
+  margin:0 auto;
+  padding:28px 34px;
+}
+
+.grid5{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.grid5 > .card{
+  grid-column:auto !important;
+  min-width:0;
+}
+
+.main{
+  display:grid;
+  grid-template-columns:minmax(0, 1.55fr) minmax(360px, .85fr);
+  gap:18px;
+  align-items:start;
+}
+
+.side{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.card{
+  min-width:0;
+}
+
+table{
+  table-layout:auto;
+}
+
+th,td{
+  vertical-align:top;
+}
+
+@media(max-width:1050px){
+  .wrap{
+    padding:22px;
+  }
+
+  .grid5{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .main{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:560px){
+  .grid5{
+    grid-template-columns:1fr;
+  }
+
+  .top{
+    display:block;
+  }
+}
 
     
   </style>
