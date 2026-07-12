@@ -26,10 +26,11 @@
   --field:#10233f;
   --field-border:rgba(255,255,255,.12);
 
+  --warning:#f59e0b;
+  --danger:#ef4444;
+
   --shadow:0 18px 40px rgba(0,0,0,.22);
   --radius-xl:24px;
-  --radius-lg:18px;
-  --radius-md:14px;
 }
 
 *{box-sizing:border-box}
@@ -44,7 +45,7 @@ html,body{
 }
 
 .page-wrap{
-  width:min(1100px, calc(100% - 48px));
+  width:min(1280px, calc(100% - 48px));
   margin:0 auto;
   padding:48px 0 56px;
 }
@@ -85,7 +86,7 @@ html,body{
   color:var(--muted);
   font-size:18px;
   line-height:1.45;
-  max-width:760px;
+  max-width:900px;
 }
 
 .card{
@@ -130,7 +131,7 @@ html,body{
   color:var(--muted);
 }
 
-input{
+input,select{
   width:100%;
   border:1px solid var(--field-border);
   background:var(--field);
@@ -141,7 +142,8 @@ input{
   font:inherit;
 }
 
-input:focus{
+input:focus,
+select:focus{
   border-color:rgba(76,134,247,.6);
   box-shadow:0 0 0 3px rgba(76,134,247,.16);
 }
@@ -190,6 +192,12 @@ input:focus{
   background:var(--success-hover);
 }
 
+.btn-ghost{
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  border:1px solid var(--line);
+}
+
 .result{
   margin-top:26px;
   background:var(--card-2);
@@ -205,7 +213,7 @@ input:focus{
 
 .result-grid{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
+  grid-template-columns:repeat(4, minmax(0,1fr));
   gap:16px;
 }
 
@@ -227,6 +235,60 @@ input:focus{
   font-weight:800;
 }
 
+.metric-note{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.35;
+}
+
+.report-section{
+  margin-top:22px;
+}
+
+.report-section h3{
+  margin:0 0 12px;
+  font-size:22px;
+}
+
+.table-wrap{
+  overflow:auto;
+  border-radius:16px;
+  border:1px solid var(--line);
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+
+th,td{
+  padding:11px 10px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  vertical-align:top;
+}
+
+th{
+  color:var(--muted);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+
+tr:last-child td{
+  border-bottom:0;
+}
+
+.good{color:var(--success)}
+.warn{color:var(--warning)}
+.bad{color:var(--danger)}
+
+.print-title{
+  display:none;
+}
+
 @media print{
   body{
     background:#fff;
@@ -234,8 +296,23 @@ input:focus{
   }
 
   .topbar,
-  .actions{
+  .actions,
+  .hero p{
     display:none;
+  }
+
+  .page-wrap{
+    width:100%;
+    padding:0;
+  }
+
+  .hero{
+    margin-bottom:12px;
+  }
+
+  .hero h1{
+    font-size:28px;
+    color:#000;
   }
 
   .card,
@@ -247,16 +324,43 @@ input:focus{
     border:1px solid #ddd !important;
   }
 
-  input{
+  .card{
+    padding:0;
+    border:0 !important;
+  }
+
+  .result{
+    padding:12px;
+  }
+
+  .metric-label,
+  .metric-note,
+  th{
+    color:#444 !important;
+  }
+
+  input,select{
     color:#000;
     background:#fff;
     border:1px solid #ccc;
+  }
+
+  .print-title{
+    display:block;
+    color:#000;
+    margin:0 0 14px;
+  }
+}
+
+@media (max-width:900px){
+  .result-grid{
+    grid-template-columns:1fr 1fr;
   }
 }
 
 @media (max-width:768px){
   .page-wrap{
-    width:min(100% - 24px, 1100px);
+    width:min(100% - 24px, 1280px);
     padding:24px 0 32px;
   }
 
@@ -299,12 +403,15 @@ input:focus{
 
   <section class="hero">
     <h1>📘 КГ-13</h1>
-    <p>Щоденний звіт касира по проданих квитках за обрану дату.</p>
+    <p>
+      Щоденний звіт касира: продажі за дату, сума каси, повернення, підсумок дня,
+      типи квитків, номінали, канали та сеанси.
+    </p>
   </section>
 
   <section class="card">
     <h2>Параметри звіту</h2>
-    <p>Оберіть дату та сформуйте звіт по продажах за день.</p>
+    <p>Оберіть дату та касовий канал. За замовчуванням — cash / kasa / каса.</p>
 
     <div class="row">
       <div class="field">
@@ -313,14 +420,23 @@ input:focus{
       </div>
 
       <div class="field field--grow">
-        <label for="cashier">Касир</label>
-        <input type="text" id="cashier" value="cash">
+        <label for="cashier">Касир / канал</label>
+        <input type="text" id="cashier" value="cash" placeholder="cash, kasa, каса або ім’я касира">
+      </div>
+
+      <div class="field">
+        <label for="mode">Режим</label>
+        <select id="mode">
+          <option value="cash">Тільки каса</option>
+          <option value="all">Усі продажі за день</option>
+        </select>
       </div>
     </div>
 
     <div class="actions">
       <button class="btn btn-primary" onclick="run()">Сформувати</button>
       <button class="btn btn-success" onclick="window.print()">Друк</button>
+      <button class="btn btn-ghost" onclick="copyReport()">Копіювати</button>
     </div>
 
     <div id="out" class="result">
@@ -336,6 +452,8 @@ input:focus{
 <script src="../../shared/config-helper.js"></script>
 
 <script>
+"use strict";
+
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
@@ -344,98 +462,529 @@ const URL_VENUE = qs.get("venue") || "";
 
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];
+let LAST_REPORT_TEXT = "";
+
+function esc(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function money(value){
+  return Number(value || 0).toLocaleString("uk-UA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
 
 function normalizeVenue(v){
-  const found = CONFIG_VENUES.find(x => x.id === v || x.hall === v);
-  return found?.id || v || "";
+  const raw = String(v || "").trim();
+  if (!raw) return "";
+  const found = CONFIG_VENUES.find(x => x.id === raw || x.hall === raw);
+  return found?.id || raw;
+}
+
+function channelValue(t){
+  return String(t.channel || t.ref_code || "").trim();
+}
+
+function normalizeChannel(value){
+  const raw = String(value || "").trim().toLowerCase();
+
+  if (!raw) return "unknown";
+
+  if (["cash","kasa","каса","касса","boxoffice","box_office"].includes(raw)) {
+    return "cash";
+  }
+
+  if (["online","site","web","liqpay"].includes(raw)) {
+    return "online";
+  }
+
+  if (["ref","referral","partner_ref"].includes(raw)) {
+    return "referral";
+  }
+
+  if (["operator","karabas","contramarka","concert","concert.ua"].includes(raw)) {
+    return "operator";
+  }
+
+  return raw;
+}
+
+function channelLabel(value){
+  const key = normalizeChannel(value);
+
+  const map = {
+    cash: "Каса",
+    online: "Онлайн",
+    referral: "Реферал",
+    operator: "Оператор",
+    unknown: "Не вказано"
+  };
+
+  return map[key] || value || key;
+}
+
+function typeLabel(value){
+  const key = String(value || "unknown").trim().toLowerCase();
+
+  const map = {
+    full: "Звичайний",
+    regular: "Звичайний",
+    standard: "Звичайний",
+    vip: "VIP",
+    discount: "Пільговий",
+    child: "Дитячий",
+    promo: "Акційний",
+    invitation: "Запрошення",
+    invite: "Запрошення",
+    service: "Службовий",
+    compensation: "Компенсаційний",
+    free: "Безкоштовний",
+    rent: "Оренда",
+    unknown: "Не вказано"
+  };
+
+  return map[key] || value || "Не вказано";
+}
+
+function dateStartEnd(day){
+  const start = new Date(`${day}T00:00:00`);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  return {
+    startIso: start.toISOString(),
+    endIso: end.toISOString()
+  };
+}
+
+async function loadOptionalConfig(){
+  try {
+    if (typeof loadVAConfig === "function") {
+      CLIENT_CONFIG = await loadVAConfig();
+      CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+        ? CLIENT_CONFIG.venues
+        : [];
+    }
+  } catch(e) {
+    console.warn("config load skipped:", e);
+    CLIENT_CONFIG = null;
+    CONFIG_VENUES = [];
+  }
+}
+
+async function fetchRows(table, query){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: "Bearer " + SUPABASE_KEY
+    },
+    cache:"no-store"
+  });
+
+  if (!res.ok) {
+    console.error(table, await res.text());
+    return [];
+  }
+
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
+function mapAdd(map, key, amount = 1){
+  const k = String(key || "unknown");
+  map[k] = (map[k] || 0) + amount;
+}
+
+function mapMoneyAdd(map, key, amount = 0){
+  const k = String(key || "unknown");
+  if (!map[k]) map[k] = { count:0, sum:0 };
+  map[k].count += 1;
+  map[k].sum += Number(amount || 0);
+}
+
+function seatsFromRow(row){
+  if (Array.isArray(row?.seats)) return row.seats;
+  if (Array.isArray(row?.seat_labels)) return row.seat_labels;
+  if (row?.seat_label) return [row.seat_label];
+  if (Array.isArray(row?.booking_seats)) return row.booking_seats;
+  return [];
+}
+
+function seanceTitle(s){
+  if (!s) return "—";
+  return `${s.date || ""} ${s.time || ""} — ${s.show || s.id || "Сеанс"}`.trim();
+}
+
+function ticketIsActive(t){
+  const st = String(t.status || "").toLowerCase();
+  return st !== "returned" && st !== "cancelled" && st !== "canceled";
 }
 
 async function run() {
   const day = document.getElementById("day").value;
+  const cashierRaw = document.getElementById("cashier").value.trim();
+  const mode = document.getElementById("mode").value;
 
   if (!day) {
     alert("Вкажіть дату");
     return;
   }
 
-  CLIENT_CONFIG = await loadVAConfig();
-  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
-    ? CLIENT_CONFIG.venues
-    : [];
+  const out = document.getElementById("out");
+  out.innerHTML = `<div class="result-empty">Формую звіт...</div>`;
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/tickets?select=price,created_at,seance_id`,
-    {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: "Bearer " + SUPABASE_KEY
-      },
-      cache:"no-store"
-    }
+  await loadOptionalConfig();
+
+  const { startIso, endIso } = dateStartEnd(day);
+
+  let tickets = await fetchRows(
+    "tickets",
+    `?select=id,order_id,seance_id,seat_label,price,created_at,channel,ref_code,ticket_type,status,buyer_name,buyer_phone,buyer_email&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
   );
 
-  if (!res.ok) {
-    console.error(await res.text());
-    alert("Помилка запиту");
-    return;
+  tickets = tickets.filter(ticketIsActive);
+
+  const returns = await fetchRows(
+    "ticket_returns",
+    `?select=*&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
+  );
+
+  const seanceIds = [
+    ...new Set(
+      tickets
+        .map(t => t.seance_id)
+        .concat(returns.map(r => r.seance_id))
+        .filter(Boolean)
+        .map(String)
+    )
+  ];
+
+  let seances = [];
+
+  if (seanceIds.length) {
+    const inList = seanceIds
+      .map(id => `"${String(id).replace(/"/g, "")}"`)
+      .join(",");
+
+    seances = await fetchRows(
+      "seances",
+      `?select=id,show,date,time,venue_id,status&id=in.(${inList})`
+    );
   }
 
-  let tickets = await res.json();
-
-  tickets = tickets.filter(t =>
-    t.created_at && t.created_at.slice(0, 10) === day
-  );
+  const seanceMap = {};
+  seances.forEach(s => {
+    if (s.id) seanceMap[String(s.id)] = s;
+  });
 
   if (URL_VENUE) {
-    const seanceIds = [...new Set(tickets.map(t => t.seance_id).filter(Boolean))];
+    const allowed = new Set(
+      seances
+        .filter(s => normalizeVenue(s.venue_id) === normalizeVenue(URL_VENUE))
+        .map(s => String(s.id))
+    );
 
-    if (seanceIds.length) {
-      const seanceRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/seances?select=id,venue_id&id=in.(${seanceIds.map(encodeURIComponent).join(",")})`,
-        {
-          headers: {
-            apikey: SUPABASE_KEY,
-            Authorization: "Bearer " + SUPABASE_KEY
-          },
-          cache:"no-store"
-        }
-      );
-
-      const seances = await seanceRes.json();
-      const allowed = new Set(
-        seances
-          .filter(s => normalizeVenue(s.venue_id) === normalizeVenue(URL_VENUE))
-          .map(s => s.id)
-      );
-
-      tickets = tickets.filter(t => allowed.has(t.seance_id));
-    } else {
-      tickets = [];
-    }
+    tickets = tickets.filter(t => allowed.has(String(t.seance_id)));
   }
 
-  const count = tickets.length;
-  const sum = tickets.reduce((total, t) => total + Number(t.price || 0), 0);
+  let reportTickets = tickets;
 
-  document.getElementById("out").innerHTML = `
-    <div class="result-grid">
-      <div class="metric">
-        <div class="metric-label">Дата</div>
-        <div class="metric-value">${day}</div>
-      </div>
+  if (mode === "cash") {
+    const cashierKey = normalizeChannel(cashierRaw || "cash");
 
+    reportTickets = tickets.filter(t => {
+      const ch = normalizeChannel(channelValue(t));
+
+      if (cashierKey === "cash") {
+        return ch === "cash";
+      }
+
+      return ch === cashierKey || String(channelValue(t)).toLowerCase() === String(cashierRaw).toLowerCase();
+    });
+  }
+
+  const allTicketsCount = tickets.length;
+  const allTicketsSum = tickets.reduce((sum, t) => sum + Number(t.price || 0), 0);
+
+  const count = reportTickets.length;
+  const sum = reportTickets.reduce((total, t) => total + Number(t.price || 0), 0);
+
+  const onlineTickets = tickets.filter(t => normalizeChannel(channelValue(t)) === "online");
+  const onlineCount = onlineTickets.length;
+  const onlineSum = onlineTickets.reduce((total, t) => total + Number(t.price || 0), 0);
+
+  const otherTickets = tickets.filter(t => {
+    const ch = normalizeChannel(channelValue(t));
+    return ch !== "cash" && ch !== "online";
+  });
+
+  const otherCount = otherTickets.length;
+  const otherSum = otherTickets.reduce((total, t) => total + Number(t.price || 0), 0);
+
+  const returnQty = returns.reduce((total, r) => {
+    if (r.qty !== undefined && r.qty !== null) return total + Number(r.qty || 0);
+    return total + seatsFromRow(r).length;
+  }, 0);
+
+  const returnSum = returns.reduce((total, r) => {
+    return total + Number(r.amount || 0);
+  }, 0);
+
+  const finalSum = Math.max(sum - returnSum, 0);
+
+  const typeMap = {};
+  const priceMap = {};
+  const channelMap = {};
+  const seanceMapStats = {};
+
+  reportTickets.forEach(t => {
+    mapAdd(typeMap, typeLabel(t.ticket_type), 1);
+    mapAdd(priceMap, Number(t.price || 0) + " грн", 1);
+    mapMoneyAdd(channelMap, channelLabel(channelValue(t)), Number(t.price || 0));
+
+    const sid = String(t.seance_id || "");
+    if (!seanceMapStats[sid]) {
+      seanceMapStats[sid] = {
+        seance: seanceMap[sid] || { id:sid },
+        count:0,
+        sum:0
+      };
+    }
+
+    seanceMapStats[sid].count += 1;
+    seanceMapStats[sid].sum += Number(t.price || 0);
+  });
+
+  const reportDate = new Date().toLocaleString("uk-UA");
+  const cashierLabel = mode === "cash"
+    ? (cashierRaw || "cash")
+    : "усі канали";
+
+  LAST_REPORT_TEXT = [
+    "КГ-13 — ЩОДЕННИЙ ЗВІТ КАСИРА",
+    "Сформовано: " + reportDate,
+    "Дата: " + day,
+    "Касир / канал: " + cashierLabel,
+    "",
+    "Квитків у звіті: " + count,
+    "Сума продажів: " + money(sum) + " грн",
+    "Повернення за день: " + returnQty + " / " + money(returnSum) + " грн",
+    "Підсумок дня: " + money(finalSum) + " грн",
+    "",
+    "Справочно — всі продажі за день: " + allTicketsCount + " / " + money(allTicketsSum) + " грн",
+    "Онлайн: " + onlineCount + " / " + money(onlineSum) + " грн",
+    "Інші канали: " + otherCount + " / " + money(otherSum) + " грн"
+  ].join("\\n");
+
+  const typeRows = Object.entries(typeMap)
+    .sort((a,b) => b[1] - a[1])
+    .map(([k,v]) => `<tr><td>${esc(k)}</td><td><b>${v}</b></td></tr>`)
+    .join("") || `<tr><td colspan="2">—</td></tr>`;
+
+  const priceRows = Object.entries(priceMap)
+    .sort((a,b) => Number(a[0]) - Number(b[0]))
+    .map(([k,v]) => `<tr><td>${esc(k)}</td><td><b>${v}</b></td></tr>`)
+    .join("") || `<tr><td colspan="2">—</td></tr>`;
+
+  const channelRows = Object.entries(channelMap)
+    .sort((a,b) => b[1].count - a[1].count)
+    .map(([k,v]) => `
+      <tr>
+        <td>${esc(k)}</td>
+        <td><b>${v.count}</b></td>
+        <td>${money(v.sum)} грн</td>
+      </tr>
+    `)
+    .join("") || `<tr><td colspan="3">—</td></tr>`;
+
+  const seanceRows = Object.values(seanceMapStats)
+    .sort((a,b) => String(seanceTitle(a.seance)).localeCompare(String(seanceTitle(b.seance)), "uk"))
+    .map(x => `
+      <tr>
+        <td>${esc(seanceTitle(x.seance))}</td>
+        <td><b>${x.count}</b></td>
+        <td>${money(x.sum)} грн</td>
+      </tr>
+    `)
+    .join("") || `<tr><td colspan="3">—</td></tr>`;
+
+  const returnRows = returns.length
+    ? returns.map(r => `
+      <tr>
+        <td>${esc(new Date(r.created_at).toLocaleString("uk-UA"))}</td>
+        <td>${esc(r.organization || r.partner_name || "—")}</td>
+        <td>${esc((seatsFromRow(r) || []).join(", ") || r.qty || "—")}</td>
+        <td>${esc(r.doc_no || r.issue_doc || "—")}</td>
+        <td>${money(r.amount || 0)} грн</td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="5">Повернень за день немає.</td></tr>`;
+
+  out.innerHTML = `
+    <h2 class="print-title">КГ-13 — Щоденний звіт касира</h2>
+
+    <div class="report-section">
+      <h3>Дата: ${esc(day)}</h3>
+      <p>
+        Касир / канал: <b>${esc(cashierLabel)}</b><br>
+        Режим: <b>${mode === "cash" ? "тільки каса" : "усі продажі"}</b><br>
+        Сформовано: ${esc(reportDate)}
+      </p>
+    </div>
+
+    <div class="result-grid" style="margin-top:18px;">
       <div class="metric">
-        <div class="metric-label">Кількість квитків</div>
+        <div class="metric-label">Квитків у звіті</div>
         <div class="metric-value">${count}</div>
+        <div class="metric-note">${mode === "cash" ? "касовий канал" : "усі канали"}</div>
       </div>
 
       <div class="metric">
-        <div class="metric-label">Загальна сума</div>
-        <div class="metric-value">${sum} грн</div>
+        <div class="metric-label">Сума продажів</div>
+        <div class="metric-value">${money(sum)} грн</div>
+        <div class="metric-note">tickets.created_at за дату</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Повернення</div>
+        <div class="metric-value">${returnQty}</div>
+        <div class="metric-note">${money(returnSum)} грн за ticket_returns</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Підсумок дня</div>
+        <div class="metric-value">${money(finalSum)} грн</div>
+        <div class="metric-note">продажі мінус повернення</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Онлайн справочно</div>
+        <div class="metric-value">${onlineCount}</div>
+        <div class="metric-note">${money(onlineSum)} грн</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Інші канали</div>
+        <div class="metric-value">${otherCount}</div>
+        <div class="metric-note">${money(otherSum)} грн</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Усього за день</div>
+        <div class="metric-value">${allTicketsCount}</div>
+        <div class="metric-note">${money(allTicketsSum)} грн по всіх каналах</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Середній чек</div>
+        <div class="metric-value">${count ? money(sum / count) : "0,00"} грн</div>
+        <div class="metric-note">по квитках у звіті</div>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Канали</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Канал</th>
+              <th>Квитків</th>
+              <th>Сума</th>
+            </tr>
+          </thead>
+          <tbody>${channelRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Типи квитків</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Тип</th>
+              <th>Кількість</th>
+            </tr>
+          </thead>
+          <tbody>${typeRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Номінали</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Номінал</th>
+              <th>Кількість</th>
+            </tr>
+          </thead>
+          <tbody>${priceRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Сеанси у звіті</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Сеанс</th>
+              <th>Квитків</th>
+              <th>Сума</th>
+            </tr>
+          </thead>
+          <tbody>${seanceRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>Повернення за день</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Час</th>
+              <th>Організація</th>
+              <th>Місця / к-сть</th>
+              <th>Документ</th>
+              <th>Сума</th>
+            </tr>
+          </thead>
+          <tbody>${returnRows}</tbody>
+        </table>
       </div>
     </div>
   `;
 }
+
+async function copyReport(){
+  if (!LAST_REPORT_TEXT) {
+    alert("Спочатку сформуйте звіт.");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(LAST_REPORT_TEXT);
+    alert("Звіт скопійовано.");
+  } catch(e) {
+    alert("Не вдалося скопіювати звіт.");
+  }
+}
+
+document.getElementById("day").value = new Date().toISOString().slice(0, 10);
 </script>
 
 </body>
