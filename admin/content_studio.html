@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VA Content Studio V1.3</title>
+  <title>VA Content Studio V1.4</title>
   <style>
     :root{
       --bg:#061426;--panel:#102641;--panel2:#0a1d34;--line:#294563;
@@ -81,6 +81,25 @@
       .wrap{padding:12px}.grid-2,.grid-3,.grid-4,.kpis{grid-template-columns:1fr}
       h1{font-size:30px}.nav-btn{flex:1 1 44%}
     }
+
+    .production-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr);gap:14px}
+    .tool-grid,.asset-grid,.brand-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .tool-card,.asset-card,.brand-card,.job-card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}
+    .tool-card h4,.asset-card h4,.brand-card h4,.job-card h4{margin:0 0 7px;font-size:16px}
+    .tool-card .actions,.asset-card .actions,.brand-card .actions,.job-card .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+    .asset-preview{height:210px;background:#051425;border:1px solid var(--line);border-radius:11px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+    .asset-preview img,.asset-preview video{width:100%;height:100%;object-fit:contain;display:block}
+    .asset-preview audio{width:92%}.asset-file-icon{font-size:42px;color:var(--muted)}
+    .asset-badges{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0}.mini-badge{font-size:11px;border-radius:999px;background:#244869;padding:5px 8px;color:#e8f4ff}
+    .mini-badge.primary{background:#7a5a12}.mini-badge.approved{background:#17613e}.mini-badge.archive{background:#4b5563}
+    .format-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.format-check{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px;background:#071a2f}.format-check input{width:auto}
+    .upload-drop{border:1px dashed #4b759e;border-radius:14px;padding:15px;background:#0b2340;margin-bottom:12px}
+    .library-toolbar{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:9px;margin-bottom:12px}
+    .compact-editor{background:#0b213b;border:1px solid var(--line);border-radius:14px;padding:13px;margin-top:12px}
+    .section-title-row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
+    .file-progress{padding:10px 12px;border-radius:10px;background:#173558;border:1px solid #3c6794;margin-top:10px}
+    @media(max-width:1150px){.production-layout{grid-template-columns:1fr}.tool-grid,.asset-grid,.brand-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:700px){.tool-grid,.asset-grid,.brand-grid,.format-grid,.library-toolbar{grid-template-columns:1fr}.asset-preview{height:240px}}
   </style>
 </head>
 <body>
@@ -88,8 +107,8 @@
   <header class="hero">
     <div class="hero-row">
       <div>
-        <h1>VA Content Studio V1.3</h1>
-        <div class="lead">Один проєкт → один вихідний текст → готовий пакет для всіх потрібних каналів.</div>
+        <h1>VA Content Studio V1.4</h1>
+        <div class="lead">Проєкт → виробництво → бібліотека → складання каналів → готовий контент.</div>
       </div>
       <div class="statusbar">
         <span class="badge" id="apiBadge">Supabase: перевірка…</span>
@@ -132,6 +151,8 @@
           <div class="tabs">
             <button class="tab-btn active" data-project-tab="passport">Паспорт</button>
             <button class="tab-btn" data-project-tab="seances">Сеанси</button>
+            <button class="tab-btn" data-project-tab="production">Виробництво</button>
+            <button class="tab-btn" data-project-tab="library">Бібліотека проєкту</button>
             <button class="tab-btn" data-project-tab="package">Контент-пакет</button>
             <button class="tab-btn" data-project-tab="summary">Стан роботи</button>
           </div>
@@ -164,6 +185,126 @@
             <div id="availableSeances"></div>
           </div>
 
+
+          <div class="subpanel" id="project-tab-production">
+            <div id="v14NoSchema" class="notice warn hidden">Спочатку виконайте SQL V1.4. Після цього зʼявляться інструменти, бренд-комплекти, виробничі завдання та бібліотека файлів.</div>
+            <div class="notice">Це пульт підготовки контенту до фінальної збірки. Тут не монтують відео всередині Studio: відкривають потрібний редактор, використовують бренд-комплект і повертають готові експорти до бібліотеки проєкту.</div>
+            <div class="grid-2">
+              <div class="field"><label>Сеанс (за потреби)</label><select id="productionSeance"><option value="">— Увесь проєкт —</option></select></div>
+              <div class="field"><label>Майданчик / venue_id</label><input id="productionVenue" placeholder="Підставляється із сеансу або вводиться вручну"></div>
+            </div>
+
+            <div class="section-title-row"><h3>Інструменти виробництва</h3><button class="btn blue small" id="newToolBtn">+ Інструмент</button></div>
+            <div class="tool-grid" id="productionTools"></div>
+            <div class="compact-editor hidden" id="toolEditor">
+              <input type="hidden" id="toolId">
+              <div class="grid-3">
+                <div class="field"><label>Назва</label><input id="toolName"></div>
+                <div class="field"><label>Код</label><input id="toolCode" placeholder="capcut_video"></div>
+                <div class="field"><label>Категорія</label><select id="toolCategory"><option value="visual">Візуал</option><option value="video">Відео</option><option value="voice">Озвучення</option><option value="graphics">Графіка</option><option value="other">Інше</option></select></div>
+              </div>
+              <div class="field"><label>Адреса редактора</label><input id="toolUrl" placeholder="https://… або visual_editor.html"></div>
+              <div class="field"><label>Призначення / примітка</label><textarea id="toolDescription"></textarea></div>
+              <div class="checkline"><input type="checkbox" id="toolActive" checked><label for="toolActive" style="margin:0">Активний</label></div>
+              <div class="toolbar" style="margin-top:10px"><button class="btn green" id="saveToolBtn">Зберегти</button><button class="btn red" id="deleteToolBtn">Видалити</button><button class="btn" id="cancelToolBtn">Закрити</button></div>
+            </div>
+
+            <div class="production-layout" style="margin-top:18px">
+              <div>
+                <div class="section-title-row"><h3>Виробниче завдання</h3><button class="btn blue small" id="newProductionJobBtn">+ Нове</button></div>
+                <div class="compact-editor">
+                  <input type="hidden" id="productionJobId">
+                  <div class="grid-2">
+                    <div class="field"><label>Назва</label><input id="productionJobTitle" placeholder="Відеоафіша — назва проєкту"></div>
+                    <div class="field"><label>Тип результату</label><select id="productionJobType"><option value="video_poster">Відеоафіша</option><option value="poster_adaptation">Адаптація афіші</option><option value="voiceover">Озвучення</option><option value="photo_set">Фотопакет</option><option value="other">Інше</option></select></div>
+                  </div>
+                  <label>Потрібні формати</label>
+                  <div class="format-grid" id="productionFormats">
+                    <label class="format-check"><input type="checkbox" value="9:16">9:16 · TikTok / Reels / Stories</label>
+                    <label class="format-check"><input type="checkbox" value="4:5">4:5 · Instagram / Facebook</label>
+                    <label class="format-check"><input type="checkbox" value="3:4">3:4 · брендована рамка</label>
+                    <label class="format-check"><input type="checkbox" value="1:1">1:1 · квадрат</label>
+                    <label class="format-check"><input type="checkbox" value="16:9">16:9 · YouTube / екрани</label>
+                    <label class="format-check"><input type="checkbox" value="live_poster">Live Poster</label>
+                    <label class="format-check"><input type="checkbox" value="video_background">Відеофон сайту</label>
+                  </div>
+                  <div class="field" style="margin-top:10px"><label>Технічне завдання</label><textarea id="productionJobBrief" placeholder="Вихідна афіша, брендована рамка, голос, тривалість, музика, фінальний кадр…"></textarea></div>
+                  <div class="grid-2">
+                    <div class="field"><label>Статус</label><select id="productionJobStatus"><option value="planned">Заплановано</option><option value="in_progress">У роботі</option><option value="review">Перевірка</option><option value="done">Готово</option><option value="cancelled">Скасовано</option></select></div>
+                    <div class="field"><label>Примітка</label><input id="productionJobNotes"></div>
+                  </div>
+                  <div class="toolbar"><button class="btn green" id="saveProductionJobBtn">Зберегти завдання</button><button class="btn red" id="deleteProductionJobBtn">Видалити</button><button class="btn violet" id="jobUploadResultsBtn">Завантажити результати</button></div>
+                </div>
+                <div id="productionJobs" style="margin-top:12px"></div>
+              </div>
+
+              <div>
+                <div class="section-title-row"><h3>Бренд-комплекти</h3><button class="btn blue small" id="newBrandKitBtn">+ Комплект</button></div>
+                <div class="brand-grid" id="brandKits"></div>
+                <div class="compact-editor hidden" id="brandKitEditor">
+                  <input type="hidden" id="brandKitId">
+                  <div class="field"><label>Майданчик / venue_id</label><input id="brandVenueId"></div>
+                  <div class="field"><label>Назва комплекту</label><input id="brandName" placeholder="Академія руху — основний"></div>
+                  <div class="field"><label>Опис</label><textarea id="brandDescription"></textarea></div>
+                  <div class="field"><label>Логотип URL</label><input id="brandLogoUrl"></div>
+                  <div class="grid-2">
+                    <div class="field"><label>Адреса</label><input id="brandAddress"></div>
+                    <div class="field"><label>Телефон</label><input id="brandPhone"></div>
+                  </div>
+                  <div class="field"><label>Сайт</label><input id="brandSite"></div>
+                  <label>Брендовані рамки</label>
+                  <div class="grid-2">
+                    <div class="field"><label>9:16</label><input id="brandFrame916"></div>
+                    <div class="field"><label>4:5 / 3:4</label><input id="brandFrame45"></div>
+                    <div class="field"><label>1:1</label><input id="brandFrame11"></div>
+                    <div class="field"><label>16:9</label><input id="brandFrame169"></div>
+                  </div>
+                  <div class="toolbar"><button class="btn green" id="saveBrandKitBtn">Зберегти</button><button class="btn red" id="deleteBrandKitBtn">Видалити</button><button class="btn" id="cancelBrandKitBtn">Закрити</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="subpanel" id="project-tab-library">
+            <div class="notice">Єдине сховище проєкту в Supabase: вихідні афіші, відеоафіші, голос, фото, Live Poster, відеофони, адаптовані формати та остаточні матеріали. Завантажуйте лише те, що має робочу або архівну цінність.</div>
+            <div class="toolbar">
+              <button class="btn blue" id="openVisualEditorBtn">Відкрити Visual Editor</button>
+              <button class="btn" id="reloadLibraryBtn">Оновити бібліотеку</button>
+              <span class="meta" id="libraryCount">0 матеріалів</span>
+            </div>
+            <div class="upload-drop">
+              <div class="grid-3">
+                <div class="field"><label>Файли</label><input id="assetFiles" type="file" multiple accept="image/*,video/*,audio/*,.pdf,.zip"></div>
+                <div class="field"><label>Сеанс (необовʼязково)</label><select id="assetSeance"><option value="">— Увесь проєкт —</option></select></div>
+                <div class="field"><label>Тип матеріалу</label><select id="assetType">
+                  <option value="source_poster">Вихідна афіша</option><option value="poster">Афіша</option><option value="video_poster">Відеоафіша</option><option value="photo">Фото</option><option value="video">Відео</option><option value="audio">Озвучення / аудіо</option><option value="live_poster">Live Poster</option><option value="background_video">Відеофон</option><option value="logo">Логотип</option><option value="frame">Брендована рамка</option><option value="adapted">Адаптований формат</option><option value="final_publication">Фінальний матеріал</option><option value="other">Інше</option>
+                </select></div>
+              </div>
+              <div class="grid-4">
+                <div class="field"><label>Канал</label><select id="assetChannel"><option value="">Загальний</option><option value="site">Сайт</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="telegram">Telegram</option><option value="viber">Viber</option><option value="youtube">YouTube</option><option value="email">Email</option></select></div>
+                <div class="field"><label>Формат / розміщення</label><input id="assetPlacement" placeholder="feed, story, reels, 9:16…"></div>
+                <div class="field"><label>Співвідношення сторін</label><select id="assetAspect"><option value="">Авто</option><option value="9:16">9:16</option><option value="4:5">4:5</option><option value="3:4">3:4</option><option value="1:1">1:1</option><option value="16:9">16:9</option><option value="2:3">2:3</option></select></div>
+                <div class="field"><label>Статус</label><select id="assetStatus"><option value="source">Вихідний</option><option value="work">Робочий</option><option value="review">Перевірка</option><option value="approved">Затверджено</option><option value="published">Використано</option><option value="archive">Архів</option></select></div>
+              </div>
+              <div class="grid-3">
+                <div class="field"><label>Загальна назва (необовʼязково)</label><input id="assetTitle" placeholder="Якщо порожньо — назва сформується автоматично"></div>
+                <div class="field"><label>Версія</label><input id="assetVersion" type="number" min="1" value="1"></div>
+                <div class="field"><label>Примітка</label><input id="assetNotes"></div>
+              </div>
+              <div class="checkline"><input type="checkbox" id="assetPrimary"><label for="assetPrimary" style="margin:0">Основний матеріал цього типу / каналу</label></div>
+              <button class="btn green" id="uploadAssetsBtn" style="margin-top:12px">Завантажити до бібліотеки</button>
+              <div id="assetUploadProgress"></div>
+            </div>
+
+            <div class="library-toolbar">
+              <input id="librarySearch" placeholder="Пошук за назвою або файлом">
+              <select id="libraryTypeFilter"><option value="">Усі типи</option><option value="source_poster">Вихідна афіша</option><option value="poster">Афіша</option><option value="video_poster">Відеоафіша</option><option value="photo">Фото</option><option value="video">Відео</option><option value="audio">Аудіо</option><option value="live_poster">Live Poster</option><option value="background_video">Відеофон</option><option value="adapted">Адаптовані</option><option value="final_publication">Фінальні</option></select>
+              <select id="libraryChannelFilter"><option value="">Усі канали</option><option value="site">Сайт</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="telegram">Telegram</option><option value="viber">Viber</option><option value="youtube">YouTube</option></select>
+              <select id="libraryStatusFilter"><option value="">Усі статуси</option><option value="source">Вихідні</option><option value="work">Робочі</option><option value="review">Перевірка</option><option value="approved">Затверджені</option><option value="published">Використані</option><option value="archive">Архів</option></select>
+            </div>
+            <div class="asset-grid" id="projectAssetGrid"></div>
+          </div>
+
           <div class="subpanel" id="project-tab-package">
             <div class="notice">Оберіть конкретний сеанс і потрібні формати. Адреса продажу підставляється автоматично, а кожен канал отримує власну структуру та обмеження.</div>
             <div class="grid-2">
@@ -176,8 +317,8 @@
             </div>
             <div class="field">
               <label>Адреса вітрини / купівлі квитків</label>
-              <div class="inline-link-row"><input id="packageLink" placeholder="https://..."><button class="btn" id="openPackageLinkBtn" type="button">Відкрити</button></div>
-              <div class="meta">Якщо у сеансі немає окремого URL, Content Studio формує адресу універсальної схеми залу автоматично.</div>
+              <div class="inline-link-row"><input id="packageLink" placeholder="Вставте точну адресу робочої вітрини"><button class="btn" id="openPackageLinkBtn" type="button">Відкрити</button><button class="btn green" id="savePackageLinkBtn" type="button">Зберегти для сеансу</button></div>
+              <div class="meta" id="packageLinkMeta">Content Studio використовує лише точну адресу, збережену у сеансі. Автоматично вигадувати URL більше не буде.</div>
             </div>
             <h3>Що підготувати</h3>
             <div class="package-grid" id="packageOptions">
@@ -496,8 +637,9 @@ const $ = id => document.getElementById(id);
 const state = {
   projects:[], seances:[], tasks:[], materials:[], variants:[], agents:[], agentRuns:[],
   templates:[], campaigns:[], actions:[], history:[],
-  selectedProject:null, selectedMaterial:null, selectedRun:null,
-  extendedReady:false, agentBusy:false, packageBusy:false
+  productionTools:[], brandKits:[], productionJobs:[], mediaAssets:[],
+  selectedProject:null, selectedMaterial:null, selectedRun:null, selectedTool:null, selectedBrandKit:null, selectedProductionJob:null,
+  extendedReady:false, v14Ready:false, agentBusy:false, packageBusy:false, assetBusy:false
 };
 
 function headers(extra={}){
@@ -632,7 +774,7 @@ function fillProject(p){
   $('pTitle').value=p.title||'';$('pStatus').value=p.status||'draft';$('pGenre').value=p.genre||'';
   $('pType').value=p.type||'';$('pAge').value=p.age||'';$('pShort').value=p.short_description||'';
   $('pDescription').value=p.description||'';$('pTags').value=p.tags||'';
-  renderProjects();renderSeances();renderProjectSummary();renderContentPackage();
+  renderProjects();renderSeances();renderProjectSummary();renderContentPackage();renderProduction();renderLibrary();
 }
 async function loadProjects(){
   state.projects=await sb('projects?select=*&order=created_at.desc');
@@ -682,7 +824,7 @@ function renderProjectSummary(){
   const pid=selectedProjectId();
   $('sumSeances').textContent=state.seances.filter(x=>String(x.project_id||'')===String(pid)).length;
   $('sumTasks').textContent=state.tasks.filter(x=>String(x.project_id||'')===String(pid)).length;
-  $('sumMaterials').textContent=state.materials.filter(x=>String(x.project_id||'')===String(pid)).length;
+  $('sumMaterials').textContent=state.materials.filter(x=>String(x.project_id||'')===String(pid)).length + state.mediaAssets.filter(x=>String(x.project_id||'')===String(pid)).length;
   $('sumCampaigns').textContent=state.campaigns.filter(x=>String(x.project_id||'')===String(pid)).length;
 }
 
@@ -711,9 +853,98 @@ async function loadExtended(){
   populateGlobalSelects();renderTasks();renderMaterials();renderAgents();renderAgentRuns();renderTemplates();renderCampaigns();renderActions();renderHistory();renderProjectSummary();
   updateAgentKeyUi();
   autoSelectPreparedRun();
+  await loadV14();
   renderContentPackage();
 }
 
+
+
+const V14_BUCKET='content-studio';
+const ASSET_LABELS={source_poster:'Вихідна афіша',poster:'Афіша',video_poster:'Відеоафіша',photo:'Фото',video:'Відео',audio:'Аудіо',live_poster:'Live Poster',background_video:'Відеофон',logo:'Логотип',frame:'Брендована рамка',adapted:'Адаптований формат',final_publication:'Фінальний матеріал',other:'Інше'};
+function linkedProjectSeances(){const pid=String(selectedProjectId()||'');return state.seances.filter(s=>String(s.project_id||'')===pid);}
+function fillProjectSeanceSelect(id,empty='— Увесь проєкт —'){
+  const el=$(id);if(!el)return;const keep=el.value;const rows=linkedProjectSeances();
+  el.innerHTML=`<option value="">${esc(empty)}</option>`+rows.map(s=>`<option value="${esc(s.id)}">${esc(seanceTitle(s))}</option>`).join('');
+  if(rows.some(s=>String(s.id)===String(keep)))el.value=keep;
+}
+async function loadV14(){
+  try{
+    const [tools,kits,jobs,assets]=await Promise.all([
+      sb('production_tools?select=*&order=sort_order.asc,name.asc'),
+      sb('venue_brand_kits?select=*&order=name.asc'),
+      sb('project_production_jobs?select=*&order=updated_at.desc'),
+      sb('project_media_assets?select=*&order=created_at.desc')
+    ]);
+    Object.assign(state,{productionTools:tools||[],brandKits:kits||[],productionJobs:jobs||[],mediaAssets:assets||[],v14Ready:true});
+    $('v14NoSchema')?.classList.add('hidden');
+  }catch(e){
+    state.v14Ready=false;
+    $('v14NoSchema')?.classList.remove('hidden');
+    console.warn('V1.4 SQL:',e);
+  }
+  renderProduction();renderLibrary();renderProjectSummary();
+}
+function currentProductionSeance(){const id=$('productionSeance')?.value||'';return state.seances.find(s=>String(s.id)===String(id))||null;}
+function syncProductionVenue(){const s=currentProductionSeance();if(s)$('productionVenue').value=s.venue_id||s.venue||s.hall||'';}
+function openTool(tool){
+  if(!tool?.url){setMessage(`Для «${tool?.name||'інструмента'}» ще не задано адресу.`,'bad');return;}
+  let url;
+  try{url=new URL(tool.url,location.href);}catch(e){setMessage('Некоректна адреса інструмента.','bad');return;}
+  if(tool.code==='va_visual_editor'){
+    if(state.selectedProject&&!state.selectedProject.isNew)url.searchParams.set('project_id',state.selectedProject.id);
+    const sid=$('productionSeance')?.value||$('assetSeance')?.value||'';if(sid)url.searchParams.set('seance_id',sid);
+    url.searchParams.set('return_to',location.href.split('#')[0]);
+  }
+  window.open(url.toString(),'_blank','noopener');
+}
+function renderProduction(){
+  if(!$('productionTools'))return;
+  fillProjectSeanceSelect('productionSeance');
+  const pid=String(selectedProjectId()||'');
+  $('productionTools').innerHTML=state.productionTools.filter(x=>x.is_active!==false).length?state.productionTools.filter(x=>x.is_active!==false).map(x=>`<div class="tool-card"><h4>${esc(x.name)}</h4><div class="meta">${esc(x.category||'інструмент')}<br>${esc(x.description||'')}</div><div class="actions"><button class="btn green small" data-open-tool="${esc(x.id)}">Відкрити</button><button class="btn small" data-edit-tool="${esc(x.id)}">Редагувати</button></div></div>`).join(''):'<div class="empty">Інструменти ще не налаштовані.</div>';
+  const jobs=state.productionJobs.filter(x=>String(x.project_id||'')===pid);
+  $('productionJobs').innerHTML=jobs.length?jobs.map(x=>`<div class="job-card" style="margin-bottom:9px"><h4>${esc(x.title)}</h4><div class="asset-badges"><span class="mini-badge">${esc(x.content_type||'')}</span><span class="mini-badge ${x.status==='done'?'approved':''}">${esc(x.status||'planned')}</span>${(x.target_formats||[]).map(f=>`<span class="mini-badge">${esc(f)}</span>`).join('')}</div><div class="meta">${esc(x.brief||'')}<br>${esc(x.notes||'')}</div><div class="actions"><button class="btn small" data-edit-job="${esc(x.id)}">Відкрити</button></div></div>`).join(''):'<div class="empty">Виробничих завдань немає.</div>';
+  $('brandKits').innerHTML=state.brandKits.length?state.brandKits.map(x=>`<div class="brand-card"><h4>${esc(x.name)}</h4><div class="meta">venue: ${esc(x.venue_id||'—')}<br>${esc(x.description||'')}</div><div class="asset-badges">${Object.keys(x.frame_urls||{}).filter(k=>(x.frame_urls||{})[k]).map(k=>`<span class="mini-badge">${esc(k)}</span>`).join('')}</div><div class="actions"><button class="btn small" data-edit-brand="${esc(x.id)}">Редагувати</button></div></div>`).join(''):'<div class="empty">Бренд-комплектів ще немає.</div>';
+}
+function clearTool(){state.selectedTool=null;$('toolEditor').classList.remove('hidden');$('toolId').value='';$('toolName').value='';$('toolCode').value='';$('toolCategory').value='video';$('toolUrl').value='';$('toolDescription').value='';$('toolActive').checked=true;}
+function fillTool(x){state.selectedTool=x;$('toolEditor').classList.remove('hidden');$('toolId').value=x.id;$('toolName').value=x.name||'';$('toolCode').value=x.code||'';$('toolCategory').value=x.category||'other';$('toolUrl').value=x.url||'';$('toolDescription').value=x.description||'';$('toolActive').checked=x.is_active!==false;}
+async function saveTool(){const payload={name:$('toolName').value.trim()||'Новий інструмент',code:$('toolCode').value.trim()||`tool_${Date.now()}`,category:$('toolCategory').value,url:$('toolUrl').value.trim()||null,description:$('toolDescription').value.trim()||null,is_active:$('toolActive').checked,updated_at:new Date().toISOString()};const id=await saveRow('production_tools',$('toolId').value||null,payload);await logActivity('Збережено інструмент виробництва',{area:'content',project_id:selectedProjectId(),entity_type:'production_tool',entity_id:id});await loadV14();$('toolEditor').classList.add('hidden');}
+async function removeTool(){const id=$('toolId').value;if(!id||!confirm('Видалити інструмент?'))return;await deleteRow('production_tools',id);$('toolEditor').classList.add('hidden');await loadV14();}
+function clearProductionJob(){state.selectedProductionJob=null;$('productionJobId').value='';$('productionJobTitle').value=`Відеоафіша — ${state.selectedProject?.title||'проєкт'}`;$('productionJobType').value='video_poster';$('productionJobBrief').value='';$('productionJobStatus').value='planned';$('productionJobNotes').value='';document.querySelectorAll('#productionFormats input').forEach(x=>x.checked=false);}
+function fillProductionJob(x){state.selectedProductionJob=x;$('productionJobId').value=x.id;$('productionJobTitle').value=x.title||'';$('productionJobType').value=x.content_type||'video_poster';$('productionJobBrief').value=x.brief||'';$('productionJobStatus').value=x.status||'planned';$('productionJobNotes').value=x.notes||'';const formats=new Set(x.target_formats||[]);document.querySelectorAll('#productionFormats input').forEach(c=>c.checked=formats.has(c.value));if(x.seance_id)$('productionSeance').value=x.seance_id;}
+async function saveProductionJob(){if(!selectedProjectId()||state.selectedProject?.isNew)throw new Error('Спочатку збережіть проєкт.');const payload={project_id:selectedProjectId(),seance_id:$('productionSeance').value||null,venue_id:$('productionVenue').value.trim()||null,title:$('productionJobTitle').value.trim()||`Виробниче завдання — ${state.selectedProject.title}`,content_type:$('productionJobType').value,target_formats:[...document.querySelectorAll('#productionFormats input:checked')].map(x=>x.value),brief:$('productionJobBrief').value.trim()||null,status:$('productionJobStatus').value,notes:$('productionJobNotes').value.trim()||null,updated_at:new Date().toISOString()};const id=await saveRow('project_production_jobs',$('productionJobId').value||null,payload);await logActivity('Збережено виробниче завдання',{area:'content',project_id:selectedProjectId(),entity_type:'production_job',entity_id:id});await loadV14();fillProductionJob(state.productionJobs.find(x=>String(x.id)===String(id)));}
+async function removeProductionJob(){const id=$('productionJobId').value;if(!id||!confirm('Видалити виробниче завдання?'))return;await deleteRow('project_production_jobs',id);clearProductionJob();await loadV14();}
+function clearBrandKit(){state.selectedBrandKit=null;$('brandKitEditor').classList.remove('hidden');['brandKitId','brandVenueId','brandName','brandDescription','brandLogoUrl','brandAddress','brandPhone','brandSite','brandFrame916','brandFrame45','brandFrame11','brandFrame169'].forEach(id=>$(id).value='');$('brandVenueId').value=$('productionVenue').value||'';}
+function fillBrandKit(x){state.selectedBrandKit=x;$('brandKitEditor').classList.remove('hidden');$('brandKitId').value=x.id;$('brandVenueId').value=x.venue_id||'';$('brandName').value=x.name||'';$('brandDescription').value=x.description||'';$('brandLogoUrl').value=x.logo_url||'';const c=x.contacts||{},f=x.frame_urls||{};$('brandAddress').value=c.address||'';$('brandPhone').value=c.phone||'';$('brandSite').value=c.site||'';$('brandFrame916').value=f['9:16']||'';$('brandFrame45').value=f['4:5']||f['3:4']||'';$('brandFrame11').value=f['1:1']||'';$('brandFrame169').value=f['16:9']||'';}
+async function saveBrandKit(){const payload={venue_id:$('brandVenueId').value.trim()||null,name:$('brandName').value.trim()||'Новий бренд-комплект',description:$('brandDescription').value.trim()||null,logo_url:$('brandLogoUrl').value.trim()||null,contacts:{address:$('brandAddress').value.trim(),phone:$('brandPhone').value.trim(),site:$('brandSite').value.trim()},frame_urls:{'9:16':$('brandFrame916').value.trim(),'4:5':$('brandFrame45').value.trim(),'1:1':$('brandFrame11').value.trim(),'16:9':$('brandFrame169').value.trim()},is_active:true,updated_at:new Date().toISOString()};const id=await saveRow('venue_brand_kits',$('brandKitId').value||null,payload);await logActivity('Збережено бренд-комплект',{area:'content',project_id:selectedProjectId(),entity_type:'brand_kit',entity_id:id});await loadV14();$('brandKitEditor').classList.add('hidden');}
+async function removeBrandKit(){const id=$('brandKitId').value;if(!id||!confirm('Видалити бренд-комплект?'))return;await deleteRow('venue_brand_kits',id);$('brandKitEditor').classList.add('hidden');await loadV14();}
+function safeSlug(v){return String(v||'file').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-+|-+$/g,'').replace(/-+/g,'-')||'file';}
+function publicStorageUrl(bucket,path){return `${SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(bucket)}/${path.split('/').map(encodeURIComponent).join('/')}`;}
+async function mediaMeta(file){
+  const type=file.type||'';
+  if(type.startsWith('image/')){try{const img=await createImageBitmap(file);const out={width:img.width,height:img.height,duration_sec:null};img.close();return out;}catch(e){return {width:null,height:null,duration_sec:null};}}
+  if(type.startsWith('video/')||type.startsWith('audio/'))return await new Promise(resolve=>{const el=document.createElement(type.startsWith('video/')?'video':'audio');const url=URL.createObjectURL(file);el.preload='metadata';el.onloadedmetadata=()=>{const out={width:el.videoWidth||null,height:el.videoHeight||null,duration_sec:Number.isFinite(el.duration)?Math.round(el.duration*100)/100:null};URL.revokeObjectURL(url);resolve(out);};el.onerror=()=>{URL.revokeObjectURL(url);resolve({width:null,height:null,duration_sec:null});};el.src=url;});
+  return {width:null,height:null,duration_sec:null};
+}
+async function uploadStorageFile(bucket,path,file){const res=await fetch(`${SUPABASE_URL}/storage/v1/object/${encodeURIComponent(bucket)}/${path.split('/').map(encodeURIComponent).join('/')}`,{method:'POST',headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':file.type||'application/octet-stream','x-upsert':'true'},body:file});if(!res.ok)throw new Error(await res.text()||'Помилка Storage');return publicStorageUrl(bucket,path);}
+function inferAspect(width,height){if(!width||!height)return '';const r=width/height;const specs=[['9:16',9/16],['4:5',4/5],['3:4',3/4],['1:1',1],['16:9',16/9],['2:3',2/3]];specs.sort((a,b)=>Math.abs(r-a[1])-Math.abs(r-b[1]));return Math.abs(r-specs[0][1])<.08?specs[0][0]:`${width}:${height}`;}
+async function uploadAssets(){
+  if(state.assetBusy)return;if(!selectedProjectId()||state.selectedProject?.isNew)throw new Error('Спочатку збережіть проєкт.');
+  const files=[...$('assetFiles').files];if(!files.length)throw new Error('Оберіть хоча б один файл.');state.assetBusy=true;$('uploadAssetsBtn').disabled=true;
+  try{let done=0;for(const file of files){$('assetUploadProgress').innerHTML=`<div class="file-progress">Завантаження ${done+1}/${files.length}: ${esc(file.name)}</div>`;const meta=await mediaMeta(file);const ext=(file.name.split('.').pop()||'bin').toLowerCase();const channel=$('assetChannel').value||'general';const type=$('assetType').value;const version=Number($('assetVersion').value||1);const aspect=$('assetAspect').value||inferAspect(meta.width,meta.height);const base=`${safeSlug(state.selectedProject.title)}_${safeSlug(type)}_${safeSlug(channel)}_${safeSlug(aspect||'original')}_v${version}_${Date.now()}`;const path=`${safeSlug(state.selectedProject.title)}/${safeSlug(type)}/${base}.${safeSlug(ext)}`;const url=await uploadStorageFile(V14_BUCKET,path,file);const payload={project_id:selectedProjectId(),seance_id:$('assetSeance').value||null,venue_id:(state.seances.find(s=>String(s.id)===String($('assetSeance').value))?.venue_id)||null,asset_type:type,channel:$('assetChannel').value||null,placement:$('assetPlacement').value.trim()||null,title:$('assetTitle').value.trim()||`${ASSET_LABELS[type]||'Матеріал'} — ${state.selectedProject.title}`,file_name:`${base}.${safeSlug(ext)}`,original_file_name:file.name,storage_bucket:V14_BUCKET,storage_path:path,public_url:url,mime_type:file.type||null,width:meta.width,height:meta.height,duration_sec:meta.duration_sec,file_size:file.size,aspect_ratio:aspect||null,version,status:$('assetStatus').value,is_primary:$('assetPrimary').checked,notes:$('assetNotes').value.trim()||null,updated_at:new Date().toISOString()};if(payload.is_primary)await sb(`project_media_assets?project_id=eq.${encodeURIComponent(selectedProjectId())}&asset_type=eq.${encodeURIComponent(type)}&channel=${payload.channel?'eq.'+encodeURIComponent(payload.channel):'is.null'}`,{method:'PATCH',body:JSON.stringify({is_primary:false})});await sb('project_media_assets',{method:'POST',body:JSON.stringify(payload)});done++;}
+    $('assetFiles').value='';$('assetUploadProgress').innerHTML=`<div class="notice">Завантажено файлів: ${done}.</div>`;await logActivity('Завантажено матеріали до бібліотеки',{area:'content',project_id:selectedProjectId(),entity_type:'project_media_assets',details:{count:done}});await loadV14();
+  }finally{state.assetBusy=false;$('uploadAssetsBtn').disabled=false;}
+}
+function assetPreview(a){const url=esc(a.public_url||'');const mime=a.mime_type||'';if(mime.startsWith('image/'))return `<img src="${url}" alt="">`;if(mime.startsWith('video/'))return `<video src="${url}" controls muted preload="metadata"></video>`;if(mime.startsWith('audio/'))return `<audio src="${url}" controls></audio>`;return `<div class="asset-file-icon">📄</div>`;}
+function renderLibrary(){
+  if(!$('projectAssetGrid'))return;fillProjectSeanceSelect('assetSeance');const pid=String(selectedProjectId()||'');const q=($('librarySearch')?.value||'').trim().toLowerCase(),type=$('libraryTypeFilter')?.value||'',channel=$('libraryChannelFilter')?.value||'',status=$('libraryStatusFilter')?.value||'';const rows=state.mediaAssets.filter(a=>String(a.project_id||'')===pid&&(!q||`${a.title} ${a.file_name} ${a.original_file_name}`.toLowerCase().includes(q))&&(!type||a.asset_type===type)&&(!channel||a.channel===channel)&&(!status||a.status===status));$('libraryCount').textContent=`${rows.length} матеріалів`;
+  $('projectAssetGrid').innerHTML=rows.length?rows.map(a=>`<div class="asset-card"><div class="asset-preview">${assetPreview(a)}</div><h4>${esc(a.title||a.file_name)}</h4><div class="asset-badges"><span class="mini-badge">${esc(ASSET_LABELS[a.asset_type]||a.asset_type||'матеріал')}</span>${a.channel?`<span class="mini-badge">${esc(a.channel)}</span>`:''}${a.aspect_ratio?`<span class="mini-badge">${esc(a.aspect_ratio)}</span>`:''}<span class="mini-badge ${a.status==='approved'?'approved':a.status==='archive'?'archive':''}">${esc(a.status||'work')}</span>${a.is_primary?'<span class="mini-badge primary">Основний</span>':''}</div><div class="meta">${esc(a.file_name||'')}<br>${a.width&&a.height?`${a.width}×${a.height}`:'—'}${a.duration_sec?` · ${a.duration_sec} с`:''} · v${a.version||1}<br>${a.file_size?Math.round(a.file_size/1024/1024*100)/100+' МБ':''}</div><div class="actions"><button class="btn green small" data-asset-open="${esc(a.id)}">Відкрити</button><button class="btn small" data-asset-primary="${esc(a.id)}">Основний</button><button class="btn small" data-asset-archive="${esc(a.id)}">Архів</button><button class="btn red small" data-asset-delete="${esc(a.id)}">Видалити</button></div></div>`).join(''):'<div class="empty">У бібліотеці цього проєкту матеріалів ще немає.</div>';
+}
+async function setAssetPrimary(id){const a=state.mediaAssets.find(x=>String(x.id)===String(id));if(!a)return;await sb(`project_media_assets?project_id=eq.${encodeURIComponent(a.project_id)}&asset_type=eq.${encodeURIComponent(a.asset_type)}&channel=${a.channel?'eq.'+encodeURIComponent(a.channel):'is.null'}`,{method:'PATCH',body:JSON.stringify({is_primary:false})});await sb(`project_media_assets?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify({is_primary:true,updated_at:new Date().toISOString()})});await loadV14();}
+async function archiveAsset(id){await sb(`project_media_assets?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify({status:'archive',updated_at:new Date().toISOString()})});await loadV14();}
+async function deleteStorageObject(a){if(!a.storage_bucket||!a.storage_path)return;const res=await fetch(`${SUPABASE_URL}/storage/v1/object/${encodeURIComponent(a.storage_bucket)}/${a.storage_path.split('/').map(encodeURIComponent).join('/')}`,{method:'DELETE',headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});if(!res.ok&&res.status!==404)console.warn('Storage delete:',await res.text());}
+async function removeAsset(id){const a=state.mediaAssets.find(x=>String(x.id)===String(id));if(!a||!confirm(`Видалити «${a.title||a.file_name}» із бібліотеки і Storage?`))return;await deleteStorageObject(a);await deleteRow('project_media_assets',id);await logActivity('Видалено файл бібліотеки',{area:'content',project_id:a.project_id,entity_type:'project_media_asset',entity_id:id});await loadV14();}
+function showProjectTab(name){const tab=document.querySelector(`[data-project-tab="${name}"]`);if(!tab)return;document.querySelectorAll('[data-project-tab]').forEach(x=>x.classList.toggle('active',x===tab));document.querySelectorAll('[id^="project-tab-"]').forEach(x=>x.classList.remove('active'));$(`project-tab-${name}`).classList.add('active');if(name==='production')renderProduction();if(name==='library')renderLibrary();}
 
 const PACKAGE_SPECS={
   site:{label:'Сайт',channel:'site',placement:'event_page',min:1200,max:1800},
@@ -738,13 +969,7 @@ function linkedPackageSeances(){
 function storefrontUrlForSeance(s){
   if(!s)return '';
   const direct=s.ticket_url||s.sale_url||s.public_url||s.buy_url||s.event_url||s.shop_url||s.url;
-  if(direct)return String(direct);
-  const repoBase=location.pathname.match(/^(.*)\/admin\/[^/]+$/)?.[1]||'';
-  const hallBase=window.VA_STOREFRONT_BASE_URL||`${location.origin}${repoBase}/universal/hall.html`;
-  const title=s.show||s.title||s.name||s.show_title||state.selectedProject?.title||'';
-  const p=new URLSearchParams({seance:String(s.id)});
-  if(title)p.set('title',title);
-  return `${hallBase}?${p.toString()}`;
+  return direct?String(direct):'';
 }
 function selectedPackageSeance(){
   const id=$('packageSeance')?.value||'';
@@ -766,11 +991,30 @@ function populatePackageSeances(){
 function syncPackageLinkFromSeance(force=true){
   const s=selectedPackageSeance();
   const input=$('packageLink');
-  if(!s){input.value='';input.dataset.seanceId='';return;}
+  const meta=$('packageLinkMeta');
+  if(!s){input.value='';input.dataset.seanceId='';if(meta)meta.textContent='Оберіть сеанс.';return;}
   const changed=input.dataset.seanceId!==String(s.id);
-  if(force||changed||!input.value.trim())input.value=storefrontUrlForSeance(s);
+  const exact=storefrontUrlForSeance(s);
+  if(force||changed||!input.value.trim())input.value=exact;
   input.dataset.seanceId=String(s.id);
+  if(meta)meta.textContent=exact?'Завантажено точну адресу, збережену у цьому сеансі.':'Для цього сеансу адресу ще не збережено. Відкрийте справжню вітрину, скопіюйте URL, вставте сюди й натисніть «Зберегти для сеансу».';
 }
+
+async function savePackageLinkForSeance(){
+  const s=selectedPackageSeance();
+  if(!s)throw new Error('Оберіть сеанс.');
+  const url=$('packageLink').value.trim();
+  if(!url)throw new Error('Вставте точну адресу робочої вітрини.');
+  let parsed;
+  try{parsed=new URL(url);}catch(_){throw new Error('Адреса має починатися з https:// або http://');}
+  if(!/^https?:$/.test(parsed.protocol))throw new Error('Дозволена лише адреса http:// або https://');
+  await sb(`seances?id=eq.${encodeURIComponent(s.id)}`,{method:'PATCH',body:JSON.stringify({ticket_url:url})});
+  s.ticket_url=url;
+  const meta=$('packageLinkMeta');
+  if(meta)meta.textContent='Точну адресу збережено у сеансі. Надалі вона підставлятиметься автоматично.';
+  setMessage('Адресу вітрини збережено для цього сеансу.','ok');
+}
+
 function packageVariants(){
   const masters=projectMasters();
   const ids=new Set(masters.map(x=>String(x.id)));
@@ -849,6 +1093,8 @@ async function invokeContentPackage(onlyChannel=null){
   if(!seance)throw new Error('Оберіть сеанс для контент-пакета.');
   const channels=onlyChannel?[onlyChannel]:[...document.querySelectorAll('#packageOptions input:checked')].map(x=>x.value);
   if(!channels.length)throw new Error('Оберіть хоча б один формат.');
+  const exactLink=$('packageLink').value.trim();
+  if(!exactLink)throw new Error('Для цього сеансу не задано точну адресу вітрини. Вставте її та натисніть «Зберегти для сеансу».');
   const accessKey=localStorage.getItem('va_content_agent_key');
   if(!accessKey)throw new Error('Ключ доступу до агентів не збережено. Один раз збережіть його у розділі «Агенти».');
   state.packageBusy=true;$('generatePackageBtn').disabled=true;setPackageMessage(onlyChannel?'Оновлюємо обраний текст…':'Готуємо весь пакет. Кожен канал матиме власну структуру…','warn');
@@ -1185,9 +1431,17 @@ document.addEventListener('click', async e=>{
     const nav=e.target.closest('[data-section]');if(nav){showSection(nav.dataset.section);return;}
     const jump=e.target.closest('[data-jump]');if(jump){showSection(jump.dataset.jump);if(jump.dataset.jump==='tasks')clearTask();if(jump.dataset.jump==='materials')clearMaterial();if(jump.dataset.jump==='campaigns')clearCampaign();return;}
     const p=e.target.closest('[data-project-id]');if(p){fillProject(state.projects.find(x=>String(x.id)===String(p.dataset.projectId)));return;}
-    const tab=e.target.closest('[data-project-tab]');if(tab){document.querySelectorAll('[data-project-tab]').forEach(x=>x.classList.toggle('active',x===tab));document.querySelectorAll('[id^="project-tab-"]').forEach(x=>x.classList.remove('active'));$(`project-tab-${tab.dataset.projectTab}`).classList.add('active');return;}
+    const tab=e.target.closest('[data-project-tab]');if(tab){showProjectTab(tab.dataset.projectTab);return;}
     const link=e.target.closest('[data-link-seance]');if(link){await setSeanceProject(link.dataset.linkSeance,selectedProjectId());return;}
     const unlink=e.target.closest('[data-unlink-seance]');if(unlink){await setSeanceProject(unlink.dataset.unlinkSeance,null);return;}
+    const openToolBtn=e.target.closest('[data-open-tool]');if(openToolBtn){openTool(state.productionTools.find(x=>String(x.id)===String(openToolBtn.dataset.openTool)));return;}
+    const editToolBtn=e.target.closest('[data-edit-tool]');if(editToolBtn){fillTool(state.productionTools.find(x=>String(x.id)===String(editToolBtn.dataset.editTool)));return;}
+    const editJobBtn=e.target.closest('[data-edit-job]');if(editJobBtn){fillProductionJob(state.productionJobs.find(x=>String(x.id)===String(editJobBtn.dataset.editJob)));return;}
+    const editBrandBtn=e.target.closest('[data-edit-brand]');if(editBrandBtn){fillBrandKit(state.brandKits.find(x=>String(x.id)===String(editBrandBtn.dataset.editBrand)));return;}
+    const assetOpen=e.target.closest('[data-asset-open]');if(assetOpen){const a=state.mediaAssets.find(x=>String(x.id)===String(assetOpen.dataset.assetOpen));if(a?.public_url)window.open(a.public_url,'_blank','noopener');return;}
+    const assetPrimary=e.target.closest('[data-asset-primary]');if(assetPrimary){await setAssetPrimary(assetPrimary.dataset.assetPrimary);return;}
+    const assetArchive=e.target.closest('[data-asset-archive]');if(assetArchive){await archiveAsset(assetArchive.dataset.assetArchive);return;}
+    const assetDelete=e.target.closest('[data-asset-delete]');if(assetDelete){await removeAsset(assetDelete.dataset.assetDelete);return;}
     const task=e.target.closest('[data-task-id]');if(task){fillTask(state.tasks.find(x=>String(x.id)===String(task.dataset.taskId)));return;}
     const material=e.target.closest('[data-material-id]');if(material){fillMaterial(state.materials.find(x=>String(x.id)===String(material.dataset.materialId)));return;}
     const variant=e.target.closest('[data-edit-variant]');if(variant){const x=state.variants.find(v=>String(v.id)===String(variant.dataset.editVariant));$('variantEditor').innerHTML=variantForm(x);$('variantStatus').value=x.status||'draft';return;}
@@ -1224,7 +1478,15 @@ bind('saveAllPackageBtn','click',()=>saveAllPackageVariants('review'));
 bind('approveAllPackageBtn','click',()=>saveAllPackageVariants('approved'));
 $('packageSeance')?.addEventListener('change',()=>{syncPackageLinkFromSeance(true);renderContentPackage();});
 $('openPackageLinkBtn')?.addEventListener('click',()=>{const url=$('packageLink').value.trim();if(url)window.open(url,'_blank','noopener');else setMessage('Адреса вітрини не задана.','bad');});
+bind('savePackageLinkBtn','click',savePackageLinkForSeance);
 bind('reloadHistoryBtn','click',loadExtended);$('historyProjectFilter').addEventListener('change',renderHistory);$('historyAreaFilter').addEventListener('change',renderHistory);$('historySearch').addEventListener('input',renderHistory);
+bind('newToolBtn','click',clearTool);bind('saveToolBtn','click',saveTool);bind('deleteToolBtn','click',removeTool);bind('cancelToolBtn','click',()=>$('toolEditor').classList.add('hidden'));
+bind('newProductionJobBtn','click',clearProductionJob);bind('saveProductionJobBtn','click',saveProductionJob);bind('deleteProductionJobBtn','click',removeProductionJob);bind('jobUploadResultsBtn','click',()=>{showProjectTab('library');$('assetType').value='adapted';});
+bind('newBrandKitBtn','click',clearBrandKit);bind('saveBrandKitBtn','click',saveBrandKit);bind('deleteBrandKitBtn','click',removeBrandKit);bind('cancelBrandKitBtn','click',()=>$('brandKitEditor').classList.add('hidden'));
+$('productionSeance')?.addEventListener('change',syncProductionVenue);
+bind('uploadAssetsBtn','click',uploadAssets);bind('reloadLibraryBtn','click',loadV14);bind('openVisualEditorBtn','click',()=>{const t=state.productionTools.find(x=>x.code==='va_visual_editor');if(t)openTool(t);else setMessage('Додайте інструмент з кодом va_visual_editor.','bad');});
+['librarySearch','libraryTypeFilter','libraryChannelFilter','libraryStatusFilter'].forEach(id=>$(id)?.addEventListener(id==='librarySearch'?'input':'change',renderLibrary));
+
 
 async function boot(){
   try{
