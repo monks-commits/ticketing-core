@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VA Content Studio V1.1</title>
+  <title>VA Content Studio V1.2</title>
   <style>
     :root{
       --bg:#061426;--panel:#102641;--panel2:#0a1d34;--line:#294563;
@@ -37,6 +37,14 @@
     textarea{min-height:115px;resize:vertical;line-height:1.45}
     .editor{min-height:270px}
     .field{margin-bottom:12px}
+    .service-nav{opacity:.55;font-size:12px}
+    .package-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+    .package-option{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2);cursor:pointer}
+    .package-option input{width:auto;margin-top:3px}
+    .package-option b{display:block;margin-bottom:3px}.package-option span{color:var(--muted);font-size:12px;line-height:1.35}
+    .package-result{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel2);margin-top:10px}
+    .package-result textarea{min-height:160px}.package-result .grid-2{align-items:end}
+    .package-progress{padding:14px;border-radius:12px;background:#173558;border:1px solid #3c6794;margin:12px 0}
     .btn{border:0;border-radius:11px;padding:10px 14px;color:white;font-weight:900;cursor:pointer;background:#334f6d}
     .btn:hover{filter:brightness(1.08)}.btn.blue{background:var(--blue)}.btn.green{background:var(--green)}
     .btn.red{background:var(--red)}.btn.gold{background:var(--gold);color:#162033}.btn.violet{background:var(--violet)}
@@ -73,8 +81,8 @@
   <header class="hero">
     <div class="hero-row">
       <div>
-        <h1>VA Content Studio V1.1</h1>
-        <div class="lead">Проєкт → матеріал → агент → варіанти → кампанія → розсилка → результат → історія.</div>
+        <h1>VA Content Studio V1.2</h1>
+        <div class="lead">Один проєкт → один вихідний текст → готовий пакет для всіх потрібних каналів.</div>
       </div>
       <div class="statusbar">
         <span class="badge" id="apiBadge">Supabase: перевірка…</span>
@@ -82,14 +90,12 @@
       </div>
     </div>
     <nav class="nav" id="mainNav">
-      <button class="nav-btn active" data-section="projects">Проєкти</button>
-      <button class="nav-btn" data-section="tasks">Завдання</button>
-      <button class="nav-btn" data-section="materials">Матеріали</button>
-      <button class="nav-btn" data-section="agents">Агенти</button>
-      <button class="nav-btn" data-section="templates">Шаблони</button>
+      <button class="nav-btn active" data-section="projects">Проєкти / контент</button>
       <button class="nav-btn" data-section="campaigns">Кампанії</button>
       <button class="nav-btn" data-section="mailings">Розсилки / дії</button>
       <button class="nav-btn" data-section="history">Історія</button>
+      <button class="nav-btn service-nav" data-section="materials">Службове: матеріали</button>
+      <button class="nav-btn service-nav" data-section="agents">Службове: агенти</button>
     </nav>
   </header>
 
@@ -117,6 +123,7 @@
           <div class="tabs">
             <button class="tab-btn active" data-project-tab="passport">Паспорт</button>
             <button class="tab-btn" data-project-tab="seances">Сеанси</button>
+            <button class="tab-btn" data-project-tab="package">Контент-пакет</button>
             <button class="tab-btn" data-project-tab="summary">Стан роботи</button>
           </div>
 
@@ -146,6 +153,38 @@
             <div id="linkedSeances"></div>
             <h3 style="margin-top:18px">Доступні сеанси</h3>
             <div id="availableSeances"></div>
+          </div>
+
+          <div class="subpanel" id="project-tab-package">
+            <div class="notice">Тут не потрібно створювати окремі завдання, запускати агентів або переносити текст між розділами. Оберіть потрібні формати й натисніть одну кнопку.</div>
+            <div class="grid-2">
+              <div class="field"><label>Основа пакета</label><input id="packageSourceTitle" disabled placeholder="Майстер-текст або опис проєкту"></div>
+              <div class="field"><label>Тон</label><select id="packageTone"><option value="інформативний">Інформативний</option><option value="живий">Живий</option><option value="емоційний">Емоційний</option><option value="стриманий">Стриманий</option></select></div>
+            </div>
+            <div class="grid-2">
+              <div class="field"><label>Заклик до дії</label><input id="packageCta" value="Купити квитки"></div>
+              <div class="field"><label>Посилання на квитки</label><input id="packageLink" placeholder="https://..."></div>
+            </div>
+            <h3>Що підготувати</h3>
+            <div class="package-grid" id="packageOptions">
+              <label class="package-option"><input type="checkbox" value="site" checked><div><b>Сайт</b><span>Повний текст сторінки події</span></div></label>
+              <label class="package-option"><input type="checkbox" value="poster" checked><div><b>Афіша</b><span>Короткий опис для макета</span></div></label>
+              <label class="package-option"><input type="checkbox" value="ticket" checked><div><b>Квиток</b><span>Дуже короткий текст</span></div></label>
+              <label class="package-option"><input type="checkbox" value="facebook" checked><div><b>Facebook</b><span>Розгорнута публікація</span></div></label>
+              <label class="package-option"><input type="checkbox" value="instagram" checked><div><b>Instagram</b><span>Публікація для стрічки</span></div></label>
+              <label class="package-option"><input type="checkbox" value="telegram" checked><div><b>Telegram</b><span>Компактне повідомлення</span></div></label>
+              <label class="package-option"><input type="checkbox" value="viber"><div><b>Viber</b><span>Коротке повідомлення</span></div></label>
+              <label class="package-option"><input type="checkbox" value="sms"><div><b>SMS</b><span>До 160 символів</span></div></label>
+              <label class="package-option"><input type="checkbox" value="voice30"><div><b>Озвучення 30 с</b><span>Дикторський текст</span></div></label>
+              <label class="package-option"><input type="checkbox" value="voice60"><div><b>Озвучення 60 с</b><span>Дикторський текст</span></div></label>
+            </div>
+            <div class="toolbar">
+              <button class="btn green" id="generatePackageBtn">Створити / оновити весь пакет</button>
+              <span class="meta">Один запуск — усі обрані формати одразу.</span>
+            </div>
+            <div id="packageMessage"></div>
+            <h3 style="margin-top:18px">Готові тексти</h3>
+            <div id="packageResults"></div>
           </div>
 
           <div class="subpanel" id="project-tab-summary">
@@ -440,7 +479,7 @@ const state = {
   projects:[], seances:[], tasks:[], materials:[], variants:[], agents:[], agentRuns:[],
   templates:[], campaigns:[], actions:[], history:[],
   selectedProject:null, selectedMaterial:null, selectedRun:null,
-  extendedReady:false, agentBusy:false
+  extendedReady:false, agentBusy:false, packageBusy:false
 };
 
 function headers(extra={}){
@@ -575,7 +614,7 @@ function fillProject(p){
   $('pTitle').value=p.title||'';$('pStatus').value=p.status||'draft';$('pGenre').value=p.genre||'';
   $('pType').value=p.type||'';$('pAge').value=p.age||'';$('pShort').value=p.short_description||'';
   $('pDescription').value=p.description||'';$('pTags').value=p.tags||'';
-  renderProjects();renderSeances();renderProjectSummary();
+  renderProjects();renderSeances();renderProjectSummary();renderContentPackage();
 }
 async function loadProjects(){
   state.projects=await sb('projects?select=*&order=created_at.desc');
@@ -654,6 +693,72 @@ async function loadExtended(){
   populateGlobalSelects();renderTasks();renderMaterials();renderAgents();renderAgentRuns();renderTemplates();renderCampaigns();renderActions();renderHistory();renderProjectSummary();
   updateAgentKeyUi();
   autoSelectPreparedRun();
+  renderContentPackage();
+}
+
+
+const PACKAGE_SPECS={
+  site:{label:'Сайт',channel:'site',placement:'event_page'},
+  poster:{label:'Афіша',channel:'print',placement:'poster'},
+  ticket:{label:'Квиток',channel:'print',placement:'ticket'},
+  facebook:{label:'Facebook',channel:'facebook',placement:'feed'},
+  instagram:{label:'Instagram',channel:'instagram',placement:'feed'},
+  telegram:{label:'Telegram',channel:'telegram',placement:'message'},
+  viber:{label:'Viber',channel:'viber',placement:'message'},
+  sms:{label:'SMS',channel:'sms',placement:'message'},
+  voice30:{label:'Озвучення 30 с',channel:'voiceover',placement:'audio_30'},
+  voice60:{label:'Озвучення 60 с',channel:'voiceover',placement:'audio_60'}
+};
+function projectMasters(){
+  const pid=selectedProjectId();
+  return state.materials.filter(x=>String(x.project_id||'')===String(pid)&&x.is_master).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+}
+function packageVariants(){
+  const masters=projectMasters();
+  const ids=new Set(masters.map(x=>String(x.id)));
+  return state.variants.filter(x=>ids.has(String(x.content_item_id))).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+}
+function renderContentPackage(){
+  const box=$('packageResults');if(!box)return;
+  if(!state.selectedProject||state.selectedProject.isNew){$('packageSourceTitle').value='Спочатку збережіть проєкт';box.innerHTML='<div class="empty">Спочатку збережіть проєкт.</div>';return;}
+  const master=projectMasters()[0];
+  $('packageSourceTitle').value=master?.title||'Опис із паспорта проєкту';
+  const rows=packageVariants();
+  if(!rows.length){box.innerHTML='<div class="empty">Пакет ще не створено. Оберіть формати вище й натисніть одну зелену кнопку.</div>';return;}
+  box.innerHTML=rows.map(v=>{
+    const key=Object.keys(PACKAGE_SPECS).find(k=>PACKAGE_SPECS[k].channel===v.channel&&PACKAGE_SPECS[k].placement===v.placement)||v.channel;
+    const label=PACKAGE_SPECS[key]?.label||v.channel||v.placement||'Варіант';
+    return `<div class="package-result" data-package-variant="${esc(v.id)}">
+      <div class="toolbar"><h3 style="margin:0;flex:1">${esc(label)}</h3><span class="badge">${esc(v.status||'draft')}</span></div>
+      <div class="field"><label>Заголовок</label><input data-pv-headline value="${esc(v.headline||'')}"></div>
+      <div class="field"><label>Текст</label><textarea data-pv-body>${esc(v.body||'')}</textarea></div>
+      <div class="grid-2"><div class="field"><label>Заклик до дії</label><input data-pv-cta value="${esc(v.call_to_action||'')}"></div><div class="field"><label>Посилання</label><input data-pv-link value="${esc(v.link_url||'')}"></div></div>
+      <button class="btn green" data-save-package-variant="${esc(v.id)}">Зберегти правки</button>
+    </div>`;
+  }).join('');
+}
+function setPackageMessage(text='',type=''){$('packageMessage').innerHTML=text?`<div class="package-progress ${type}">${esc(text)}</div>`:'';}
+async function invokeContentPackage(){
+  if(state.packageBusy)return;
+  if(!state.selectedProject||state.selectedProject.isNew)throw new Error('Спочатку збережіть проєкт.');
+  const channels=[...document.querySelectorAll('#packageOptions input:checked')].map(x=>x.value);
+  if(!channels.length)throw new Error('Оберіть хоча б один формат.');
+  const accessKey=localStorage.getItem('va_content_agent_key');
+  if(!accessKey)throw new Error('Ключ доступу до агентів не збережено. Один раз збережіть його у службовому розділі «Агенти».');
+  state.packageBusy=true;$('generatePackageBtn').disabled=true;setPackageMessage('Готуємо весь пакет одним запуском. Не закривайте сторінку…','warn');
+  try{
+    const res=await fetch(`${SUPABASE_URL}/functions/v1/va-content-agent`,{method:'POST',headers:{apikey:SUPABASE_ANON_KEY,'Content-Type':'application/json','x-va-agent-key':accessKey},body:JSON.stringify({action:'package',project_id:state.selectedProject.id,channels,tone:$('packageTone').value,call_to_action:$('packageCta').value.trim(),link_url:$('packageLink').value.trim()})});
+    const text=await res.text();let data={};try{data=text?JSON.parse(text):{};}catch(_){data={error:text||res.statusText};}
+    if(!res.ok)throw new Error(data.error||`Edge Function: ${res.status}`);
+    await loadExtended();
+    setPackageMessage(`Готово. Створено або оновлено: ${data.count||channels.length} форматів.`,'ok');
+    renderContentPackage();
+  }finally{state.packageBusy=false;$('generatePackageBtn').disabled=false;}
+}
+async function savePackageVariant(id,card){
+  const payload={headline:card.querySelector('[data-pv-headline]').value.trim(),body:card.querySelector('[data-pv-body]').value,call_to_action:card.querySelector('[data-pv-cta]').value.trim()||null,link_url:card.querySelector('[data-pv-link]').value.trim()||null,status:'review'};
+  await sb(`content_variants?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify(payload)});
+  await loadExtended();setPackageMessage('Правки збережено.');
 }
 
 function renderTasks(){
@@ -979,6 +1084,7 @@ document.addEventListener('click', async e=>{
     const template=e.target.closest('[data-template-id]');if(template){fillTemplate(state.templates.find(x=>String(x.id)===String(template.dataset.templateId)));return;}
     const campaign=e.target.closest('[data-campaign-id]');if(campaign){fillCampaign(state.campaigns.find(x=>String(x.id)===String(campaign.dataset.campaignId)));return;}
     const action=e.target.closest('[data-action-id]');if(action){fillAction(state.actions.find(x=>String(x.id)===String(action.dataset.actionId)));return;}
+    const savePv=e.target.closest('[data-save-package-variant]');if(savePv){const card=savePv.closest('[data-package-variant]');await savePackageVariant(savePv.dataset.savePackageVariant,card);return;}
   }catch(err){setMessage(err.message,'bad');console.error(err);}
 });
 
@@ -998,6 +1104,7 @@ bind('clearAgentKeyBtn','click',clearAgentAccessKey);
 bind('newTemplateBtn','click',clearTemplate);bind('saveTemplateBtn','click',saveTemplate);bind('deleteTemplateBtn','click',removeTemplate);
 bind('newCampaignBtn','click',clearCampaign);bind('saveCampaignBtn','click',saveCampaign);bind('deleteCampaignBtn','click',removeCampaign);$('campaignProjectFilter').addEventListener('change',renderCampaigns);
 bind('newActionBtn','click',clearAction);bind('saveActionBtn','click',saveAction);bind('deleteActionBtn','click',removeAction);$('actionCampaignFilter').addEventListener('change',renderActions);
+bind('generatePackageBtn','click',invokeContentPackage);
 bind('reloadHistoryBtn','click',loadExtended);$('historyProjectFilter').addEventListener('change',renderHistory);$('historyAreaFilter').addEventListener('change',renderHistory);$('historySearch').addEventListener('input',renderHistory);
 
 async function boot(){
