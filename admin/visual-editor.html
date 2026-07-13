@@ -1,310 +1,131 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>VA Live Visual Editor</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VA Visual Editor · Content Studio V1.4</title>
 <style>
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#0f172a;
-    color:#fff;
-  }
-  .page{
-    max-width:1180px;
-    margin:0 auto;
-    padding:28px 16px 60px;
-  }
-  h1{margin:0 0 8px;font-size:32px}
-  .sub{color:#cbd5e1;margin-bottom:24px}
-  .grid{
-    display:grid;
-    grid-template-columns:360px 1fr;
-    gap:20px;
-    align-items:start;
-  }
-  .card{
-    background:#111827;
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:18px;
-    padding:18px;
-    box-shadow:0 16px 40px rgba(0,0,0,.28);
-  }
-  label{
-    display:block;
-    font-size:13px;
-    color:#cbd5e1;
-    margin:14px 0 6px;
-  }
-  input,select,textarea{
-    width:100%;
-    background:#020617;
-    color:#fff;
-    border:1px solid rgba(255,255,255,.16);
-    border-radius:12px;
-    padding:11px 12px;
-    font-size:14px;
-  }
-  textarea{
-    min-height:260px;
-    font-family:Consolas,monospace;
-    resize:vertical;
-  }
-  button{
-    border:none;
-    border-radius:12px;
-    padding:12px 14px;
-    font-weight:800;
-    cursor:pointer;
-  }
-  .btn{
-    background:#d4af37;
-    color:#111827;
-    width:100%;
-    margin-top:16px;
-  }
-  .btn2{
-    background:#334155;
-    color:#fff;
-    width:100%;
-    margin-top:10px;
-  }
-  .preview{
-    display:grid;
-    grid-template-columns:260px 1fr;
-    gap:18px;
-  }
-  .poster-box{
-    width:100%;
-    aspect-ratio:2/3;
-    background:#020617;
-    border-radius:16px;
-    overflow:hidden;
-    border:1px solid rgba(255,255,255,.12);
-  }
-  .poster-box video,
-  .poster-box img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
-  }
-  .bg-preview{
-    min-height:390px;
-    border-radius:16px;
-    overflow:hidden;
-    border:1px solid rgba(255,255,255,.12);
-    background:#020617;
-    position:relative;
-  }
-  .bg-preview video{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
-    opacity:.75;
-  }
-  .bg-label{
-    position:absolute;
-    inset:auto 16px 16px 16px;
-    background:rgba(2,6,23,.72);
-    padding:14px;
-    border-radius:14px;
-  }
-  .hint{
-    color:#94a3b8;
-    font-size:13px;
-    line-height:1.45;
-    margin-top:10px;
-  }
-  .row{
-    display:grid;
-    grid-template-columns:1fr 120px;
-    gap:10px;
-  }
-  @media(max-width:900px){
-    .grid,.preview{grid-template-columns:1fr}
-  }
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}.page{max-width:1280px;margin:0 auto;padding:24px 16px 54px}.card{background:#111827;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;margin-bottom:18px}h1{margin:0 0 8px}.top{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.badge{background:#174e38;color:#d9ffeb;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:800}.muted{color:#94a3b8;font-size:13px;line-height:1.45}label{display:block;margin:14px 0 6px;color:#cbd5e1;font-size:13px;font-weight:700}select,input,textarea{width:100%;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:#020617;color:#fff}textarea{min-height:150px;resize:vertical;line-height:1.45}button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}.btn{background:#d4af37;color:#111827;width:100%;margin-top:14px}.btn2{background:#334155;color:#fff;width:100%;margin-top:10px}.btn3{background:#168b51;color:#fff;width:100%;margin-top:10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.preview{display:grid;grid-template-columns:220px 220px 1fr;gap:18px}.box{background:#020617;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;min-height:220px}.posterBox{aspect-ratio:2/3}.bgBox{min-height:330px}.box img,.box video{width:100%;height:100%;object-fit:cover;display:block}.status{margin-top:12px;color:#a7f3d0;font-size:14px;white-space:pre-wrap}.settings{margin-top:18px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:#0b1220}.check{display:flex;gap:10px;align-items:center}.check input{width:auto}.context{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.context div{background:#0b1220;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px}.context b{display:block;margin-bottom:5px}.hidden{display:none!important}@media(max-width:950px){.grid,.preview,.context{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
 <div class="page">
-  <h1>VA Live Visual Editor</h1>
-  <div class="sub">Загальний редактор візуалізації для будь-якого сеансу</div>
+  <div class="card">
+    <div class="top">
+      <div><h1>VA Visual Editor</h1><div class="muted">Складальна ділянка сайту / онлайн-продажу: афіша, Live Poster, відеофон та опис події.</div></div>
+      <span class="badge" id="studioBadge">Автономний режим</span>
+    </div>
+    <div class="context" id="projectContext">
+      <div><b>Проєкт</b><span id="projectName">—</span></div>
+      <div><b>Повернення</b><span id="returnInfo">Після збереження можна повернутися до Content Studio.</span></div>
+    </div>
+  </div>
 
-  <div class="grid">
-    <div class="card">
-      <label>Сеанс</label>
-      <select id="seanceSelect">
-        <option value="">Завантаження...</option>
-      </select>
+  <div class="card">
+    <label>Сеанс</label>
+    <select id="seanceSelect"><option>Завантаження...</option></select>
 
-      <label>Hall</label>
-      <input id="hallInput" placeholder="client-x">
-
-      <label>Live Poster mp4</label>
-      <input id="livePosterInput" placeholder="https://...mp4">
-
-      <div class="row">
-        <div>
-          <label>Відеофон</label>
-          <input id="videoInput" placeholder="https://...webm">
+    <div class="grid">
+      <div><label>Афіша</label><input id="posterFile" type="file" accept="image/*"></div>
+      <div><label>Live Poster mp4</label><input id="livePosterFile" type="file" accept="video/mp4,video/*"></div>
+      <div><label>Опис події</label><textarea id="eventText" rows="8" placeholder="Короткий опис для вітрини, схеми залу і квитка"></textarea></div>
+      <div>
+        <label>Відеофон</label><input id="bgVideoFile" type="file" accept="video/webm,video/mp4,video/*">
+        <label>Тривалість Live Poster, ms</label><input id="durationInput" type="number" value="6200">
+        <div class="settings">
+          <div style="font-weight:700;margin-bottom:12px">Налаштування</div>
+          <label class="check"><input type="checkbox" id="enableLivePoster" checked>Використовувати Live Poster</label>
+          <label class="check"><input type="checkbox" id="showEventInfo" checked>Показувати кнопку «Про подію»</label>
         </div>
-        <div>
-          <label>Тривалість</label>
-          <input id="durationInput" type="number" value="6200">
-        </div>
-      </div>
-
-      <button class="btn" id="generateBtn">Згенерувати JSON</button>
-      <button class="btn2" id="previewBtn">Оновити preview</button>
-
-      <div class="hint">
-        Файл зберігати вручну в:<br>
-        <b>data/seances/&lt;seance_id&gt;.json</b>
       </div>
     </div>
 
-    <div class="card">
-      <div class="preview">
-        <div>
-          <div class="poster-box" id="posterPreview"></div>
-          <div class="hint">Live Poster / афіша сеансу</div>
-        </div>
+    <button class="btn" id="saveBtn">Завантажити файли і зберегти</button>
+    <button class="btn2" id="loadBtn">Завантажити поточний visual</button>
+    <button class="btn3 hidden" id="saveReturnBtn">Зберегти і повернутися до Content Studio</button>
+    <div class="status" id="status"></div>
+  </div>
 
-        <div class="bg-preview" id="bgPreview">
-          <div class="bg-label">
-            Відеофон події. Тут буде атмосфера сеансу за схемою залу.
-          </div>
-        </div>
-      </div>
-
-      <label>Готовий JSON</label>
-      <textarea id="jsonOutput" spellcheck="false"></textarea>
-
-      <button class="btn2" id="copyBtn">Скопіювати JSON</button>
+  <div class="card">
+    <div class="preview">
+      <div><div class="box posterBox" id="posterPreview"></div><div class="muted" id="posterStatus">Афіша</div></div>
+      <div><div class="box posterBox" id="livePosterPreview"></div><div class="muted" id="livePosterStatus">Live Poster</div></div>
+      <div><div class="box bgBox" id="bgPreview"></div><div class="muted" id="bgStatus">Відеофон</div></div>
     </div>
+    <button class="btn2" id="openSeanceBtn">Відкрити сторінку сеансу</button>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-
-const seanceSelect = document.getElementById("seanceSelect");
-const hallInput = document.getElementById("hallInput");
-const livePosterInput = document.getElementById("livePosterInput");
-const videoInput = document.getElementById("videoInput");
-const durationInput = document.getElementById("durationInput");
-const jsonOutput = document.getElementById("jsonOutput");
-
-let seances = [];
-
+'use strict';
+const SUPABASE_URL="https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const params=new URLSearchParams(location.search);
+let projectId=params.get('project_id')||'';
+const requestedSeanceId=params.get('seance_id')||'';
+const returnTo=params.get('return_to')||'';
+const seanceSelect=document.getElementById('seanceSelect');
+const posterFile=document.getElementById('posterFile');
+const livePosterFile=document.getElementById('livePosterFile');
+const bgVideoFile=document.getElementById('bgVideoFile');
+const durationInput=document.getElementById('durationInput');
+const statusEl=document.getElementById('status');
+let seances=[],currentVisual=null,currentProject=null;
+function setStatus(text){statusEl.textContent=text||'';}
+function safeName(name){return String(name||'file').toLowerCase().replace(/[^a-z0-9а-яіїєґ._-]+/gi,'-').replace(/-+/g,'-');}
+function setStudioContext(){
+  if(projectId){document.getElementById('studioBadge').textContent='Підключено до Content Studio';document.getElementById('projectName').textContent=currentProject?.title||projectId;}
+  if(returnTo){document.getElementById('saveReturnBtn').classList.remove('hidden');document.getElementById('returnInfo').textContent='Після збереження повернемося до Studio.';}
+}
+async function loadProject(){if(!projectId)return;const {data,error}=await sb.from('projects').select('id,title').eq('id',projectId).maybeSingle();if(!error)currentProject=data||null;setStudioContext();}
 async function loadSeances(){
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/seances?select=id,show,date,time,venue_id,poster_url,active,status&order=date.asc`,
-    {
-      headers:{
-        apikey: SUPABASE_ANON_KEY,
-        Authorization:`Bearer ${SUPABASE_ANON_KEY}`
-      },
-      cache:"no-store"
-    }
-  );
-
-  const rows = await res.json();
-
-  seances = Array.isArray(rows)
-    ? rows.filter(s => s.status !== "archived")
-    : [];
-
-  seanceSelect.innerHTML = `<option value="">Оберіть сеанс</option>`;
-
-  seances.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = `${s.show || "Подія"} — ${s.date || ""} ${s.time || ""} — ${s.id}`;
-    seanceSelect.appendChild(opt);
-  });
+  const {data,error}=await sb.from('seances').select('id,show,date,time,venue_id,poster_url,active,status,project_id').order('date',{ascending:true});
+  if(error){console.error(error);seanceSelect.innerHTML='<option>Помилка завантаження</option>';return;}
+  seances=(data||[]).filter(s=>s.status!=='archived');
+  seanceSelect.innerHTML='<option value="">Оберіть сеанс</option>';
+  seances.forEach(s=>{const opt=document.createElement('option');opt.value=s.id;opt.textContent=`${s.show||'Подія'} — ${s.date||''} ${s.time||''} — ${s.id}`;seanceSelect.appendChild(opt);});
+  if(requestedSeanceId&&seances.some(s=>String(s.id)===String(requestedSeanceId))){seanceSelect.value=requestedSeanceId;const s=seances.find(x=>String(x.id)===String(requestedSeanceId));if(!projectId&&s?.project_id)projectId=String(s.project_id);await loadProject();await loadCurrentVisual();}
 }
-
-seanceSelect.addEventListener("change", () => {
-  const s = seances.find(x => x.id === seanceSelect.value);
-  if (!s) return;
-
-  hallInput.value = s.venue_id === "client-x" ? "client-x" : "";
-  generateJson();
-
-  const posterBox = document.getElementById("posterPreview");
-  if (s.poster_url) {
-    posterBox.innerHTML = `<img src="${s.poster_url}" alt="">`;
-  } else {
-    posterBox.innerHTML = "";
-  }
-});
-
-function generateJson(){
-  const seanceId = seanceSelect.value || "";
-  const hall = hallInput.value.trim() || "client-x";
-
-  const obj = {
-    hall,
-    visual:{
-      livePoster: livePosterInput.value.trim(),
-      livePosterDuration: Number(durationInput.value || 0),
-      video: videoInput.value.trim()
-    }
-  };
-
-  jsonOutput.value = JSON.stringify(obj, null, 2);
-
-  if (seanceId) {
-    jsonOutput.dataset.filename = `data/seances/${seanceId}.json`;
-  }
+async function fileMeta(file){
+  if(!file)return{};if(file.type.startsWith('image/')){try{const img=await createImageBitmap(file);const out={width:img.width,height:img.height};img.close();return out;}catch(e){return{};}}
+  if(file.type.startsWith('video/'))return await new Promise(resolve=>{const v=document.createElement('video'),url=URL.createObjectURL(file);v.preload='metadata';v.onloadedmetadata=()=>{const out={width:v.videoWidth||null,height:v.videoHeight||null,duration_sec:Number.isFinite(v.duration)?Math.round(v.duration*100)/100:null};URL.revokeObjectURL(url);resolve(out);};v.onerror=()=>{URL.revokeObjectURL(url);resolve({});};v.src=url;});return{};
 }
-
-function updatePreview(){
-  const posterBox = document.getElementById("posterPreview");
-  const bgPreview = document.getElementById("bgPreview");
-
-  const livePoster = livePosterInput.value.trim();
-  const bgVideo = videoInput.value.trim();
-
-  if (livePoster) {
-    posterBox.innerHTML = `
-      <video src="${livePoster}" controls playsinline></video>
-    `;
-  }
-
-  if (bgVideo) {
-    bgPreview.innerHTML = `
-      <video src="${bgVideo}" autoplay muted loop playsinline></video>
-      <div class="bg-label">Відеофон події</div>
-    `;
-  } else {
-    bgPreview.innerHTML = `
-      <div class="bg-label">Відеофон не заданий</div>
-    `;
-  }
+async function uploadFile(bucket,folder,file){
+  if(!file)return null;const seanceId=seanceSelect.value;const path=`${folder}/${seanceId}/${Date.now()}-${safeName(file.name)}`;
+  const {error}=await sb.storage.from(bucket).upload(path,file,{cacheControl:'3600',upsert:true});if(error)throw error;
+  const {data}=sb.storage.from(bucket).getPublicUrl(path);return{publicUrl:data.publicUrl,path,bucket,file,meta:await fileMeta(file)};
 }
-
-document.getElementById("generateBtn").addEventListener("click", generateJson);
-document.getElementById("previewBtn").addEventListener("click", () => {
-  generateJson();
-  updatePreview();
-});
-
-document.getElementById("copyBtn").addEventListener("click", async () => {
-  generateJson();
-  await navigator.clipboard.writeText(jsonOutput.value);
-  alert("JSON скопійовано");
-});
-
-loadSeances();
+async function saveLibraryAsset(upload,assetType,placement,isPrimary=false){
+  if(!upload||!projectId)return;const seance=seances.find(s=>String(s.id)===String(seanceSelect.value));
+  if(isPrimary){await sb.from('project_media_assets').update({is_primary:false}).eq('project_id',projectId).eq('asset_type',assetType).eq('channel','site');}
+  const payload={project_id:projectId,seance_id:seanceSelect.value||null,venue_id:seance?.venue_id||null,asset_type:assetType,channel:'site',placement,title:`${assetType==='poster'?'Афіша':assetType==='live_poster'?'Live Poster':'Відеофон'} — ${currentProject?.title||seance?.show||'проєкт'}`,file_name:upload.path.split('/').pop(),original_file_name:upload.file.name,storage_bucket:upload.bucket,storage_path:upload.path,public_url:upload.publicUrl,mime_type:upload.file.type||null,width:upload.meta.width||null,height:upload.meta.height||null,duration_sec:upload.meta.duration_sec||null,file_size:upload.file.size,version:1,status:'approved',is_primary:isPrimary,metadata:{source:'va_visual_editor'}};
+  const {error}=await sb.from('project_media_assets').insert(payload);if(error&&error.code!=='23505')throw error;
+}
+async function loadCurrentVisual(){
+  const seanceId=seanceSelect.value;if(!seanceId)return;const s=seances.find(x=>String(x.id)===String(seanceId));if(!projectId&&s?.project_id){projectId=String(s.project_id);await loadProject();}
+  setStatus('Завантажую visual...');const {data,error}=await sb.from('seance_visuals').select('*').eq('seance_id',seanceId).maybeSingle();if(error){console.error(error);setStatus('Помилка завантаження visual');return;}
+  currentVisual=data||null;document.getElementById('eventText').value=currentVisual?.event_text||currentVisual?.ticket_text||'';if(currentVisual?.live_poster_duration)durationInput.value=currentVisual.live_poster_duration;document.getElementById('enableLivePoster').checked=currentVisual?.enable_live_poster??true;document.getElementById('showEventInfo').checked=currentVisual?.show_event_info??true;renderPreview(currentVisual);setStatus(currentVisual?'Visual завантажено':'Для цього сеансу visual ще не створено');
+}
+function renderPreview(v){
+  const posterBox=document.getElementById('posterPreview'),liveBox=document.getElementById('livePosterPreview'),bgBox=document.getElementById('bgPreview');posterBox.innerHTML='';liveBox.innerHTML='';bgBox.innerHTML='';document.getElementById('posterStatus').textContent='Афіша: не завантажена';document.getElementById('livePosterStatus').textContent='Live Poster: не завантажено';document.getElementById('bgStatus').textContent='Відеофон: не завантажено';
+  if(v?.poster_url){posterBox.innerHTML=`<img src="${v.poster_url}" alt="">`;document.getElementById('posterStatus').textContent='Афіша: завантажена';}
+  if(v?.live_poster_url){liveBox.innerHTML=`<video src="${v.live_poster_url}" controls playsinline></video>`;document.getElementById('livePosterStatus').textContent='Live Poster: завантажено';}
+  if(v?.background_video_url){bgBox.innerHTML=`<video src="${v.background_video_url}" controls muted loop playsinline></video>`;document.getElementById('bgStatus').textContent='Відеофон: завантажено';}
+}
+async function saveVisual(){
+  const seanceId=seanceSelect.value;if(!seanceId){alert('Оберіть сеанс');return false;}
+  try{
+    setStatus('Завантажую файли...');const poster=await uploadFile('posters','seances',posterFile.files[0]);const live=await uploadFile('video','live-posters',livePosterFile.files[0]);const bg=await uploadFile('video','backgrounds',bgVideoFile.files[0]);
+    const text=document.getElementById('eventText').value.trim();const payload={seance_id:seanceId,poster_url:poster?.publicUrl||currentVisual?.poster_url||null,live_poster_url:live?.publicUrl||currentVisual?.live_poster_url||null,live_poster_duration:Number(durationInput.value||currentVisual?.live_poster_duration||6200),background_video_url:bg?.publicUrl||currentVisual?.background_video_url||null,event_text:text,ticket_text:text,enable_live_poster:document.getElementById('enableLivePoster').checked,show_event_info:document.getElementById('showEventInfo').checked,enabled:true,updated_at:new Date().toISOString()};
+    setStatus('Зберігаю visual...');const {data,error}=await sb.from('seance_visuals').upsert(payload,{onConflict:'seance_id'}).select().single();if(error)throw error;currentVisual=data;await saveLibraryAsset(poster,'poster','storefront_poster',true);await saveLibraryAsset(live,'live_poster','live_poster',true);await saveLibraryAsset(bg,'background_video','hall_background',true);renderPreview(currentVisual);setStatus(projectId?'Готово. Visual збережено для сеансу, нові файли додано до бібліотеки проєкту.':'Готово. Visual і опис події збережено.');return true;
+  }catch(e){console.error(e);setStatus('Помилка: '+(e.message||e));return false;}
+}
+document.getElementById('saveBtn').addEventListener('click',saveVisual);document.getElementById('loadBtn').addEventListener('click',loadCurrentVisual);seanceSelect.addEventListener('change',loadCurrentVisual);
+document.getElementById('saveReturnBtn').addEventListener('click',async()=>{if(await saveVisual())location.href=returnTo;});
+document.getElementById('openSeanceBtn').addEventListener('click',()=>{const seanceId=seanceSelect.value;if(!seanceId){alert('Оберіть сеанс');return;}window.open(`../site-project/pages/hall-client-x.html?seance=${encodeURIComponent(seanceId)}`,'_blank');});
+(async()=>{setStudioContext();await loadProject();await loadSeances();})();
 </script>
 </body>
 </html>
