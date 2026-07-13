@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VA Content Studio V1.2.1</title>
+  <title>VA Content Studio V1.3</title>
   <style>
     :root{
       --bg:#061426;--panel:#102641;--panel2:#0a1d34;--line:#294563;
@@ -45,6 +45,13 @@
     .package-result{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel2);margin-top:10px}
     .package-result textarea{min-height:160px}.package-result .grid-2{align-items:end}
     .package-progress{padding:14px;border-radius:12px;background:#173558;border:1px solid #3c6794;margin:12px 0}
+    .package-result .toolbar{gap:8px;align-items:center;flex-wrap:wrap}
+    .package-result-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .package-stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:4px 0 8px}
+    .char-count.over{color:#ff9a9a;font-weight:800}
+    .char-count.ok{color:#8fe2b5}
+    .package-footer-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .inline-link-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
     .btn{border:0;border-radius:11px;padding:10px 14px;color:white;font-weight:900;cursor:pointer;background:#334f6d}
     .btn:hover{filter:brightness(1.08)}.btn.blue{background:var(--blue)}.btn.green{background:var(--green)}
     .btn.red{background:var(--red)}.btn.gold{background:var(--gold);color:#162033}.btn.violet{background:var(--violet)}
@@ -81,7 +88,7 @@
   <header class="hero">
     <div class="hero-row">
       <div>
-        <h1>VA Content Studio V1.2</h1>
+        <h1>VA Content Studio V1.3</h1>
         <div class="lead">Один проєкт → один вихідний текст → готовий пакет для всіх потрібних каналів.</div>
       </div>
       <div class="statusbar">
@@ -158,35 +165,44 @@
           </div>
 
           <div class="subpanel" id="project-tab-package">
-            <div class="notice">Тут не потрібно створювати окремі завдання, запускати агентів або переносити текст між розділами. Оберіть потрібні формати й натисніть одну кнопку.</div>
+            <div class="notice">Оберіть конкретний сеанс і потрібні формати. Адреса продажу підставляється автоматично, а кожен канал отримує власну структуру та обмеження.</div>
             <div class="grid-2">
               <div class="field"><label>Основа пакета</label><input id="packageSourceTitle" disabled placeholder="Майстер-текст або опис проєкту"></div>
-              <div class="field"><label>Тон</label><select id="packageTone"><option value="інформативний">Інформативний</option><option value="живий">Живий</option><option value="емоційний">Емоційний</option><option value="стриманий">Стриманий</option></select></div>
+              <div class="field"><label>Сеанс для пакета</label><select id="packageSeance"><option value="">— Оберіть сеанс —</option></select></div>
             </div>
             <div class="grid-2">
+              <div class="field"><label>Тон</label><select id="packageTone"><option value="інформативний">Інформативний</option><option value="живий">Живий</option><option value="емоційний">Емоційний</option><option value="стриманий">Стриманий</option></select></div>
               <div class="field"><label>Заклик до дії</label><input id="packageCta" value="Купити квитки"></div>
-              <div class="field"><label>Посилання на квитки</label><input id="packageLink" placeholder="https://..."></div>
+            </div>
+            <div class="field">
+              <label>Адреса вітрини / купівлі квитків</label>
+              <div class="inline-link-row"><input id="packageLink" placeholder="https://..."><button class="btn" id="openPackageLinkBtn" type="button">Відкрити</button></div>
+              <div class="meta">Якщо у сеансі немає окремого URL, Content Studio формує адресу універсальної схеми залу автоматично.</div>
             </div>
             <h3>Що підготувати</h3>
             <div class="package-grid" id="packageOptions">
-              <label class="package-option"><input type="checkbox" value="site" checked><div><b>Сайт</b><span>Повний текст сторінки події</span></div></label>
-              <label class="package-option"><input type="checkbox" value="poster" checked><div><b>Афіша</b><span>Короткий опис для макета</span></div></label>
-              <label class="package-option"><input type="checkbox" value="ticket" checked><div><b>Квиток</b><span>Дуже короткий текст</span></div></label>
-              <label class="package-option"><input type="checkbox" value="facebook" checked><div><b>Facebook</b><span>Розгорнута публікація</span></div></label>
-              <label class="package-option"><input type="checkbox" value="instagram" checked><div><b>Instagram</b><span>Публікація для стрічки</span></div></label>
-              <label class="package-option"><input type="checkbox" value="telegram" checked><div><b>Telegram</b><span>Компактне повідомлення</span></div></label>
-              <label class="package-option"><input type="checkbox" value="viber"><div><b>Viber</b><span>Коротке повідомлення</span></div></label>
-              <label class="package-option"><input type="checkbox" value="sms"><div><b>SMS</b><span>До 160 символів</span></div></label>
-              <label class="package-option"><input type="checkbox" value="voice30"><div><b>Озвучення 30 с</b><span>Дикторський текст</span></div></label>
-              <label class="package-option"><input type="checkbox" value="voice60"><div><b>Озвучення 60 с</b><span>Дикторський текст</span></div></label>
+              <label class="package-option"><input type="checkbox" value="site" checked><div><b>Сайт</b><span>1200–1800 символів, повний текст сторінки</span></div></label>
+              <label class="package-option"><input type="checkbox" value="poster" checked><div><b>Афіша</b><span>180–300 символів, одна сильна думка</span></div></label>
+              <label class="package-option"><input type="checkbox" value="ticket" checked><div><b>Квиток</b><span>80–140 символів, лише суть</span></div></label>
+              <label class="package-option"><input type="checkbox" value="facebook" checked><div><b>Facebook</b><span>Зацепка, 3–5 абзаців, дата і заклик</span></div></label>
+              <label class="package-option"><input type="checkbox" value="instagram" checked><div><b>Instagram</b><span>Емоційний вхід, короткі абзаци, візуальна мова</span></div></label>
+              <label class="package-option"><input type="checkbox" value="telegram" checked><div><b>Telegram</b><span>Що, де, коли і навіщо йти</span></div></label>
+              <label class="package-option"><input type="checkbox" value="viber"><div><b>Viber</b><span>Коротке персональне запрошення</span></div></label>
+              <label class="package-option"><input type="checkbox" value="sms"><div><b>SMS</b><span>До 160 символів разом із посиланням</span></div></label>
+              <label class="package-option"><input type="checkbox" value="voice30"><div><b>Озвучення 30 с</b><span>60–75 слів, природний ритм</span></div></label>
+              <label class="package-option"><input type="checkbox" value="voice60"><div><b>Озвучення 60 с</b><span>120–150 слів, драматургія ролика</span></div></label>
             </div>
             <div class="toolbar">
               <button class="btn green" id="generatePackageBtn">Створити / оновити весь пакет</button>
-              <span class="meta">Один запуск — усі обрані формати одразу.</span>
+              <span class="meta">Один запуск — усі обрані формати, але з різними правилами.</span>
             </div>
             <div id="packageMessage"></div>
             <h3 style="margin-top:18px">Готові тексти</h3>
             <div id="packageResults"></div>
+            <div class="package-footer-actions hidden" id="packageFooterActions">
+              <button class="btn" id="saveAllPackageBtn">Зберегти всі правки</button>
+              <button class="btn green" id="approveAllPackageBtn">Затвердити весь пакет</button>
+            </div>
           </div>
 
           <div class="subpanel" id="project-tab-summary">
@@ -700,67 +716,162 @@ async function loadExtended(){
 
 
 const PACKAGE_SPECS={
-  site:{label:'Сайт',channel:'site',placement:'event_page'},
-  poster:{label:'Афіша',channel:'print',placement:'poster'},
-  ticket:{label:'Квиток',channel:'print',placement:'ticket'},
-  facebook:{label:'Facebook',channel:'facebook',placement:'feed'},
-  instagram:{label:'Instagram',channel:'instagram',placement:'feed'},
-  telegram:{label:'Telegram',channel:'telegram',placement:'message'},
-  viber:{label:'Viber',channel:'viber',placement:'message'},
-  sms:{label:'SMS',channel:'sms',placement:'message'},
-  voice30:{label:'Озвучення 30 с',channel:'voiceover',placement:'audio_30'},
-  voice60:{label:'Озвучення 60 с',channel:'voiceover',placement:'audio_60'}
+  site:{label:'Сайт',channel:'site',placement:'event_page',min:1200,max:1800},
+  poster:{label:'Афіша',channel:'print',placement:'poster',min:180,max:300},
+  ticket:{label:'Квиток',channel:'print',placement:'ticket',min:80,max:140},
+  facebook:{label:'Facebook',channel:'facebook',placement:'feed',min:650,max:1400},
+  instagram:{label:'Instagram',channel:'instagram',placement:'feed',min:450,max:1000},
+  telegram:{label:'Telegram',channel:'telegram',placement:'message',min:300,max:700},
+  viber:{label:'Viber',channel:'viber',placement:'message',min:140,max:420},
+  sms:{label:'SMS',channel:'sms',placement:'message',min:1,max:160},
+  voice30:{label:'Озвучення 30 с',channel:'voiceover',placement:'audio_30',wordsMin:60,wordsMax:75},
+  voice60:{label:'Озвучення 60 с',channel:'voiceover',placement:'audio_60',wordsMin:120,wordsMax:150}
 };
 function projectMasters(){
   const pid=selectedProjectId();
   return state.materials.filter(x=>String(x.project_id||'')===String(pid)&&x.is_master).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
 }
+function linkedPackageSeances(){
+  const pid=String(selectedProjectId()||'');
+  return state.seances.filter(s=>String(s.project_id||'')===pid).sort((a,b)=>`${a.date||''} ${a.time||''}`.localeCompare(`${b.date||''} ${b.time||''}`));
+}
+function storefrontUrlForSeance(s){
+  if(!s)return '';
+  const direct=s.ticket_url||s.sale_url||s.public_url||s.buy_url||s.event_url||s.shop_url||s.url;
+  if(direct)return String(direct);
+  const repoBase=location.pathname.match(/^(.*)\/admin\/[^/]+$/)?.[1]||'';
+  const hallBase=window.VA_STOREFRONT_BASE_URL||`${location.origin}${repoBase}/universal/hall.html`;
+  const title=s.show||s.title||s.name||s.show_title||state.selectedProject?.title||'';
+  const p=new URLSearchParams({seance:String(s.id)});
+  if(title)p.set('title',title);
+  return `${hallBase}?${p.toString()}`;
+}
+function selectedPackageSeance(){
+  const id=$('packageSeance')?.value||'';
+  return linkedPackageSeances().find(s=>String(s.id)===String(id))||null;
+}
+function populatePackageSeances(){
+  const select=$('packageSeance');if(!select)return;
+  const rows=linkedPackageSeances();
+  const prev=select.value;
+  select.innerHTML='<option value="">— Оберіть сеанс —</option>'+rows.map(s=>`<option value="${esc(s.id)}">${esc(seanceTitle(s))}</option>`).join('');
+  let chosen=rows.find(s=>String(s.id)===String(prev));
+  if(!chosen){
+    const now=new Date();
+    chosen=rows.find(s=>{const d=new Date(`${s.date||''}T${s.time||'00:00'}`);return !isNaN(d)&&d>=now;})||rows[0];
+  }
+  if(chosen)select.value=chosen.id;
+  syncPackageLinkFromSeance(false);
+}
+function syncPackageLinkFromSeance(force=true){
+  const s=selectedPackageSeance();
+  const input=$('packageLink');
+  if(!s){input.value='';input.dataset.seanceId='';return;}
+  const changed=input.dataset.seanceId!==String(s.id);
+  if(force||changed||!input.value.trim())input.value=storefrontUrlForSeance(s);
+  input.dataset.seanceId=String(s.id);
+}
 function packageVariants(){
   const masters=projectMasters();
   const ids=new Set(masters.map(x=>String(x.id)));
-  return state.variants.filter(x=>ids.has(String(x.content_item_id))).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+  const sid=String($('packageSeance')?.value||'');
+  const all=state.variants.filter(x=>ids.has(String(x.content_item_id))).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+  if(!sid)return all;
+  const chosen=new Map();
+  for(const v of all){
+    const key=`${v.channel||''}|${v.placement||''}`;
+    if(String(v.seance_id||'')===sid&&!chosen.has(key))chosen.set(key,v);
+  }
+  if(linkedPackageSeances().length===1){
+    for(const v of all){
+      const key=`${v.channel||''}|${v.placement||''}`;
+      if(!v.seance_id&&!chosen.has(key))chosen.set(key,v);
+    }
+  }
+  return [...chosen.values()];
+}
+function packageSpecForVariant(v){
+  const key=Object.keys(PACKAGE_SPECS).find(k=>PACKAGE_SPECS[k].channel===v.channel&&PACKAGE_SPECS[k].placement===v.placement)||v.format||v.channel;
+  return {key,spec:PACKAGE_SPECS[key]||{label:v.channel||v.placement||'Варіант'}};
+}
+function textStats(body,spec){
+  const chars=String(body||'').length;
+  const words=String(body||'').trim()?String(body||'').trim().split(/\s+/).length:0;
+  if(spec.wordsMax){
+    const ok=words>=spec.wordsMin&&words<=spec.wordsMax;
+    return {label:`${words} слів / ${spec.wordsMin}–${spec.wordsMax}`,ok};
+  }
+  if(spec.max){
+    const ok=chars>=Number(spec.min||0)&&chars<=spec.max;
+    return {label:`${chars} симв. / ${spec.min||0}–${spec.max}`,ok};
+  }
+  return {label:`${chars} символів`,ok:true};
 }
 function renderContentPackage(){
   const box=$('packageResults');if(!box)return;
-  if(!state.selectedProject||state.selectedProject.isNew){$('packageSourceTitle').value='Спочатку збережіть проєкт';box.innerHTML='<div class="empty">Спочатку збережіть проєкт.</div>';return;}
+  if(!state.selectedProject||state.selectedProject.isNew){$('packageSourceTitle').value='Спочатку збережіть проєкт';box.innerHTML='<div class="empty">Спочатку збережіть проєкт.</div>';$('packageFooterActions').classList.add('hidden');return;}
+  populatePackageSeances();
   const master=projectMasters()[0];
   $('packageSourceTitle').value=master?.title||'Опис із паспорта проєкту';
   const rows=packageVariants();
-  if(!rows.length){box.innerHTML='<div class="empty">Пакет ще не створено. Оберіть формати вище й натисніть одну зелену кнопку.</div>';return;}
+  $('packageFooterActions').classList.toggle('hidden',!rows.length);
+  if(!rows.length){box.innerHTML='<div class="empty">Пакет ще не створено. Оберіть сеанс і формати, потім натисніть одну зелену кнопку.</div>';return;}
   box.innerHTML=rows.map(v=>{
-    const key=Object.keys(PACKAGE_SPECS).find(k=>PACKAGE_SPECS[k].channel===v.channel&&PACKAGE_SPECS[k].placement===v.placement)||v.channel;
-    const label=PACKAGE_SPECS[key]?.label||v.channel||v.placement||'Варіант';
-    return `<div class="package-result" data-package-variant="${esc(v.id)}">
-      <div class="toolbar"><h3 style="margin:0;flex:1">${esc(label)}</h3><span class="badge">${esc(v.status||'draft')}</span></div>
+    const {key,spec}=packageSpecForVariant(v);
+    const stats=textStats(v.body,spec);
+    const approved=v.status==='approved';
+    return `<div class="package-result" data-package-variant="${esc(v.id)}" data-package-key="${esc(key)}">
+      <div class="toolbar"><h3 style="margin:0;flex:1">${esc(spec.label)}</h3><span class="badge ${approved?'ok':''}">${esc(approved?'Затверджено':v.status||'review')}</span></div>
+      <div class="package-stats"><span class="char-count ${stats.ok?'ok':'over'}" data-pv-count>${esc(stats.label)}</span><span>Версія ${esc(v.version||1)}</span></div>
       <div class="field"><label>Заголовок</label><input data-pv-headline value="${esc(v.headline||'')}"></div>
       <div class="field"><label>Текст</label><textarea data-pv-body>${esc(v.body||'')}</textarea></div>
       <div class="grid-2"><div class="field"><label>Заклик до дії</label><input data-pv-cta value="${esc(v.call_to_action||'')}"></div><div class="field"><label>Посилання</label><input data-pv-link value="${esc(v.link_url||'')}"></div></div>
-      <button class="btn green" data-save-package-variant="${esc(v.id)}">Зберегти правки</button>
+      <div class="package-result-actions">
+        <button class="btn violet" data-regenerate-package="${esc(key)}">Оновити лише цей текст</button>
+        <button class="btn" data-save-package-variant="${esc(v.id)}">Зберегти</button>
+        <button class="btn green" data-approve-package-variant="${esc(v.id)}">Затвердити</button>
+      </div>
     </div>`;
   }).join('');
+  box.querySelectorAll('[data-pv-body]').forEach(el=>el.addEventListener('input',()=>updatePackageCardCount(el.closest('[data-package-variant]'))));
+}
+function updatePackageCardCount(card){
+  if(!card)return;
+  const key=card.dataset.packageKey;const spec=PACKAGE_SPECS[key]||{};
+  const stats=textStats(card.querySelector('[data-pv-body]')?.value||'',spec);
+  const target=card.querySelector('[data-pv-count]');if(target){target.textContent=stats.label;target.className=`char-count ${stats.ok?'ok':'over'}`;}
 }
 function setPackageMessage(text='',type=''){$('packageMessage').innerHTML=text?`<div class="package-progress ${type}">${esc(text)}</div>`:'';}
-async function invokeContentPackage(){
+async function invokeContentPackage(onlyChannel=null){
   if(state.packageBusy)return;
   if(!state.selectedProject||state.selectedProject.isNew)throw new Error('Спочатку збережіть проєкт.');
-  const channels=[...document.querySelectorAll('#packageOptions input:checked')].map(x=>x.value);
+  const seance=selectedPackageSeance();
+  if(!seance)throw new Error('Оберіть сеанс для контент-пакета.');
+  const channels=onlyChannel?[onlyChannel]:[...document.querySelectorAll('#packageOptions input:checked')].map(x=>x.value);
   if(!channels.length)throw new Error('Оберіть хоча б один формат.');
   const accessKey=localStorage.getItem('va_content_agent_key');
-  if(!accessKey)throw new Error('Ключ доступу до агентів не збережено. Один раз збережіть його у службовому розділі «Агенти».');
-  state.packageBusy=true;$('generatePackageBtn').disabled=true;setPackageMessage('Готуємо весь пакет одним запуском. Не закривайте сторінку…','warn');
+  if(!accessKey)throw new Error('Ключ доступу до агентів не збережено. Один раз збережіть його у розділі «Агенти».');
+  state.packageBusy=true;$('generatePackageBtn').disabled=true;setPackageMessage(onlyChannel?'Оновлюємо обраний текст…':'Готуємо весь пакет. Кожен канал матиме власну структуру…','warn');
   try{
-    const res=await fetch(`${SUPABASE_URL}/functions/v1/va-content-agent`,{method:'POST',headers:{apikey:SUPABASE_ANON_KEY,'Content-Type':'application/json','x-va-agent-key':accessKey},body:JSON.stringify({action:'package',project_id:state.selectedProject.id,channels,tone:$('packageTone').value,call_to_action:$('packageCta').value.trim(),link_url:$('packageLink').value.trim()})});
+    const res=await fetch(`${SUPABASE_URL}/functions/v1/va-content-agent`,{method:'POST',headers:{apikey:SUPABASE_ANON_KEY,'Content-Type':'application/json','x-va-agent-key':accessKey},body:JSON.stringify({action:'package',project_id:state.selectedProject.id,seance_id:seance.id,channels,tone:$('packageTone').value,call_to_action:$('packageCta').value.trim(),link_url:$('packageLink').value.trim()})});
     const text=await res.text();let data={};try{data=text?JSON.parse(text):{};}catch(_){data={error:text||res.statusText};}
     if(!res.ok)throw new Error(data.error||`Edge Function: ${res.status}`);
     await loadExtended();
-    setPackageMessage(`Готово. Створено або оновлено: ${data.count||channels.length} форматів.`,'ok');
+    setPackageMessage(onlyChannel?`Готово. Формат «${PACKAGE_SPECS[onlyChannel]?.label||onlyChannel}» оновлено.`:`Готово. Створено або оновлено: ${data.count||channels.length} форматів.`,'ok');
     renderContentPackage();
   }finally{state.packageBusy=false;$('generatePackageBtn').disabled=false;}
 }
-async function savePackageVariant(id,card){
-  const payload={headline:card.querySelector('[data-pv-headline]').value.trim(),body:card.querySelector('[data-pv-body]').value,call_to_action:card.querySelector('[data-pv-cta]').value.trim()||null,link_url:card.querySelector('[data-pv-link]').value.trim()||null,status:'review'};
-  await sb(`content_variants?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify(payload)});
-  await loadExtended();setPackageMessage('Правки збережено.');
+function packageCardPayload(card,status){
+  return {headline:card.querySelector('[data-pv-headline]').value.trim(),body:card.querySelector('[data-pv-body]').value,call_to_action:card.querySelector('[data-pv-cta]').value.trim()||null,link_url:card.querySelector('[data-pv-link]').value.trim()||null,status};
+}
+async function savePackageVariant(id,card,status='review',reload=true){
+  await sb(`content_variants?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify(packageCardPayload(card,status))});
+  if(reload){await loadExtended();setPackageMessage(status==='approved'?'Текст затверджено.':'Правки збережено.');}
+}
+async function saveAllPackageVariants(status='review'){
+  const cards=[...document.querySelectorAll('[data-package-variant]')];
+  for(const card of cards)await savePackageVariant(card.dataset.packageVariant,card,status,false);
+  await loadExtended();setPackageMessage(status==='approved'?'Увесь пакет затверджено.':'Усі правки збережено.','ok');
 }
 
 function renderTasks(){
@@ -1087,6 +1198,8 @@ document.addEventListener('click', async e=>{
     const campaign=e.target.closest('[data-campaign-id]');if(campaign){fillCampaign(state.campaigns.find(x=>String(x.id)===String(campaign.dataset.campaignId)));return;}
     const action=e.target.closest('[data-action-id]');if(action){fillAction(state.actions.find(x=>String(x.id)===String(action.dataset.actionId)));return;}
     const savePv=e.target.closest('[data-save-package-variant]');if(savePv){const card=savePv.closest('[data-package-variant]');await savePackageVariant(savePv.dataset.savePackageVariant,card);return;}
+    const approvePv=e.target.closest('[data-approve-package-variant]');if(approvePv){const card=approvePv.closest('[data-package-variant]');await savePackageVariant(approvePv.dataset.approvePackageVariant,card,'approved');return;}
+    const regeneratePv=e.target.closest('[data-regenerate-package]');if(regeneratePv){await invokeContentPackage(regeneratePv.dataset.regeneratePackage);return;}
   }catch(err){setMessage(err.message,'bad');console.error(err);}
 });
 
@@ -1106,7 +1219,11 @@ bind('clearAgentKeyBtn','click',clearAgentAccessKey);
 bind('newTemplateBtn','click',clearTemplate);bind('saveTemplateBtn','click',saveTemplate);bind('deleteTemplateBtn','click',removeTemplate);
 bind('newCampaignBtn','click',clearCampaign);bind('saveCampaignBtn','click',saveCampaign);bind('deleteCampaignBtn','click',removeCampaign);$('campaignProjectFilter').addEventListener('change',renderCampaigns);
 bind('newActionBtn','click',clearAction);bind('saveActionBtn','click',saveAction);bind('deleteActionBtn','click',removeAction);$('actionCampaignFilter').addEventListener('change',renderActions);
-bind('generatePackageBtn','click',invokeContentPackage);
+bind('generatePackageBtn','click',()=>invokeContentPackage());
+bind('saveAllPackageBtn','click',()=>saveAllPackageVariants('review'));
+bind('approveAllPackageBtn','click',()=>saveAllPackageVariants('approved'));
+$('packageSeance')?.addEventListener('change',()=>{syncPackageLinkFromSeance(true);renderContentPackage();});
+$('openPackageLinkBtn')?.addEventListener('click',()=>{const url=$('packageLink').value.trim();if(url)window.open(url,'_blank','noopener');else setMessage('Адреса вітрини не задана.','bad');});
 bind('reloadHistoryBtn','click',loadExtended);$('historyProjectFilter').addEventListener('change',renderHistory);$('historyAreaFilter').addEventListener('change',renderHistory);$('historySearch').addEventListener('input',renderHistory);
 
 async function boot(){
