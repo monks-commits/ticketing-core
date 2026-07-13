@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VA Content Studio V1</title>
+  <title>VA Content Studio V1.1</title>
   <style>
     :root{
       --bg:#061426;--panel:#102641;--panel2:#0a1d34;--line:#294563;
@@ -56,6 +56,7 @@
     .checkline{display:flex;gap:8px;align-items:center}.checkline input{width:auto}
     .code{white-space:pre-wrap;background:#061425;border:1px solid var(--line);border-radius:12px;padding:12px;color:#d9e8fa;font-family:Consolas,monospace;font-size:13px}
     .right{text-align:right}.nowrap{white-space:nowrap}.muted{color:var(--muted)}
+    tr.active td{background:rgba(47,140,255,.10)}
     .hidden{display:none!important}
     @media(max-width:1050px){
       .grid-main,.split-editor{grid-template-columns:1fr}.grid-3,.grid-4,.kpis{grid-template-columns:1fr 1fr}
@@ -72,7 +73,7 @@
   <header class="hero">
     <div class="hero-row">
       <div>
-        <h1>VA Content Studio V1</h1>
+        <h1>VA Content Studio V1.1</h1>
         <div class="lead">Проєкт → матеріал → агент → варіанти → кампанія → розсилка → результат → історія.</div>
       </div>
       <div class="statusbar">
@@ -254,8 +255,37 @@
         <div class="list" id="agentsList"></div>
       </aside>
       <main class="card">
-        <div class="notice">Цей екран формує та фіксує завдання агенту. Фактичний виклик моделі підключається через окрему Edge Function, щоб ключі та правила не зберігалися у браузері.</div>
-        <div class="toolbar"><h2 style="margin:0;flex:1">Підготовка запуску</h2><button class="btn violet" id="saveAgentRunBtn">Зберегти запуск</button></div>
+        <div class="notice">
+          Агент виконується через захищену Supabase Edge Function. Ключ OpenAI зберігається лише в Secrets Supabase,
+          а результат автоматично створюється у розділі «Матеріали» зі статусом «Перевірка».
+        </div>
+
+        <div class="card" style="padding:14px;background:var(--panel2);box-shadow:none">
+          <div class="toolbar" style="margin-bottom:8px">
+            <h3 style="margin:0;flex:1">Доступ до агентів</h3>
+            <span class="badge" id="agentKeyBadge">Ключ не збережено</span>
+          </div>
+          <div class="grid-2">
+            <div class="field" style="margin-bottom:0">
+              <label>Ключ доступу VA_AGENT_ACCESS_KEY</label>
+              <input type="password" id="agentAccessKey" autocomplete="off" placeholder="Введіть той самий ключ, що збережений у Secrets Supabase">
+            </div>
+            <div class="toolbar" style="align-items:flex-end;margin:0">
+              <button class="btn green" id="saveAgentKeyBtn">Зберегти у браузері</button>
+              <button class="btn red" id="clearAgentKeyBtn">Очистити</button>
+            </div>
+          </div>
+          <div class="meta">Ключ не записується у HTML, GitHub або таблиці Supabase. Він зберігається тільки в localStorage цього браузера.</div>
+        </div>
+
+        <input type="hidden" id="runId">
+        <div class="toolbar">
+          <h2 style="margin:0;flex:1">Запуск агента</h2>
+          <button class="btn" id="newAgentRunBtn">Новий запуск</button>
+          <button class="btn violet" id="saveAgentRunBtn">Зберегти запуск</button>
+          <button class="btn green" id="executeAgentRunBtn">Запустити агента</button>
+        </div>
+
         <div class="grid-3">
           <div class="field"><label>Агент</label><select id="runAgent"></select></div>
           <div class="field"><label>Завдання</label><select id="runTask"></select></div>
@@ -263,7 +293,22 @@
         </div>
         <div class="field"><label>Вихідний матеріал</label><select id="runSource"></select></div>
         <div class="field"><label>Інструкція для конкретного запуску</label><textarea class="editor" id="runInstruction"></textarea></div>
-        <div class="field"><label>Статус</label><select id="runStatus"><option value="prepared">Підготовлено</option><option value="queued">У черзі</option><option value="running">Виконується</option><option value="review">На перевірці</option><option value="approved">Затверджено</option><option value="failed">Помилка</option></select></div>
+
+        <div class="grid-3">
+          <div class="field">
+            <label>Статус</label>
+            <select id="runStatus" disabled>
+              <option value="prepared">Підготовлено</option>
+              <option value="running">Виконується</option>
+              <option value="completed">Виконано</option>
+              <option value="failed">Помилка</option>
+            </select>
+          </div>
+          <div class="field"><label>Модель</label><input id="runModel" disabled placeholder="Визначається Edge Function"></div>
+          <div class="field"><label>Результат</label><input id="runResultTitle" disabled placeholder="Ще не створено"></div>
+        </div>
+
+        <div id="agentRunMessage"></div>
         <h3>Останні запуски</h3>
         <div id="agentRunsTable"></div>
       </main>
@@ -394,7 +439,8 @@ const $ = id => document.getElementById(id);
 const state = {
   projects:[], seances:[], tasks:[], materials:[], variants:[], agents:[], agentRuns:[],
   templates:[], campaigns:[], actions:[], history:[],
-  selectedProject:null, selectedMaterial:null, extendedReady:false
+  selectedProject:null, selectedMaterial:null, selectedRun:null,
+  extendedReady:false, agentBusy:false
 };
 
 function headers(extra={}){
@@ -606,6 +652,8 @@ async function loadExtended(){
     console.warn(e);
   }
   populateGlobalSelects();renderTasks();renderMaterials();renderAgents();renderAgentRuns();renderTemplates();renderCampaigns();renderActions();renderHistory();renderProjectSummary();
+  updateAgentKeyUi();
+  autoSelectPreparedRun();
 }
 
 function renderTasks(){
@@ -686,20 +734,188 @@ async function saveVariant(){
 }
 async function removeVariant(){const id=$('variantId').value;if(!id)return;await deleteRow('content_variants',id);await loadExtended();fillMaterial(state.selectedMaterial);}
 
+function agentStatusLabel(status){
+  return ({prepared:'Підготовлено',running:'Виконується',completed:'Виконано',failed:'Помилка'})[status] || status || '—';
+}
+function agentStatusClass(status){
+  if(status==='completed')return 'ok';
+  if(status==='failed')return 'bad';
+  if(status==='running')return 'warn';
+  return '';
+}
+function setAgentRunMessage(text='',type=''){
+  $('agentRunMessage').innerHTML=text?`<div class="notice ${type}">${esc(text)}</div>`:'';
+}
+function updateAgentKeyUi(){
+  const has=Boolean(localStorage.getItem('va_content_agent_key'));
+  $('agentKeyBadge').textContent=has?'Ключ збережено':'Ключ не збережено';
+  $('agentKeyBadge').className=`badge ${has?'ok':'warn'}`;
+  $('agentAccessKey').value='';
+}
+function saveAgentAccessKey(){
+  const value=$('agentAccessKey').value.trim();
+  if(!value)throw new Error('Введіть ключ доступу.');
+  localStorage.setItem('va_content_agent_key',value);
+  updateAgentKeyUi();
+  setAgentRunMessage('Ключ доступу збережено у цьому браузері.');
+}
+function clearAgentAccessKey(){
+  localStorage.removeItem('va_content_agent_key');
+  updateAgentKeyUi();
+  setAgentRunMessage('Ключ доступу видалено з браузера.');
+}
 function renderAgents(){
   $('agentsList').innerHTML=state.agents.length?state.agents.map(x=>`<div class="list-item" data-agent-id="${esc(x.id)}"><div class="item-title">${esc(x.name)}</div><div class="meta">${esc(x.role)} · ${x.is_active?'активний':'вимкнений'}<br>${esc(x.description||'')}</div></div>`).join(''):'<div class="empty">Агенти зʼявляться після виконання SQL.</div>';
 }
 function renderAgentRuns(){
   const rows=state.agentRuns.slice(0,30);
-  $('agentRunsTable').innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>Дата</th><th>Агент</th><th>Статус</th><th>Інструкція</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${fmt(x.created_at)}</td><td>${esc(state.agents.find(a=>a.id===x.agent_profile_id)?.name||'—')}</td><td>${esc(x.status)}</td><td>${esc((x.instruction||'').slice(0,180))}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Запусків немає.</div>';
+  $('agentRunsTable').innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>Дата</th><th>Агент</th><th>Статус</th><th>Результат</th><th></th></tr></thead><tbody>${rows.map(x=>`
+    <tr class="${state.selectedRun&&String(state.selectedRun.id)===String(x.id)?'active':''}">
+      <td>${fmt(x.created_at)}</td>
+      <td>${esc(state.agents.find(a=>a.id===x.agent_profile_id)?.name||'—')}</td>
+      <td><span class="badge ${agentStatusClass(x.status)}">${esc(agentStatusLabel(x.status))}</span>${x.error_message?`<br><span class="meta">${esc(x.error_message.slice(0,120))}</span>`:''}</td>
+      <td>${esc(x.result_title||'—')}${x.model?`<br><span class="meta">${esc(x.model)}</span>`:''}</td>
+      <td class="right"><button class="btn small blue" data-run-id="${esc(x.id)}">Відкрити</button>${x.result_content_id?` <button class="btn small green" data-open-result="${esc(x.result_content_id)}">Матеріал</button>`:''}</td>
+    </tr>`).join('')}</tbody></table></div>`:'<div class="empty">Запусків немає.</div>';
+}
+function clearAgentRun(){
+  state.selectedRun=null;
+  $('runId').value='';
+  $('runAgent').value='';
+  $('runTask').value='';
+  $('runTemplate').value='';
+  $('runSource').value='';
+  $('runInstruction').value='';
+  $('runStatus').value='prepared';
+  $('runModel').value='';
+  $('runResultTitle').value='';
+  setAgentRunMessage();
+  renderAgentRuns();
+}
+function fillAgentRun(x){
+  if(!x)return;
+  state.selectedRun=x;
+  $('runId').value=x.id||'';
+  $('runAgent').value=x.agent_profile_id||'';
+  $('runTask').value=x.task_id||'';
+  $('runTemplate').value=x.template_id||'';
+  $('runSource').value=x.source_content_id||'';
+  $('runInstruction').value=x.instruction||'';
+  $('runStatus').value=x.status||'prepared';
+  $('runModel').value=x.model||'';
+  $('runResultTitle').value=x.result_title||'';
+  setAgentRunMessage(x.status==='failed'?(x.error_message||'Запуск завершився помилкою.'):'');
+  renderAgentRuns();
+}
+function autoSelectPreparedRun(){
+  if(state.selectedRun){
+    const fresh=state.agentRuns.find(x=>String(x.id)===String(state.selectedRun.id));
+    if(fresh)fillAgentRun(fresh);
+    return;
+  }
+  const run=state.agentRuns.find(x=>x.status==='prepared')||state.agentRuns[0];
+  if(run)fillAgentRun(run);
 }
 async function saveAgentRun(){
   const agent=state.agents.find(x=>String(x.id)===String($('runAgent').value));
   if(!agent)throw new Error('Оберіть агента.');
   const source=state.materials.find(x=>String(x.id)===String($('runSource').value));
-  const payload={agent_profile_id:agent.id,task_id:$('runTask').value||null,source_content_id:source?.id||null,template_id:$('runTemplate').value||null,instruction:$('runInstruction').value.trim()||agent.instruction,status:$('runStatus').value,input_snapshot:{source_title:source?.title||null,source_body:source?.body||null,agent_code:agent.code},created_by:'admin'};
-  const id=await saveRow('agent_runs',null,payload);await logActivity('Підготовлено запуск агента',{area:'content',project_id:source?.project_id||null,task_id:payload.task_id,entity_type:'agent_run',entity_id:id,details:{agent:agent.code}});
-  $('runInstruction').value='';await loadExtended();
+  if(!source)throw new Error('Оберіть вихідний матеріал.');
+  const currentId=$('runId').value||null;
+  const current=state.agentRuns.find(x=>String(x.id)===String(currentId));
+  if(current&&['running','completed'].includes(current.status))throw new Error('Виконаний або активний запуск не можна змінювати. Створіть новий.');
+  const task=state.tasks.find(x=>String(x.id)===String($('runTask').value));
+  const project=state.projects.find(x=>String(x.id)===String(source.project_id||task?.project_id));
+  const payload={
+    agent_profile_id:agent.id,
+    task_id:$('runTask').value||null,
+    source_content_id:source.id,
+    template_id:$('runTemplate').value||null,
+    instruction:$('runInstruction').value.trim()||agent.instruction,
+    status:'prepared',
+    error_message:null,
+    result_content_id:null,
+    result_title:null,
+    model:null,
+    openai_response_id:null,
+    started_at:null,
+    finished_at:null,
+    input_snapshot:{
+      source_title:source.title||null,
+      source_body:source.body||null,
+      agent_code:agent.code,
+      task_title:task?.title||null,
+      project_title:project?.title||null
+    },
+    created_by:'admin'
+  };
+  const id=await saveRow('agent_runs',currentId,payload);
+  await logActivity(currentId?'Оновлено підготовку запуску агента':'Підготовлено запуск агента',{
+    area:'content',project_id:source.project_id||task?.project_id||null,task_id:payload.task_id,
+    entity_type:'agent_run',entity_id:id,details:{agent:agent.code}
+  });
+  await loadExtended();
+  fillAgentRun(state.agentRuns.find(x=>String(x.id)===String(id)));
+  setAgentRunMessage('Запуск збережено. Тепер натисніть «Запустити агента».');
+  return id;
+}
+async function invokeAgentFunction(runId){
+  const accessKey=localStorage.getItem('va_content_agent_key');
+  if(!accessKey)throw new Error('Спочатку збережіть ключ доступу до агентів.');
+  const res=await fetch(`${SUPABASE_URL}/functions/v1/va-content-agent`,{
+    method:'POST',
+    headers:{
+      apikey:SUPABASE_ANON_KEY,
+      'Content-Type':'application/json',
+      'x-va-agent-key':accessKey
+    },
+    body:JSON.stringify({run_id:runId})
+  });
+  const text=await res.text();
+  let data={};
+  try{data=text?JSON.parse(text):{};}catch(_){data={error:text||res.statusText};}
+  if(!res.ok)throw new Error(data.error||data.message||`Edge Function: ${res.status}`);
+  return data;
+}
+async function executeAgentRun(){
+  if(state.agentBusy)return;
+  let runId=$('runId').value;
+  const current=state.agentRuns.find(x=>String(x.id)===String(runId));
+  if(!runId||!current||current.status==='failed'){
+    runId=await saveAgentRun();
+  }else if(current.status==='completed'){
+    throw new Error('Цей запуск уже виконано. Створіть новий запуск для повторної генерації.');
+  }
+  state.agentBusy=true;
+  $('executeAgentRunBtn').disabled=true;
+  $('saveAgentRunBtn').disabled=true;
+  $('runStatus').value='running';
+  setAgentRunMessage('Агент працює. Не закривайте сторінку…','warn');
+  try{
+    const result=await invokeAgentFunction(runId);
+    await loadProjects();
+    await loadExtended();
+    const fresh=state.agentRuns.find(x=>String(x.id)===String(runId));
+    if(fresh)fillAgentRun(fresh);
+    const material=state.materials.find(x=>String(x.id)===String(result.result_content_id||fresh?.result_content_id));
+    if(material){
+      fillMaterial(material);
+      showSection('materials');
+      setMessage(`Агент завершив роботу. Створено матеріал «${material.title||'Результат'}».`);
+    }else{
+      setAgentRunMessage('Агент завершив роботу, але результат не знайдено у списку матеріалів. Оновіть сторінку.','warn');
+    }
+  }catch(error){
+    await loadExtended();
+    const fresh=state.agentRuns.find(x=>String(x.id)===String(runId));
+    if(fresh)fillAgentRun(fresh);
+    setAgentRunMessage(error instanceof Error?error.message:String(error),'bad');
+    throw error;
+  }finally{
+    state.agentBusy=false;
+    $('executeAgentRunBtn').disabled=false;
+    $('saveAgentRunBtn').disabled=false;
+  }
 }
 
 function renderTemplates(){
@@ -758,6 +974,8 @@ document.addEventListener('click', async e=>{
     const material=e.target.closest('[data-material-id]');if(material){fillMaterial(state.materials.find(x=>String(x.id)===String(material.dataset.materialId)));return;}
     const variant=e.target.closest('[data-edit-variant]');if(variant){const x=state.variants.find(v=>String(v.id)===String(variant.dataset.editVariant));$('variantEditor').innerHTML=variantForm(x);$('variantStatus').value=x.status||'draft';return;}
     const agent=e.target.closest('[data-agent-id]');if(agent){const x=state.agents.find(a=>String(a.id)===String(agent.dataset.agentId));$('runAgent').value=x.id;$('runInstruction').value=x.instruction||'';return;}
+    const run=e.target.closest('[data-run-id]');if(run){fillAgentRun(state.agentRuns.find(x=>String(x.id)===String(run.dataset.runId)));return;}
+    const openResult=e.target.closest('[data-open-result]');if(openResult){const material=state.materials.find(x=>String(x.id)===String(openResult.dataset.openResult));if(material){fillMaterial(material);showSection('materials');}return;}
     const template=e.target.closest('[data-template-id]');if(template){fillTemplate(state.templates.find(x=>String(x.id)===String(template.dataset.templateId)));return;}
     const campaign=e.target.closest('[data-campaign-id]');if(campaign){fillCampaign(state.campaigns.find(x=>String(x.id)===String(campaign.dataset.campaignId)));return;}
     const action=e.target.closest('[data-action-id]');if(action){fillAction(state.actions.find(x=>String(x.id)===String(action.dataset.actionId)));return;}
@@ -772,7 +990,11 @@ bind('newTaskBtn','click',clearTask);bind('saveTaskBtn','click',saveTask);bind('
 bind('newMaterialBtn','click',clearMaterial);bind('saveMaterialBtn','click',saveMaterial);bind('deleteMaterialBtn','click',removeMaterial);$('materialProjectFilter').addEventListener('change',renderMaterials);
 bind('newVariantBtn','click',()=>{if(state.selectedMaterial)$('variantEditor').innerHTML=variantForm();});
 document.addEventListener('click',e=>{if(e.target.id==='saveVariantBtn')saveVariant().catch(err=>setMessage(err.message,'bad'));if(e.target.id==='deleteVariantBtn')removeVariant().catch(err=>setMessage(err.message,'bad'));});
+bind('newAgentRunBtn','click',clearAgentRun);
 bind('saveAgentRunBtn','click',saveAgentRun);
+bind('executeAgentRunBtn','click',executeAgentRun);
+bind('saveAgentKeyBtn','click',saveAgentAccessKey);
+bind('clearAgentKeyBtn','click',clearAgentAccessKey);
 bind('newTemplateBtn','click',clearTemplate);bind('saveTemplateBtn','click',saveTemplate);bind('deleteTemplateBtn','click',removeTemplate);
 bind('newCampaignBtn','click',clearCampaign);bind('saveCampaignBtn','click',saveCampaign);bind('deleteCampaignBtn','click',removeCampaign);$('campaignProjectFilter').addEventListener('change',renderCampaigns);
 bind('newActionBtn','click',clearAction);bind('saveActionBtn','click',saveAction);bind('deleteActionBtn','click',removeAction);$('actionCampaignFilter').addEventListener('change',renderActions);
