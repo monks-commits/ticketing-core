@@ -168,8 +168,45 @@ function setProductionMessage(t='',type=''){$('productionMessage').innerHTML=t?`
 function selectedProjectId(){return state.selectedProject?.id||''}
 function projectName(id){return state.projects.find(x=>String(x.id)===String(id))?.title||'—'}
 function seanceLabel(s){return `${s.show||s.title||s.name||s.id}${s.date?' — '+s.date:''}${s.time?' '+s.time:''}`}
-function venueKey(s){return String(s?.venue_id||s?.venue||'').trim()}
-function projectVenue(p){return String(p?.venue_id||'').trim()}
+function normalizeVenueValue(v){return String(v||'').trim().toLocaleLowerCase('uk-UA').replace(/[’`]/g,"'").replace(/\s+/g,' ')}
+function venueRegistry(){
+  const groups=new Map(),aliases=new Map();
+  for(const v of state.venues){
+    const candidate=String(v.slug||v.code||v.id||'').trim();
+    if(!candidate)continue;
+    const name=String(v.name_uk||v.name||v.title||candidate).trim();
+    const nameKey=normalizeVenueValue(name);
+    const score=v.slug?3:(v.code?2:1);
+    const g=groups.get(nameKey)||{id:candidate,name,score:0,records:[]};
+    if(score>g.score){g.id=candidate;g.score=score}
+    g.records.push(v);groups.set(nameKey,g);
+  }
+  const rows=[];
+  for(const g of groups.values()){
+    rows.push({id:g.id,name:g.name});
+    for(const v of g.records)[v.id,v.slug,v.code,v.name_uk,v.name,v.title].forEach(a=>{const n=normalizeVenueValue(a);if(n)aliases.set(n,g.id)});
+    [g.id,g.name].forEach(a=>{const n=normalizeVenueValue(a);if(n)aliases.set(n,g.id)});
+  }
+  return{rows,aliases};
+}
+const LEGACY_VENUE_ALIASES={
+  'академія руху':'academy',
+  'academy-ruhu':'academy',
+  'opera-test':'opera'
+};
+function resolveVenueId(value){
+  const raw=String(value||'').trim();
+  if(!raw)return'';
+  const normalized=normalizeVenueValue(raw);
+  const {aliases}=venueRegistry();
+  return aliases.get(normalized)||LEGACY_VENUE_ALIASES[normalized]||raw;
+}
+function venueDisplayName(value){
+  const id=resolveVenueId(value);
+  return venueRegistry().rows.find(v=>String(v.id)===String(id))?.name||id||'Без майданчика';
+}
+function venueKey(s){return resolveVenueId(s?.venue_id||s?.venue||'')}
+function projectVenue(p){return resolveVenueId(p?.venue_id||'')}
 function storefrontUrl(s){return String(s?.ticket_url||s?.sale_url||s?.public_url||s?.buy_url||s?.event_url||s?.shop_url||s?.url||'')}
 function linkedSeances(){const p=selectedProjectId();return state.seances.filter(s=>String(s.project_id||'')===String(p)).sort((a,b)=>`${a.date||''} ${a.time||''}`.localeCompare(`${b.date||''} ${b.time||''}`))}
 async function saveRow(table,id,payload){if(id){await sb(`${table}?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify(payload)});return id}const rows=await sb(table,{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)});return rows?.[0]?.id}
@@ -178,11 +215,17 @@ async function logActivity(action,data={}){try{await sb('content_activity_log',{
 function showSection(name){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.section===name));$(`section-${name}`).classList.add('active');if(name==='venue-library')renderVenueLibrary();if(name==='history')renderHistory()}
 function showProjectTab(name){document.querySelectorAll('[data-project-tab]').forEach(x=>x.classList.toggle('active',x.dataset.projectTab===name));document.querySelectorAll('[id^="project-tab-"]').forEach(x=>x.classList.remove('active'));$(`project-tab-${name}`).classList.add('active');if(name==='production')renderProduction();if(name==='library')renderProjectLibrary();if(name==='cabinets')renderCabinets();if(name==='ready')renderReady()}
 function optionRows(rows,selected='',empty='— Не вибрано —',label=x=>x.title||x.name||x.id){return`<option value="">${esc(empty)}</option>`+rows.map(x=>`<option value="${esc(x.id)}" ${String(x.id)===String(selected)?'selected':''}>${esc(label(x))}</option>`).join('')}
-function allVenueOptions(){const map=new Map();for(const v of state.venues){const id=String(v.id||v.slug||v.code||'').trim();if(id)map.set(id,v.name_uk||v.name||v.title||id)}for(const p of state.projects){if(projectVenue(p))map.set(projectVenue(p),projectVenue(p))}for(const s of state.seances){if(venueKey(s))map.set(venueKey(s),s.venue_name||s.venue||venueKey(s))}return[...map.entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1]),'uk'))}
-function populateVenueSelectors(){const opts=allVenueOptions();const html=`<option value="">Усі майданчики</option>`+opts.map(([id,n])=>`<option value="${esc(id)}">${esc(n)}</option>`).join('');$('workspaceSelect').innerHTML=html;$('workspaceSelect').value=state.currentVenue;const phtml=`<option value="">— Оберіть майданчик —</option>`+opts.map(([id,n])=>`<option value="${esc(id)}">${esc(n)}</option>`).join('');$('pVenue').innerHTML=phtml;if(state.selectedProject)$('pVenue').value=projectVenue(state.selectedProject)}
+function allVenueOptions(){
+  // Єдине джерело списку майданчиків — public.venues.
+  // Значення з projects/seances сюди більше не додаються.
+  return venueRegistry().rows
+    .map(v=>[v.id,v.name])
+    .sort((a,b)=>String(a[1]).localeCompare(String(b[1]),'uk'));
+}
+function populateVenueSelectors(){const opts=allVenueOptions();const validIds=new Set(opts.map(([id])=>String(id)));if(state.currentVenue&&!validIds.has(String(resolveVenueId(state.currentVenue))))state.currentVenue='';else state.currentVenue=resolveVenueId(state.currentVenue);const html=`<option value="">Усі майданчики</option>`+opts.map(([id,n])=>`<option value="${esc(id)}">${esc(n)}</option>`).join('');$('workspaceSelect').innerHTML=html;$('workspaceSelect').value=state.currentVenue;const phtml=`<option value="">— Оберіть майданчик —</option>`+opts.map(([id,n])=>`<option value="${esc(id)}">${esc(n)}</option>`).join('');$('pVenue').innerHTML=phtml;if(state.selectedProject)$('pVenue').value=projectVenue(state.selectedProject)}
 function populateChannelSelect(id,allLabel='Загальний'){const el=$(id);if(!el)return;const keep=el.value;el.innerHTML=`<option value="">${esc(allLabel)}</option>`+Object.entries(CHANNELS).map(([k,v])=>`<option value="${k}">${esc(v.label)}</option>`).join('');el.value=keep}
 function populateSeanceSelect(id,empty='— Оберіть сеанс —'){const el=$(id);if(!el)return;const keep=el.value;el.innerHTML=optionRows(linkedSeances(),keep,empty,seanceLabel);if(!el.value&&linkedSeances().length===1)el.value=linkedSeances()[0].id}
-function renderProjects(){const q=$('projectSearch').value.trim().toLowerCase();const rows=state.projects.filter(p=>(!state.currentVenue||projectVenue(p)===state.currentVenue)&&`${p.title} ${p.genre} ${p.type} ${p.tags}`.toLowerCase().includes(q));$('projectsList').innerHTML=rows.length?rows.map(p=>`<div class="list-item ${state.selectedProject&&String(p.id)===String(state.selectedProject.id)?'active':''}" data-project-id="${esc(p.id)}"><div class="item-title">${esc(p.title||'Без назви')}</div><div class="meta">${esc(projectVenue(p)||'Без майданчика')}<br>${esc(p.genre||'—')} · ${esc(p.status||'draft')}</div></div>`).join(''):'<div class="empty">Проєктів не знайдено.</div>'}
+function renderProjects(){const q=$('projectSearch').value.trim().toLowerCase();const rows=state.projects.filter(p=>(!state.currentVenue||projectVenue(p)===state.currentVenue)&&`${p.title} ${p.genre} ${p.type} ${p.tags}`.toLowerCase().includes(q));$('projectsList').innerHTML=rows.length?rows.map(p=>`<div class="list-item ${state.selectedProject&&String(p.id)===String(state.selectedProject.id)?'active':''}" data-project-id="${esc(p.id)}"><div class="item-title">${esc(p.title||'Без назви')}</div><div class="meta">${esc(venueDisplayName(projectVenue(p)))}<br>${esc(p.genre||'—')} · ${esc(p.status||'draft')}</div></div>`).join(''):'<div class="empty">Проєктів не знайдено.</div>'}
 function fillProject(p){state.selectedProject=p;$('projectEmpty').classList.add('hidden');$('projectWorkspace').classList.remove('hidden');$('projectHeading').textContent=p.title||'Новий проєкт';$('pVenue').value=projectVenue(p)||state.currentVenue||'';$('pTitle').value=p.title||'';$('pStatus').value=p.status||'draft';$('pGenre').value=p.genre||'';$('pType').value=p.type||'';$('pAge').value=p.age||'';$('pShort').value=p.short_description||'';$('pDescription').value=p.description||'';$('pTags').value=p.tags||'';renderProjects();renderSeances();renderProduction();renderProjectLibrary();renderCabinets();renderReady()}
 async function saveProject(){const venue=$('pVenue').value.trim();if(!venue)throw new Error('Оберіть майданчик.');const payload={venue_id:venue,title:$('pTitle').value.trim()||'Без назви',status:$('pStatus').value,genre:$('pGenre').value.trim(),type:$('pType').value.trim(),age:$('pAge').value.trim(),short_description:$('pShort').value.trim(),description:$('pDescription').value.trim(),tags:$('pTags').value.trim(),updated_at:new Date().toISOString()};const id=await saveRow('projects',state.selectedProject?.isNew?null:state.selectedProject?.id,payload);await logActivity(state.selectedProject?.isNew?'Створено проєкт':'Оновлено проєкт',{area:'project',project_id:id,entity_type:'project',entity_id:id});await loadAll();fillProject(state.projects.find(x=>String(x.id)===String(id)))}
 async function removeProject(){if(!state.selectedProject||state.selectedProject.isNew)return;if(!confirm(`Видалити проєкт «${state.selectedProject.title}»?`))return;await deleteRow('projects',state.selectedProject.id);state.selectedProject=null;$('projectWorkspace').classList.add('hidden');$('projectEmpty').classList.remove('hidden');await loadAll()}
