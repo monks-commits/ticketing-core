@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VA Content Studio V1.7.1</title>
+    <title>VA Content Studio V1.7.2</title>
     <style>
       :root {
         --bg: #061426;
@@ -556,6 +556,70 @@
         }
       }
 
+      .composer-panel {
+        margin-top: 14px;
+        border: 1px solid #3a6588;
+        border-radius: 15px;
+        padding: 14px;
+        background: #081d34;
+      }
+      .composer-checks {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 10px 0 14px;
+      }
+      .composer-checks label {
+        display: inline-flex;
+        gap: 7px;
+        align-items: center;
+        margin: 0;
+        color: #e8f2ff;
+      }
+      .composer-checks input { width: auto; }
+      .composer-source-player {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px;
+        margin-bottom: 12px;
+        background: #04111f;
+      }
+      .composer-source-player video {
+        display: block;
+        width: 100%;
+        max-height: 260px;
+        margin-top: 8px;
+        background: #000;
+      }
+      .composer-toolbar { margin-top: 10px; }
+      #cabinetPreviewMedia { padding: 0; background: #020811; }
+      #composerCanvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 680px;
+        object-fit: contain;
+        background: #081a2e;
+      }
+      .ready-product-card .preview-media { height: 240px; }
+      .export-progress {
+        margin-top: 10px;
+        padding: 11px 12px;
+        border-radius: 11px;
+        border: 1px solid #725b21;
+        background: #30250c;
+        color: #ffe9ac;
+      }
+      .export-progress.ok {
+        border-color: #287c58;
+        background: #0f3328;
+        color: #d6ffe8;
+      }
+      .export-progress.bad {
+        border-color: #8a3737;
+        background: #351919;
+        color: #ffd0d0;
+      }
       .code {
         white-space: pre-wrap;
         background: #04111f;
@@ -647,7 +711,7 @@
       <header class="hero">
         <div class="hero-row">
           <div>
-            <h1>VA Content Studio V1.7.1</h1>
+            <h1>VA Content Studio V1.7.2</h1>
             <div class="lead">
               Майданчик → проєкт → виробництво → бібліотека → готовий проєкт →
               кабінет каналу → публікація.
@@ -1135,10 +1199,10 @@
 
               <div class="subpanel" id="project-tab-cabinets">
                 <div class="notice">
-                  Кожен канал і кожне розміщення мають власний стандарт.
-                  Спочатку обирається розміщення, після чого Studio показує
-                  тільки сумісні готові візуали й рамки. Кабінет не обрізає
-                  матеріал і не підміняє формат.
+                  Кабінет каналу — це фінальна збірка. Оберіть формат отримувача,
+                  візуал будь-якої орієнтації, фон і рамку, підженіть композицію,
+                  додайте дані сеансу та експортуйте готовий PNG або MP4. Разом із
+                  фізичним файлом зберігається редагований макет для нового сеансу.
                 </div>
                 <div class="grid-2">
                   <div class="field">
@@ -1241,6 +1305,115 @@
                         старого тексту іншого випуску.
                       </div>
                     </div>
+                    <section class="composer-panel" id="composerPanel">
+                      <div class="section-title">
+                        <div>
+                          <h3 class="no-margin">Фінальна збірка</h3>
+                          <div class="meta">Рамка стандарту каналу, підгонка візуалу, фон, текстові блоки та фізичний експорт.</div>
+                        </div>
+                        <span class="mini ok" id="composerOutputSize">—</span>
+                      </div>
+
+                      <div class="grid-2">
+                        <div class="field">
+                          <label>Режим джерела</label>
+                          <select id="composerSourceMode">
+                            <option value="compose">Вихідний візуал — збираємо в кабінеті</option>
+                            <option value="ready">Готовий брендований файл</option>
+                          </select>
+                        </div>
+                        <div class="field">
+                          <label>Композиція</label>
+                          <select id="composerLayout">
+                            <option value="center">По центру + нижня інформаційна панель</option>
+                            <option value="split_left">Візуал ліворуч, текст праворуч</option>
+                            <option value="split_right">Текст ліворуч, візуал праворуч</option>
+                            <option value="overlay_bottom">Візуал на весь кадр + панель знизу</option>
+                            <option value="visual_only">Тільки візуал</option>
+                          </select>
+                        </div>
+                        <div class="field">
+                          <label>Фон</label>
+                          <select id="composerBackgroundMode">
+                            <option value="color">Колір</option>
+                            <option value="blur_media">Розмитий візуал</option>
+                            <option value="asset">Фон-картинка з бібліотеки</option>
+                          </select>
+                        </div>
+                        <div class="field">
+                          <label>Фон-картинка</label>
+                          <select id="composerBackgroundAsset"></select>
+                        </div>
+                        <div class="field">
+                          <label>Колір фону</label>
+                          <input id="composerBackgroundColor" type="color" value="#081a2e" />
+                        </div>
+                        <div class="field">
+                          <label>Розмиття фону: <span id="composerBlurValue">22</span> px</label>
+                          <input id="composerBlur" type="range" min="0" max="60" value="22" />
+                        </div>
+                        <div class="field">
+                          <label>Вписування візуалу</label>
+                          <select id="composerFit">
+                            <option value="contain">Вписати повністю</option>
+                            <option value="cover">Заповнити область</option>
+                          </select>
+                        </div>
+                        <div class="field">
+                          <label>Масштаб: <span id="composerScaleValue">100</span>%</label>
+                          <input id="composerScale" type="range" min="40" max="220" value="100" />
+                        </div>
+                        <div class="field">
+                          <label>Позиція X: <span id="composerXValue">0</span>%</label>
+                          <input id="composerX" type="range" min="-60" max="60" value="0" />
+                        </div>
+                        <div class="field">
+                          <label>Позиція Y: <span id="composerYValue">0</span>%</label>
+                          <input id="composerY" type="range" min="-60" max="60" value="0" />
+                        </div>
+                        <div class="field">
+                          <label>Колір тексту</label>
+                          <input id="composerTextColor" type="color" value="#ffffff" />
+                        </div>
+                        <div class="field">
+                          <label>Колір панелі</label>
+                          <input id="composerPanelColor" type="color" value="#071a2f" />
+                        </div>
+                        <div class="field">
+                          <label>Прозорість панелі: <span id="composerPanelOpacityValue">88</span>%</label>
+                          <input id="composerPanelOpacity" type="range" min="0" max="100" value="88" />
+                        </div>
+                        <div class="field">
+                          <label>Розмір тексту: <span id="composerFontSizeValue">42</span></label>
+                          <input id="composerFontSize" type="range" min="24" max="76" value="42" />
+                        </div>
+                      </div>
+
+                      <div class="field">
+                        <label>Короткий текст на макеті</label>
+                        <textarea id="composerOverlayText" placeholder="Необов’язковий короткий текст. Дата, час, ціна та CTA підставляються окремо."></textarea>
+                      </div>
+                      <div class="composer-checks">
+                        <label><input id="composerShowTitle" type="checkbox" checked> Назва</label>
+                        <label><input id="composerShowDate" type="checkbox" checked> Дата і час</label>
+                        <label><input id="composerShowVenue" type="checkbox" checked> Майданчик</label>
+                        <label><input id="composerShowPrice" type="checkbox" checked> Ціна</label>
+                        <label><input id="composerShowCta" type="checkbox" checked> «Купити квитки»</label>
+                      </div>
+
+                      <div class="composer-source-player hidden" id="composerVideoWrap">
+                        <div class="meta">Для PNG можна обрати кадр повзунком відео. MP4 рендериться повністю.</div>
+                        <video id="composerSourceVideo" controls muted playsinline crossorigin="anonymous"></video>
+                      </div>
+
+                      <div class="toolbar composer-toolbar">
+                        <button class="btn" id="composerResetBtn" type="button">Скинути макет</button>
+                        <button class="btn green" id="exportPngBtn" type="button">Експортувати PNG</button>
+                        <button class="btn violet" id="exportMp4Btn" type="button">Експортувати MP4</button>
+                      </div>
+                      <div id="composerProgress"></div>
+                    </section>
+
                     <div class="field">
                       <label>Посилання на опублікований матеріал</label
                       ><input id="cabinetPublishedUrl" />
@@ -1278,6 +1451,12 @@
                     <div class="preview-meta" id="cabinetPreviewMeta"></div>
                   </div>
                 </div>
+                <section class="compact hidden" id="readyGoodsSection" style="margin-top:14px">
+                  <div class="section-title">
+                    <div><h3 class="no-margin">Склад готової продукції цього сеансу</h3><div class="meta">Фізичні PNG / MP4, створені у вибраному кабінеті.</div></div>
+                  </div>
+                  <div class="asset-grid" id="readyGoodsGrid"></div>
+                </section>
               </div>
 
               <div class="subpanel" id="project-tab-ready">
@@ -3889,7 +4068,7 @@
                 $("assetStatus").value === "approved"
                   ? new Date().toISOString()
                   : null,
-              metadata: { source: "content_studio_v1_7_1" },
+              metadata: { source: "content_studio_v1_7_2" },
             }),
           });
           uploaded.push(`${f.name} — ${type} — ${$("assetStatus").value}`);
@@ -4175,8 +4354,14 @@
             ? profile.coverRatio || profile.ratio
             : profile.ratio,
         );
-        if (required && !["any", "none", "custom"].includes(required))
-          return assetRatio(a) === required;
+        // Основний візуал може мати інше співвідношення сторін:
+        // кабінет підганяє його всередині вихідного кадру. Обкладинки
+        // лишаються строгими, бо вони є окремим готовим елементом.
+        if (
+          role === "cover" &&
+          required &&
+          !["any", "none", "custom"].includes(required)
+        ) return assetRatio(a) === required;
         return true;
       }
       function compatibleTextVariants() {
@@ -4233,6 +4418,414 @@
             return false;
           return true;
         });
+      }
+
+      const COMPOSER_SIZES = {
+        "9:16": { width: 1080, height: 1920 },
+        "4:5": { width: 1080, height: 1350 },
+        "3:4": { width: 1080, height: 1440 },
+        "1:1": { width: 1080, height: 1080 },
+        "16:9": { width: 1920, height: 1080 },
+        "4:3": { width: 1440, height: 1080 },
+        "1.91:1": { width: 1200, height: 628 },
+      };
+      const composerImageCache = new Map();
+      function composerDimensions(profile = currentChannelProfile()) {
+        return COMPOSER_SIZES[normalizeRatio(profile?.ratio)] || null;
+      }
+      function composerDefaultSettings() {
+        return {
+          source_mode: "compose",
+          layout: "center",
+          background_mode: "color",
+          background_asset: "",
+          background_color: "#081a2e",
+          blur: 22,
+          fit: "contain",
+          scale: 100,
+          x: 0,
+          y: 0,
+          text_color: "#ffffff",
+          panel_color: "#071a2f",
+          panel_opacity: 88,
+          font_size: 42,
+          overlay_text: "",
+          show_title: true,
+          show_date: true,
+          show_venue: true,
+          show_price: true,
+          show_cta: true,
+        };
+      }
+      function collectCompositionSettings() {
+        const bool = (id) => Boolean($(id)?.checked);
+        return {
+          source_mode: $("composerSourceMode")?.value || "compose",
+          layout: $("composerLayout")?.value || "center",
+          background_mode: $("composerBackgroundMode")?.value || "color",
+          background_asset: $("composerBackgroundAsset")?.value || "",
+          background_color: $("composerBackgroundColor")?.value || "#081a2e",
+          blur: Number($("composerBlur")?.value || 0),
+          fit: $("composerFit")?.value || "contain",
+          scale: Number($("composerScale")?.value || 100),
+          x: Number($("composerX")?.value || 0),
+          y: Number($("composerY")?.value || 0),
+          text_color: $("composerTextColor")?.value || "#ffffff",
+          panel_color: $("composerPanelColor")?.value || "#071a2f",
+          panel_opacity: Number($("composerPanelOpacity")?.value || 88),
+          font_size: Number($("composerFontSize")?.value || 42),
+          overlay_text: $("composerOverlayText")?.value || "",
+          show_title: bool("composerShowTitle"),
+          show_date: bool("composerShowDate"),
+          show_venue: bool("composerShowVenue"),
+          show_price: bool("composerShowPrice"),
+          show_cta: bool("composerShowCta"),
+        };
+      }
+      function loadCompositionSettings(value = {}) {
+        const v = { ...composerDefaultSettings(), ...(value || {}) };
+        const set = (id, value) => { if ($(id)) $(id).value = value; };
+        set("composerSourceMode", v.source_mode);
+        set("composerLayout", v.layout);
+        set("composerBackgroundMode", v.background_mode);
+        set("composerBackgroundColor", v.background_color);
+        set("composerBlur", v.blur);
+        set("composerFit", v.fit);
+        set("composerScale", v.scale);
+        set("composerX", v.x);
+        set("composerY", v.y);
+        set("composerTextColor", v.text_color);
+        set("composerPanelColor", v.panel_color);
+        set("composerPanelOpacity", v.panel_opacity);
+        set("composerFontSize", v.font_size);
+        set("composerOverlayText", v.overlay_text);
+        ["Title", "Date", "Venue", "Price", "Cta"].forEach((key) => {
+          const prop = `show_${key.toLowerCase()}`;
+          if ($(`composerShow${key}`)) $(`composerShow${key}`).checked = v[prop] !== false;
+        });
+        populateComposerBackgrounds(v.background_asset || "");
+        updateComposerLabels();
+      }
+      function updateComposerLabels() {
+        const pairs = [
+          ["composerBlur", "composerBlurValue"],
+          ["composerScale", "composerScaleValue"],
+          ["composerX", "composerXValue"],
+          ["composerY", "composerYValue"],
+          ["composerPanelOpacity", "composerPanelOpacityValue"],
+          ["composerFontSize", "composerFontSizeValue"],
+        ];
+        pairs.forEach(([a, b]) => { if ($(a) && $(b)) $(b).textContent = $(a).value; });
+        const d = composerDimensions();
+        if ($("composerOutputSize")) $("composerOutputSize").textContent = d ? `${d.width} × ${d.height} PNG / MP4` : "без візуалу";
+        if ($("composerPanel")) $("composerPanel").classList.toggle("hidden-field", !currentChannelProfile().visual);
+      }
+      function composerBackgroundRows() {
+        const venue = projectVenue(state.selectedProject);
+        const p = state.projectAssets.filter((a) => a.status === "approved" && assetKind(a) === "image");
+        const v = state.venueAssets.filter((a) => canonicalVenueId(a.venue_id) === venue && a.status === "approved" && assetKind(a) === "image");
+        return [
+          ...p.map((a) => ({ key: `project:${a.id}`, label: `Проєкт · ${a.title}`, asset: a })),
+          ...v.map((a) => ({ key: `venue:${a.id}`, label: `Майданчик · ${a.title}`, asset: a })),
+        ];
+      }
+      function populateComposerBackgrounds(selected = null) {
+        const el = $("composerBackgroundAsset");
+        if (!el) return;
+        const keep = selected !== null ? selected : el.value;
+        el.innerHTML = `<option value="">— Оберіть фон —</option>` + composerBackgroundRows().map((x) => `<option value="${esc(x.key)}">${esc(x.label)}</option>`).join("");
+        if ([...el.options].some((x) => x.value === keep)) el.value = keep;
+      }
+      function composerBackgroundAsset() {
+        const value = $("composerBackgroundAsset")?.value || "";
+        const [scope, id] = value.split(":");
+        return scope === "project"
+          ? state.projectAssets.find((x) => String(x.id) === String(id))
+          : scope === "venue"
+            ? state.venueAssets.find((x) => String(x.id) === String(id))
+            : null;
+      }
+      function composerSelectedMedia() {
+        return state.projectAssets.find((x) => String(x.id) === String($("cabinetMedia")?.value)) || null;
+      }
+      function composerSelectedFrame() {
+        return state.venueAssets.find((x) => String(x.id) === String($("cabinetFrame")?.value)) || null;
+      }
+      async function loadComposerImage(url) {
+        if (!url) return null;
+        if (composerImageCache.has(url)) return composerImageCache.get(url);
+        const promise = new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error(`Не вдалося завантажити зображення: ${url}`));
+          img.src = url;
+        });
+        composerImageCache.set(url, promise);
+        return promise;
+      }
+      function syncComposerSource() {
+        const a = composerSelectedMedia(), video = $("composerSourceVideo"), wrap = $("composerVideoWrap");
+        if (!video || !wrap) return;
+        if (a && assetKind(a) === "video") {
+          wrap.classList.remove("hidden");
+          if (video.src !== a.public_url) {
+            video.pause();
+            video.crossOrigin = "anonymous";
+            video.src = a.public_url;
+            video.load();
+          }
+        } else {
+          wrap.classList.add("hidden");
+          video.pause();
+          video.removeAttribute("src");
+          video.load();
+        }
+      }
+      function hexToRgba(hex, alpha = 1) {
+        const h = String(hex || "#000000").replace("#", "");
+        const x = h.length === 3 ? h.split("").map((c) => c + c).join("") : h.padEnd(6, "0");
+        return `rgba(${parseInt(x.slice(0,2),16)},${parseInt(x.slice(2,4),16)},${parseInt(x.slice(4,6),16)},${alpha})`;
+      }
+      function mediaIntrinsic(el) {
+        return el instanceof HTMLVideoElement
+          ? { width: el.videoWidth || 1, height: el.videoHeight || 1 }
+          : { width: el.naturalWidth || el.width || 1, height: el.naturalHeight || el.height || 1 };
+      }
+      function drawCover(ctx, el, rect, blur = 0) {
+        if (!el) return;
+        const { width: sw, height: sh } = mediaIntrinsic(el);
+        const scale = Math.max(rect.w / sw, rect.h / sh);
+        const dw = sw * scale, dh = sh * scale;
+        ctx.save();
+        if (blur) ctx.filter = `blur(${blur}px)`;
+        ctx.drawImage(el, rect.x + (rect.w-dw)/2, rect.y + (rect.h-dh)/2, dw, dh);
+        ctx.restore();
+      }
+      function drawFitted(ctx, el, rect, settings) {
+        if (!el) return;
+        const { width: sw, height: sh } = mediaIntrinsic(el);
+        const base = settings.fit === "cover" ? Math.max(rect.w/sw, rect.h/sh) : Math.min(rect.w/sw, rect.h/sh);
+        const scale = base * Math.max(0.1, Number(settings.scale || 100)/100);
+        const dw = sw * scale, dh = sh * scale;
+        const dx = rect.x + (rect.w-dw)/2 + rect.w * Number(settings.x || 0)/100;
+        const dy = rect.y + (rect.h-dh)/2 + rect.h * Number(settings.y || 0)/100;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(rect.x, rect.y, rect.w, rect.h); ctx.clip();
+        ctx.drawImage(el, dx, dy, dw, dh);
+        ctx.restore();
+      }
+      function wrapCanvasText(ctx, text, maxWidth) {
+        const paragraphs = String(text || "").split(/\n+/);
+        const lines = [];
+        paragraphs.forEach((p, pi) => {
+          const words = p.trim().split(/\s+/).filter(Boolean);
+          let line = "";
+          words.forEach((word) => {
+            const test = line ? `${line} ${word}` : word;
+            if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = word; }
+            else line = test;
+          });
+          if (line) lines.push(line);
+          if (pi < paragraphs.length - 1) lines.push("");
+        });
+        return lines;
+      }
+      function composerRects(width, height, settings) {
+        const pad = Math.round(Math.min(width, height) * 0.035);
+        if (settings.layout === "split_left") {
+          const mw = Math.round(width * 0.56);
+          return { media:{x:0,y:0,w:mw,h:height}, panel:{x:mw,y:0,w:width-mw,h:height}, pad };
+        }
+        if (settings.layout === "split_right") {
+          const pw = Math.round(width * 0.44);
+          return { panel:{x:0,y:0,w:pw,h:height}, media:{x:pw,y:0,w:width-pw,h:height}, pad };
+        }
+        if (settings.layout === "visual_only") return { media:{x:0,y:0,w:width,h:height}, panel:null, pad };
+        const ph = Math.round(height * (settings.layout === "overlay_bottom" ? 0.30 : 0.25));
+        return { media:{x:0,y:0,w:width,h:height}, panel:{x:0,y:height-ph,w:width,h:ph}, pad };
+      }
+      function drawRoundedRect(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, w/2, h/2);
+        ctx.beginPath();
+        ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath();
+      }
+      function drawComposerText(ctx, rects, settings, facts) {
+        if (!rects.panel) return;
+        const p = rects.panel, pad = rects.pad;
+        ctx.save();
+        ctx.fillStyle = hexToRgba(settings.panel_color, Math.max(0, Math.min(1, settings.panel_opacity/100)));
+        ctx.fillRect(p.x,p.y,p.w,p.h);
+        const base = Math.max(20, Number(settings.font_size || 42) * (ctx.canvas.width/1080));
+        const maxW = p.w - pad*2;
+        let y = p.y + pad;
+        ctx.fillStyle = settings.text_color || "#ffffff";
+        ctx.textBaseline = "top";
+        const drawLines = (text, size, weight="600", gap=1.28) => {
+          if (!text) return;
+          ctx.font = `${weight} ${size}px Arial, sans-serif`;
+          const lines = wrapCanvasText(ctx, text, maxW);
+          for (const line of lines) {
+            if (y + size*gap > p.y+p.h-pad) break;
+            if (line) ctx.fillText(line, p.x+pad, y);
+            y += size*gap;
+          }
+        };
+        if (settings.show_title) drawLines(facts.title, base*1.22, "800", 1.16);
+        if (settings.overlay_text) { y += base*0.18; drawLines(settings.overlay_text, base*0.78, "500", 1.25); }
+        const dateLine = [facts.date, facts.time].filter(Boolean).join(" • ");
+        if (settings.show_date) { y += base*0.22; drawLines(dateLine, base*0.80, "700", 1.20); }
+        if (settings.show_venue) drawLines([facts.city, facts.venue, facts.hall].filter(Boolean).join(" · "), base*0.68, "600", 1.20);
+        if (settings.show_price && facts.price) { y += base*0.12; drawLines(facts.price, base*0.82, "800", 1.20); }
+        if (settings.show_cta && $("cabinetCta")?.value) {
+          const label = $("cabinetCta").value.trim() || "Купити квитки";
+          ctx.font = `800 ${base*0.72}px Arial, sans-serif`;
+          const bw = Math.min(maxW, ctx.measureText(label).width + pad*1.5), bh = base*1.25;
+          const bx = p.x+pad, by = Math.min(p.y+p.h-pad-bh, y+base*0.35);
+          ctx.fillStyle = "#2f8cff"; drawRoundedRect(ctx,bx,by,bw,bh,bh*0.28); ctx.fill();
+          ctx.fillStyle = "#ffffff"; ctx.textBaseline="middle"; ctx.fillText(label,bx+pad*0.75,by+bh/2);
+        }
+        ctx.restore();
+      }
+      async function prepareComposerResources() {
+        const media = composerSelectedMedia(), frame = composerSelectedFrame(), bg = composerBackgroundAsset();
+        let mediaEl = null;
+        if (media) mediaEl = assetKind(media) === "video" ? $("composerSourceVideo") : await loadComposerImage(media.public_url);
+        return {
+          media,
+          mediaEl,
+          frameEl: frame && assetKind(frame) === "image" ? await loadComposerImage(frame.public_url) : null,
+          backgroundEl: bg ? await loadComposerImage(bg.public_url) : null,
+        };
+      }
+      function drawComposerFrame(canvas, resources, settings = collectCompositionSettings()) {
+        const ctx = canvas.getContext("2d"), facts = eventFacts(currentSeance()), w=canvas.width,h=canvas.height;
+        ctx.save(); ctx.clearRect(0,0,w,h); ctx.fillStyle=settings.background_color||"#081a2e"; ctx.fillRect(0,0,w,h);
+        if (settings.background_mode === "asset" && resources.backgroundEl) drawCover(ctx,resources.backgroundEl,{x:0,y:0,w,h},settings.blur);
+        if (settings.background_mode === "blur_media" && resources.mediaEl) drawCover(ctx,resources.mediaEl,{x:0,y:0,w,h},settings.blur);
+        const rects = composerRects(w,h,settings);
+        if (resources.mediaEl) drawFitted(ctx,resources.mediaEl,rects.media,settings);
+        if (resources.frameEl && settings.source_mode !== "ready") ctx.drawImage(resources.frameEl,0,0,w,h);
+        if (settings.source_mode !== "ready" || settings.layout !== "visual_only") drawComposerText(ctx,rects,settings,facts);
+        ctx.restore();
+      }
+      let composerRenderToken = 0;
+      async function renderComposerPreview() {
+        const profile = currentChannelProfile(), dims = composerDimensions(profile), box=$("cabinetPreviewMedia");
+        if (!profile.visual || !dims || !box) return;
+        const token = ++composerRenderToken;
+        try {
+          const resources = await prepareComposerResources();
+          if (token !== composerRenderToken) return;
+          let canvas = $("composerCanvas");
+          if (!canvas) { canvas=document.createElement("canvas"); canvas.id="composerCanvas"; box.innerHTML=""; box.appendChild(canvas); }
+          canvas.width=dims.width; canvas.height=dims.height;
+          box.style.aspectRatio = `${dims.width} / ${dims.height}`;
+          drawComposerFrame(canvas,resources);
+        } catch (e) {
+          box.innerHTML = `<span class="muted">${esc(e.message || String(e))}</span>`;
+        }
+      }
+      function defaultComposerOverlay() {
+        const body = $("cabinetBody")?.value?.trim() || "";
+        const first = body.split(/\n+/).find(Boolean) || "";
+        return first.length > 220 ? `${first.slice(0,217)}…` : first;
+      }
+      function resetComposer() {
+        loadCompositionSettings({ ...composerDefaultSettings(), overlay_text: defaultComposerOverlay() });
+        syncComposerSource();
+        updateCabinetPreview();
+      }
+      function composerReadyGoods() {
+        const sid=$("cabinetSeance")?.value||"", ch=state.currentChannel, pl=$("cabinetPlacement")?.value||"";
+        return state.projectAssets.filter((a) =>
+          String(a.project_id)===String(selectedProjectId()) &&
+          a.asset_type === "ready_publication" &&
+          String(a.seance_id||"")===String(sid) &&
+          (!ch || a.channel===ch) &&
+          (!pl || a.placement===pl)
+        );
+      }
+      function renderReadyGoods() {
+        const sec=$("readyGoodsSection"), grid=$("readyGoodsGrid");
+        if (!sec || !grid || state.currentChannel === "site") { if(sec) sec.classList.add("hidden"); return; }
+        sec.classList.remove("hidden");
+        const rows=composerReadyGoods();
+        grid.innerHTML = rows.length ? rows.map((a)=>`<div class="asset-card ready-product-card"><div class="preview-media">${assetPreview(a)}</div><h4>${esc(a.title)}</h4><div class="asset-tags"><span class="mini ok">готово</span><span class="mini">${esc(a.aspect_ratio||"")}</span><span class="mini">${esc((a.mime_type||"").split("/").pop()||"")}</span></div><div class="actions"><button class="btn small" data-open-project-asset="${esc(a.id)}">Відкрити</button><a class="btn green small" href="${esc(a.public_url)}" download>Завантажити</a><button class="btn red small" data-delete-project-asset="${esc(a.id)}">Видалити</button></div></div>`).join("") : '<div class="empty">Готових фізичних файлів для цього розміщення ще немає.</div>';
+      }
+      function reusablePublicationMetadata(meta) {
+        const x = JSON.parse(JSON.stringify(meta || {}));
+        ["final_asset_id","final_asset_url","export_format","exported_at","export_file_name"].forEach((k)=>delete x[k]);
+        return x;
+      }
+      function composerFileBase(ext) {
+        const s=currentSeance(), project=safeSlug(state.selectedProject?.title||"project"), ch=safeSlug(state.currentChannel), pl=safeSlug($("cabinetPlacement")?.value||"default"), sid=safeSlug(s?.id||"seance");
+        return `${project}-${sid}-${ch}-${pl}-${Date.now()}.${ext}`;
+      }
+      async function saveReadyProductBlob(blob, format, dimensions, durationSec=null) {
+        const s=currentSeance(); if(!s) throw new Error("Оберіть сеанс.");
+        const ext=format==="png"?"png":"mp4", name=composerFileBase(ext), path=`projects/${selectedProjectId()}/ready/${safeSlug(s.id)}/${safeSlug(state.currentChannel)}/${safeSlug($("cabinetPlacement").value)}/${name}`;
+        const file = new File([blob], name, {type: format==="png"?"image/png":"video/mp4"});
+        const url=await uploadStorage(path,file), settings=collectCompositionSettings(), profile=currentChannelProfile();
+        const rows=await sb("project_media_assets",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({
+          project_id:selectedProjectId(), seance_id:s.id, venue_id:projectVenue(state.selectedProject)||null,
+          source_asset_id:composerSelectedMedia()?.id||null, asset_type:"ready_publication", channel:state.currentChannel,
+          placement:$("cabinetPlacement").value, title:`${CHANNELS[state.currentChannel].label} · ${profile.label} · ${s.date||""} ${s.time||""}`,
+          file_name:name, original_file_name:name, storage_bucket:"content-studio", storage_path:path, public_url:url,
+          mime_type:file.type, width:dimensions.width, height:dimensions.height, duration_sec:durationSec, file_size:file.size,
+          aspect_ratio:profile.ratio, version:1, status:"approved", is_primary:false,
+          notes:`Готовий продукт ${state.currentChannel} / ${$("cabinetPlacement").value}`,
+          approved_at:new Date().toISOString(), metadata:{source:"content_studio_v1_7_2_composer",ready_product:true,composition:settings,facts:eventFacts(s),target_url:$("cabinetTargetUrl").value||"",publication_text:publicationParts().finalText}
+        })});
+        return rows?.[0] || {id:null, public_url:url, file_name:name};
+      }
+      function canvasBlob(canvas,type="image/png",quality=1) {
+        return new Promise((resolve,reject)=>canvas.toBlob((b)=>b?resolve(b):reject(new Error("Не вдалося створити файл.")),type,quality));
+      }
+      function setComposerProgress(text,kind="") {
+        if(!$("composerProgress")) return;
+        $("composerProgress").innerHTML=text?`<div class="export-progress ${kind}">${esc(text)}</div>`:"";
+      }
+      async function exportComposerPng() {
+        const media=composerSelectedMedia(); if(!media) throw new Error("Оберіть візуал.");
+        const dims=composerDimensions(); if(!dims) throw new Error("Для цього розміщення немає графічного кадру.");
+        setComposerProgress("Рендер PNG…");
+        const resources=await prepareComposerResources();
+        if(resources.mediaEl instanceof HTMLVideoElement && resources.mediaEl.readyState<2) await new Promise((res,rej)=>{resources.mediaEl.onloadeddata=res;resources.mediaEl.onerror=()=>rej(new Error("Відео не завантажилося."));});
+        const canvas=document.createElement("canvas"); canvas.width=dims.width; canvas.height=dims.height; drawComposerFrame(canvas,resources);
+        const blob=await canvasBlob(canvas,"image/png");
+        const asset=await saveReadyProductBlob(blob,"png",dims,null);
+        await saveCabinet("approved",{final_asset_id:asset.id||null,final_asset_url:asset.public_url,export_format:"png",exported_at:new Date().toISOString(),export_file_name:asset.file_name});
+        setComposerProgress("PNG створено і збережено на складі готової продукції.","ok");
+      }
+      function supportedMp4Mime() {
+        if(!window.MediaRecorder) return "";
+        return ["video/mp4;codecs=avc1.42E01E,mp4a.40.2","video/mp4;codecs=avc1","video/mp4"].find((x)=>MediaRecorder.isTypeSupported?.(x))||"";
+      }
+      async function exportComposerMp4() {
+        const media=composerSelectedMedia(); if(!media || assetKind(media)!=="video") throw new Error("Для MP4 оберіть відео.");
+        const mime=supportedMp4Mime(); if(!mime) throw new Error("Цей браузер не вміє кодувати MP4 через MediaRecorder. Готовий MP4 треба експортувати у відеоредакторі й завантажити як брендований файл.");
+        const dims=composerDimensions(); if(!dims) throw new Error("Немає відеоформату для цього розміщення.");
+        const video=$("composerSourceVideo"); syncComposerSource();
+        if(video.readyState<2) await new Promise((res,rej)=>{video.onloadeddata=res;video.onerror=()=>rej(new Error("Відео не завантажилося."));});
+        const resources=await prepareComposerResources(), canvas=document.createElement("canvas"); canvas.width=dims.width; canvas.height=dims.height;
+        const canvasStream=canvas.captureStream(30), tracks=[...canvasStream.getVideoTracks()];
+        const sourceStream=video.captureStream?.() || video.mozCaptureStream?.();
+        if(sourceStream) sourceStream.getAudioTracks().forEach((t)=>tracks.push(t));
+        const stream=new MediaStream(tracks), recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:10000000}), chunks=[];
+        recorder.ondataavailable=(e)=>e.data?.size&&chunks.push(e.data);
+        const stopped=new Promise((res,rej)=>{recorder.onstop=res;recorder.onerror=()=>rej(recorder.error||new Error("Помилка MP4 рендера."));});
+        video.pause(); video.currentTime=0; video.muted=false;
+        setComposerProgress("Рендер MP4 у реальному часі. Не закривайте вкладку…");
+        recorder.start(1000);
+        let raf=0,last=-1;
+        const loop=()=>{ if(video.ended || video.paused) return; if(video.currentTime!==last){drawComposerFrame(canvas,resources);last=video.currentTime; const pct=video.duration?Math.round(video.currentTime/video.duration*100):0; setComposerProgress(`Рендер MP4: ${pct}%`);} raf=requestAnimationFrame(loop); };
+        video.onended=()=>{cancelAnimationFrame(raf);drawComposerFrame(canvas,resources);recorder.stop();};
+        await video.play(); loop(); await stopped; video.muted=true;
+        const blob=new Blob(chunks,{type:mime.split(";")[0]||"video/mp4"});
+        const asset=await saveReadyProductBlob(blob,"mp4",dims,Number.isFinite(video.duration)?Math.round(video.duration*100)/100:null);
+        await saveCabinet("approved",{final_asset_id:asset.id||null,final_asset_url:asset.public_url,export_format:"mp4",exported_at:new Date().toISOString(),export_file_name:asset.file_name});
+        setComposerProgress("MP4 створено і збережено на складі готової продукції.","ok");
       }
       function publicationMetadata(p) {
         const m = p?.metadata;
@@ -4411,8 +5004,9 @@
               x === "image" ? "зображення" : x === "video" ? "відео" : "аудіо",
             )
             .join(" / ") || "без медіа";
+        const dims = composerDimensions(profile);
         $("cabinetStandardInfo").innerHTML =
-          `<strong>${esc(CHANNELS[state.currentChannel].label)} · ${esc(profile.label)}</strong><div>Стандарт кадру: <b>${esc(profile.ratio === "none" ? "без візуалу" : profile.ratio)}</b>. Допустимо: ${esc(kinds)}.</div><div class="standard-pills"><span class="format-pill">${esc(profile.ratio)}</span>${profile.frame ? '<span class="format-pill">рамка того самого формату</span>' : ""}</div>`;
+          `<strong>${esc(CHANNELS[state.currentChannel].label)} · ${esc(profile.label)}</strong><div>Вихідний кадр: <b>${esc(profile.ratio === "none" ? "без візуалу" : profile.ratio)}</b>${dims ? ` · ${dims.width} × ${dims.height}` : ""}. Джерело може мати іншу орієнтацію — його підганяємо в макеті. Допустимо: ${esc(kinds)}.</div><div class="standard-pills"><span class="format-pill">${esc(profile.ratio)}</span>${profile.frame ? '<span class="format-pill">рамка вихідного формату</span>' : ""}<span class="format-pill">PNG / MP4</span></div>`;
       }
       function renderCabinetMetaFields(profile, values = {}) {
         const box = $("cabinetDynamicFields");
@@ -4493,29 +5087,28 @@
         $("cabinetMedia").innerHTML = optionRows(
           ma,
           selected.media_asset_id || "",
-          "— Немає сумісного медіа —",
+          "— Оберіть вихідний візуал —",
           (x) =>
-            `${x.asset_type} — ${x.title} · ${assetRatio(x) || "без формату"}`,
+            `${x.asset_type} — ${x.title} · ${assetRatio(x) || "формат не визначено"}`,
         );
         $("cabinetFrame").innerHTML = optionRows(
           fr,
           selected.venue_asset_id || "",
-          "— Без рамки —",
+          "— Без окремої рамки —",
           (x) => `${x.title} · ${assetRatio(x) || "без формату"}`,
         );
         const missing = [];
         if (profile.visual && !ma.length)
-          missing.push(`немає затвердженого візуалу ${profile.ratio}`);
-        if (profile.visual && profile.frame && !fr.length)
-          missing.push(`немає рамки ${profile.ratio}`);
+          missing.push("немає затвердженого вихідного візуалу");
         const c = $("cabinetCompatibility");
         c.className = `standard-card ${missing.length ? "compatibility-warn" : "compatibility-ok"}`;
         c.innerHTML = missing.length
-          ? `<strong>Комплект ще не готовий</strong>${esc(missing.join("; "))}. Завантажте матеріал із правильним форматом у бібліотеку проєкту / майданчика.`
-          : `<strong>Стандарт дотримано</strong>Візуал і рамка відбираються тільки за форматом ${esc(profile.ratio)}.`;
+          ? `<strong>Немає джерела для складання</strong>${esc(missing.join("; "))}. Завантажте афішу, відеоафішу або готовий файл у бібліотеку проєкту.`
+          : `<strong>Можна збирати</strong>Вихідний кадр має формат ${esc(profile.ratio)}. Візуал будь-якої орієнтації підганяється масштабом, позицією, фоном і композицією.`;
         $("cabinetMediaNote").textContent = profile.visual
-          ? `Показані лише затверджені матеріали формату ${profile.ratio}, прив’язані до цього проєкту й сумісні з каналом.`
+          ? `Показані затверджені матеріали проєкту для цього сеансу або майстер-матеріали без прив’язки до сеансу.`
           : "Для цього розміщення медіа не використовується.";
+        populateComposerBackgrounds();
       }
       function loadCabinetPublication() {
         const profile = currentChannelProfile(),
@@ -4537,10 +5130,13 @@
         $("cabinetTargetUrl").value =
           p?.target_url || exactSeanceUrl(currentSeance());
         $("cabinetPublishedUrl").value = p?.published_url || "";
+        loadCompositionSettings(meta.composition || {});
+        syncComposerSource();
         if (!p && compatibleTextVariants().length === 1) {
           $("cabinetTextVariant").value = compatibleTextVariants()[0].id;
           applySelectedText(false);
         } else updateCabinetPreview();
+        renderReadyGoods();
       }
       function applySelectedText(refresh = true) {
         const v = state.variants.find(
@@ -4680,72 +5276,24 @@
       }
       function updateCabinetPreview() {
         if (state.currentChannel === "site") return;
-        const profile = currentChannelProfile(),
-          a = state.projectAssets.find(
-            (x) => String(x.id) === String($("cabinetMedia").value),
-          ),
-          fr = state.venueAssets.find(
-            (x) => String(x.id) === String($("cabinetFrame").value),
-          ),
-          box = $("cabinetPreviewMedia"),
-          shell = $("cabinetPreviewShell"),
-          parts = publicationParts();
-        shell.className = "preview-publication";
-        if (profile.ratio === "9:16" || profile.ratio === "4:5")
-          shell.classList.add("vertical-preview");
-        else if (profile.visual) shell.classList.add("horizontal-preview");
-        else shell.classList.add("text-preview");
-        box.style.aspectRatio = !["none", "any", "custom"].includes(
-          profile.ratio,
-        )
-          ? profile.ratio.replace(":", " / ")
-          : "auto";
-        box.innerHTML = "";
-        if (profile.visual && a) {
-          const base = document.createElement(
-            assetKind(a) === "video" ? "video" : "img",
-          );
-          base.src = a.public_url;
-          if (base.tagName === "VIDEO") {
-            base.controls = true;
-            base.muted = true;
-            base.playsInline = true;
-          }
-          box.appendChild(base);
-        } else if (profile.visual)
-          box.innerHTML = '<span class="muted">Немає сумісного медіа</span>';
-        if (profile.visual && fr && assetKind(fr) === "image") {
-          const img = document.createElement("img");
-          img.src = fr.public_url;
-          img.className = "frame-layer";
-          box.appendChild(img);
-        }
-        $("cabinetPreviewLabel").textContent =
-          `${CHANNELS[state.currentChannel].label} · ${profile.label}`;
-        $("cabinetPreviewHeadline").textContent =
-          profile.headline === false ? "" : parts.subject;
-        $("cabinetPreviewSubject").textContent =
-          state.currentChannel === "email"
-            ? collectCabinetMetaFields().preheader || ""
-            : "";
-        $("cabinetPreviewText").textContent = parts.finalText;
-        $("cabinetPreviewTags").textContent = "";
-        $("cabinetPreviewLink").textContent = parts.linkLabel;
-        const fields = collectCabinetMetaFields();
-        $("cabinetPreviewMeta").textContent = Object.entries(fields)
-          .filter(([, v]) => v)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join("\n");
-        const n = parts.finalText.length,
-          c = $("cabinetCharCounter");
-        if (state.currentChannel === "sms") {
-          const count = Math.max(1, Math.ceil(n / 160));
-          c.textContent = `${n} символів · приблизно ${count} SMS`;
-          c.className = `char-counter ${n <= 160 ? "ok" : "bad"}`;
-        } else {
-          c.textContent = "";
-          c.className = "char-counter";
-        }
+        const profile=currentChannelProfile(), shell=$("cabinetPreviewShell"), parts=publicationParts();
+        shell.className="preview-publication";
+        if(profile.ratio==="9:16"||profile.ratio==="4:5"||profile.ratio==="3:4") shell.classList.add("vertical-preview");
+        else if(profile.visual) shell.classList.add("horizontal-preview"); else shell.classList.add("text-preview");
+        $("cabinetPreviewLabel").textContent=`${CHANNELS[state.currentChannel].label} · ${profile.label}`;
+        $("cabinetPreviewHeadline").textContent=profile.headline===false?"":parts.subject;
+        $("cabinetPreviewSubject").textContent=state.currentChannel==="email"?(collectCabinetMetaFields().preheader||""):"";
+        $("cabinetPreviewText").textContent=parts.finalText;
+        $("cabinetPreviewTags").textContent="";
+        $("cabinetPreviewLink").textContent=parts.linkLabel;
+        const fields=collectCabinetMetaFields();
+        $("cabinetPreviewMeta").textContent=Object.entries(fields).filter(([,v])=>v).map(([k,v])=>`${k}: ${v}`).join("\n");
+        const n=parts.finalText.length,c=$("cabinetCharCounter");
+        if(state.currentChannel==="sms"){const count=Math.max(1,Math.ceil(n/160));c.textContent=`${n} символів · приблизно ${count} SMS`;c.className=`char-counter ${n<=160?"ok":"bad"}`;} else {c.textContent="";c.className="char-counter";}
+        updateComposerLabels();
+        syncComposerSource();
+        renderComposerPreview();
+        renderReadyGoods();
       }
       function clipboardCabinetText() {
         const p = publicationParts();
@@ -4890,7 +5438,7 @@
             media_asset_id: p.media_asset_id,
             venue_asset_id: p.venue_asset_id,
             status: p.status,
-            metadata: templateizeDeep(p.metadata || {}, sourceSeance),
+            metadata: templateizeDeep(reusablePublicationMetadata(p.metadata || {}), sourceSeance),
           }));
         return {
           project: {
@@ -5070,89 +5618,31 @@
         });
         return rows?.[0]?.id;
       }
-      async function saveCabinet(statusOverride = null) {
+      async function saveCabinet(statusOverride = null, extraMetadata = {}) {
         const s = currentSeance();
         if (!s) throw new Error("Оберіть сеанс.");
-        const profile = currentChannelProfile(),
-          parts = publicationParts(),
-          fields = collectCabinetMetaFields(),
-          media = state.projectAssets.find(
-            (x) => String(x.id) === String($("cabinetMedia").value),
-          ),
-          frame = state.venueAssets.find(
-            (x) => String(x.id) === String($("cabinetFrame").value),
-          );
-        if (profile.visual && !media)
-          throw new Error(
-            `Для ${profile.label} потрібен затверджений візуал формату ${profile.ratio}.`,
-          );
-        if (
-          profile.visual &&
-          profile.frame &&
-          frame &&
-          assetRatio(frame) !== normalizeRatio(profile.ratio)
-        )
-          throw new Error("Формат рамки не відповідає стандарту розміщення.");
-        if (
-          profile.visual &&
-          media &&
-          assetRatio(media) !== normalizeRatio(profile.ratio)
-        )
-          throw new Error(
-            "Формат готового візуалу не відповідає стандарту розміщення.",
-          );
-        const form = {
-          channel: state.currentChannel,
-          placement: $("cabinetPlacement").value,
-          text_variant_id: $("cabinetTextVariant").value || null,
-          media_asset_id: $("cabinetMedia").value || null,
-          venue_asset_id: $("cabinetFrame").value || null,
-          headline: $("cabinetHeadline").value.trim() || null,
-          body: $("cabinetBody").value,
-          hashtags: $("cabinetHashtags").value.trim() || null,
-          cta_text: $("cabinetCta").value.trim() || null,
-          target_url: $("cabinetTargetUrl").value.trim() || null,
-          status: statusOverride || $("cabinetStatus").value,
-          published_url: $("cabinetPublishedUrl").value.trim() || null,
-          metadata: {
-            standard_profile: profileKey(),
-            standard_label: profile.label,
-            required_ratio: profile.ratio,
-            fields,
-            final_text: templateize(parts.finalText, s),
-            final_subject: templateize(parts.subject, s),
-            media_ratio: media ? assetRatio(media) : null,
-            frame_ratio: frame ? assetRatio(frame) : null,
-          },
+        const profile=currentChannelProfile(), parts=publicationParts(), fields=collectCabinetMetaFields(),
+          media=state.projectAssets.find((x)=>String(x.id)===String($("cabinetMedia").value)),
+          frame=state.venueAssets.find((x)=>String(x.id)===String($("cabinetFrame").value));
+        if(profile.visual&&!media) throw new Error(`Для ${profile.label} потрібен затверджений візуал.`);
+        if(profile.visual&&frame&&assetRatio(frame)!==normalizeRatio(profile.ratio)) throw new Error("Формат рамки не відповідає вихідному кадру.");
+        const form={
+          channel:state.currentChannel, placement:$("cabinetPlacement").value,
+          text_variant_id:$("cabinetTextVariant").value||null, media_asset_id:$("cabinetMedia").value||null,
+          venue_asset_id:$("cabinetFrame").value||null, headline:$("cabinetHeadline").value.trim()||null,
+          body:$("cabinetBody").value, hashtags:$("cabinetHashtags").value.trim()||null,
+          cta_text:$("cabinetCta").value.trim()||null, target_url:$("cabinetTargetUrl").value.trim()||null,
+          status:statusOverride||$("cabinetStatus").value, published_url:$("cabinetPublishedUrl").value.trim()||null,
+          metadata:{standard_profile:profileKey(),standard_label:profile.label,required_ratio:profile.ratio,fields,
+            final_text:templateize(parts.finalText,s),final_subject:templateize(parts.subject,s),
+            media_ratio:media?assetRatio(media):null,frame_ratio:frame?assetRatio(frame):null,
+            composition:collectCompositionSettings(),...extraMetadata}
         };
-        const release = await ensureRelease(s),
-          payload = {
-            ...form,
-            release_id: release?.id || null,
-            project_id: selectedProjectId(),
-            venue_id: projectVenue(state.selectedProject) || null,
-            seance_id: s.id,
-          };
-        const id = await upsertPublication(payload);
-        await logActivity(
-          statusOverride === "approved"
-            ? "Затверджено публікацію"
-            : "Збережено кабінет каналу",
-          {
-            area: "content",
-            entity_type: "channel_publication",
-            entity_id: id,
-            details: {
-              channel: form.channel,
-              placement: form.placement,
-              seance_id: s.id,
-              required_ratio: profile.ratio,
-            },
-          },
-        );
-        await loadAll();
-        renderCabinets();
-        setMessage("Кабінет каналу збережено.", "ok");
+        const release=await ensureRelease(s), payload={...form,release_id:release?.id||null,project_id:selectedProjectId(),venue_id:projectVenue(state.selectedProject)||null,seance_id:s.id};
+        const id=await upsertPublication(payload);
+        await logActivity(statusOverride==="approved"?"Затверджено публікацію":"Збережено кабінет каналу",{area:"content",entity_type:"channel_publication",entity_id:id,details:{channel:form.channel,placement:form.placement,seance_id:s.id,required_ratio:profile.ratio,final_asset_id:extraMetadata.final_asset_id||null}});
+        await loadAll(); renderCabinets(); setMessage("Кабінет каналу і редагований макет збережено.","ok");
+        return id;
       }
       async function markPublished() {
         await saveCabinet("published");
@@ -5637,6 +6127,7 @@
           "background_video",
           "cover",
           "adapted",
+          "ready_publication",
         ]);
         if (ready.has($("assetType").value))
           $("assetStatus").value = "approved";
@@ -5658,6 +6149,8 @@
           updateCabinetPreview,
         ),
       );
+      $("cabinetMedia")?.addEventListener("change",()=>{syncComposerSource();if(!$("composerOverlayText").value)$("composerOverlayText").value=defaultComposerOverlay();updateCabinetPreview();});
+      $("cabinetFrame")?.addEventListener("change",updateCabinetPreview);
       $("cabinetTargetType").addEventListener("change", () => {
         const s = currentSeance();
         if ($("cabinetTargetType").value === "seance")
@@ -5672,6 +6165,22 @@
             )?.notes || "";
         updateCabinetPreview();
       });
+      const composerControlIds = [
+        "composerSourceMode","composerLayout","composerBackgroundMode","composerBackgroundAsset","composerBackgroundColor",
+        "composerBlur","composerFit","composerScale","composerX","composerY","composerTextColor","composerPanelColor",
+        "composerPanelOpacity","composerFontSize","composerOverlayText","composerShowTitle","composerShowDate",
+        "composerShowVenue","composerShowPrice","composerShowCta"
+      ];
+      composerControlIds.forEach((id)=>$(id)?.addEventListener(
+        ["composerSourceMode","composerLayout","composerBackgroundMode","composerBackgroundAsset","composerFit"].includes(id)||$(id)?.type==="checkbox"?"change":"input",
+        ()=>{updateComposerLabels();updateCabinetPreview();}
+      ));
+      $("composerSourceVideo")?.addEventListener("timeupdate",renderComposerPreview);
+      $("composerSourceVideo")?.addEventListener("seeked",renderComposerPreview);
+      $("composerSourceVideo")?.addEventListener("play",()=>{const tick=()=>{if($("composerSourceVideo").paused)return;renderComposerPreview();requestAnimationFrame(tick)};tick();});
+      bind("composerResetBtn","click",resetComposer);
+      bind("exportPngBtn","click",async()=>{try{await exportComposerPng()}catch(e){setComposerProgress(e.message||String(e),"bad");throw e}});
+      bind("exportMp4Btn","click",async()=>{try{await exportComposerMp4()}catch(e){setComposerProgress(e.message||String(e),"bad");throw e}});
       bind("saveCabinetBtn", "click", () => saveCabinet());
       bind("approveCabinetBtn", "click", () => saveCabinet("approved"));
       bind("copyCabinetTextBtn", "click", async () => {
