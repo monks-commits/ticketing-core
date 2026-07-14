@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VA Content Studio V1.7.2</title>
+    <title>VA Content Studio V1.7.3</title>
     <style>
       :root {
         --bg: #061426;
@@ -704,6 +704,135 @@
           flex: 1 1 42%;
         }
       }
+
+
+      /* ===== VA CONTENT STUDIO V1.7.3 · CREATIVE CHANNEL COMPOSER ===== */
+      #composerDesktopWarning { display:none; }
+      .cabinet-layout {
+        display:grid;
+        grid-template-columns:minmax(300px,.82fr) minmax(340px,.92fr) minmax(430px,1.32fr);
+        gap:14px;
+        align-items:start;
+      }
+      .cabinet-materials,
+      .cabinet-controls,
+      .cabinet-preview-column { min-width:0; }
+      .cabinet-controls .composer-panel { margin-top:0; }
+      .cabinet-preview-column {
+        position:sticky;
+        top:12px;
+        align-self:start;
+        max-height:calc(100vh - 24px);
+        overflow:auto;
+        padding-right:3px;
+      }
+      .cabinet-preview-column .preview-publication {
+        min-height:0;
+        height:auto;
+        max-width:none;
+        margin:0;
+        padding:12px;
+        overflow:visible;
+      }
+      .composer-canvas-head {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        margin-bottom:9px;
+      }
+      .composer-canvas-head strong { font-size:14px; }
+      #cabinetPreviewMedia {
+        min-height:0;
+        height:auto;
+        width:100%;
+        max-width:100%;
+        margin:0 auto 12px;
+        padding:0;
+        overflow:hidden;
+        border:2px solid rgba(255,255,255,.58);
+        box-shadow:0 16px 36px rgba(0,0,0,.30);
+        background:#020811;
+        border-radius:10px;
+        flex:none;
+      }
+      #composerCanvas {
+        display:block;
+        width:100%;
+        height:100%;
+        max-height:none;
+        object-fit:contain;
+        background:#081a2e;
+        cursor:grab;
+        touch-action:none;
+      }
+      #composerCanvas:active { cursor:grabbing; }
+      .composer-fixed-format-note {
+        font-size:12px;
+        color:#5a6878;
+        margin:0 0 10px;
+      }
+      .composer-control-group {
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:13px;
+        padding:11px;
+        margin-bottom:10px;
+        background:rgba(0,0,0,.10);
+      }
+      .composer-control-group h4 {
+        margin:0 0 9px;
+        font-size:14px;
+      }
+      .composer-source-player {
+        margin:0 0 11px;
+        padding:9px;
+      }
+      .composer-source-player video {
+        max-height:170px;
+        margin-top:6px;
+      }
+      .composer-sticky-actions {
+        position:sticky;
+        bottom:0;
+        z-index:4;
+        padding:10px 0 2px;
+        background:linear-gradient(to bottom,rgba(8,29,52,0),#081d34 28%);
+      }
+      .composer-sticky-actions .toolbar { margin-bottom:0; }
+      .two-zone-hint {
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:6px;
+        font-size:11px;
+        color:var(--muted);
+        margin-top:7px;
+      }
+      .two-zone-hint span {
+        border:1px solid var(--line);
+        border-radius:8px;
+        padding:6px 8px;
+        text-align:center;
+      }
+      .range-pair {
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:9px;
+      }
+      .preview-publication .media img,
+      .preview-publication .media video { object-fit:contain; }
+      @media (max-width:1279px) {
+        #composerDesktopWarning { display:block; }
+        #channelCabinet { display:none !important; }
+      }
+      @media (min-width:1280px) {
+        #composerDesktopWarning { display:none !important; }
+      }
+      @media (min-width:1700px) {
+        .cabinet-layout {
+          grid-template-columns:minmax(330px,.84fr) minmax(370px,.94fr) minmax(500px,1.38fr);
+        }
+      }
+
     </style>
   </head>
   <body>
@@ -711,7 +840,7 @@
       <header class="hero">
         <div class="hero-row">
           <div>
-            <h1>VA Content Studio V1.7.2</h1>
+            <h1>VA Content Studio V1.7.3</h1>
             <div class="lead">
               Майданчик → проєкт → виробництво → бібліотека → готовий проєкт →
               кабінет каналу → публікація.
@@ -1199,9 +1328,7 @@
 
               <div class="subpanel" id="project-tab-cabinets">
                 <div class="notice">
-                  Кабінет каналу — це фінальна збірка. Оберіть формат отримувача,
-                  візуал будь-якої орієнтації, фон і рамку, підженіть композицію,
-                  додайте дані сеансу та експортуйте готовий PNG або MP4. Разом із
+                  Кабінет каналу — це творча фінальна збірка у жорсткому форматі отримувача. Оберіть візуал, фон і фірмові елементи, вільно скомпонуйте одну або дві зони та експортуйте готовий PNG або MP4. Разом із
                   фізичним файлом зберігається редагований макет для нового сеансу.
                 </div>
                 <div class="grid-2">
@@ -1232,16 +1359,23 @@
                     </button>
                   </div>
                 </div>
+                <div id="composerDesktopWarning" class="notice warn">
+                  Кабінет фінальної збірки розрахований на роботу за комп’ютером із шириною екрана від 1280 px.
+                </div>
                 <div id="channelCabinet" class="cabinet-layout hidden">
-                  <div class="compact">
+                  <div class="compact cabinet-materials">
+                    <div class="section-title">
+                      <div>
+                        <h3 class="no-margin">1. Матеріали</h3>
+                        <div class="meta">Оберіть складові майбутнього продукту.</div>
+                      </div>
+                    </div>
                     <div class="grid-2">
                       <div class="field">
-                        <label>Розміщення</label
-                        ><select id="cabinetPlacement"></select>
+                        <label>Розміщення</label><select id="cabinetPlacement"></select>
                       </div>
                       <div class="field">
-                        <label>Статус</label
-                        ><select id="cabinetStatus">
+                        <label>Статус</label><select id="cabinetStatus">
                           <option value="draft">Чернетка</option>
                           <option value="review">Перевірка</option>
                           <option value="approved">Затверджено</option>
@@ -1252,203 +1386,196 @@
                     <div id="cabinetStandardInfo" class="standard-card"></div>
                     <div id="cabinetCompatibility" class="standard-card"></div>
                     <div class="field" id="cabinetTextField">
-                      <label id="cabinetTextLabel">Текст із виробництва</label
-                      ><select id="cabinetTextVariant"></select>
+                      <label id="cabinetTextLabel">Текст із виробництва</label><select id="cabinetTextVariant"></select>
                     </div>
                     <div class="field" id="cabinetMediaField">
-                      <label>Готовий візуал потрібного стандарту</label
-                      ><select id="cabinetMedia"></select>
+                      <label>Візуал із бібліотеки проєкту</label><select id="cabinetMedia"></select>
                       <div class="field-note" id="cabinetMediaNote"></div>
                     </div>
                     <div class="field" id="cabinetFrameField">
-                      <label>Рамка майданчика цього самого стандарту</label
-                      ><select id="cabinetFrame"></select>
+                      <label>Рамка майданчика — необов’язково</label><select id="cabinetFrame"></select>
+                      <div class="field-note">Рамка задає фірмовий стиль, але не нав’язує композицію.</div>
                     </div>
                     <div class="field" id="cabinetHeadlineField">
-                      <label id="cabinetHeadlineLabel">Заголовок</label
-                      ><input id="cabinetHeadline" />
+                      <label id="cabinetHeadlineLabel">Заголовок</label><input id="cabinetHeadline" />
                     </div>
                     <div class="field" id="cabinetBodyField">
-                      <label id="cabinetBodyLabel">Основний текст</label
-                      ><textarea class="editor" id="cabinetBody"></textarea>
+                      <label id="cabinetBodyLabel">Основний текст</label><textarea class="editor" id="cabinetBody"></textarea>
                       <div id="cabinetCharCounter" class="char-counter"></div>
                     </div>
                     <div class="field" id="cabinetHashtagsField">
-                      <label id="cabinetHashtagsLabel">Хештеги / теги</label
-                      ><textarea id="cabinetHashtags"></textarea>
+                      <label id="cabinetHashtagsLabel">Хештеги / теги</label><textarea id="cabinetHashtags"></textarea>
                     </div>
-                    <div
-                      id="cabinetDynamicFields"
-                      class="channel-extra-grid"
-                    ></div>
+                    <div id="cabinetDynamicFields" class="channel-extra-grid"></div>
                     <div class="grid-2" id="cabinetActionRow">
                       <div class="field" id="cabinetCtaField">
-                        <label id="cabinetCtaLabel">Заклик</label
-                        ><input id="cabinetCta" value="Купити квитки" />
+                        <label id="cabinetCtaLabel">Заклик</label><input id="cabinetCta" value="Купити квитки" />
                       </div>
                       <div class="field" id="cabinetTargetTypeField">
-                        <label>Перехід</label
-                        ><select id="cabinetTargetType">
-                          <option value="seance">
-                            Схема залу конкретного сеансу
-                          </option>
+                        <label>Перехід</label><select id="cabinetTargetType">
+                          <option value="seance">Схема залу конкретного сеансу</option>
                           <option value="venue">Вітрина майданчика</option>
                           <option value="custom">Інша адреса</option>
                         </select>
                       </div>
                     </div>
                     <div class="field" id="cabinetTargetUrlField">
-                      <label id="cabinetTargetUrlLabel">Цільове посилання</label
-                      ><input id="cabinetTargetUrl" />
-                      <div class="field-note">
-                        Посилання належить обраному сеансу й не береться зі
-                        старого тексту іншого випуску.
-                      </div>
+                      <label id="cabinetTargetUrlLabel">Цільове посилання</label><input id="cabinetTargetUrl" />
                     </div>
+                    <div class="field">
+                      <label>Діапазон цін</label>
+                      <input id="cabinetPriceOverride" placeholder="Автоматично з обраного сеансу" />
+                      <div class="field-note" id="cabinetPriceStatus">Ціна підтягується з pricing сеансу; поле дозволяє свідомо перевизначити її.</div>
+                    </div>
+                    <div class="field">
+                      <label>Посилання на опублікований матеріал</label><input id="cabinetPublishedUrl" />
+                    </div>
+                  </div>
+
+                  <div class="compact cabinet-controls">
                     <section class="composer-panel" id="composerPanel">
                       <div class="section-title">
                         <div>
-                          <h3 class="no-margin">Фінальна збірка</h3>
-                          <div class="meta">Рамка стандарту каналу, підгонка візуалу, фон, текстові блоки та фізичний експорт.</div>
+                          <h3 class="no-margin">2. Творча композиція</h3>
+                          <div class="meta">Зовнішній формат жорсткий. Усередині — вільне компонування у фірмовому стилі.</div>
                         </div>
                         <span class="mini ok" id="composerOutputSize">—</span>
                       </div>
 
-                      <div class="grid-2">
-                        <div class="field">
-                          <label>Режим джерела</label>
-                          <select id="composerSourceMode">
-                            <option value="compose">Вихідний візуал — збираємо в кабінеті</option>
-                            <option value="ready">Готовий брендований файл</option>
-                          </select>
-                        </div>
-                        <div class="field">
-                          <label>Композиція</label>
-                          <select id="composerLayout">
-                            <option value="center">По центру + нижня інформаційна панель</option>
-                            <option value="split_left">Візуал ліворуч, текст праворуч</option>
-                            <option value="split_right">Текст ліворуч, візуал праворуч</option>
-                            <option value="overlay_bottom">Візуал на весь кадр + панель знизу</option>
-                            <option value="visual_only">Тільки візуал</option>
-                          </select>
-                        </div>
-                        <div class="field">
-                          <label>Фон</label>
-                          <select id="composerBackgroundMode">
-                            <option value="color">Колір</option>
-                            <option value="blur_media">Розмитий візуал</option>
-                            <option value="asset">Фон-картинка з бібліотеки</option>
-                          </select>
-                        </div>
-                        <div class="field">
-                          <label>Фон-картинка</label>
-                          <select id="composerBackgroundAsset"></select>
-                        </div>
-                        <div class="field">
-                          <label>Колір фону</label>
-                          <input id="composerBackgroundColor" type="color" value="#081a2e" />
-                        </div>
-                        <div class="field">
-                          <label>Розмиття фону: <span id="composerBlurValue">22</span> px</label>
-                          <input id="composerBlur" type="range" min="0" max="60" value="22" />
-                        </div>
-                        <div class="field">
-                          <label>Вписування візуалу</label>
-                          <select id="composerFit">
-                            <option value="contain">Вписати повністю</option>
-                            <option value="cover">Заповнити область</option>
-                          </select>
-                        </div>
-                        <div class="field">
-                          <label>Масштаб: <span id="composerScaleValue">100</span>%</label>
-                          <input id="composerScale" type="range" min="40" max="220" value="100" />
-                        </div>
-                        <div class="field">
-                          <label>Позиція X: <span id="composerXValue">0</span>%</label>
-                          <input id="composerX" type="range" min="-60" max="60" value="0" />
-                        </div>
-                        <div class="field">
-                          <label>Позиція Y: <span id="composerYValue">0</span>%</label>
-                          <input id="composerY" type="range" min="-60" max="60" value="0" />
-                        </div>
-                        <div class="field">
-                          <label>Колір тексту</label>
-                          <input id="composerTextColor" type="color" value="#ffffff" />
-                        </div>
-                        <div class="field">
-                          <label>Колір панелі</label>
-                          <input id="composerPanelColor" type="color" value="#071a2f" />
-                        </div>
-                        <div class="field">
-                          <label>Прозорість панелі: <span id="composerPanelOpacityValue">88</span>%</label>
-                          <input id="composerPanelOpacity" type="range" min="0" max="100" value="88" />
-                        </div>
-                        <div class="field">
-                          <label>Розмір тексту: <span id="composerFontSizeValue">42</span></label>
-                          <input id="composerFontSize" type="range" min="24" max="76" value="42" />
-                        </div>
-                      </div>
-
-                      <div class="field">
-                        <label>Короткий текст на макеті</label>
-                        <textarea id="composerOverlayText" placeholder="Необов’язковий короткий текст. Дата, час, ціна та CTA підставляються окремо."></textarea>
-                      </div>
-                      <div class="composer-checks">
-                        <label><input id="composerShowTitle" type="checkbox" checked> Назва</label>
-                        <label><input id="composerShowDate" type="checkbox" checked> Дата і час</label>
-                        <label><input id="composerShowVenue" type="checkbox" checked> Майданчик</label>
-                        <label><input id="composerShowPrice" type="checkbox" checked> Ціна</label>
-                        <label><input id="composerShowCta" type="checkbox" checked> «Купити квитки»</label>
-                      </div>
-
                       <div class="composer-source-player hidden" id="composerVideoWrap">
-                        <div class="meta">Для PNG можна обрати кадр повзунком відео. MP4 рендериться повністю.</div>
+                        <div class="meta">Відтворюйте відео тут — живе прев’ю праворуч оновлюється під час програвання.</div>
                         <video id="composerSourceVideo" controls muted playsinline crossorigin="anonymous"></video>
                       </div>
 
-                      <div class="toolbar composer-toolbar">
-                        <button class="btn" id="composerResetBtn" type="button">Скинути макет</button>
-                        <button class="btn green" id="exportPngBtn" type="button">Експортувати PNG</button>
-                        <button class="btn violet" id="exportMp4Btn" type="button">Експортувати MP4</button>
+                      <div class="composer-control-group">
+                        <h4>Зовнішній холст і зони</h4>
+                        <div class="grid-2">
+                          <div class="field">
+                            <label>Режим джерела</label>
+                            <select id="composerSourceMode">
+                              <option value="compose">Вихідний візуал — збираємо в кабінеті</option>
+                              <option value="ready">Готовий брендований файл</option>
+                            </select>
+                          </div>
+                          <div class="field">
+                            <label>Композиція</label>
+                            <select id="composerLayout">
+                              <option value="visual_only">Один контейнер — тільки візуал</option>
+                              <option value="split_left">Два контейнери — візуал ліворуч</option>
+                              <option value="split_right">Два контейнери — візуал праворуч</option>
+                              <option value="stack_top">Два контейнери — візуал зверху</option>
+                              <option value="stack_bottom">Два контейнери — візуал знизу</option>
+                              <option value="overlay_bottom">Візуал на весь холст — текст знизу</option>
+                              <option value="overlay_top">Візуал на весь холст — текст зверху</option>
+                            </select>
+                          </div>
+                          <div class="field">
+                            <label>Частка візуалу: <span id="composerVisualShareValue">65</span>%</label>
+                            <input id="composerVisualShare" type="range" min="20" max="85" value="65" />
+                          </div>
+                          <div class="field">
+                            <label>Проміжок між зонами: <span id="composerGapValue">2</span>%</label>
+                            <input id="composerGap" type="range" min="0" max="12" value="2" />
+                          </div>
+                          <div class="field">
+                            <label>Зовнішні поля: <span id="composerOuterPaddingValue">0</span>%</label>
+                            <input id="composerOuterPadding" type="range" min="0" max="10" value="0" />
+                          </div>
+                          <div class="field">
+                            <label>Скруглення візуалу: <span id="composerMediaRadiusValue">0</span></label>
+                            <input id="composerMediaRadius" type="range" min="0" max="80" value="0" />
+                          </div>
+                        </div>
+                        <div class="two-zone-hint"><span>Контейнер візуалу</span><span>Контейнер тексту й доповнень</span></div>
                       </div>
-                      <div id="composerProgress"></div>
-                    </section>
 
-                    <div class="field">
-                      <label>Посилання на опублікований матеріал</label
-                      ><input id="cabinetPublishedUrl" />
-                    </div>
+                      <div class="composer-control-group">
+                        <h4>Візуал</h4>
+                        <div class="grid-2">
+                          <div class="field">
+                            <label>Вписування</label>
+                            <select id="composerFit"><option value="contain">Вписати повністю</option><option value="cover">Заповнити область</option></select>
+                          </div>
+                          <div class="field">
+                            <label>Масштаб: <span id="composerScaleValue">100</span>%</label>
+                            <input id="composerScale" type="range" min="40" max="240" value="100" />
+                          </div>
+                          <div class="field">
+                            <label>Позиція X: <span id="composerXValue">0</span>%</label>
+                            <input id="composerX" type="range" min="-80" max="80" value="0" />
+                          </div>
+                          <div class="field">
+                            <label>Позиція Y: <span id="composerYValue">0</span>%</label>
+                            <input id="composerY" type="range" min="-80" max="80" value="0" />
+                          </div>
+                        </div>
+                        <div class="toolbar"><button class="btn small" id="composerCenterBtn" type="button">Центрувати візуал</button></div>
+                      </div>
+
+                      <div class="composer-control-group">
+                        <h4>Фон</h4>
+                        <div class="grid-2">
+                          <div class="field"><label>Режим</label><select id="composerBackgroundMode"><option value="color">Колір</option><option value="blur_media">Розмитий візуал</option><option value="asset">Фон-картинка з бібліотеки</option></select></div>
+                          <div class="field"><label>Фон-картинка</label><select id="composerBackgroundAsset"></select></div>
+                          <div class="field"><label>Колір</label><input id="composerBackgroundColor" type="color" value="#081a2e" /></div>
+                          <div class="field"><label>Розмиття: <span id="composerBlurValue">22</span> px</label><input id="composerBlur" type="range" min="0" max="60" value="22" /></div>
+                        </div>
+                      </div>
+
+                      <div class="composer-control-group">
+                        <h4>Текст і доповнення</h4>
+                        <div class="grid-2">
+                          <div class="field"><label>Колір тексту</label><input id="composerTextColor" type="color" value="#ffffff" /></div>
+                          <div class="field"><label>Вирівнювання</label><select id="composerTextAlign"><option value="left">Ліворуч</option><option value="center">По центру</option><option value="right">Праворуч</option></select></div>
+                          <div class="field"><label>Колір панелі</label><input id="composerPanelColor" type="color" value="#071a2f" /></div>
+                          <div class="field"><label>Прозорість панелі: <span id="composerPanelOpacityValue">88</span>%</label><input id="composerPanelOpacity" type="range" min="0" max="100" value="88" /></div>
+                          <div class="field"><label>Розмір тексту: <span id="composerFontSizeValue">42</span></label><input id="composerFontSize" type="range" min="20" max="82" value="42" /></div>
+                        </div>
+                        <div class="field"><label>Короткий текст на макеті</label><textarea id="composerOverlayText" placeholder="Необов’язковий текст. Дата, час, ціна та CTA підставляються окремо."></textarea></div>
+                        <div class="composer-checks">
+                          <label><input id="composerShowTitle" type="checkbox" checked> Назва</label>
+                          <label><input id="composerShowDate" type="checkbox" checked> Дата і час</label>
+                          <label><input id="composerShowVenue" type="checkbox" checked> Майданчик</label>
+                          <label><input id="composerShowPrice" type="checkbox" checked> Ціна</label>
+                          <label><input id="composerShowCta" type="checkbox" checked> «Купити квитки»</label>
+                          <label><input id="composerShowGuides" type="checkbox" checked> Межі зон</label>
+                        </div>
+                      </div>
+
+                      <div class="composer-sticky-actions">
+                        <div class="toolbar composer-toolbar">
+                          <button class="btn" id="composerResetBtn" type="button">Скинути макет</button>
+                          <button class="btn green" id="exportPngBtn" type="button">Експортувати PNG</button>
+                          <button class="btn violet" id="exportMp4Btn" type="button">Експортувати MP4</button>
+                        </div>
+                        <div id="composerProgress"></div>
+                      </div>
+                    </section>
                     <div class="toolbar">
-                      <button class="btn green" id="saveCabinetBtn">
-                        Зберегти кабінет</button
-                      ><button class="btn violet" id="approveCabinetBtn">
-                        Затвердити</button
-                      ><button class="btn" id="copyCabinetTextBtn">
-                        Копіювати готовий текст</button
-                      ><button class="btn" id="openCabinetMediaBtn">
-                        Відкрити медіа</button
-                      ><button class="btn blue" id="openChannelBtn">
-                        Відкрити канал</button
-                      ><button class="btn gold" id="markPublishedBtn">
-                        Позначити опублікованим
-                      </button>
+                      <button class="btn green" id="saveCabinetBtn">Зберегти макет</button>
+                      <button class="btn violet" id="approveCabinetBtn">Затвердити</button>
+                      <button class="btn" id="copyCabinetTextBtn">Копіювати готовий текст</button>
+                      <button class="btn" id="openCabinetMediaBtn">Відкрити медіа</button>
+                      <button class="btn blue" id="openChannelBtn">Відкрити канал</button>
+                      <button class="btn gold" id="markPublishedBtn">Позначити опублікованим</button>
                     </div>
                   </div>
-                  <div class="preview-publication" id="cabinetPreviewShell">
-                    <div class="meta" id="cabinetPreviewLabel">Превʼю</div>
-                    <div
-                      class="media frame-preview"
-                      id="cabinetPreviewMedia"
-                    ></div>
-                    <h3 id="cabinetPreviewHeadline"></h3>
-                    <div
-                      class="preview-subject"
-                      id="cabinetPreviewSubject"
-                    ></div>
-                    <pre id="cabinetPreviewText"></pre>
-                    <div id="cabinetPreviewTags"></div>
-                    <div class="code" id="cabinetPreviewLink"></div>
-                    <div class="preview-meta" id="cabinetPreviewMeta"></div>
+
+                  <div class="cabinet-preview-column">
+                    <div class="preview-publication" id="cabinetPreviewShell">
+                      <div class="composer-canvas-head">
+                        <div><strong id="cabinetPreviewLabel">Превʼю</strong><div class="meta" id="composerCanvasInfo">—</div></div>
+                        <span class="mini ok">Живе превʼю</span>
+                      </div>
+                      <div class="composer-fixed-format-note">Зовнішній холст має фіксоване співвідношення сторін. Змінюється лише композиція всередині.</div>
+                      <div class="media frame-preview" id="cabinetPreviewMedia"></div>
+                      <h3 id="cabinetPreviewHeadline"></h3>
+                      <div class="preview-subject" id="cabinetPreviewSubject"></div>
+                      <pre id="cabinetPreviewText"></pre>
+                      <div id="cabinetPreviewTags"></div>
+                      <div class="code" id="cabinetPreviewLink"></div>
+                      <div class="preview-meta" id="cabinetPreviewMeta"></div>
+                    </div>
                   </div>
                 </div>
                 <section class="compact hidden" id="readyGoodsSection" style="margin-top:14px">
@@ -1910,6 +2037,7 @@
         history: [],
         serviceTemplates: [],
         serviceMessages: [],
+        seancePricing: [],
         selectedProject: null,
         currentVenue: "",
         currentChannel: "site",
@@ -4449,7 +4577,14 @@
           panel_color: "#071a2f",
           panel_opacity: 88,
           font_size: 42,
+          text_align: "left",
+          visual_share: 65,
+          gap: 2,
+          outer_padding: 0,
+          media_radius: 0,
+          price_override: "",
           overlay_text: "",
+          show_guides: true,
           show_title: true,
           show_date: true,
           show_venue: true,
@@ -4474,7 +4609,14 @@
           panel_color: $("composerPanelColor")?.value || "#071a2f",
           panel_opacity: Number($("composerPanelOpacity")?.value || 88),
           font_size: Number($("composerFontSize")?.value || 42),
+          text_align: $("composerTextAlign")?.value || "left",
+          visual_share: Number($("composerVisualShare")?.value || 65),
+          gap: Number($("composerGap")?.value || 0),
+          outer_padding: Number($("composerOuterPadding")?.value || 0),
+          media_radius: Number($("composerMediaRadius")?.value || 0),
+          price_override: $("cabinetPriceOverride")?.value?.trim() || "",
           overlay_text: $("composerOverlayText")?.value || "",
+          show_guides: bool("composerShowGuides"),
           show_title: bool("composerShowTitle"),
           show_date: bool("composerShowDate"),
           show_venue: bool("composerShowVenue"),
@@ -4484,6 +4626,7 @@
       }
       function loadCompositionSettings(value = {}) {
         const v = { ...composerDefaultSettings(), ...(value || {}) };
+        if (v.layout === "center") v.layout = "stack_top";
         const set = (id, value) => { if ($(id)) $(id).value = value; };
         set("composerSourceMode", v.source_mode);
         set("composerLayout", v.layout);
@@ -4498,7 +4641,14 @@
         set("composerPanelColor", v.panel_color);
         set("composerPanelOpacity", v.panel_opacity);
         set("composerFontSize", v.font_size);
+        set("composerTextAlign", v.text_align);
+        set("composerVisualShare", v.visual_share);
+        set("composerGap", v.gap);
+        set("composerOuterPadding", v.outer_padding);
+        set("composerMediaRadius", v.media_radius);
+        set("cabinetPriceOverride", v.price_override || "");
         set("composerOverlayText", v.overlay_text);
+        if ($("composerShowGuides")) $("composerShowGuides").checked = v.show_guides !== false;
         ["Title", "Date", "Venue", "Price", "Cta"].forEach((key) => {
           const prop = `show_${key.toLowerCase()}`;
           if ($(`composerShow${key}`)) $(`composerShow${key}`).checked = v[prop] !== false;
@@ -4514,10 +4664,17 @@
           ["composerY", "composerYValue"],
           ["composerPanelOpacity", "composerPanelOpacityValue"],
           ["composerFontSize", "composerFontSizeValue"],
+          ["composerVisualShare", "composerVisualShareValue"],
+          ["composerGap", "composerGapValue"],
+          ["composerOuterPadding", "composerOuterPaddingValue"],
+          ["composerMediaRadius", "composerMediaRadiusValue"],
         ];
         pairs.forEach(([a, b]) => { if ($(a) && $(b)) $(b).textContent = $(a).value; });
-        const d = composerDimensions();
-        if ($("composerOutputSize")) $("composerOutputSize").textContent = d ? `${d.width} × ${d.height} PNG / MP4` : "без візуалу";
+        const d = composerDimensions(), profile = currentChannelProfile(), autoPrice = seancePriceRange(currentSeance());
+        if ($("composerOutputSize")) $("composerOutputSize").textContent = d ? `${d.width} × ${d.height} · ${profile.ratio} · PNG / MP4` : "без візуалу";
+        if ($("composerCanvasInfo")) $("composerCanvasInfo").textContent = d ? `${CHANNELS[state.currentChannel].label} · ${profile.label} · ${profile.ratio} · ${d.width} × ${d.height}` : "Текстовий канал";
+        if ($("cabinetPriceOverride")) $("cabinetPriceOverride").placeholder = autoPrice ? `Автоматично: ${autoPrice}` : "Ціну не знайдено — введіть вручну";
+        if ($("cabinetPriceStatus")) $("cabinetPriceStatus").textContent = autoPrice ? `Автоматична ціна сеансу: ${autoPrice}` : "Ціну в даних сеансу не знайдено. Вкажіть її вручну перед затвердженням.";
         if ($("composerPanel")) $("composerPanel").classList.toggle("hidden-field", !currentChannelProfile().visual);
       }
       function composerBackgroundRows() {
@@ -4611,7 +4768,8 @@
         const dx = rect.x + (rect.w-dw)/2 + rect.w * Number(settings.x || 0)/100;
         const dy = rect.y + (rect.h-dh)/2 + rect.h * Number(settings.y || 0)/100;
         ctx.save();
-        ctx.beginPath(); ctx.rect(rect.x, rect.y, rect.w, rect.h); ctx.clip();
+        const radius = Math.max(0, Number(settings.media_radius || 0)) * (ctx.canvas.width / 1080);
+        drawRoundedRect(ctx, rect.x, rect.y, rect.w, rect.h, radius); ctx.clip();
         ctx.drawImage(el, dx, dy, dw, dh);
         ctx.restore();
       }
@@ -4632,18 +4790,44 @@
         return lines;
       }
       function composerRects(width, height, settings) {
+        const outer = Math.round(Math.min(width, height) * Math.max(0, Number(settings.outer_padding || 0)) / 100);
+        const inner = { x: outer, y: outer, w: Math.max(1, width - outer * 2), h: Math.max(1, height - outer * 2) };
+        const gap = Math.round(Math.min(width, height) * Math.max(0, Number(settings.gap || 0)) / 100);
+        const share = Math.max(.20, Math.min(.85, Number(settings.visual_share || 65) / 100));
         const pad = Math.round(Math.min(width, height) * 0.035);
-        if (settings.layout === "split_left") {
-          const mw = Math.round(width * 0.56);
-          return { media:{x:0,y:0,w:mw,h:height}, panel:{x:mw,y:0,w:width-mw,h:height}, pad };
+        const result = { media:null, panel:null, pad, inner, gap };
+        if (settings.layout === "visual_only") {
+          result.media = { ...inner };
+          return result;
         }
-        if (settings.layout === "split_right") {
-          const pw = Math.round(width * 0.44);
-          return { panel:{x:0,y:0,w:pw,h:height}, media:{x:pw,y:0,w:width-pw,h:height}, pad };
+        if (settings.layout === "split_left" || settings.layout === "split_right") {
+          const usable = Math.max(1, inner.w - gap), mw = Math.round(usable * share), pw = usable - mw;
+          if (settings.layout === "split_left") {
+            result.media = { x:inner.x, y:inner.y, w:mw, h:inner.h };
+            result.panel = { x:inner.x + mw + gap, y:inner.y, w:pw, h:inner.h };
+          } else {
+            result.panel = { x:inner.x, y:inner.y, w:pw, h:inner.h };
+            result.media = { x:inner.x + pw + gap, y:inner.y, w:mw, h:inner.h };
+          }
+          return result;
         }
-        if (settings.layout === "visual_only") return { media:{x:0,y:0,w:width,h:height}, panel:null, pad };
-        const ph = Math.round(height * (settings.layout === "overlay_bottom" ? 0.30 : 0.25));
-        return { media:{x:0,y:0,w:width,h:height}, panel:{x:0,y:height-ph,w:width,h:ph}, pad };
+        if (settings.layout === "stack_top" || settings.layout === "stack_bottom" || settings.layout === "center") {
+          const usable = Math.max(1, inner.h - gap), mh = Math.round(usable * share), ph = usable - mh;
+          if (settings.layout === "stack_bottom") {
+            result.panel = { x:inner.x, y:inner.y, w:inner.w, h:ph };
+            result.media = { x:inner.x, y:inner.y + ph + gap, w:inner.w, h:mh };
+          } else {
+            result.media = { x:inner.x, y:inner.y, w:inner.w, h:mh };
+            result.panel = { x:inner.x, y:inner.y + mh + gap, w:inner.w, h:ph };
+          }
+          return result;
+        }
+        result.media = { ...inner };
+        const ph = Math.round(inner.h * Math.max(.15, Math.min(.65, 1-share)));
+        result.panel = settings.layout === "overlay_top"
+          ? { x:inner.x, y:inner.y, w:inner.w, h:ph }
+          : { x:inner.x, y:inner.y + inner.h - ph, w:inner.w, h:ph };
+        return result;
       }
       function drawRoundedRect(ctx, x, y, w, h, r) {
         const rr = Math.min(r, w/2, h/2);
@@ -4655,19 +4839,21 @@
         const p = rects.panel, pad = rects.pad;
         ctx.save();
         ctx.fillStyle = hexToRgba(settings.panel_color, Math.max(0, Math.min(1, settings.panel_opacity/100)));
-        ctx.fillRect(p.x,p.y,p.w,p.h);
+        drawRoundedRect(ctx,p.x,p.y,p.w,p.h,Math.max(0,Number(settings.media_radius||0))*(ctx.canvas.width/1080)); ctx.fill();
         const base = Math.max(20, Number(settings.font_size || 42) * (ctx.canvas.width/1080));
         const maxW = p.w - pad*2;
         let y = p.y + pad;
         ctx.fillStyle = settings.text_color || "#ffffff";
         ctx.textBaseline = "top";
+        ctx.textAlign = settings.text_align || "left";
+        const textX = settings.text_align === "center" ? p.x + p.w/2 : settings.text_align === "right" ? p.x + p.w - pad : p.x + pad;
         const drawLines = (text, size, weight="600", gap=1.28) => {
           if (!text) return;
           ctx.font = `${weight} ${size}px Arial, sans-serif`;
           const lines = wrapCanvasText(ctx, text, maxW);
           for (const line of lines) {
             if (y + size*gap > p.y+p.h-pad) break;
-            if (line) ctx.fillText(line, p.x+pad, y);
+            if (line) ctx.fillText(line, textX, y);
             y += size*gap;
           }
         };
@@ -4681,10 +4867,21 @@
           const label = $("cabinetCta").value.trim() || "Купити квитки";
           ctx.font = `800 ${base*0.72}px Arial, sans-serif`;
           const bw = Math.min(maxW, ctx.measureText(label).width + pad*1.5), bh = base*1.25;
-          const bx = p.x+pad, by = Math.min(p.y+p.h-pad-bh, y+base*0.35);
+          const bx = settings.text_align === "center" ? p.x + (p.w-bw)/2 : settings.text_align === "right" ? p.x+p.w-pad-bw : p.x+pad, by = Math.min(p.y+p.h-pad-bh, y+base*0.35);
           ctx.fillStyle = "#2f8cff"; drawRoundedRect(ctx,bx,by,bw,bh,bh*0.28); ctx.fill();
-          ctx.fillStyle = "#ffffff"; ctx.textBaseline="middle"; ctx.fillText(label,bx+pad*0.75,by+bh/2);
+          ctx.fillStyle = "#ffffff"; ctx.textBaseline="middle"; const oldAlign=ctx.textAlign; ctx.textAlign="left"; ctx.fillText(label,bx+pad*0.75,by+bh/2); ctx.textAlign=oldAlign;
         }
+        ctx.restore();
+      }
+      function drawComposerGuides(ctx, rects) {
+        ctx.save();
+        ctx.setLineDash([14,10]);
+        ctx.lineWidth = Math.max(2, ctx.canvas.width / 540);
+        if (rects.media) { ctx.strokeStyle = "rgba(78,190,255,.92)"; ctx.strokeRect(rects.media.x,rects.media.y,rects.media.w,rects.media.h); }
+        if (rects.panel) { ctx.strokeStyle = "rgba(255,205,72,.92)"; ctx.strokeRect(rects.panel.x,rects.panel.y,rects.panel.w,rects.panel.h); }
+        const safe = Math.round(Math.min(ctx.canvas.width,ctx.canvas.height)*.045);
+        ctx.strokeStyle = "rgba(255,255,255,.62)";
+        ctx.strokeRect(safe,safe,ctx.canvas.width-safe*2,ctx.canvas.height-safe*2);
         ctx.restore();
       }
       async function prepareComposerResources() {
@@ -4698,7 +4895,7 @@
           backgroundEl: bg ? await loadComposerImage(bg.public_url) : null,
         };
       }
-      function drawComposerFrame(canvas, resources, settings = collectCompositionSettings()) {
+      function drawComposerFrame(canvas, resources, settings = collectCompositionSettings(), options = {}) {
         const ctx = canvas.getContext("2d"), facts = eventFacts(currentSeance()), w=canvas.width,h=canvas.height;
         ctx.save(); ctx.clearRect(0,0,w,h); ctx.fillStyle=settings.background_color||"#081a2e"; ctx.fillRect(0,0,w,h);
         if (settings.background_mode === "asset" && resources.backgroundEl) drawCover(ctx,resources.backgroundEl,{x:0,y:0,w,h},settings.blur);
@@ -4707,6 +4904,7 @@
         if (resources.mediaEl) drawFitted(ctx,resources.mediaEl,rects.media,settings);
         if (resources.frameEl && settings.source_mode !== "ready") ctx.drawImage(resources.frameEl,0,0,w,h);
         if (settings.source_mode !== "ready" || settings.layout !== "visual_only") drawComposerText(ctx,rects,settings,facts);
+        if (options.guides) drawComposerGuides(ctx,rects);
         ctx.restore();
       }
       let composerRenderToken = 0;
@@ -4721,7 +4919,13 @@
           if (!canvas) { canvas=document.createElement("canvas"); canvas.id="composerCanvas"; box.innerHTML=""; box.appendChild(canvas); }
           canvas.width=dims.width; canvas.height=dims.height;
           box.style.aspectRatio = `${dims.width} / ${dims.height}`;
-          drawComposerFrame(canvas,resources);
+          const parentWidth = Math.max(320, box.parentElement?.clientWidth || 620);
+          const availableHeight = Math.max(360, window.innerHeight - 245);
+          const displayWidth = Math.max(260, Math.min(parentWidth - 24, availableHeight * dims.width / dims.height));
+          box.style.width = `${Math.round(displayWidth)}px`;
+          box.style.height = `${Math.round(displayWidth * dims.height / dims.width)}px`;
+          box.style.maxHeight = "none";
+          drawComposerFrame(canvas,resources,collectCompositionSettings(),{guides:Boolean($("composerShowGuides")?.checked)});
         } catch (e) {
           box.innerHTML = `<span class="muted">${esc(e.message || String(e))}</span>`;
         }
@@ -4775,7 +4979,7 @@
           mime_type:file.type, width:dimensions.width, height:dimensions.height, duration_sec:durationSec, file_size:file.size,
           aspect_ratio:profile.ratio, version:1, status:"approved", is_primary:false,
           notes:`Готовий продукт ${state.currentChannel} / ${$("cabinetPlacement").value}`,
-          approved_at:new Date().toISOString(), metadata:{source:"content_studio_v1_7_2_composer",ready_product:true,composition:settings,facts:eventFacts(s),target_url:$("cabinetTargetUrl").value||"",publication_text:publicationParts().finalText}
+          approved_at:new Date().toISOString(), metadata:{source:"content_studio_v1_7_3_creative_composer",ready_product:true,composition:settings,facts:eventFacts(s),target_url:$("cabinetTargetUrl").value||"",publication_text:publicationParts().finalText}
         })});
         return rows?.[0] || {id:null, public_url:url, file_name:name};
       }
@@ -4879,6 +5083,12 @@
       }
       function collectNumbers(value, out = []) {
         if (value == null) return out;
+        if (typeof value === "string") {
+          const t=value.trim();
+          if ((t.startsWith("{")&&t.endsWith("}"))||(t.startsWith("[")&&t.endsWith("]"))) { try { return collectNumbers(JSON.parse(t),out); } catch (_) {} }
+          if (Number.isFinite(Number(t)) && Number(t)>0) out.push(Number(t));
+          return out;
+        }
         if (typeof value === "number" && Number.isFinite(value)) {
           out.push(value);
           return out;
@@ -4888,6 +5098,7 @@
           return out;
         }
         if (typeof value === "object") {
+          if (value.sale === false || value.enabled === false) return out;
           for (const [k, v] of Object.entries(value)) {
             if (
               ["price", "amount", "value", "min_price", "max_price"].includes(
@@ -4905,15 +5116,22 @@
         }
         return out;
       }
+      function seancePricingRow(s) {
+        return state.seancePricing.find((r)=>String(r.seance_id||r.id||"")===String(s?.id||"")) || null;
+      }
       function seancePriceRange(s) {
         if (s?.price_range) return String(s.price_range);
-        const direct = [s?.min_price, s?.price_min, s?.max_price, s?.price_max]
+        const pricingRow = seancePricingRow(s);
+        const direct = [s?.min_price, s?.price_min, s?.max_price, s?.price_max, pricingRow?.min_price, pricingRow?.max_price]
           .filter((x) => Number.isFinite(Number(x)))
           .map(Number);
         const nums = [
           ...direct,
           ...collectNumbers(s?.pricing),
+          ...collectNumbers(s?.seat_overrides),
           ...collectNumbers(s?.capacity_by_price),
+          ...collectNumbers(pricingRow?.pricing),
+          ...collectNumbers(pricingRow?.seat_overrides),
         ].filter((x) => x > 0);
         if (!nums.length) return "";
         const min = Math.min(...nums),
@@ -4935,7 +5153,7 @@
           venue: venueName(venueId),
           city: venueCity(venueId),
           hall: s?.hall || "",
-          price: seancePriceRange(s),
+          price: $("cabinetPriceOverride")?.value?.trim() || seancePriceRange(s),
           phone: venuePhone(venueId),
           ticketUrl: exactSeanceUrl(s),
         };
@@ -4961,9 +5179,10 @@
             return true;
           return false;
         };
-        while (lines.length && technical(lines[lines.length - 1])) lines.pop();
+        lines = lines.filter((line) => !technical(line));
         return lines
           .join("\n")
+          .replace(/(^|\n)\s*(купити квитки|квитки)\s*[:—-]?\s*($|\n)/gi, "\n")
           .replace(/\n{3,}/g, "\n\n")
           .trim();
       }
@@ -5210,7 +5429,7 @@
           case "tiktok":
             finalText = [
               core,
-              [dateLine, placeLine].filter(Boolean).join(" · "),
+              [dateLine, placeLine, f.price].filter(Boolean).join(" · "),
               cta,
               tags,
             ]
@@ -5625,6 +5844,7 @@
           media=state.projectAssets.find((x)=>String(x.id)===String($("cabinetMedia").value)),
           frame=state.venueAssets.find((x)=>String(x.id)===String($("cabinetFrame").value));
         if(profile.visual&&!media) throw new Error(`Для ${profile.label} потрібен затверджений візуал.`);
+        if((statusOverride==="approved" || statusOverride==="published") && $("composerShowPrice")?.checked && !parts.facts.price) throw new Error("Ціну сеансу не знайдено. Вкажіть її у полі «Діапазон цін» або виправте pricing сеансу.");
         if(profile.visual&&frame&&assetRatio(frame)!==normalizeRatio(profile.ratio)) throw new Error("Формат рамки не відповідає вихідному кадру.");
         const form={
           channel:state.currentChannel, placement:$("cabinetPlacement").value,
@@ -5757,6 +5977,7 @@
       async function loadAll() {
         state.projects = await sb("projects?select=*&order=created_at.desc");
         state.seances = await sb("seances?select=*&order=date.asc");
+        state.seancePricing = await loadOptional("seances_pricing?select=*", []);
         state.venues = await loadOptional("venues?select=*", []);
         state.materials = await loadOptional(
           "content_items?select=*&order=updated_at.desc",
@@ -6168,8 +6389,9 @@
       const composerControlIds = [
         "composerSourceMode","composerLayout","composerBackgroundMode","composerBackgroundAsset","composerBackgroundColor",
         "composerBlur","composerFit","composerScale","composerX","composerY","composerTextColor","composerPanelColor",
-        "composerPanelOpacity","composerFontSize","composerOverlayText","composerShowTitle","composerShowDate",
-        "composerShowVenue","composerShowPrice","composerShowCta"
+        "composerPanelOpacity","composerFontSize","composerTextAlign","composerVisualShare","composerGap","composerOuterPadding",
+        "composerMediaRadius","composerOverlayText","composerShowTitle","composerShowDate",
+        "composerShowVenue","composerShowPrice","composerShowCta","composerShowGuides","cabinetPriceOverride"
       ];
       composerControlIds.forEach((id)=>$(id)?.addEventListener(
         ["composerSourceMode","composerLayout","composerBackgroundMode","composerBackgroundAsset","composerFit"].includes(id)||$(id)?.type==="checkbox"?"change":"input",
@@ -6178,7 +6400,13 @@
       $("composerSourceVideo")?.addEventListener("timeupdate",renderComposerPreview);
       $("composerSourceVideo")?.addEventListener("seeked",renderComposerPreview);
       $("composerSourceVideo")?.addEventListener("play",()=>{const tick=()=>{if($("composerSourceVideo").paused)return;renderComposerPreview();requestAnimationFrame(tick)};tick();});
+      bind("composerCenterBtn","click",()=>{if($("composerX"))$("composerX").value=0;if($("composerY"))$("composerY").value=0;updateComposerLabels();updateCabinetPreview();});
       bind("composerResetBtn","click",resetComposer);
+      let composerDrag=null;
+      document.addEventListener("pointerdown",(e)=>{if(e.target?.id!=="composerCanvas")return;composerDrag={x:e.clientX,y:e.clientY,vx:Number($("composerX")?.value||0),vy:Number($("composerY")?.value||0),w:e.target.clientWidth||1,h:e.target.clientHeight||1};e.target.setPointerCapture?.(e.pointerId);});
+      document.addEventListener("pointermove",(e)=>{if(!composerDrag)return;const nx=Math.max(-80,Math.min(80,composerDrag.vx+(e.clientX-composerDrag.x)/composerDrag.w*100)),ny=Math.max(-80,Math.min(80,composerDrag.vy+(e.clientY-composerDrag.y)/composerDrag.h*100));$("composerX").value=Math.round(nx);$("composerY").value=Math.round(ny);updateComposerLabels();renderComposerPreview();});
+      document.addEventListener("pointerup",()=>{composerDrag=null;});
+      window.addEventListener("resize",()=>{if(state.currentChannel!=="site")renderComposerPreview();});
       bind("exportPngBtn","click",async()=>{try{await exportComposerPng()}catch(e){setComposerProgress(e.message||String(e),"bad");throw e}});
       bind("exportMp4Btn","click",async()=>{try{await exportComposerMp4()}catch(e){setComposerProgress(e.message||String(e),"bad");throw e}});
       bind("saveCabinetBtn", "click", () => saveCabinet());
