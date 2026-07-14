@@ -828,19 +828,52 @@ const VENUE_ID_ALIASES = {
   "opera-test": "opera"
 };
 
+// public.venues.id is the canonical venue id.
+// The hall JSON filenames remain legacy and are mapped here explicitly.
+const HALL_BY_VENUE_ID = {
+  academy: "academy-ruhu",
+  shevchenko: "shevchenko-v2",
+  opera: "opera",
+  filarmoniya: "filarmoniya",
+  "client-x": "client-x",
+  "big-stage-demo": "big-stage-demo"
+};
+
+const VENUE_ID_BY_HALL = {
+  "academy": "academy",
+  "academy-ruhu": "academy",
+  "shevchenko": "shevchenko",
+  "shevchenko-v2": "shevchenko",
+  "opera": "opera",
+  "opera-test": "opera",
+  "filarmoniya": "filarmoniya",
+  "client-x": "client-x",
+  "big-stage-demo": "big-stage-demo"
+};
+
 function normalizeVenueIdForDb(value){
   const id = String(value || "").trim();
   return VENUE_ID_ALIASES[id] || id;
 }
 
-function venueConfigCandidates(dbId){
-  const result = [dbId];
+function venueAliasesForDbId(dbId){
+  const canonical = normalizeVenueIdForDb(dbId);
+  const aliases = [canonical];
 
   Object.entries(VENUE_ID_ALIASES).forEach(([legacyId, canonicalId]) => {
-    if (canonicalId === dbId) result.push(legacyId);
+    if (canonicalId === canonical) aliases.push(legacyId);
   });
 
-  return result;
+  return [...new Set(aliases)];
+}
+
+function venueConfigCandidates(dbId){
+  return venueAliasesForDbId(dbId);
+}
+
+function hallNameForVenueId(venueId){
+  const canonical = normalizeVenueIdForDb(venueId);
+  return HALL_BY_VENUE_ID[canonical] || canonical || "shevchenko-v2";
 }
 
 async function loadVenuesFromDb(configVenues = []){
@@ -864,7 +897,8 @@ async function loadVenuesFromDb(configVenues = []){
   if (!Array.isArray(rows)) return [];
 
   return rows.map(row => {
-    const candidates = venueConfigCandidates(row.id);
+    const canonicalId = normalizeVenueIdForDb(row.id);
+    const candidates = venueConfigCandidates(canonicalId);
     const meta = configVenues.find(v =>
       candidates.includes(v?.id) ||
       candidates.includes(v?.slug)
@@ -872,10 +906,11 @@ async function loadVenuesFromDb(configVenues = []){
 
     return {
       ...meta,
-      id: row.id,
-      slug: row.slug || row.id,
-      name: row.name || row.id,
-      title: row.name || row.id
+      id: canonicalId,
+      slug: row.slug || canonicalId,
+      name: row.name || canonicalId,
+      title: row.name || canonicalId,
+      hall: hallNameForVenueId(canonicalId)
     };
   });
 }
@@ -958,27 +993,26 @@ function getVenueConfig(id){
 }
 
 function getHallNameByVenue(id){
-  return VAConfigHelper.getHallNameByVenue(CONFIG_VENUES, id);
+  return hallNameForVenueId(id);
 }
 
-function normalizeHallNameForPreview(v){
-  if (!v) return "academy";
-  if (v === "shevchenko" || v === "shevchenko-v2") return "shevchenko-v2";
-  if (v === "academy-ruhu") return "academy";
-  return v;
+function normalizeHallNameForPreview(value){
+  const hallName = String(value || "").trim();
+  if (!hallName) return "shevchenko-v2";
+
+  const canonicalVenue = VENUE_ID_BY_HALL[hallName] || normalizeVenueIdForDb(hallName);
+  return hallNameForVenueId(canonicalVenue);
 }
 
 function setVenueByHallName(hallName){
-
   if (!hallName || !venueSelect) return;
 
-  const found =
-    VAConfigHelper.getVenueByHall(CONFIG_VENUES, hallName);
+  const canonicalVenueId =
+    VENUE_ID_BY_HALL[String(hallName).trim()] ||
+    normalizeVenueIdForDb(hallName);
 
-  const venueId = normalizeVenueIdForDb(found?.id || hallName);
-
-  if (CONFIG_VENUES.some(v => v.id === venueId)) {
-    venueSelect.value = venueId;
+  if (CONFIG_VENUES.some(v => v.id === canonicalVenueId)) {
+    venueSelect.value = canonicalVenueId;
   }
 }
 
@@ -1936,15 +1970,17 @@ async function loadVenueSeances(){
   if (!venueSeanceSelect) return;
 
   const venueId = venueToDbVenueId(venueSelect.value);
+  const acceptedVenueIds = new Set(venueAliasesForDbId(venueId));
 
   venueSeanceSelect.innerHTML =
     `<option value="">Завантаження сеансів…</option>`;
 
   try {
+    // Fetch the compact list once and normalize legacy venue ids client-side.
+    // This keeps old academy-ruhu / shevchenko-v2 rows visible while new rows use public.venues ids.
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/seances` +
-      `?venue_id=eq.${encodeURIComponent(venueId)}` +
-     `&select=id,show,date,time,active,event_type` +
+      `?select=id,show,date,time,active,event_type,venue_id,status` +
       `&order=date.asc,time.asc`,
       {
         headers:{
@@ -1962,7 +1998,11 @@ async function loadVenueSeances(){
     const rows = await res.json();
 
     const activeRows = Array.isArray(rows)
-      ? rows.filter(s => s.active !== false)
+      ? rows.filter(s =>
+          acceptedVenueIds.has(String(s.venue_id || "").trim()) &&
+          s.active !== false &&
+          s.status !== "archived"
+        )
       : [];
 
     if (!activeRows.length) {
@@ -2232,13 +2272,8 @@ publish.onclick = async () => {
   const time = showTime.value || null;
   
   const status = showStatus.value;
-  const hall = venueSelect.value;
-
-  const venueId =
-    hall === "academy" ? "academy" :
-    hall === "shevchenko-v2" ? "shevchenko" :
-    hall === "big-stage-demo" ? "big-stage-demo" :
-    hall;
+  const venueId = venueToDbVenueId(venueSelect.value);
+  const hall = getHallNameByVenue(venueId);
 
   if (!show) return alert("Вкажи назву вистави");
   if (!date) return alert("Вкажи дату");
