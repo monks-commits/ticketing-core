@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Редактор сеансу — VA Admin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">  
+<meta name="viewport" content="width=device-width, initial-scale=1">    
 
 <style>
 :root{
@@ -493,7 +493,9 @@ Seance ID — технічний ключ.
 
 <div class="note" style="margin-top:18px;">
   🎟️ Випуск VA:
-  <b id="vaCapacityCounter">0</b> місць
+  <b class="vaCapacityCounterValue">0</b> місць
+  <div id="vaCapacityCounterMiniDetails" style="margin-top:4px;">Схема ще не завантажена.</div>
+
 </div>
         
       </section>
@@ -820,37 +822,95 @@ let CURRENT_VA_CAPACITY = 0;
 let CURRENT_VA_PRICE_SEGMENTS = {};
   
   
-function fillVenueSelectFromConfig(){
+const VENUE_ID_ALIASES = {
+  "academy-ruhu": "academy",
+  "shevchenko-v2": "shevchenko",
+  "opera-test": "opera"
+};
 
-  const forcedVenues = [
-    { id: "academy", title: "Академія руху" },
-    { id: "shevchenko", title: "Театр Шевченка" },
-    { id: "filarmoniya", title: "Філармонія" },
-   
-    { id: "client-x", title: "Client X" },
-    { id: "big-stage-demo", title: "Велика сцена Demo" },
-    { id: "club-demo", title: "Club Demo" }
-  ];
+function normalizeVenueIdForDb(value){
+  const id = String(value || "").trim();
+  return VENUE_ID_ALIASES[id] || id;
+}
 
-  forcedVenues.forEach(v => {
-    if (!CONFIG_VENUES.some(x => x.id === v.id)) {
-      CONFIG_VENUES.push(v);
-    }
+function venueConfigCandidates(dbId){
+  const result = [dbId];
+
+  Object.entries(VENUE_ID_ALIASES).forEach(([legacyId, canonicalId]) => {
+    if (canonicalId === dbId) result.push(legacyId);
   });
 
+  return result;
+}
+
+async function loadVenuesFromDb(configVenues = []){
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/venues?select=id,name,slug&order=name.asc`,
+    {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      cache:"no-store"
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+
+  const rows = await res.json();
+
+  if (!Array.isArray(rows)) return [];
+
+  return rows.map(row => {
+    const candidates = venueConfigCandidates(row.id);
+    const meta = configVenues.find(v =>
+      candidates.includes(v?.id) ||
+      candidates.includes(v?.slug)
+    ) || {};
+
+    return {
+      ...meta,
+      id: row.id,
+      slug: row.slug || row.id,
+      name: row.name || row.id,
+      title: row.name || row.id
+    };
+  });
+}
+
+function fillVenueSelectFromConfig(){
   if (!venueSelect) return;
 
-  venueSelect.innerHTML = CONFIG_VENUES.map(v => `
-    <option value="${v.id}">${v.title || v.id}</option>
-  `).join("");
+  venueSelect.innerHTML = "";
+
+  if (!CONFIG_VENUES.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Майданчики не завантажені";
+    venueSelect.appendChild(option);
+    venueSelect.disabled = true;
+    return;
+  }
+
+  venueSelect.disabled = false;
+
+  CONFIG_VENUES.forEach(v => {
+    const option = document.createElement("option");
+    option.value = v.id;
+    option.textContent = v.name || v.title || v.id;
+    venueSelect.appendChild(option);
+  });
 
   const qs = new URLSearchParams(location.search);
-  const venueFromUrl = qs.get("venue");
+  const venueFromUrl = normalizeVenueIdForDb(qs.get("venue"));
 
   if (venueFromUrl && CONFIG_VENUES.some(v => v.id === venueFromUrl)) {
     venueSelect.value = venueFromUrl;
   }
 }
+
   
 const venueSeanceSelect = document.getElementById("venueSeanceSelect");  
 const showName = document.getElementById("showName");
@@ -915,8 +975,10 @@ function setVenueByHallName(hallName){
   const found =
     VAConfigHelper.getVenueByHall(CONFIG_VENUES, hallName);
 
-  if (found) {
-    venueSelect.value = found.id;
+  const venueId = normalizeVenueIdForDb(found?.id || hallName);
+
+  if (CONFIG_VENUES.some(v => v.id === venueId)) {
+    venueSelect.value = venueId;
   }
 }
 
@@ -985,7 +1047,7 @@ function ensurePreviewUi() {
       </div>
 
       <div style="font-size:34px;font-weight:900;line-height:1;">
-        <span id="vaCapacityCounter">0</span>
+        <span class="vaCapacityCounterValue">0</span>
         <span style="font-size:16px;font-weight:700;color:#b8c4d6;">місць</span>
       </div>
 
@@ -994,6 +1056,11 @@ function ensurePreviewUi() {
       </div>
 
       <div id="vaCapacityByPrice" class="note"></div>
+
+      <div class="actions" style="margin-top:12px;">
+        <button class="btn btn-neutral" onclick="autoBlockOutsideVA()">🔒 Заблокувати все поза VA</button>
+        <button class="btn btn-neutral" onclick="clearAutoBlockOutsideVA()">↩️ Зняти авто-блокування</button>
+      </div>
     </div>
 
     <div id="previewInfo" class="note">Схема ще не завантажена</div>
@@ -1081,7 +1148,10 @@ function collectVAKeysFromSection(section, sectionsMap, set, visited){
     if (count > 0) {
       for (let i = 0; i < count; i++) {
         const seatNum = reverse ? start - i : start + i;
-        addVASeatKey(set, `${prefix}${row}-M${seatNum}`);
+        const lodgePrefix = /\d$/.test(String(prefix))
+          ? String(prefix)
+          : `${prefix}${row}`;
+        addVASeatKey(set, `${lodgePrefix}-M${seatNum}`);
       }
     }
   }
@@ -1163,14 +1233,19 @@ function updateVACapacityCounter(){
   CURRENT_VA_CAPACITY = stats.released;
   CURRENT_VA_PRICE_SEGMENTS = Object.fromEntries(stats.byPrice.entries());
 
-  const totalEl = document.getElementById("vaCapacityCounter");
-  const detailEl = document.getElementById("vaCapacityDetails");
-  const priceEl = document.getElementById("vaCapacityByPrice");
+  document.querySelectorAll(".vaCapacityCounterValue").forEach(el => {
+    el.textContent = String(stats.released);
+  });
 
-  if (totalEl) {
-    totalEl.textContent = String(stats.released);
+  const miniEl = document.getElementById("vaCapacityCounterMiniDetails");
+  if (miniEl) {
+    miniEl.textContent =
+      `Всього у схемі: ${stats.totalSeats} • ` +
+      `без ціни: ${stats.noPrice} • ` +
+      `заборонено: ${stats.blocked}`;
   }
 
+  const detailEl = document.getElementById("vaCapacityDetails");
   if (detailEl) {
     detailEl.textContent =
       `Всього у схемі: ${stats.totalSeats} • ` +
@@ -1178,6 +1253,7 @@ function updateVACapacityCounter(){
       `заборонено: ${stats.blocked}`;
   }
 
+  const priceEl = document.getElementById("vaCapacityByPrice");
   if (priceEl) {
     const rows = Array.from(stats.byPrice.entries())
       .sort((a, b) => a[0] - b[0])
@@ -1187,8 +1263,173 @@ function updateVACapacityCounter(){
       ? rows.map(x => `<div>${x}</div>`).join("")
       : `<span class="muted">Немає місць з ціною.</span>`;
   }
+
+  return stats;
 }
-  
+
+function buildSeanceEditorPayload(){
+  const stats = updateVACapacityCounter();
+
+  const capacityByPrice = Object.fromEntries(
+    Array.from(stats.byPrice.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([price, count]) => [String(price), count])
+  );
+
+  return {
+    seance_id: seanceId.value.trim(),
+    venue: venueSelect.value,
+    show: showName.value.trim(),
+    event_type: eventType.value || null,
+    genre: genre.value || null,
+    date: showDate.value || null,
+    time: showTime.value || null,
+
+    // Єдина точка відліку для кабінету квиткового відділу:
+    // скільки місць реально випущено VA у продаж.
+    capacity: stats.released,
+    capacity_source: "va_editor_counter",
+    capacity_total_hall: stats.totalSeats,
+    capacity_no_price: stats.noPrice,
+    capacity_blocked: stats.blocked,
+    capacity_by_price: capacityByPrice,
+
+    pricing: data.pricing,
+    seat_overrides: data.seat_overrides
+  };
+}
+
+function clonePlainObject(obj){
+  if (!obj || typeof obj !== "object") return null;
+
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch (e) {
+    return { ...obj };
+  }
+}
+
+function getOutsideVACandidateKeys(){
+  const keys = collectVASeatKeys(CURRENT_PREVIEW_HALL);
+  const result = [];
+
+  keys.forEach(key => {
+    const state = previewSeatState(key);
+    const price = state.price == null ? null : Number(state.price);
+
+    // Уже заборонені місця не чіпаємо.
+    if (state.sale === false) return;
+
+    // Місця з ціною — це VA-випуск, їх не чіпаємо.
+    if (Number.isFinite(price)) return;
+
+    // Все без ціни — поза VA-випуском, кандидат на блокування.
+    result.push(key);
+  });
+
+  return result.sort((a, b) => a.localeCompare(b, "uk", { numeric:true }));
+}
+
+async function autoBlockOutsideVA(){
+  if (!CURRENT_PREVIEW_HALL) {
+    alert("Схема ще не завантажена. Спочатку оберіть майданчик або завантажте сеанс.");
+    return;
+  }
+
+  const before = getVACapacityStats();
+  const candidates = getOutsideVACandidateKeys();
+
+  if (!candidates.length) {
+    alert(
+      "Немає місць без ціни для авто-блокування.\n\n" +
+      `Випуск VA: ${before.released}\n` +
+      `Заборонено: ${before.blocked}\n` +
+      `Без ціни: ${before.noPrice}`
+    );
+    return;
+  }
+
+  const ok = confirm(
+    `Буде заблоковано ${candidates.length} місць без ціни.\n\n` +
+    `Випуск VA залишиться: ${before.released}\n` +
+    `Було без ціни: ${before.noPrice}\n` +
+    `Було заборонено: ${before.blocked}\n\n` +
+    "Продовжити?"
+  );
+
+  if (!ok) return;
+
+  candidates.forEach(key => {
+    const current = data.seat_overrides[key] || null;
+    const prev = clonePlainObject(current);
+
+    data.seat_overrides[key] = {
+      ...(prev || {}),
+      sale: false,
+      color: (prev && prev.color) || "#4b5563",
+      auto_blocked: true,
+      block_reason: "outside_va_quota",
+      auto_blocked_prev: prev && prev.auto_blocked !== true
+        ? prev
+        : (prev?.auto_blocked_prev || null)
+    };
+  });
+
+  render();
+  await renderPreview();
+
+  const after = getVACapacityStats();
+  alert(
+    `✅ Заблоковано поза VA: ${candidates.length} місць.\n\n` +
+    `Випуск VA: ${after.released}\n` +
+    `Без ціни: ${after.noPrice}\n` +
+    `Заборонено: ${after.blocked}`
+  );
+}
+
+async function clearAutoBlockOutsideVA(){
+  const entries = Object.entries(data.seat_overrides || {})
+    .filter(([, item]) =>
+      item &&
+      item.auto_blocked === true &&
+      item.block_reason === "outside_va_quota"
+    );
+
+  if (!entries.length) {
+    alert("Авто-блокувань поза VA немає.");
+    return;
+  }
+
+  const ok = confirm(
+    `Буде знято ${entries.length} авто-блокувань.\n\n` +
+    "Ручні заборони продажу не чіпаємо.\n\n" +
+    "Продовжити?"
+  );
+
+  if (!ok) return;
+
+  entries.forEach(([key, item]) => {
+    const prev = clonePlainObject(item.auto_blocked_prev);
+
+    if (prev) {
+      data.seat_overrides[key] = prev;
+    } else {
+      delete data.seat_overrides[key];
+    }
+  });
+
+  render();
+  await renderPreview();
+
+  const after = getVACapacityStats();
+  alert(
+    `✅ Знято авто-блокувань: ${entries.length}.\n\n` +
+    `Випуск VA: ${after.released}\n` +
+    `Без ціни: ${after.noPrice}\n` +
+    `Заборонено: ${after.blocked}`
+  );
+}
+
 function previewSeatState(key){
   const override = data.seat_overrides[key] || null;
 
@@ -1510,7 +1751,10 @@ async function renderPreview(){
     const hall = await res.json();
 
     CURRENT_PREVIEW_HALL = hall;
-updateVACapacityCounter();
+    updateVACapacityCounter();
+    if (output) {
+      output.value = JSON.stringify(buildSeanceEditorPayload(), null, 2);
+    }
 
     if (Array.isArray(hall.seats)) {
       renderBuilderPreview(hall, previewStage, previewWrap);
@@ -1681,13 +1925,11 @@ function renderSectionsPreview(hall, previewStage){
 
 
 function venueToDbVenueId(v){
-  if (v === "shevchenko-v2") return "shevchenko";
-  return v || "academy";
+  return normalizeVenueIdForDb(v) || "academy";
 }
 
 function dbVenueIdToVenue(v){
-  if (v === "shevchenko") return "shevchenko-v2";
-  return v || "academy";
+  return normalizeVenueIdForDb(v) || "academy";
 }
 
 async function loadVenueSeances(){
@@ -1922,46 +2164,31 @@ function addSeatOverride(){
   renderPreview();
 }
 
-function updateVACounter(){
+function getVAPayloadStats(){
+  const stats = getVACapacityStats();
 
-  let count = 0;
+  const capacity = Number(stats.released || 0);
 
-  // места, которые переопределены индивидуально
-  Object.values(data.seat_overrides || {}).forEach(seat => {
+  const byPrice = Object.fromEntries(
+    Array.from(stats.byPrice.entries()).map(([price, count]) => [
+      String(price),
+      count
+    ])
+  );
 
-    if (seat.sale !== false) {
-      count++;
-    }
-
-  });
-
-
-  // TODO:
-  // позже добавим сюда точный расчет рядов из hall JSON,
-  // потому что pricing сейчас хранит правила, а не список мест
-
-
-  const el = document.getElementById("vaCapacityCounter");
-
-  if (el) {
-    el.textContent = count;
-  }
-
+  return {
+    capacity: capacity,
+    capacity_source: "va_editor_counter",
+    capacity_total_hall: Number(stats.totalSeats || 0),
+    capacity_no_price: Number(stats.noPrice || 0),
+    capacity_blocked: Number(stats.blocked || 0),
+    capacity_by_price: byPrice
+  };
 }
   
 function render(){
- output.value = JSON.stringify({
-  seance_id: seanceId.value.trim(),
-  venue: venueSelect.value,
-  show: showName.value.trim(),
-  event_type: eventType.value || null,
-   genre: genre.value || null,
-  date: showDate.value || null,
-    time: showTime.value || null,
-    
-    pricing: data.pricing,
-    seat_overrides: data.seat_overrides
-  }, null, 2);
+  const payload = buildSeanceEditorPayload();
+  output.value = JSON.stringify(payload, null, 2);
 
   rulesList.innerHTML =
     Object.entries(data.pricing).map(([k,r])=>`
@@ -1975,20 +2202,19 @@ function render(){
     || "<span class='muted'>Поки що правил немає</span>";
 
   const overrideEntries = Object.entries(data.seat_overrides);
-  seatOverridesList.innerHTML =
-    updateVACounter();
-    overrideEntries.length
-      ? overrideEntries
-          .sort((a, b) => a[0].localeCompare(b[0], "uk"))
-          .map(([k, r]) => `
-            <div class="rule-row">
-              <b>${k}</b>
-              <span>${r.price ?? "—"} грн</span>
-              <span class="color-chip" style="background:${r.color || "#fff"}"></span>
-              <span>${r.sale === false ? "❌" : "✔"}</span>
-            </div>
-          `).join("")
-      : `<span class="muted">Поки що seat_overrides немає</span>`;
+
+  seatOverridesList.innerHTML = overrideEntries.length
+    ? overrideEntries
+        .sort((a, b) => a[0].localeCompare(b[0], "uk"))
+        .map(([k, r]) => `
+          <div class="rule-row">
+            <b>${k}</b>
+            <span>${r.price ?? "—"} грн</span>
+            <span class="color-chip" style="background:${r.color || "#fff"}"></span>
+            <span>${r.sale === false ? "❌" : "✔"}</span>
+          </div>
+        `).join("")
+    : `<span class="muted">Поки що seat_overrides немає</span>`;
 }
 
 function copyJson(){
@@ -2022,14 +2248,17 @@ if (
   Object.keys(data.pricing || {}).length === 0 &&
   Object.keys(data.seat_overrides || {}).length === 0
 ) {
+ 
   const ok = confirm(
     "УВАГА: pricing і seat_overrides порожні.\n\n" +
-    "Якщо зберегти зараз — ціни та кольори для цього сеансу будуть стерті.\n\n" +
+    "Якщо зберегти зараз — ціни та кольори для цього сеансу будуть стерті.\n\n" + 
     "Продовжити?"
   );
   if (!ok) return;
 }
   
+  const payload = buildSeanceEditorPayload();
+
   try {
    const res = await fetch(SUPABASE_FUNCTION_URL, {
   method: "POST",
@@ -2037,6 +2266,8 @@ if (
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
+    ...payload,
+
     seance_id: seance,
     venue_id: venueId,
     hall: hall,
@@ -2048,6 +2279,16 @@ if (
     
     status: status,
     active: showActive ? showActive.value === "true" : currentActive,
+
+    // Випуск VA: записується як seances.capacity
+    // і використовується кабінетом квиткового відділу як точка відліку.
+    capacity: payload.capacity,
+    capacity_source: payload.capacity_source,
+    capacity_total_hall: payload.capacity_total_hall,
+    capacity_no_price: payload.capacity_no_price,
+    capacity_blocked: payload.capacity_blocked,
+    capacity_by_price: payload.capacity_by_price,
+
     pricing: data.pricing,
     seat_overrides: data.seat_overrides
   })
@@ -2091,13 +2332,10 @@ showStatus.value = seanceRow.status || "draft";
  currentActive = seanceRow.active !== false;
     if (showActive) showActive.value = currentActive ? "true" : "false";
     
-    if (seanceRow.venue_id === "academy") {
-  venueSelect.value = "academy";
-} else if (seanceRow.venue_id === "shevchenko") {
-  venueSelect.value = "shevchenko-v2";
-} else if (seanceRow.venue_id === "big-stage-demo") {
-  venueSelect.value = "big-stage-demo";
-}
+    const loadedVenueId = normalizeVenueIdForDb(seanceRow.venue_id);
+    if (CONFIG_VENUES.some(v => v.id === loadedVenueId)) {
+      venueSelect.value = loadedVenueId;
+    }
   }
 
   const res = await fetch(
@@ -2162,7 +2400,7 @@ function applyEditorUrlParams(){
     qs.get("seance_id") ||
     "";
 
-  const venue = qs.get("venue") || "";
+  const venue = normalizeVenueIdForDb(qs.get("venue") || "");
 
   if (venue && venueSelect && CONFIG_VENUES.some(v => v.id === venue)) {
     venueSelect.value = venue;
@@ -2183,9 +2421,17 @@ async function bootEditor(){
     CLIENT_CONFIG = null;
   }
 
-  CONFIG_VENUES = Array.isArray(CLIENT_CONFIG?.venues)
+  const configVenueMeta = Array.isArray(CLIENT_CONFIG?.venues)
     ? CLIENT_CONFIG.venues
     : [];
+
+  try {
+    CONFIG_VENUES = await loadVenuesFromDb(configVenueMeta);
+  } catch (e) {
+    console.error("public.venues load error", e);
+    CONFIG_VENUES = [];
+    alert("Не вдалося завантажити майданчики з public.venues.");
+  }
 
   fillVenueSelectFromConfig();
   applyEditorUrlParams();
