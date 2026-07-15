@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VA Content Studio V1.7.3</title>
+    <title>VA Content Studio V1.7.3.1</title>
     <style>
       :root {
         --bg: #061426;
@@ -706,7 +706,7 @@
       }
 
 
-      /* ===== VA CONTENT STUDIO V1.7.3 · CREATIVE CHANNEL COMPOSER ===== */
+      /* ===== VA CONTENT STUDIO V1.7.3.1 · CREATIVE CHANNEL COMPOSER ===== */
       #composerDesktopWarning { display:none; }
       .cabinet-layout {
         display:grid;
@@ -840,7 +840,7 @@
       <header class="hero">
         <div class="hero-row">
           <div>
-            <h1>VA Content Studio V1.7.3</h1>
+            <h1>VA Content Studio V1.7.3.1</h1>
             <div class="lead">
               Майданчик → проєкт → виробництво → бібліотека → готовий проєкт →
               кабінет каналу → публікація.
@@ -4050,15 +4050,22 @@
         renderTools();
       }
       function safeSlug(v) {
-        return (
-          String(v || "file")
-            .toLowerCase()
-            .normalize("NFKD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9а-яіїєґ]+/gi, "-")
-            .replace(/^-+|-+$/g, "")
-            .replace(/-+/g, "-") || "file"
-        );
+        const translit = {
+          а:"a",б:"b",в:"v",г:"h",ґ:"g",д:"d",е:"e",є:"ye",ё:"yo",ж:"zh",з:"z",и:"y",і:"i",ї:"yi",й:"y",
+          к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",
+          ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"
+        };
+        const ascii = String(v || "file")
+          .toLowerCase()
+          .normalize("NFKD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .split("")
+          .map((ch) => Object.prototype.hasOwnProperty.call(translit, ch) ? translit[ch] : ch)
+          .join("");
+        return ascii
+          .replace(/[^a-z0-9._-]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .replace(/-+/g, "-") || "file";
       }
       function publicStorageUrl(bucket, path) {
         return `${SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(bucket)}/${path.split("/").map(encodeURIComponent).join("/")}`;
@@ -4115,7 +4122,15 @@
             body: file,
           },
         );
-        if (!r.ok) throw new Error(await r.text());
+        if (!r.ok) {
+          const raw = await r.text();
+          let message = raw;
+          try {
+            const data = JSON.parse(raw);
+            message = data?.message || data?.error || raw;
+          } catch {}
+          throw new Error(`Storage: ${message}`);
+        }
         return publicStorageUrl("content-studio", path);
       }
       function inferAspect(w, h) {
@@ -4979,7 +4994,7 @@
           mime_type:file.type, width:dimensions.width, height:dimensions.height, duration_sec:durationSec, file_size:file.size,
           aspect_ratio:profile.ratio, version:1, status:"approved", is_primary:false,
           notes:`Готовий продукт ${state.currentChannel} / ${$("cabinetPlacement").value}`,
-          approved_at:new Date().toISOString(), metadata:{source:"content_studio_v1_7_3_creative_composer",ready_product:true,composition:settings,facts:eventFacts(s),target_url:$("cabinetTargetUrl").value||"",publication_text:publicationParts().finalText}
+          approved_at:new Date().toISOString(), metadata:{source:"content_studio_v1_7_3_1_creative_composer",ready_product:true,composition:settings,facts:eventFacts(s),target_url:$("cabinetTargetUrl").value||"",publication_text:publicationParts().finalText}
         })});
         return rows?.[0] || {id:null, public_url:url, file_name:name};
       }
@@ -5101,7 +5116,7 @@
           if (value.sale === false || value.enabled === false) return out;
           for (const [k, v] of Object.entries(value)) {
             if (
-              ["price", "amount", "value", "min_price", "max_price"].includes(
+              ["price", "amount", "min_price", "max_price", "price_value"].includes(
                 k,
               ) &&
               Number.isFinite(Number(v))
@@ -5122,17 +5137,17 @@
       function seancePriceRange(s) {
         if (s?.price_range) return String(s.price_range);
         const pricingRow = seancePricingRow(s);
-        const direct = [s?.min_price, s?.price_min, s?.max_price, s?.price_max, pricingRow?.min_price, pricingRow?.max_price]
-          .filter((x) => Number.isFinite(Number(x)))
-          .map(Number);
-        const nums = [
-          ...direct,
+        const structured = [
           ...collectNumbers(s?.pricing),
           ...collectNumbers(s?.seat_overrides),
           ...collectNumbers(s?.capacity_by_price),
           ...collectNumbers(pricingRow?.pricing),
           ...collectNumbers(pricingRow?.seat_overrides),
-        ].filter((x) => x > 0);
+        ].filter((x) => Number.isFinite(Number(x)) && Number(x) > 0).map(Number);
+        const direct = [s?.min_price, s?.price_min, s?.max_price, s?.price_max, pricingRow?.min_price, pricingRow?.max_price]
+          .filter((x) => Number.isFinite(Number(x)) && Number(x) > 0)
+          .map(Number);
+        const nums = structured.length ? structured : direct;
         if (!nums.length) return "";
         const min = Math.min(...nums),
           max = Math.max(...nums);
