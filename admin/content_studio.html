@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VA Content Studio V1.8</title>
+    <title>VA Content Studio V1.8.1</title>
     <style>
       :root {
         --bg: #061426;
@@ -876,7 +876,7 @@
       <header class="hero">
         <div class="hero-row">
           <div>
-            <h1>VA Content Studio V1.8</h1>
+            <h1>VA Content Studio V1.8.1</h1>
             <div class="lead">
               Майданчик → проєкт → бібліотека → виробництво → кабінет каналу →
               склад готової продукції → історія.
@@ -1814,7 +1814,7 @@
             Оберіть конкретний майданчик у верхній частині сторінки.
           </div>
           <div id="serviceSchemaWarning" class="notice warn hidden">
-            Виконайте SQL V1.7 у Supabase. Без нього службові шаблони та
+            Виконайте SQL V1.8.1 у Supabase. Без нього службові шаблони та
             повідомлення не зберігаються.
           </div>
 
@@ -1938,6 +1938,23 @@
                   </div>
                 </div>
 
+                <div class="grid-3">
+                  <div class="field">
+                    <label>Режим виконання</label>
+                    <select id="serviceDeliveryMode">
+                      <option value="manual">Підготувати для ручного відправлення</option>
+                      <option value="export">Підготувати список / файл</option>
+                      <option value="provider">Автоматичне відправлення через провайдера</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Заплановано на</label><input id="serviceScheduledAt" type="datetime-local" />
+                  </div>
+                  <div class="field">
+                    <label>Відповідальний / примітка</label><input id="serviceOwnerNote" placeholder="Хто перевіряє або відправляє" />
+                  </div>
+                </div>
+
                 <div class="grid-2">
                   <div class="field">
                     <label>Кому</label
@@ -1960,6 +1977,28 @@
                       placeholder="Email, телефони, назва сегмента або посилання на список"
                       style="min-height: 88px"
                     ></textarea>
+                  </div>
+                </div>
+
+                <div class="compact" style="margin-bottom:12px">
+                  <div class="toolbar">
+                    <h3 class="no-margin grow">Одержувачі</h3>
+                    <span class="mini" id="serviceRecipientSummary">Список не підготовлено</span>
+                  </div>
+                  <div class="notice">
+                    Джерело списку задається полем «Кому». Для покупців система бере контакти з нашої клієнтської бази через замовлення конкретного сеансу або всіх сеансів проєкту. Поки база тестова, можна використовувати власний список.
+                  </div>
+                  <div class="actions">
+                    <button class="btn blue" id="prepareServiceRecipientsBtn">Підготувати одержувачів</button>
+                    <button class="btn" id="copyServiceRecipientsBtn">Скопіювати список</button>
+                    <button class="btn" id="exportServiceRecipientsBtn">Експорт CSV</button>
+                    <button class="btn red" id="clearServiceRecipientsBtn">Очистити</button>
+                  </div>
+                  <div class="table-wrap" style="margin-top:10px;max-height:280px;overflow:auto">
+                    <table>
+                      <thead><tr><th>Ім’я</th><th>Email</th><th>Телефон</th><th>Канал</th><th>Стан</th></tr></thead>
+                      <tbody id="serviceRecipientRows"><tr><td colspan="5" class="meta">Одержувачі ще не підготовлені.</td></tr></tbody>
+                    </table>
                   </div>
                 </div>
 
@@ -2108,6 +2147,9 @@
         history: [],
         serviceTemplates: [],
         serviceMessages: [],
+        serviceRecipients: [],
+        serviceDeliveries: [],
+        preparedServiceRecipients: [],
         seancePricing: [],
         selectedProject: null,
         currentVenue: "",
@@ -3129,6 +3171,11 @@
         $("serviceStatus").value = "draft";
         $("serviceAudience").value = "manual";
         $("serviceRecipients").value = "";
+        $("serviceDeliveryMode").value = "manual";
+        $("serviceScheduledAt").value = "";
+        $("serviceOwnerNote").value = "";
+        state.preparedServiceRecipients = [];
+        renderServiceRecipients();
         $("servicePublishedUrl").value = "";
         $("serviceResultNote").value = "";
         populateServiceTemplateSelect("");
@@ -3157,6 +3204,11 @@
         $("serviceStatus").value = m?.status || "draft";
         $("serviceAudience").value = m?.audience_segment || "manual";
         $("serviceRecipients").value = m?.recipients_text || "";
+        $("serviceDeliveryMode").value = m?.delivery_mode || "manual";
+        $("serviceScheduledAt").value = dtLocal(m?.scheduled_at);
+        $("serviceOwnerNote").value = m?.owner_note || "";
+        state.preparedServiceRecipients = state.serviceRecipients.filter(r => String(r.service_message_id) === String(m?.id));
+        renderServiceRecipients();
         $("servicePublishedUrl").value = m?.published_url || "";
         $("serviceResultNote").value = m?.result_note || "";
         populateServiceTemplateSelect(m?.template_id || "");
@@ -3205,6 +3257,96 @@
               : "warn");
         }
       }
+      function normalizeServiceEmail(v){return String(v||"").trim().toLowerCase();}
+      function normalizeServicePhone(v){return String(v||"").replace(/[^0-9+]/g,"").replace(/^00/,"+");}
+      function recipientKey(r){return normalizeServiceEmail(r.email)||normalizeServicePhone(r.phone)||String(r.name||"").trim().toLowerCase();}
+      function recipientChannelState(r){
+        const ch=$("serviceChannel")?.value||"all";
+        if(ch==="email") return r.email ? ["email","ready"] : ["email","missing"];
+        if(ch==="sms"||ch==="viber") return r.phone ? [ch,"ready"] : [ch,"missing"];
+        if(ch==="telegram") return (r.phone||r.email) ? ["telegram","manual"] : ["telegram","missing"];
+        if(ch==="all") return r.email ? ["email","ready"] : r.phone ? ["phone","ready"] : ["—","missing"];
+        return [ch,(r.email||r.phone)?"manual":"missing"];
+      }
+      function parseManualServiceRecipients(text){
+        return String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map((line,i)=>{
+          const email=(line.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)||[])[0]||"";
+          const phone=(line.match(/\+?[0-9][0-9()\-\s]{7,}[0-9]/)||[])[0]||"";
+          const name=line.replace(email,"").replace(phone,"").replace(/[|;,]+/g," ").trim();
+          return {name:name||`Одержувач ${i+1}`,email:normalizeServiceEmail(email),phone:normalizeServicePhone(phone),source:"manual"};
+        });
+      }
+      function orderRecipient(o){
+        return {
+          name:o.buyer_name||o.customer_name||o.name||o.owner_name||"",
+          email:normalizeServiceEmail(o.buyer_email||o.customer_email||o.email||""),
+          phone:normalizeServicePhone(o.buyer_phone||o.customer_phone||o.phone||""),
+          source:"customer_base",
+          source_order_id:o.id||null,
+          source_seance_id:o.seance_id||null
+        };
+      }
+      async function resolveServiceRecipients(){
+        const audience=$("serviceAudience").value;
+        if(audience==="manual"||["press","guests","staff","other"].includes(audience)) return parseManualServiceRecipients($("serviceRecipients").value);
+        let ids=[];
+        if(audience==="seance_buyers"){
+          const sid=$("serviceSeance").value;
+          if(!sid) throw new Error("Оберіть сеанс для отримання покупців.");
+          ids=[sid];
+        }else if(audience==="project_buyers"){
+          const pid=$("serviceProject").value;
+          if(!pid) throw new Error("Оберіть проєкт.");
+          ids=serviceSeanceRows(pid).map(x=>x.id);
+          if(!ids.length) throw new Error("У проєкту немає прив’язаних сеансів.");
+        }
+        const batches=await Promise.all(ids.map(id=>sb(`orders?select=*&seance_id=eq.${encodeURIComponent(id)}`)));
+        return batches.flat().map(orderRecipient);
+      }
+      function dedupeServiceRecipients(rows){
+        const map=new Map();
+        rows.forEach(r=>{const k=recipientKey(r);if(!k)return;const old=map.get(k)||{};map.set(k,{...old,...r,email:r.email||old.email||"",phone:r.phone||old.phone||"",name:r.name||old.name||""});});
+        return [...map.values()].map(r=>{const [delivery_channel,validation_status]=recipientChannelState(r);return {...r,delivery_channel,validation_status};});
+      }
+      function renderServiceRecipients(){
+        const rows=state.preparedServiceRecipients||[];
+        const target=$("serviceRecipientRows"),sum=$("serviceRecipientSummary");
+        if(!target||!sum)return;
+        const ready=rows.filter(r=>r.validation_status!=="missing").length;
+        const missing=rows.length-ready;
+        sum.textContent=rows.length?`${rows.length} контактів · готові ${ready}${missing?` · без контакту ${missing}`:""}`:"Список не підготовлено";
+        target.innerHTML=rows.length?rows.map(r=>`<tr><td>${esc(r.name||"—")}</td><td>${esc(r.email||"—")}</td><td>${esc(r.phone||"—")}</td><td>${esc(r.delivery_channel||"—")}</td><td><span class="mini ${r.validation_status==="ready"?"ok":r.validation_status==="manual"?"warn":"red"}">${esc(r.validation_status||"—")}</span></td></tr>`).join(""):'<tr><td colspan="5" class="meta">Одержувачі ще не підготовлені.</td></tr>';
+      }
+      async function savePreparedServiceRecipients(messageId){
+        if(!messageId||!state.recipientSchemaReady)return;
+        await sb(`service_message_recipients?service_message_id=eq.${encodeURIComponent(messageId)}`,{method:"DELETE"});
+        const rows=(state.preparedServiceRecipients||[]).map(r=>({service_message_id:messageId,name:r.name||null,email:r.email||null,phone:r.phone||null,source:r.source||"manual",source_order_id:r.source_order_id||null,source_seance_id:r.source_seance_id||null,delivery_channel:r.delivery_channel||null,validation_status:r.validation_status||"ready",delivery_status:"prepared",metadata:{}}));
+        if(rows.length) await sb("service_message_recipients",{method:"POST",body:JSON.stringify(rows)});
+      }
+      async function prepareServiceRecipients(){
+        const raw=await resolveServiceRecipients();
+        state.preparedServiceRecipients=dedupeServiceRecipients(raw);
+        renderServiceRecipients();
+        const savedId=await saveServiceMessage("draft");
+        await savePreparedServiceRecipients(savedId);
+        await loadAll();
+        const saved=state.serviceMessages.find(x=>String(x.id)===String(savedId));
+        if(saved) fillServiceMessage(saved);
+        setMessage(`Підготовлено ${state.preparedServiceRecipients.length} унікальних одержувачів.`,"ok");
+      }
+      async function copyServiceRecipients(){
+        const text=(state.preparedServiceRecipients||[]).map(r=>[r.name,r.email,r.phone].filter(Boolean).join(" | ")).join("\n");
+        if(!text) throw new Error("Список одержувачів порожній.");
+        await navigator.clipboard.writeText(text);setMessage("Список одержувачів скопійовано.","ok");
+      }
+      function exportServiceRecipients(){
+        const rows=state.preparedServiceRecipients||[];if(!rows.length)throw new Error("Список одержувачів порожній.");
+        const q=v=>`"${String(v||"").replace(/"/g,'""')}"`;
+        const csv="\ufeff"+[["Ім’я","Email","Телефон","Канал","Стан"],...rows.map(r=>[r.name,r.email,r.phone,r.delivery_channel,r.validation_status])].map(a=>a.map(q).join(";")).join("\r\n");
+        const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download=`service-recipients-${Date.now()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+      }
+      function clearPreparedServiceRecipients(){state.preparedServiceRecipients=[];renderServiceRecipients();}
+
       function renderServicePreview() {
         const target = $("servicePreview");
         if (!target) return;
@@ -3249,7 +3391,7 @@
       }
       async function saveServiceMessage(statusOverride = "") {
         if (!state.serviceSchemaReady)
-          throw new Error("Спочатку виконайте SQL V1.7.");
+          throw new Error("Спочатку виконайте SQL V1.8.1.");
         if (!state.currentVenue) throw new Error("Оберіть майданчик.");
         const id = $("serviceMessageId").value || null;
         const status = statusOverride || $("serviceStatus").value || "draft";
@@ -3270,6 +3412,10 @@
           target_url: $("serviceTargetUrl").value,
           audience_segment: $("serviceAudience").value,
           recipients_text: $("serviceRecipients").value,
+          recipient_count: (state.preparedServiceRecipients || []).length,
+          delivery_mode: $("serviceDeliveryMode").value,
+          scheduled_at: isoOrNull($("serviceScheduledAt").value),
+          owner_note: $("serviceOwnerNote").value || null,
           reason: $("serviceReason").value,
           status,
           event_snapshot: serviceSnapshot(),
@@ -3307,12 +3453,14 @@
           (x) => String(x.id) === String(savedId),
         );
         if (saved) fillServiceMessage(saved);
+        if (state.recipientSchemaReady && (state.preparedServiceRecipients || []).length) await savePreparedServiceRecipients(savedId);
         setMessage(
           status === "sent"
             ? "Службове повідомлення позначено надісланим."
             : "Службове повідомлення збережено.",
           "ok",
         );
+        return savedId;
       }
       async function deleteServiceMessage() {
         const id = $("serviceMessageId").value;
@@ -3398,7 +3546,7 @@
       }
       async function saveServiceTemplate() {
         if (!state.serviceSchemaReady)
-          throw new Error("Спочатку виконайте SQL V1.7.");
+          throw new Error("Спочатку виконайте SQL V1.8.1.");
         if (!state.currentVenue) throw new Error("Оберіть майданчик.");
         const current = state.serviceTemplates.find(
           (x) => String(x.id) === String($("serviceTemplateId").value),
@@ -3456,7 +3604,7 @@
         if (badge) {
           badge.textContent = state.serviceSchemaReady
             ? "Службова схема: підключено"
-            : "Службова схема: потрібен SQL V1.7";
+            : "Службова схема: потрібен SQL V1.8.1";
           badge.className =
             "badge " + (state.serviceSchemaReady ? "ok" : "warn");
         }
@@ -6220,11 +6368,24 @@
           state.serviceMessages = await sb(
             "service_messages?select=*&order=updated_at.desc",
           );
+          try {
+            state.serviceRecipients = await sb("service_message_recipients?select=*&order=created_at.asc");
+            state.serviceDeliveries = await sb("service_delivery_log?select=*&order=created_at.desc");
+            state.recipientSchemaReady = true;
+          } catch (recipientError) {
+            state.serviceRecipients = [];
+            state.serviceDeliveries = [];
+            state.recipientSchemaReady = false;
+            console.warn("V1.8.1 recipient schema:", recipientError);
+          }
         } catch (e) {
           state.serviceSchemaReady = false;
           state.serviceTemplates = [];
           state.serviceMessages = [];
-          console.warn("V1.7 service schema:", e);
+          state.serviceRecipients = [];
+          state.serviceDeliveries = [];
+          state.recipientSchemaReady = false;
+          console.warn("V1.8.1 service schema:", e);
         }
         state.history = await loadOptional(
           "content_activity_log?select=*&order=created_at.desc&limit=300",
@@ -6665,6 +6826,10 @@
       bind("deleteServiceMessageBtn", "click", deleteServiceMessage);
       bind("newServiceTemplateBtn", "click", clearServiceTemplate);
       bind("saveServiceTemplateBtn", "click", saveServiceTemplate);
+      bind("prepareServiceRecipientsBtn", "click", prepareServiceRecipients);
+      bind("copyServiceRecipientsBtn", "click", copyServiceRecipients);
+      bind("exportServiceRecipientsBtn", "click", exportServiceRecipients);
+      bind("clearServiceRecipientsBtn", "click", clearPreparedServiceRecipients);
       bind("deleteServiceTemplateBtn", "click", deleteServiceTemplate);
       $("serviceMessageSearch")?.addEventListener(
         "input",
