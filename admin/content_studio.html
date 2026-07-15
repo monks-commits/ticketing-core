@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VA Content Studio V1.7.3.1</title>
+    <title>VA Content Studio V1.8</title>
     <style>
       :root {
         --bg: #061426;
@@ -706,7 +706,7 @@
       }
 
 
-      /* ===== VA CONTENT STUDIO V1.7.3.1 · CREATIVE CHANNEL COMPOSER ===== */
+      /* ===== VA CONTENT STUDIO V1.8 · CHANNEL CABINETS + FINISHED GOODS WAREHOUSE ===== */
       #composerDesktopWarning { display:none; }
       .cabinet-layout {
         display:grid;
@@ -833,6 +833,42 @@
         }
       }
 
+      .warehouse-breadcrumb {
+        display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+        padding:12px 14px; margin:12px 0; border:1px solid var(--line);
+        border-radius:14px; background:#081b30; font-weight:900;
+      }
+      .warehouse-breadcrumb .step { display:inline-flex; align-items:center; gap:8px; }
+      .warehouse-breadcrumb .step:not(:last-child)::after { content:"→"; color:var(--muted); }
+      .warehouse-filter-grid {
+        display:grid; grid-template-columns:1.35fr repeat(5,minmax(145px,.72fr));
+        gap:10px; align-items:end;
+      }
+      .warehouse-summary { display:flex; gap:8px; flex-wrap:wrap; margin:2px 0 14px; }
+      .warehouse-layout { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(390px,.85fr); gap:16px; align-items:start; }
+      .warehouse-detail { position:sticky; top:12px; border:1px solid var(--line); border-radius:16px; background:#081b30; padding:14px; max-height:calc(100vh - 28px); overflow:auto; }
+      .warehouse-seance-group { border:1px solid var(--line); border-radius:16px; background:#091d33; margin-bottom:14px; overflow:hidden; }
+      .warehouse-seance-head { display:flex; justify-content:space-between; gap:10px; padding:13px 15px; background:#102b49; align-items:center; flex-wrap:wrap; }
+      .warehouse-channel-group { padding:13px 14px; border-top:1px solid var(--line); }
+      .warehouse-channel-head { display:flex; gap:8px; align-items:center; justify-content:space-between; margin-bottom:10px; }
+      .warehouse-card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; }
+      .warehouse-card { border:1px solid var(--line); border-radius:14px; background:#071a2f; padding:11px; cursor:pointer; }
+      .warehouse-card:hover, .warehouse-card.active { border-color:var(--blue); box-shadow:0 0 0 1px var(--blue) inset; }
+      .warehouse-card .preview-media { aspect-ratio:4/3; border-radius:10px; overflow:hidden; background:#020811; margin-bottom:9px; }
+      .warehouse-card .preview-media img, .warehouse-card .preview-media video { width:100%; height:100%; object-fit:contain; }
+      .warehouse-card h4 { margin:0 0 7px; line-height:1.25; }
+      .warehouse-detail-media { background:#020811; border-radius:12px; overflow:hidden; margin-bottom:12px; }
+      .warehouse-detail-media img, .warehouse-detail-media video { width:100%; max-height:520px; display:block; object-fit:contain; }
+      .warehouse-publication { white-space:pre-wrap; line-height:1.5; border:1px solid var(--line); border-radius:12px; padding:12px; background:#061426; margin:10px 0; }
+      .warehouse-detail .code { overflow-wrap:anywhere; }
+      .warehouse-status-ready, .warehouse-status-approved { background:#17613e; }
+      .warehouse-status-published { background:#2f6d91; }
+      .warehouse-status-archived { background:#555; }
+      @media (max-width:1450px) {
+        .warehouse-filter-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .warehouse-layout { grid-template-columns:minmax(0,1fr) 390px; }
+      }
+
     </style>
   </head>
   <body>
@@ -840,10 +876,10 @@
       <header class="hero">
         <div class="hero-row">
           <div>
-            <h1>VA Content Studio V1.7.3.1</h1>
+            <h1>VA Content Studio V1.8</h1>
             <div class="lead">
-              Майданчик → проєкт → виробництво → бібліотека → готовий проєкт →
-              кабінет каналу → публікація.
+              Майданчик → проєкт → бібліотека → виробництво → кабінет каналу →
+              склад готової продукції → історія.
             </div>
           </div>
           <div class="statusbar">
@@ -906,17 +942,17 @@
                 <button class="tab-btn" data-project-tab="seances">
                   Сеанси
                 </button>
-                <button class="tab-btn" data-project-tab="production">
-                  Виробництво
-                </button>
                 <button class="tab-btn" data-project-tab="library">
                   Бібліотека
                 </button>
-                <button class="tab-btn" data-project-tab="ready">
-                  Готовий проєкт
+                <button class="tab-btn" data-project-tab="production">
+                  Виробництво
                 </button>
                 <button class="tab-btn" data-project-tab="cabinets">
                   Кабінети каналів
+                </button>
+                <button class="tab-btn" data-project-tab="warehouse">
+                  Склад готової продукції
                 </button>
                 <button class="tab-btn" data-project-tab="history">
                   Історія
@@ -1191,9 +1227,10 @@
 
               <div class="subpanel" id="project-tab-library">
                 <div class="notice">
-                  Бібліотека проєкту містить вихідні й готові файли, а також
-                  затверджені тексти за каналами. Рамки, логотипи та постійні
-                  контакти зберігаються окремо в бібліотеці майданчика.
+                  Бібліотека проєкту містить вихідні, робочі та затверджені
+                  матеріали для складання: афіші, відео, фото, аудіо, адаптації
+                  та тексти. Фінальні публікаційні комплекти зберігаються тільки
+                  у «Складі готової продукції».
                 </div>
                 <div class="upload-drop">
                   <div class="grid-3">
@@ -1328,8 +1365,10 @@
 
               <div class="subpanel" id="project-tab-cabinets">
                 <div class="notice">
-                  Кабінет каналу — це творча фінальна збірка у жорсткому форматі отримувача. Оберіть візуал, фон і фірмові елементи, вільно скомпонуйте одну або дві зони та експортуйте готовий PNG або MP4. Разом із
-                  фізичним файлом зберігається редагований макет для нового сеансу.
+                  Кабінет каналу збирає готову публікацію повністю: медіа,
+                  заголовок, текст, дату, час, майданчик, ціну, CTA, посилання
+                  та хештеги. Зовнішній формат отримувача жорсткий, а композиція
+                  всередині вільна й підпорядкована фірмовому стилю майданчика.
                 </div>
                 <div class="grid-2">
                   <div class="field">
@@ -1545,14 +1584,15 @@
                       <div class="composer-sticky-actions">
                         <div class="toolbar composer-toolbar">
                           <button class="btn" id="composerResetBtn" type="button">Скинути макет</button>
-                          <button class="btn green" id="exportPngBtn" type="button">Експортувати PNG</button>
-                          <button class="btn violet" id="exportMp4Btn" type="button">Експортувати MP4</button>
+                          <button class="btn blue" id="buildFinalPackageBtn" type="button">Зібрати готову публікацію</button>
+                          <button class="btn green" id="exportPngBtn" type="button">Зібрати комплект PNG</button>
+                          <button class="btn violet" id="exportMp4Btn" type="button">Зібрати комплект MP4</button>
                         </div>
                         <div id="composerProgress"></div>
                       </div>
                     </section>
                     <div class="toolbar">
-                      <button class="btn green" id="saveCabinetBtn">Зберегти макет</button>
+                      <button class="btn green" id="saveCabinetBtn">Зберегти чернетку макета</button>
                       <button class="btn violet" id="approveCabinetBtn">Затвердити</button>
                       <button class="btn" id="copyCabinetTextBtn">Копіювати готовий текст</button>
                       <button class="btn" id="openCabinetMediaBtn">Відкрити медіа</button>
@@ -1578,7 +1618,7 @@
                     </div>
                   </div>
                 </div>
-                <section class="compact hidden" id="readyGoodsSection" style="margin-top:14px">
+                <section class="compact hidden" id="readyGoodsSection" style="display:none !important">
                   <div class="section-title">
                     <div><h3 class="no-margin">Склад готової продукції цього сеансу</h3><div class="meta">Фізичні PNG / MP4, створені у вибраному кабінеті.</div></div>
                   </div>
@@ -1586,7 +1626,35 @@
                 </section>
               </div>
 
-              <div class="subpanel" id="project-tab-ready">
+
+              <div class="subpanel" id="project-tab-warehouse">
+                <div class="notice">
+                  Окремий склад фінальних публікаційних комплектів. Тут немає
+                  вихідних файлів: лише готові PNG / MP4 разом із текстом,
+                  хештегами, посиланням, макетом, версією та статусом.
+                </div>
+                <div class="warehouse-breadcrumb" id="warehouseBreadcrumb"></div>
+                <div id="warehouseSchemaWarning" class="notice warn hidden">
+                  Виконайте SQL-файл V1.8, щоб створити окрему таблицю складу.
+                </div>
+                <div class="warehouse-filter-grid">
+                  <div class="field"><label>Пошук</label><input id="warehouseSearch" placeholder="Проєкт, канал, файл, текст" /></div>
+                  <div class="field"><label>Сеанс</label><select id="warehouseSeanceFilter"><option value="">Усі сеанси</option></select></div>
+                  <div class="field"><label>Одержувач / канал</label><select id="warehouseChannelFilter"><option value="">Усі канали</option></select></div>
+                  <div class="field"><label>Формат</label><select id="warehouseFormatFilter"><option value="">Усі формати</option></select></div>
+                  <div class="field"><label>Файл</label><select id="warehouseFileFilter"><option value="">PNG і MP4</option><option value="png">PNG</option><option value="mp4">MP4</option></select></div>
+                  <div class="field"><label>Статус</label><select id="warehouseStatusFilter"><option value="">Усі статуси</option><option value="draft">Чернетка</option><option value="ready">Готово</option><option value="approved">Затверджено</option><option value="published">Опубліковано</option><option value="archived">Архів</option></select></div>
+                </div>
+                <div class="warehouse-summary" id="warehouseSummary"></div>
+                <div class="warehouse-layout">
+                  <div id="warehouseGroups"></div>
+                  <aside class="warehouse-detail" id="warehouseDetail">
+                    <div class="empty">Оберіть готовий комплект.</div>
+                  </aside>
+                </div>
+              </div>
+
+              <div class="subpanel" id="project-tab-ready" style="display:none !important">
                 <div class="notice">
                   Готовий проєкт фізично зберігається як повторно
                   використовуваний майстер-комплект. Новий випуск створюється
@@ -2034,6 +2102,9 @@
         releases: [],
         publications: [],
         publicationLog: [],
+        finalOutputs: [],
+        warehouseReady: false,
+        warehouseSelectedId: null,
         history: [],
         serviceTemplates: [],
         serviceMessages: [],
@@ -3593,6 +3664,7 @@
         if (name === "production") renderProduction();
         if (name === "library") renderProjectLibrary();
         if (name === "cabinets") renderCabinets();
+        if (name === "warehouse") renderWarehouse();
         if (name === "ready") renderReady();
         if (name === "history") renderHistory();
       }
@@ -3698,6 +3770,7 @@
         renderProjectLibrary();
         renderReady();
         renderCabinets();
+        renderWarehouse();
         renderHistory();
       }
       async function saveProject() {
@@ -4253,6 +4326,7 @@
         const rows = state.projectAssets.filter(
           (a) =>
             String(a.project_id) === String(selectedProjectId()) &&
+            a.asset_type !== "ready_publication" &&
             (!q || `${a.title} ${a.file_name}`.toLowerCase().includes(q)) &&
             (!type || a.asset_type === type) &&
             (!ch || a.channel === ch) &&
@@ -4966,37 +5040,56 @@
         );
       }
       function renderReadyGoods() {
-        const sec=$("readyGoodsSection"), grid=$("readyGoodsGrid");
-        if (!sec || !grid || state.currentChannel === "site") { if(sec) sec.classList.add("hidden"); return; }
-        sec.classList.remove("hidden");
-        const rows=composerReadyGoods();
-        grid.innerHTML = rows.length ? rows.map((a)=>`<div class="asset-card ready-product-card"><div class="preview-media">${assetPreview(a)}</div><h4>${esc(a.title)}</h4><div class="asset-tags"><span class="mini ok">готово</span><span class="mini">${esc(a.aspect_ratio||"")}</span><span class="mini">${esc((a.mime_type||"").split("/").pop()||"")}</span></div><div class="actions"><button class="btn small" data-open-project-asset="${esc(a.id)}">Відкрити</button><a class="btn green small" href="${esc(a.public_url)}" download>Завантажити</a><button class="btn red small" data-delete-project-asset="${esc(a.id)}">Видалити</button></div></div>`).join("") : '<div class="empty">Готових фізичних файлів для цього розміщення ще немає.</div>';
+        const sec = $("readyGoodsSection");
+        if (sec) sec.classList.add("hidden");
       }
       function reusablePublicationMetadata(meta) {
         const x = JSON.parse(JSON.stringify(meta || {}));
         ["final_asset_id","final_asset_url","export_format","exported_at","export_file_name"].forEach((k)=>delete x[k]);
         return x;
       }
-      function composerFileBase(ext) {
-        const s=currentSeance(), project=safeSlug(state.selectedProject?.title||"project"), ch=safeSlug(state.currentChannel), pl=safeSlug($("cabinetPlacement")?.value||"default"), sid=safeSlug(s?.id||"seance");
-        return `${project}-${sid}-${ch}-${pl}-${Date.now()}.${ext}`;
+      function nextFinalOutputVersion(format) {
+        const s = currentSeance(), profile = currentChannelProfile();
+        const rows = state.finalOutputs.filter((x) =>
+          String(x.project_id) === String(selectedProjectId()) &&
+          String(x.seance_id) === String(s?.id || "") &&
+          x.channel === state.currentChannel &&
+          x.placement === ($("cabinetPlacement")?.value || "default") &&
+          x.format_code === (profile.ratio || "custom") &&
+          x.file_kind === format
+        );
+        return Math.max(0, ...rows.map((x) => Number(x.version) || 0)) + 1;
+      }
+      function composerFileBase(ext, version) {
+        const s=currentSeance(), venue=safeSlug(projectVenue(state.selectedProject)||"venue"), project=safeSlug(state.selectedProject?.title||"project"), ch=safeSlug(state.currentChannel), pl=safeSlug($("cabinetPlacement")?.value||"default"), ratio=safeSlug(currentChannelProfile()?.ratio||"custom"), date=safeSlug(`${s?.date||"date"}-${s?.time||"time"}`);
+        return `${venue}__${project}__${date}__${ch}__${pl}__${ratio}__v${version}.${ext}`;
       }
       async function saveReadyProductBlob(blob, format, dimensions, durationSec=null) {
+        if (!state.warehouseReady) throw new Error("Склад V1.8 ще не підключено. Спочатку виконайте SQL-файл з архіву.");
         const s=currentSeance(); if(!s) throw new Error("Оберіть сеанс.");
-        const ext=format==="png"?"png":"mp4", name=composerFileBase(ext), path=`projects/${selectedProjectId()}/ready/${safeSlug(s.id)}/${safeSlug(state.currentChannel)}/${safeSlug($("cabinetPlacement").value)}/${name}`;
+        const profile=currentChannelProfile(), version=nextFinalOutputVersion(format), ext=format==="png"?"png":"mp4", name=composerFileBase(ext,version);
+        const venueSlug=safeSlug(projectVenue(state.selectedProject)||"venue"), projectSlug=safeSlug(state.selectedProject?.title||selectedProjectId()), seanceSlug=safeSlug(`${s.date||"date"}-${s.time||"time"}-${s.id}`);
+        const path=`ready/${venueSlug}/${projectSlug}/${seanceSlug}/${safeSlug(state.currentChannel)}/${safeSlug($("cabinetPlacement").value)}/${name}`;
         const file = new File([blob], name, {type: format==="png"?"image/png":"video/mp4"});
-        const url=await uploadStorage(path,file), settings=collectCompositionSettings(), profile=currentChannelProfile();
-        const rows=await sb("project_media_assets",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({
-          project_id:selectedProjectId(), seance_id:s.id, venue_id:projectVenue(state.selectedProject)||null,
-          source_asset_id:composerSelectedMedia()?.id||null, asset_type:"ready_publication", channel:state.currentChannel,
-          placement:$("cabinetPlacement").value, title:`${CHANNELS[state.currentChannel].label} · ${profile.label} · ${s.date||""} ${s.time||""}`,
-          file_name:name, original_file_name:name, storage_bucket:"content-studio", storage_path:path, public_url:url,
-          mime_type:file.type, width:dimensions.width, height:dimensions.height, duration_sec:durationSec, file_size:file.size,
-          aspect_ratio:profile.ratio, version:1, status:"approved", is_primary:false,
-          notes:`Готовий продукт ${state.currentChannel} / ${$("cabinetPlacement").value}`,
-          approved_at:new Date().toISOString(), metadata:{source:"content_studio_v1_7_3_1_creative_composer",ready_product:true,composition:settings,facts:eventFacts(s),target_url:$("cabinetTargetUrl").value||"",publication_text:publicationParts().finalText}
+        const url=await uploadStorage(path,file), settings=collectCompositionSettings(), parts=publicationParts(), facts=parts.facts || eventFacts(s), fields=collectCabinetMetaFields();
+        const publicationId=await saveCabinet("approved",{final_asset_url:url,export_format:format,exported_at:new Date().toISOString(),export_file_name:name,warehouse_version:version});
+        const rows=await sb("content_final_outputs",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({
+          publication_id:publicationId||null, project_id:selectedProjectId(), seance_id:String(s.id), venue_id:projectVenue(state.selectedProject)||null,
+          channel:state.currentChannel, placement:$("cabinetPlacement").value||"default", format_code:profile.ratio||"custom", file_kind:format,
+          file_url:url, storage_bucket:"content-studio", storage_path:path, file_name:name, mime_type:file.type,
+          width:dimensions.width, height:dimensions.height, duration_sec:durationSec, file_size:file.size,
+          title:`${state.selectedProject?.title||facts.title||"Проєкт"} · ${CHANNELS[state.currentChannel]?.label||state.currentChannel} · ${profile.label}`,
+          subject:parts.subject||"", body_text:$("cabinetBody")?.value||"", publication_text:parts.finalText||"", hashtags:$("cabinetHashtags")?.value?.trim()||"",
+          cta_text:$("cabinetCta")?.value?.trim()||"", target_url:$("cabinetTargetUrl")?.value?.trim()||"",
+          price_label:facts.price||"", event_date_label:[facts.date,facts.time].filter(Boolean).join(" · "), venue_label:facts.venue||venueName(projectVenue(state.selectedProject)),
+          version, status:"ready", layout:settings,
+          metadata:{source:"content_studio_v1_8",recipient:CHANNELS[state.currentChannel]?.label||state.currentChannel,placement_label:profile.label,fields,facts,source_asset_id:composerSelectedMedia()?.id||null,frame_asset_id:composerSelectedFrame()?.id||null}
         })});
-        return rows?.[0] || {id:null, public_url:url, file_name:name};
+        await loadAll();
+        state.warehouseSelectedId=rows?.[0]?.id||null;
+        renderWarehouse();
+        renderCabinets();
+        return rows?.[0] || {id:null,file_url:url,file_name:name,public_url:url};
       }
       function canvasBlob(canvas,type="image/png",quality=1) {
         return new Promise((resolve,reject)=>canvas.toBlob((b)=>b?resolve(b):reject(new Error("Не вдалося створити файл.")),type,quality));
@@ -5013,9 +5106,8 @@
         if(resources.mediaEl instanceof HTMLVideoElement && resources.mediaEl.readyState<2) await new Promise((res,rej)=>{resources.mediaEl.onloadeddata=res;resources.mediaEl.onerror=()=>rej(new Error("Відео не завантажилося."));});
         const canvas=document.createElement("canvas"); canvas.width=dims.width; canvas.height=dims.height; drawComposerFrame(canvas,resources);
         const blob=await canvasBlob(canvas,"image/png");
-        const asset=await saveReadyProductBlob(blob,"png",dims,null);
-        await saveCabinet("approved",{final_asset_id:asset.id||null,final_asset_url:asset.public_url,export_format:"png",exported_at:new Date().toISOString(),export_file_name:asset.file_name});
-        setComposerProgress("PNG створено і збережено на складі готової продукції.","ok");
+        await saveReadyProductBlob(blob,"png",dims,null);
+        setComposerProgress("Готовий комплект PNG з медіа, текстом і макетом збережено на окремому складі.","ok");
       }
       function supportedMp4Mime() {
         if(!window.MediaRecorder) return "";
@@ -5042,10 +5134,84 @@
         video.onended=()=>{cancelAnimationFrame(raf);drawComposerFrame(canvas,resources);recorder.stop();};
         await video.play(); loop(); await stopped; video.muted=true;
         const blob=new Blob(chunks,{type:mime.split(";")[0]||"video/mp4"});
-        const asset=await saveReadyProductBlob(blob,"mp4",dims,Number.isFinite(video.duration)?Math.round(video.duration*100)/100:null);
-        await saveCabinet("approved",{final_asset_id:asset.id||null,final_asset_url:asset.public_url,export_format:"mp4",exported_at:new Date().toISOString(),export_file_name:asset.file_name});
-        setComposerProgress("MP4 створено і збережено на складі готової продукції.","ok");
+        await saveReadyProductBlob(blob,"mp4",dims,Number.isFinite(video.duration)?Math.round(video.duration*100)/100:null);
+        setComposerProgress("Готовий комплект MP4 з медіа, текстом і макетом збережено на окремому складі.","ok");
       }
+
+      function warehouseRows() {
+        if (!state.selectedProject) return [];
+        const q=($("warehouseSearch")?.value||"").trim().toLowerCase(), sid=$("warehouseSeanceFilter")?.value||"", ch=$("warehouseChannelFilter")?.value||"", fmt=$("warehouseFormatFilter")?.value||"", kind=$("warehouseFileFilter")?.value||"", status=$("warehouseStatusFilter")?.value||"";
+        return state.finalOutputs.filter((x)=>
+          String(x.project_id)===String(selectedProjectId()) &&
+          (!sid || String(x.seance_id)===String(sid)) && (!ch || x.channel===ch) && (!fmt || x.format_code===fmt) && (!kind || x.file_kind===kind) && (!status || x.status===status) &&
+          (!q || `${x.title||""} ${x.file_name||""} ${x.channel||""} ${x.placement||""} ${x.publication_text||""}`.toLowerCase().includes(q))
+        ).sort((a,b)=>{
+          const sa=linkedSeances().find((s)=>String(s.id)===String(a.seance_id)), sb_=linkedSeances().find((s)=>String(s.id)===String(b.seance_id));
+          const da=`${sa?.date||""} ${sa?.time||""}`, db=`${sb_?.date||""} ${sb_?.time||""}`;
+          return db.localeCompare(da) || String(a.channel).localeCompare(String(b.channel)) || String(a.placement).localeCompare(String(b.placement)) || (Number(b.version)||0)-(Number(a.version)||0);
+        });
+      }
+      function finalOutputPreview(x, controls=false) {
+        const url=esc(x.file_url||"");
+        if (x.file_kind==="mp4" || String(x.mime_type||"").startsWith("video/")) return `<video ${controls?"controls":"muted preload=metadata"} src="${url}"></video>`;
+        return `<img src="${url}" alt="${esc(x.title||x.file_name||"Готовий файл")}" />`;
+      }
+      function warehouseSeance(x) { return linkedSeances().find((s)=>String(s.id)===String(x?.seance_id)) || state.seances.find((s)=>String(s.id)===String(x?.seance_id)) || null; }
+      function warehouseFullText(x) { return String(x?.publication_text || [x?.subject,x?.body_text,x?.hashtags,x?.target_url].filter(Boolean).join("\n\n") || ""); }
+      function populateWarehouseFilters() {
+        const rows=state.finalOutputs.filter((x)=>String(x.project_id)===String(selectedProjectId()));
+        const preserve=(id,html)=>{const el=$(id); if(!el)return; const keep=el.value; el.innerHTML=html; if([...el.options].some((o)=>o.value===keep))el.value=keep;};
+        preserve("warehouseSeanceFilter",'<option value="">Усі сеанси</option>'+linkedSeances().map((s)=>`<option value="${esc(s.id)}">${esc(seanceLabel(s))}</option>`).join(""));
+        const channels=[...new Set(rows.map((x)=>x.channel).filter(Boolean))].sort();
+        preserve("warehouseChannelFilter",'<option value="">Усі канали</option>'+channels.map((x)=>`<option value="${esc(x)}">${esc(CHANNELS[x]?.label||x)}</option>`).join(""));
+        const formats=[...new Set(rows.map((x)=>x.format_code).filter(Boolean))].sort();
+        preserve("warehouseFormatFilter",'<option value="">Усі формати</option>'+formats.map((x)=>`<option value="${esc(x)}">${esc(x)}</option>`).join(""));
+      }
+      function renderWarehouse() {
+        if(!$("warehouseGroups") || !state.selectedProject) return;
+        $("warehouseSchemaWarning")?.classList.toggle("hidden",state.warehouseReady);
+        $("warehouseBreadcrumb").innerHTML=`<span class="step">${esc(venueName(projectVenue(state.selectedProject)))}</span><span class="step">${esc(state.selectedProject.title||"Проєкт")}</span><span class="step">Сеанси</span><span class="step">Одержувачі</span><span class="step">Готові комплекти</span>`;
+        populateWarehouseFilters();
+        const rows=warehouseRows(), all=state.finalOutputs.filter((x)=>String(x.project_id)===String(selectedProjectId()));
+        const published=all.filter((x)=>x.status==="published").length, ready=all.filter((x)=>["ready","approved"].includes(x.status)).length;
+        $("warehouseSummary").innerHTML=`<span class="mini">Усього: ${all.length}</span><span class="mini ok">Готово: ${ready}</span><span class="mini">Опубліковано: ${published}</span><span class="mini">Показано: ${rows.length}</span>`;
+        if(!state.warehouseReady) { $("warehouseGroups").innerHTML='<div class="empty">Окремий склад ще не створено.</div>'; $("warehouseDetail").innerHTML='<div class="empty">Після виконання SQL тут зʼявляться готові комплекти.</div>'; return; }
+        if(!rows.length){$("warehouseGroups").innerHTML='<div class="empty">Готової продукції за вибраними умовами немає.</div>'; $("warehouseDetail").innerHTML='<div class="empty">Зберіть перший комплект у кабінеті каналу.</div>'; return;}
+        const bySeance=new Map();
+        rows.forEach((x)=>{const key=String(x.seance_id||""); if(!bySeance.has(key))bySeance.set(key,[]); bySeance.get(key).push(x);});
+        $("warehouseGroups").innerHTML=[...bySeance.entries()].map(([sid,seanceRows])=>{
+          const seance=warehouseSeance(seanceRows[0]), byChannel=new Map(); seanceRows.forEach((x)=>{const key=x.channel||"other"; if(!byChannel.has(key))byChannel.set(key,[]);byChannel.get(key).push(x);});
+          return `<section class="warehouse-seance-group"><div class="warehouse-seance-head"><div><b>${esc(seance?seanceLabel(seance):sid)}</b><div class="meta">${esc(venueName(venueKey(seance)||projectVenue(state.selectedProject)))}</div></div><span class="mini">${seanceRows.length} комплектів</span></div>${[...byChannel.entries()].map(([channel,channelRows])=>`<div class="warehouse-channel-group"><div class="warehouse-channel-head"><h3 class="no-margin">${esc(CHANNELS[channel]?.label||channel)}</h3><span class="mini">${channelRows.length}</span></div><div class="warehouse-card-grid">${channelRows.map((x)=>`<article class="warehouse-card ${String(state.warehouseSelectedId)===String(x.id)?"active":""}" data-warehouse-select="${esc(x.id)}"><div class="preview-media">${finalOutputPreview(x)}</div><h4>${esc(x.placement||"default")} · ${esc(x.format_code||"custom")}</h4><div class="asset-tags"><span class="mini warehouse-status-${esc(x.status||"ready")}">${esc(x.status||"ready")}</span><span class="mini">${esc(String(x.file_kind||"").toUpperCase())}</span><span class="mini">v${esc(x.version||1)}</span></div><div class="meta">${esc(x.file_name||"")}</div></article>`).join("")}</div></div>`).join("")}</section>`;
+        }).join("");
+        let selected=rows.find((x)=>String(x.id)===String(state.warehouseSelectedId)); if(!selected){selected=rows[0];state.warehouseSelectedId=selected.id;}
+        renderWarehouseDetail(selected);
+      }
+      function renderWarehouseDetail(x) {
+        if(!x){$("warehouseDetail").innerHTML='<div class="empty">Оберіть готовий комплект.</div>';return;}
+        const s=warehouseSeance(x), text=warehouseFullText(x);
+        $("warehouseDetail").innerHTML=`<div class="warehouse-detail-media">${finalOutputPreview(x,true)}</div><h3>${esc(x.title||x.file_name||"Готовий комплект")}</h3><div class="asset-tags"><span class="mini">${esc(CHANNELS[x.channel]?.label||x.channel)}</span><span class="mini">${esc(x.placement||"default")}</span><span class="mini">${esc(x.format_code||"custom")}</span><span class="mini">v${esc(x.version||1)}</span><span class="mini warehouse-status-${esc(x.status||"ready")}">${esc(x.status||"ready")}</span></div><div class="meta" style="margin-top:8px">${esc(venueName(x.venue_id))} → ${esc(state.selectedProject?.title||"")} → ${esc(s?seanceLabel(s):x.seance_id||"")}</div><div class="warehouse-publication">${esc(text||"Текст публікації не збережено.")}</div><div class="code">${esc(x.target_url||"")}</div><div class="field" style="margin-top:10px"><label>Посилання на опублікований матеріал</label><input id="warehousePublishedUrl" value="${esc(x.published_url||"")}" placeholder="Вставте після публікації" /></div><div class="actions"><a class="btn green small" href="${esc(x.file_url||"")}" download>Завантажити ${esc(String(x.file_kind||"").toUpperCase())}</a><button class="btn small" data-warehouse-copy="${esc(x.id)}">Копіювати публікацію</button><button class="btn blue small" data-warehouse-edit="${esc(x.id)}">Відкрити у кабінеті</button><button class="btn gold small" data-warehouse-publish="${esc(x.id)}">Позначити опублікованим</button><button class="btn small" data-warehouse-archive="${esc(x.id)}">В архів</button><button class="btn red small" data-warehouse-delete="${esc(x.id)}">Видалити</button></div>`;
+      }
+      async function updateWarehouseStatus(id,status) {
+        const row=state.finalOutputs.find((x)=>String(x.id)===String(id)); if(!row)return;
+        const now=new Date().toISOString(), payload={status,updated_at:now};
+        if(status==="published"){payload.published_at=now;payload.published_url=$("warehousePublishedUrl")?.value?.trim()||row.published_url||null;}
+        await sb(`content_final_outputs?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",body:JSON.stringify(payload)});
+        if(row.publication_id) await sb(`channel_publications?id=eq.${encodeURIComponent(row.publication_id)}`,{method:"PATCH",body:JSON.stringify({status,published_at:status==="published"?now:null,published_url:payload.published_url||null,updated_at:now})});
+        await logActivity(status==="published"?"Опубліковано готовий комплект":"Змінено статус готового комплекту",{area:"publication",entity_type:"content_final_output",entity_id:id,details:{status,channel:row.channel,seance_id:row.seance_id,version:row.version}});
+        await loadAll(); state.warehouseSelectedId=id; renderWarehouse();
+      }
+      async function deleteWarehouseOutput(id) {
+        const row=state.finalOutputs.find((x)=>String(x.id)===String(id)); if(!row)return; if(!confirm(`Видалити готовий комплект v${row.version}?`))return;
+        try{await fetch(`${SUPABASE_URL}/storage/v1/object/${encodeURIComponent(row.storage_bucket||"content-studio")}/${String(row.storage_path||"").split("/").map(encodeURIComponent).join("/")}`,{method:"DELETE",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});}catch{}
+        await deleteRow("content_final_outputs",id); await loadAll(); state.warehouseSelectedId=null; renderWarehouse();
+      }
+      function openWarehouseInCabinet(id) {
+        const row=state.finalOutputs.find((x)=>String(x.id)===String(id)); if(!row)return;
+        state.currentChannel=row.channel||"facebook"; showProjectTab("cabinets"); $("cabinetSeance").value=row.seance_id; renderCabinets();
+        if([...$("cabinetPlacement").options].some((o)=>o.value===row.placement)) $("cabinetPlacement").value=row.placement;
+        loadCabinetPublication();
+      }
+
       function publicationMetadata(p) {
         const m = p?.metadata;
         return m && typeof m === "object" ? m : {};
@@ -6027,6 +6193,14 @@
           state.publicationLog = await sb(
             "channel_publication_log?select=*&order=created_at.desc",
           );
+          try {
+            state.finalOutputs = await sb("content_final_outputs?select=*&order=created_at.desc");
+            state.warehouseReady = true;
+          } catch (warehouseError) {
+            state.finalOutputs = [];
+            state.warehouseReady = false;
+            console.warn("V1.8 warehouse schema:", warehouseError);
+          }
         } catch (e) {
           state.schemaReady = false;
           state.venueAssets = [];
@@ -6034,6 +6208,8 @@
           state.releases = [];
           state.publications = [];
           state.publicationLog = [];
+          state.finalOutputs = [];
+          state.warehouseReady = false;
           console.warn("V1.5 schema:", e);
         }
         state.serviceSchemaReady = true;
@@ -6061,7 +6237,7 @@
         populateServiceTypeAndChannelSelects();
         const types = [
           ...new Set(
-            state.projectAssets.map((x) => x.asset_type).filter(Boolean),
+            state.projectAssets.map((x) => x.asset_type).filter((x) => x && x !== "ready_publication"),
           ),
         ];
         $("libraryTypeFilter").innerHTML =
@@ -6078,11 +6254,11 @@
             state.projects.find((x) => String(x.id) === String(id)) || null;
           if (state.selectedProject) fillProject(state.selectedProject);
         }
-        $("schemaBadge").textContent = state.schemaReady
-          ? "Схема БД: підключено"
-          : "Схема БД: виконайте V1.5 SQL";
-        $("schemaBadge").className =
-          "badge " + (state.schemaReady ? "ok" : "warn");
+        const fullSchemaReady = state.schemaReady && state.warehouseReady;
+        $("schemaBadge").textContent = fullSchemaReady
+          ? "Схема БД: V1.8 підключено"
+          : "Схема БД: виконайте V1.8 SQL";
+        $("schemaBadge").className = "badge " + (fullSchemaReady ? "ok" : "warn");
       }
       function bind(id, event, fn) {
         $(id)?.addEventListener(event, async () => {
@@ -6232,6 +6408,18 @@
             await approveRelease(ar.dataset.approveRelease);
             return;
           }
+          const ws = e.target.closest("[data-warehouse-select]");
+          if (ws) { state.warehouseSelectedId=ws.dataset.warehouseSelect; renderWarehouse(); return; }
+          const wc = e.target.closest("[data-warehouse-copy]");
+          if (wc) { const row=state.finalOutputs.find((x)=>String(x.id)===String(wc.dataset.warehouseCopy)); await navigator.clipboard.writeText(warehouseFullText(row)); setMessage("Готову публікацію скопійовано.","ok"); return; }
+          const we = e.target.closest("[data-warehouse-edit]");
+          if (we) { openWarehouseInCabinet(we.dataset.warehouseEdit); return; }
+          const wp = e.target.closest("[data-warehouse-publish]");
+          if (wp) { await updateWarehouseStatus(wp.dataset.warehousePublish,"published"); return; }
+          const wa = e.target.closest("[data-warehouse-archive]");
+          if (wa) { await updateWarehouseStatus(wa.dataset.warehouseArchive,"archived"); return; }
+          const wd = e.target.closest("[data-warehouse-delete]");
+          if (wd) { await deleteWarehouseOutput(wd.dataset.warehouseDelete); return; }
           const sm = e.target.closest("[data-service-message-id]");
           if (sm) {
             fillServiceMessage(
@@ -6353,6 +6541,7 @@
           renderProjectLibrary,
         ),
       );
+      ["warehouseSearch","warehouseSeanceFilter","warehouseChannelFilter","warehouseFormatFilter","warehouseFileFilter","warehouseStatusFilter"].forEach((id)=>$(id)?.addEventListener(id==="warehouseSearch"?"input":"change",renderWarehouse));
       bind("uploadVenueAssetsBtn", "click", uploadVenueAssets);
       bind("reloadVenueLibraryBtn", "click", loadAll);
       $("assetType")?.addEventListener("change", () => {
@@ -6422,6 +6611,7 @@
       document.addEventListener("pointermove",(e)=>{if(!composerDrag)return;const nx=Math.max(-80,Math.min(80,composerDrag.vx+(e.clientX-composerDrag.x)/composerDrag.w*100)),ny=Math.max(-80,Math.min(80,composerDrag.vy+(e.clientY-composerDrag.y)/composerDrag.h*100));$("composerX").value=Math.round(nx);$("composerY").value=Math.round(ny);updateComposerLabels();renderComposerPreview();});
       document.addEventListener("pointerup",()=>{composerDrag=null;});
       window.addEventListener("resize",()=>{if(state.currentChannel!=="site")renderComposerPreview();});
+      bind("buildFinalPackageBtn","click",async()=>{try{const media=composerSelectedMedia();if(!media)throw new Error("Оберіть візуал.");if(assetKind(media)==="video")await exportComposerMp4();else await exportComposerPng();}catch(e){setComposerProgress(e.message||String(e),"bad");throw e}});
       bind("exportPngBtn","click",async()=>{try{await exportComposerPng()}catch(e){setComposerProgress(e.message||String(e),"bad");throw e}});
       bind("exportMp4Btn","click",async()=>{try{await exportComposerMp4()}catch(e){setComposerProgress(e.message||String(e),"bad");throw e}});
       bind("saveCabinetBtn", "click", () => saveCabinet());
