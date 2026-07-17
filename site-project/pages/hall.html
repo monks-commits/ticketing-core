@@ -1343,6 +1343,54 @@ body.va-theme-active .event-card{
   z-index:1 !important;
 }
 
+
+/* ===== VA STATIC BACKGROUND: HALL WITHOUT RECTANGULAR CANVAS ===== */
+
+/*
+  У статичному режимі схема лежить безпосередньо над фоновим зображенням.
+  Прямокутна "скляна" підкладка та розмиття під схемою вимикаються.
+  Ліва і права службові картки залишаються без змін.
+*/
+body.va-static-bg-active .ticket-hall-center,
+body.va-static-bg-active .hall-shell,
+body.va-static-bg-active .hall-scroll,
+body.va-static-bg-active .hall-inner,
+body.va-static-bg-active #hall-root,
+body.va-static-bg-active .hall-section--coordinate,
+body.va-static-bg-active .coordinate-viewport,
+body.va-static-bg-active .coordinate-canvas{
+  background:transparent !important;
+  border-color:transparent !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+
+body.va-static-bg-active .hall-shell{
+  border:none !important;
+  overflow:visible !important;
+}
+
+body.va-static-bg-active .hall-scroll{
+  border-radius:0 !important;
+}
+
+body.va-static-bg-active .coordinate-canvas{
+  border-radius:0 !important;
+}
+
+/* Заголовок схеми також не створює окремої прямокутної плашки. */
+body.va-static-bg-active .hall-shell-head{
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+}
+
+/* Прибираємо фіолетово-синій декоративний градієнт старого відеорежиму. */
+body.va-static-bg-active::before{
+  display:none !important;
+}
+
 /* ===== VA MOBILE HALL FINAL CLEAN ===== */
 
 @media (max-width:768px){
@@ -2227,6 +2275,8 @@ function renderPageVideoBackground(){
   document.querySelector("#va-theme-video-bg")?.remove();
   document.querySelector("#va-theme-overlay-bg")?.remove();
 
+  document.body.classList.remove("va-static-bg-active");
+
   const imageUrl = HALL_VISUAL_CONFIG?.image || "";
   const useStaticImage =
     Boolean(imageUrl) &&
@@ -2236,6 +2286,8 @@ function renderPageVideoBackground(){
 
   // Якщо статичний фон увімкнено, він має пріоритет над відеофоном.
   if (useStaticImage) {
+    document.body.classList.add("va-static-bg-active");
+
     const img = document.createElement("img");
     img.id = "va-theme-image-bg";
     img.src = imageUrl;
