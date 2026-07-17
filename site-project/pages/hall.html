@@ -1379,6 +1379,20 @@ body.va-static-bg-active .coordinate-canvas{
   border-radius:0 !important;
 }
 
+/*
+  Схеми нового формату Hall Studio рендеряться не через
+  .coordinate-canvas, а через #hall-viewer-canvas.
+  Саме він створював видиму прямокутну рамку, округлення і тінь.
+*/
+body.va-static-bg-active .hall-viewer-section,
+body.va-static-bg-active #hall-viewer-canvas{
+  background:transparent !important;
+  border:none !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  outline:none !important;
+}
+
 /* Заголовок схеми також не створює окремої прямокутної плашки. */
 body.va-static-bg-active .hall-shell-head{
   background:transparent !important;
