@@ -2167,7 +2167,28 @@ async function loadHallVisualConfig(hallFile){
   poster: v.poster_url || "",
   livePoster: v.live_poster_url || "",
   livePosterDuration: Number(v.live_poster_duration || 6200),
+
+  // Статичний фон
+  image: v.background_image_url || "",
+  imageEnabled: v.background_image_enabled === true,
+  imageOpacity: Number(v.background_image_opacity ?? 1),
+  imageScale: Number(v.background_image_scale ?? 1),
+  imageX: Number(v.background_image_x ?? 0),
+  imageY: Number(v.background_image_y ?? 0),
+  imageFit: v.background_image_fit || "cover",
+
+  // Загальне затемнення фону
+  overlayOpacity: Number(v.background_overlay_opacity ?? 0),
+
+  // Відеофон
   video: v.background_video_url || "",
+  videoOpacity: Number(v.background_video_opacity ?? 1),
+  videoScale: Number(v.background_video_scale ?? 1),
+  videoX: Number(v.background_video_x ?? 0),
+  videoY: Number(v.background_video_y ?? 0),
+  videoFit: v.background_video_fit || "cover",
+  videoLoop: v.background_video_loop !== false,
+  videoMuted: v.background_video_muted !== false,
 
   eventText: v.event_text || "",
   ticketText: v.ticket_text || "",
@@ -2202,34 +2223,80 @@ async function loadHallVisualConfig(hallFile){
 }
 
 function renderPageVideoBackground(){
-
   document.querySelector("#va-theme-image-bg")?.remove();
+  document.querySelector("#va-theme-video-bg")?.remove();
   document.querySelector("#va-theme-overlay-bg")?.remove();
 
   const imageUrl = HALL_VISUAL_CONFIG?.image || "";
+  const useStaticImage =
+    Boolean(imageUrl) &&
+    HALL_VISUAL_CONFIG?.imageEnabled === true;
 
-  if (imageUrl && HALL_VISUAL_CONFIG?.imageEnabled !== false) {
+  let mediaLayer = null;
+
+  // Якщо статичний фон увімкнено, він має пріоритет над відеофоном.
+  if (useStaticImage) {
     const img = document.createElement("img");
     img.id = "va-theme-image-bg";
     img.src = imageUrl;
+    img.alt = "";
 
     img.style.position = "fixed";
     img.style.left = "50%";
     img.style.top = "50%";
-    img.style.width = (100 * (HALL_VISUAL_CONFIG?.imageScale || 1)) + "vw";
-    img.style.height = (100 * (HALL_VISUAL_CONFIG?.imageScale || 1)) + "vh";
+    img.style.width =
+      (100 * Number(HALL_VISUAL_CONFIG?.imageScale || 1)) + "vw";
+    img.style.height =
+      (100 * Number(HALL_VISUAL_CONFIG?.imageScale || 1)) + "vh";
     img.style.transform =
-      `translate(calc(-50% + ${HALL_VISUAL_CONFIG?.imageX || 0}px), calc(-50% + ${HALL_VISUAL_CONFIG?.imageY || 0}px))`;
+      `translate(calc(-50% + ${Number(HALL_VISUAL_CONFIG?.imageX || 0)}px), ` +
+      `calc(-50% + ${Number(HALL_VISUAL_CONFIG?.imageY || 0)}px))`;
     img.style.objectFit = HALL_VISUAL_CONFIG?.imageFit || "cover";
     img.style.opacity = String(HALL_VISUAL_CONFIG?.imageOpacity ?? 1);
     img.style.pointerEvents = "none";
     img.style.zIndex = "0";
 
-    document.body.classList.add("va-theme-active");
-    document.body.prepend(img);
+    mediaLayer = img;
+  } else {
+    const videoUrl = HALL_VISUAL_CONFIG?.video || "";
+
+    if (videoUrl) {
+      const video = document.createElement("video");
+      video.id = "va-theme-video-bg";
+      video.src = videoUrl;
+      video.autoplay = true;
+      video.loop = HALL_VISUAL_CONFIG?.videoLoop !== false;
+      video.muted = HALL_VISUAL_CONFIG?.videoMuted !== false;
+      video.playsInline = true;
+
+      video.style.position = "fixed";
+      video.style.left = "50%";
+      video.style.top = "50%";
+      video.style.width =
+        (100 * Number(HALL_VISUAL_CONFIG?.videoScale || 1)) + "vw";
+      video.style.height =
+        (100 * Number(HALL_VISUAL_CONFIG?.videoScale || 1)) + "vh";
+      video.style.transform =
+        `translate(calc(-50% + ${Number(HALL_VISUAL_CONFIG?.videoX || 0)}px), ` +
+        `calc(-50% + ${Number(HALL_VISUAL_CONFIG?.videoY || 0)}px))`;
+      video.style.objectFit = HALL_VISUAL_CONFIG?.videoFit || "cover";
+      video.style.opacity = String(HALL_VISUAL_CONFIG?.videoOpacity ?? 1);
+      video.style.pointerEvents = "none";
+      video.style.zIndex = "0";
+      video.style.filter = "brightness(.42) contrast(1.12) saturate(1.1)";
+
+      mediaLayer = video;
+    }
   }
 
-  const overlayOpacity = Number(HALL_VISUAL_CONFIG?.overlayOpacity || 0);
+  if (!mediaLayer) return;
+
+  document.body.classList.add("va-theme-active");
+  document.body.prepend(mediaLayer);
+
+  const overlayOpacity = Number(
+    HALL_VISUAL_CONFIG?.overlayOpacity || 0
+  );
 
   if (overlayOpacity > 0) {
     const overlay = document.createElement("div");
@@ -2241,36 +2308,9 @@ function renderPageVideoBackground(){
     overlay.style.pointerEvents = "none";
     overlay.style.zIndex = "0";
 
-    document.body.classList.add("va-theme-active");
-    document.body.prepend(overlay);
+    // Overlay розміщується після фону, але перед інтерфейсом.
+    mediaLayer.insertAdjacentElement("afterend", overlay);
   }
-  
-  const videoUrl = HALL_VISUAL_CONFIG?.video || "";
-  if (!videoUrl) return;
-
-  document.querySelector("#va-theme-video-bg")?.remove();
-
-  const video = document.createElement("video");
-  video.id = "va-theme-video-bg";
-  video.src = videoUrl;
-  video.autoplay = true;
-  video.loop = true;
-  video.muted = true;
-  video.playsInline = true;
-
-  video.style.position = "fixed";
-  video.style.left = "0";
-  video.style.top = "0";
-  video.style.width = "100vw";
-  video.style.height = "100vh";
-  video.style.objectFit = "cover";
-  video.style.pointerEvents = "none";
-  video.style.zIndex = "0";
-  video.style.opacity = "1";
-  video.style.filter = "brightness(.42) contrast(1.12) saturate(1.1)";
-
-  document.body.classList.add("va-theme-active");
-  document.body.prepend(video);
 }
     
 async function loadSeanceMeta() {
