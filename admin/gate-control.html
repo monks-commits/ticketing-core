@@ -274,8 +274,6 @@ const RECOVERY_SCANNER_URL =
   "https://monks-commits.github.io/hall-engine-lab/recovery/recovery-scanner.html";
 const ACCESS_REPORT_URL = "./access-control.html";
 
-const GATE_SELECTED_SEANCE_KEY = "va_gate_selected_seance_v1";
-
 const PAGE_PARAMS = new URLSearchParams(location.search);
 const TEST_MODE = PAGE_PARAMS.get("test") === "1";
 
@@ -316,9 +314,12 @@ function setStatus(kind, text){
 
 function renderCurrent(){
   if (!CURRENT_SEANCE) {
-    $("currentTitle").textContent = "Сеанс не визначено";
+    $("currentTitle").textContent = TEST_MODE
+      ? "Оберіть тестовий сеанс"
+      : "Сеанс не визначено";
+
     $("currentMeta").textContent = TEST_MODE
-      ? "Оберіть сеанс для тестування."
+      ? "Вибір не зберігається. Після повернення оберіть сеанс знову."
       : "Немає сеансу у робочому вікні входу.";
     return;
   }
@@ -328,22 +329,17 @@ function renderCurrent(){
   $("currentMeta").textContent = label.meta || CURRENT_SEANCE.id;
 }
 
-function clearStaleProductionSelection(){
-  if (TEST_MODE) return;
-
-  localStorage.removeItem(GATE_SELECTED_SEANCE_KEY);
-
+function clearStaleAddress(){
   const url = new URL(location.href);
-  const hadSelection =
-    url.searchParams.has("seance") ||
-    url.searchParams.has("seance_id");
 
   url.searchParams.delete("seance");
   url.searchParams.delete("seance_id");
+  url.searchParams.delete("launch_ts");
 
-  if (hadSelection) {
-    history.replaceState(null, "", url.toString());
-  }
+  if (TEST_MODE) url.searchParams.set("test", "1");
+  else url.searchParams.delete("test");
+
+  history.replaceState(null, "", url.toString());
 }
 
 function chooseSeance(id){
@@ -352,28 +348,23 @@ function chooseSeance(id){
   const sid = String(id || "").trim();
 
   CURRENT_SEANCE =
-    ALL_SEANCES.find(s => String(s.id) === sid) ||
-    CHOICE_SEANCES.find(s => String(s.id) === sid) ||
-    null;
+    ALL_SEANCES.find(
+      s =>
+        String(s.id) === sid &&
+        s.archived !== true &&
+        s.active !== false
+    ) || null;
+
+  renderCurrent();
 
   if (!CURRENT_SEANCE) {
-    renderCurrent();
     setStatus("bad", "Статус: тестовий сеанс не знайдено.");
     return;
   }
 
-  localStorage.setItem(GATE_SELECTED_SEANCE_KEY, CURRENT_SEANCE.id);
-
-  const url = new URL(location.href);
-  url.searchParams.set("test", "1");
-  url.searchParams.set("seance", CURRENT_SEANCE.id);
-  url.searchParams.set("seance_id", CURRENT_SEANCE.id);
-  history.replaceState(null, "", url.toString());
-
-  renderCurrent();
   setStatus(
     "warn",
-    "ТЕСТОВИЙ РЕЖИМ: сеанс обрано вручну. Контролеру цей режим не показувати."
+    "ТЕСТОВИЙ РЕЖИМ: сеанс обрано лише для поточного відкриття сторінки."
   );
 }
 
@@ -417,7 +408,7 @@ async function loadSeances(){
   TODAY_SEANCES = [];
   CHOICE_SEANCES = [];
 
-  clearStaleProductionSelection();
+  clearStaleAddress();
 
   $("currentTitle").textContent = "Завантаження...";
   $("currentMeta").textContent = "Шукаю поточний сеанс.";
@@ -444,54 +435,26 @@ async function loadSeances(){
       Служебный тестовый режим:
       gate-control.html?test=1
 
-      Только здесь разрешены:
-      - ручной выбор;
-      - сохранение выбранного сеанса;
-      - прямой параметр seance.
+      Никакого localStorage и восстановления старого выбора.
+      Каждый раз сеанс выбирается заново.
     */
     if (TEST_MODE) {
-      const forcedId =
-        PAGE_PARAMS.get("seance") ||
-        PAGE_PARAMS.get("seance_id") ||
-        localStorage.getItem(GATE_SELECTED_SEANCE_KEY) ||
-        "";
-
-      if (forcedId) {
-        CURRENT_SEANCE =
-          available.find(s => String(s.id) === String(forcedId)) ||
-          null;
-      }
-
-      if (!CURRENT_SEANCE && available.length) {
-        const now = Date.now();
-        CURRENT_SEANCE =
-          available.find(s => {
-            const dt = seanceDateTime(s);
-            return dt && dt.getTime() >= now;
-          }) ||
-          available[available.length - 1];
-      }
-
       renderCurrent();
       renderChoices(available);
 
-      if (CURRENT_SEANCE) {
-        setStatus(
-          "warn",
-          "ТЕСТОВИЙ РЕЖИМ: оберіть будь-який активний сеанс зі списку."
-        );
-      } else {
-        setStatus("bad", "ТЕСТОВИЙ РЕЖИМ: активних сеансів немає.");
-      }
+      setStatus(
+        "warn",
+        available.length
+          ? "ТЕСТОВИЙ РЕЖИМ: оберіть сеанс зі списку."
+          : "ТЕСТОВИЙ РЕЖИМ: активних сеансів немає."
+      );
       return;
     }
 
     /*
-      Рабочий режим контролёра:
-      никакого localStorage, ближайшего будущего сеанса и ручного выбора.
-
-      Сеанс считается текущим:
+      Рабочий режим:
       от 2 часов до начала до 4 часов после начала.
+      Будущий или старый сеанс не подставляется.
     */
     const today = localDateKey();
     const now = new Date();
@@ -508,9 +471,9 @@ async function loadSeances(){
           : 999999;
 
         return {
-          seance: s,
+          seance:s,
           diffMin,
-          abs: Math.abs(diffMin)
+          abs:Math.abs(diffMin)
         };
       })
       .filter(x => x.diffMin <= 120 && x.diffMin >= -240)
@@ -523,20 +486,14 @@ async function loadSeances(){
       return;
     }
 
-    CURRENT_SEANCE = null;
     renderCurrent();
 
-    if (TODAY_SEANCES.length) {
-      setStatus(
-        "warn",
-        "Статус: сьогодні є сеанси, але зараз вхід на них не відкрито."
-      );
-    } else {
-      setStatus(
-        "warn",
-        "Статус: сьогодні немає сеансу у робочому вікні входу."
-      );
-    }
+    setStatus(
+      "warn",
+      TODAY_SEANCES.length
+        ? "Статус: сьогодні є сеанси, але зараз вхід на них не відкрито."
+        : "Статус: сьогодні немає сеансу у робочому вікні входу."
+    );
 
   } catch(e) {
     console.error("loadSeances error:", e);
@@ -547,29 +504,11 @@ async function loadSeances(){
 }
 
 function currentSeanceId(){
-  if (CURRENT_SEANCE?.id) {
-    return String(CURRENT_SEANCE.id);
-  }
-
-  if (TEST_MODE) {
-    const saved = localStorage.getItem(GATE_SELECTED_SEANCE_KEY);
-    const found = ALL_SEANCES.find(
-      s =>
-        String(s.id) === String(saved) &&
-        s.archived !== true &&
-        s.active !== false
-    );
-
-    if (found) {
-      CURRENT_SEANCE = found;
-      renderCurrent();
-      return String(found.id);
-    }
-  }
+  if (CURRENT_SEANCE?.id) return String(CURRENT_SEANCE.id);
 
   alert(
     TEST_MODE
-      ? "Оберіть тестовий сеанс."
+      ? "Спочатку оберіть тестовий сеанс."
       : "Зараз немає поточного сеансу для входу."
   );
   return "";
@@ -577,12 +516,18 @@ function currentSeanceId(){
 
 function withSeanceUrl(baseUrl, seanceId){
   const url = new URL(baseUrl, location.href);
+
   url.searchParams.set("seance", seanceId);
   url.searchParams.set("seance_id", seanceId);
 
-  if (TEST_MODE) {
-    url.searchParams.set("test", "1");
-  }
+  /*
+    Одноразовая метка запуска.
+    Старые адреса из истории браузера Recovery больше не принимает.
+  */
+  url.searchParams.set("launch_ts", String(Date.now()));
+
+  if (TEST_MODE) url.searchParams.set("test", "1");
+  else url.searchParams.delete("test");
 
   return url.toString();
 }
