@@ -2290,6 +2290,7 @@ function renderPageVideoBackground(){
   document.querySelector("#va-theme-overlay-bg")?.remove();
 
   document.body.classList.remove("va-static-bg-active");
+  document.body.classList.remove("va-theme-active");
 
   const imageUrl = HALL_VISUAL_CONFIG?.image || "";
   const useStaticImage =
@@ -2298,7 +2299,7 @@ function renderPageVideoBackground(){
 
   let mediaLayer = null;
 
-  // Якщо статичний фон увімкнено, він має пріоритет над відеофоном.
+  // ===== СТАТИЧНИЙ ФОН =====
   if (useStaticImage) {
     document.body.classList.add("va-static-bg-active");
 
@@ -2324,9 +2325,14 @@ function renderPageVideoBackground(){
 
     mediaLayer = img;
   } else {
+    // ===== ВІДЕОФОН =====
     const videoUrl = HALL_VISUAL_CONFIG?.video || "";
 
     if (videoUrl) {
+      // ВАЖНО:
+      // включаем тот же прозрачный режим, что и для статики
+      document.body.classList.add("va-static-bg-active");
+
       const video = document.createElement("video");
       video.id = "va-theme-video-bg";
       video.src = videoUrl;
@@ -2349,7 +2355,9 @@ function renderPageVideoBackground(){
       video.style.opacity = String(HALL_VISUAL_CONFIG?.videoOpacity ?? 1);
       video.style.pointerEvents = "none";
       video.style.zIndex = "0";
-      video.style.filter = "brightness(.42) contrast(1.12) saturate(1.1)";
+
+      // убираем лишнее искусственное затемнение самого видео
+      video.style.filter = "none";
 
       mediaLayer = video;
     }
@@ -2360,9 +2368,7 @@ function renderPageVideoBackground(){
   document.body.classList.add("va-theme-active");
   document.body.prepend(mediaLayer);
 
-  const overlayOpacity = Number(
-    HALL_VISUAL_CONFIG?.overlayOpacity || 0
-  );
+  const overlayOpacity = Number(HALL_VISUAL_CONFIG?.overlayOpacity || 0);
 
   if (overlayOpacity > 0) {
     const overlay = document.createElement("div");
@@ -2374,7 +2380,6 @@ function renderPageVideoBackground(){
     overlay.style.pointerEvents = "none";
     overlay.style.zIndex = "0";
 
-    // Overlay розміщується після фону, але перед інтерфейсом.
     mediaLayer.insertAdjacentElement("afterend", overlay);
   }
 }
