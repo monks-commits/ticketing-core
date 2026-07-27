@@ -1479,6 +1479,20 @@ async function loadSeanceConfig() {
       if(arr.length > 300) arr.length = 300;
       saveCashLog(arr);
     }
+
+    function isCashSaleLogEntry(entry){
+      return Boolean(
+        entry &&
+        String(entry.type || "").toUpperCase() === "SALE" &&
+        Array.isArray(entry.tickets) &&
+        entry.tickets.length
+      );
+    }
+
+    function getLastCashSale(){
+      return loadCashLog().find(isCashSaleLogEntry) || null;
+    }
+
     function renderCashLog(){
       const body = document.getElementById("cashLogBody");
       if(!body) return;
@@ -1491,21 +1505,28 @@ async function loadSeanceConfig() {
         return;
       }
       body.innerHTML = arr.slice(0,60).map(x=>{
-        const seats = Array.isArray(x.seats) ? x.seats.map(seatKeyToHuman).join("; ") : "";
+        const seatKeys = Array.isArray(x.seats)
+          ? x.seats
+          : Array.isArray(x.tickets)
+            ? x.tickets.map(t => t?.seat_label).filter(Boolean)
+            : [];
+
+        const seats = seatKeys.map(seatKeyToHuman).join("; ");
         const sum = x.total || 0;
+
         return `
           <tr>
             <td class="muted">${fmtTime(x.ts)}</td>
-            <td><b>${x.type}</b></td>
+            <td><b>${String(x.type || "").toUpperCase()}</b></td>
             <td>${seats}</td>
             <td><b>${sum} грн</b></td>
           </tr>
         `;
       }).join("");
 
-      const last = arr[0];
+      const lastSale = getLastCashSale();
       const rp = document.getElementById("btn-reprint");
-      if(rp) rp.disabled = !(last && last.type==="SALE" && Array.isArray(last.tickets) && last.tickets.length);
+      if(rp) rp.disabled = !lastSale;
     }
 
     function downloadText(filename, text){
@@ -2460,11 +2481,19 @@ const buyer_email =
 
  pushCashLog({
   ts: Date.now(),
-  type: "sale",
+  type: "SALE",
   order_id,
+  seance_id: SEANCE_ID,
+  show_slug: safeShowSlug,
+  show_title:
+    document.getElementById("summary-show")
+      ?.textContent
+      ?.replace("Вистава:", "")
+      .trim() || safeShowSlug,
   buyer_name,
   buyer_phone,
   buyer_email,
+  seats: keys,
   total,
   tickets
 });
@@ -2496,16 +2525,37 @@ const buyer_email =
     console.warn("sync error", e);
   }
 }
-    // ---- reprint last sale ----
+    // ---- повторная печать последней продажи ----
     async function reprintLastSale(){
-      const arr = loadCashLog();
-      const last = arr.find(x=>x && x.type==="SALE" && Array.isArray(x.tickets) && x.tickets.length) || null;
-      if (!last){ alert("Немає збереженої останньої продажі для друку."); return; }
-      await openPrintWindowOffline(tickets, {
-  title: document.getElementById("summary-show")?.textContent?.replace("Вистава:", "").trim() || safeShowSlug
-   }); 
+      const last = getLastCashSale();
 
- }     
+      if (!last){
+        alert("Немає збереженої останньої продажі для повторного друку.");
+        return;
+      }
+
+      const savedTickets = last.tickets.map(ticket => ({ ...ticket }));
+
+      const currentTitle =
+        document.getElementById("summary-show")
+          ?.textContent
+          ?.replace("Вистава:", "")
+          .trim() || "";
+
+      const title =
+        last.show_title ||
+        currentTitle ||
+        last.show_slug ||
+        showSlug ||
+        "Квиток";
+
+      try{
+        await openPrintWindowOffline(savedTickets, { title });
+      }catch(e){
+        console.warn("reprint error", e);
+        alert("Не вдалося повторити друк останньої продажі.");
+      }
+    }     
     
 function makeSectionTitle(text){
   const el = document.createElement("div");
@@ -4497,4 +4547,3 @@ async function loadDirectorData() {
   
 </body>
 </html>
-
