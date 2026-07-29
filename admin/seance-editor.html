@@ -1107,56 +1107,212 @@ function ensurePreviewUi() {
   dataCard.insertAdjacentElement("afterend", previewSection);
 }
 
-function addVASeatKey(set, key){
-  key = String(key || "").trim();
-  if (key) set.add(key);
+function normalizeVASeatKey(value){
+  return String(value || "").trim();
 }
 
-function collectVAKeysFromSection(section, sectionsMap, set, visited){
-  if (!section || section.hidden === true) return;
+function makeVASeatKey(prefix, row, seat){
+  const p = String(prefix || "").trim();
+  const r = String(row ?? "").trim();
+  const s = String(seat ?? "").trim();
 
-  if (section.id) {
-    if (visited.has(section.id)) return;
-    visited.add(section.id);
+  if (!r || !s) return "";
+  return `${p}${r}-M${s}`;
+}
+
+function addVACapacityEntry(entries, key, identity){
+  entries.push({
+    key: normalizeVASeatKey(key),
+    identity: String(identity || `seat-${entries.length + 1}`)
+  });
+}
+
+function seatNumberFromItem(item, fallback){
+  if (item && typeof item === "object") {
+    return (
+      item.seat ??
+      item.number ??
+      item.num ??
+      item.place ??
+      fallback
+    );
   }
 
-  const type = section.type || "";
-  const prefix = section.prefix || "P";
+  return item ?? fallback;
+}
 
-  if (type === "horizontal_group") {
-    (section.items || []).forEach(id => {
-      collectVAKeysFromSection(sectionsMap.get(id), sectionsMap, set, visited);
-    });
-    return;
-  }
+function collectVARowEntries(
+  rowData,
+  prefix,
+  entries,
+  identityPrefix
+){
+  if (!rowData) return;
 
-  if (type === "rows") {
-    (section.rows || []).forEach(r => {
-      const row = r.row;
-      const seats = Number(r.seats || 0);
+  const row =
+    rowData.row ??
+    rowData.number ??
+    rowData.row_number ??
+    "";
 
-      for (let s = 1; s <= seats; s++) {
-        addVASeatKey(set, `${prefix}${row}-M${s}`);
+  if (Array.isArray(rowData.blocks)) {
+    rowData.blocks.forEach((block, blockIndex) => {
+      const start = Number(block?.start ?? 1);
+      const count = Number(block?.count ?? 0);
+      const reverse = block?.reverse === true;
+
+      for (let i = 0; i < count; i++) {
+        const seatNum = reverse
+          ? start - i
+          : start + i;
+
+        addVACapacityEntry(
+          entries,
+          makeVASeatKey(prefix, row, seatNum),
+          `${identityPrefix}:block-${blockIndex}:seat-${i}`
+        );
       }
     });
+
     return;
   }
 
-  if (type === "multi_block_rows") {
-    (section.rows || []).forEach(r => {
-      const row = r.row;
+  if (Array.isArray(rowData.seats)) {
+    rowData.seats.forEach((seatItem, seatIndex) => {
+      const explicitKey =
+        seatItem && typeof seatItem === "object"
+          ? seatItem.key
+          : "";
 
-      (r.blocks || []).forEach(block => {
-        const start = Number(block.start || 1);
-        const count = Number(block.count || 0);
-        const reverse = block.reverse === true;
+      const seatPrefix =
+        seatItem && typeof seatItem === "object"
+          ? (seatItem.prefix ?? prefix)
+          : prefix;
 
-        for (let i = 0; i < count; i++) {
-          const seatNum = reverse ? start - i : start + i;
-          addVASeatKey(set, `${prefix}${row}-M${seatNum}`);
-        }
-      });
+      const seatRow =
+        seatItem && typeof seatItem === "object"
+          ? (seatItem.row ?? row)
+          : row;
+
+      const seatNum =
+        seatNumberFromItem(seatItem, seatIndex + 1);
+
+      addVACapacityEntry(
+        entries,
+        explicitKey ||
+          makeVASeatKey(seatPrefix, seatRow, seatNum),
+        `${identityPrefix}:seat-${seatIndex}`
+      );
     });
+
+    return;
+  }
+
+  const count = Number(rowData.seats ?? rowData.count ?? 0);
+  const start = Number(rowData.start ?? 1);
+  const reverse = rowData.reverse === true;
+
+  for (let i = 0; i < count; i++) {
+    const seatNum = reverse
+      ? start - i
+      : start + i;
+
+    addVACapacityEntry(
+      entries,
+      makeVASeatKey(prefix, row, seatNum),
+      `${identityPrefix}:seat-${i}`
+    );
+  }
+}
+
+function collectVAEntriesFromSection(
+  section,
+  sectionsMap,
+  entries,
+  visited,
+  path = "section"
+){
+  if (!section || section.hidden === true) return;
+
+  const sectionId = String(section.id || "").trim();
+
+  if (sectionId) {
+    if (visited.has(sectionId)) return;
+    visited.add(sectionId);
+  }
+
+  const type = String(section.type || "");
+  const prefix = section.prefix || "P";
+  const identityPrefix =
+    sectionId
+      ? `section:${sectionId}`
+      : `${path}:${type || "unknown"}`;
+
+  if (type === "horizontal_group") {
+    (section.items || []).forEach((id, index) => {
+      collectVAEntriesFromSection(
+        sectionsMap.get(id),
+        sectionsMap,
+        entries,
+        visited,
+        `${identityPrefix}:item-${index}`
+      );
+    });
+
+    return;
+  }
+
+  if (
+    type === "rows" ||
+    type === "multi_block_rows" ||
+    type === "custom_rows"
+  ) {
+    (section.rows || []).forEach((rowData, rowIndex) => {
+      collectVARowEntries(
+        rowData,
+        prefix,
+        entries,
+        `${identityPrefix}:row-${rowIndex}`
+      );
+    });
+
+    if (
+      type === "custom_rows" &&
+      Array.isArray(section.seats)
+    ) {
+      section.seats.forEach((seatItem, seatIndex) => {
+        const explicitKey =
+          seatItem && typeof seatItem === "object"
+            ? seatItem.key
+            : "";
+
+        const seatPrefix =
+          seatItem && typeof seatItem === "object"
+            ? (seatItem.prefix ?? prefix)
+            : prefix;
+
+        const row =
+          seatItem && typeof seatItem === "object"
+            ? (
+                seatItem.row ??
+                seatItem.row_number ??
+                section.row ??
+                ""
+              )
+            : (section.row ?? "");
+
+        const seatNum =
+          seatNumberFromItem(seatItem, seatIndex + 1);
+
+        addVACapacityEntry(
+          entries,
+          explicitKey ||
+            makeVASeatKey(seatPrefix, row, seatNum),
+          `${identityPrefix}:direct-seat-${seatIndex}`
+        );
+      });
+    }
+
     return;
   }
 
@@ -1167,9 +1323,17 @@ function collectVAKeysFromSection(section, sectionsMap, set, visited){
     const reverse = section.reverse === true;
 
     for (let i = 0; i < count; i++) {
-      const seatNum = reverse ? start - i : start + i;
-      addVASeatKey(set, `${prefix}${row}-M${seatNum}`);
+      const seatNum = reverse
+        ? start - i
+        : start + i;
+
+      addVACapacityEntry(
+        entries,
+        makeVASeatKey(prefix, row, seatNum),
+        `${identityPrefix}:seat-${i}`
+      );
     }
+
     return;
   }
 
@@ -1179,54 +1343,114 @@ function collectVAKeysFromSection(section, sectionsMap, set, visited){
     const count = Number(section.count || 0);
     const reverse = section.reverse === true;
 
-    if (count > 0) {
-      for (let i = 0; i < count; i++) {
-        const seatNum = reverse ? start - i : start + i;
-        const lodgePrefix = /\d$/.test(String(prefix))
-          ? String(prefix)
-          : `${prefix}${row}`;
-        addVASeatKey(set, `${lodgePrefix}-M${seatNum}`);
-      }
+    for (let i = 0; i < count; i++) {
+      const seatNum = reverse
+        ? start - i
+        : start + i;
+
+      const lodgePrefix = /\d$/.test(String(prefix))
+        ? String(prefix)
+        : `${prefix}${row}`;
+
+      addVACapacityEntry(
+        entries,
+        `${lodgePrefix}-M${seatNum}`,
+        `${identityPrefix}:seat-${i}`
+      );
     }
   }
 }
 
-function collectVASeatKeys(hall){
-  const set = new Set();
+function collectVACapacityEntries(hall){
+  const entries = [];
 
-  if (!hall) return set;
+  if (!hall) return entries;
 
   if (Array.isArray(hall.seats)) {
-    hall.seats.forEach(s => {
+    hall.seats.forEach((seat, index) => {
       const key =
-        s.key ||
-        `${s.prefix || ""}${s.row}-M${s.seat}`;
+        seat?.key ||
+        makeVASeatKey(
+          seat?.prefix || "",
+          seat?.row,
+          seat?.seat
+        );
 
-      addVASeatKey(set, key);
+      addVACapacityEntry(
+        entries,
+        key,
+        seat?.id || `builder-seat-${index}`
+      );
     });
 
-    return set;
+    return entries;
   }
 
   if (Array.isArray(hall.sections)) {
     const sectionsMap = new Map();
 
-    hall.sections.forEach(sec => {
-      if (sec && sec.id) sectionsMap.set(sec.id, sec);
+    hall.sections.forEach(section => {
+      if (section?.id) {
+        sectionsMap.set(section.id, section);
+      }
     });
 
     const visited = new Set();
 
-    hall.sections.forEach(sec => {
-      collectVAKeysFromSection(sec, sectionsMap, set, visited);
+    hall.sections.forEach((section, index) => {
+      collectVAEntriesFromSection(
+        section,
+        sectionsMap,
+        entries,
+        visited,
+        `root-${index}`
+      );
     });
   }
 
-  return set;
+  return entries;
+}
+
+function collectVASeatKeys(hall){
+  return new Set(
+    collectVACapacityEntries(hall)
+      .map(item => item.key)
+      .filter(Boolean)
+  );
 }
 
 function getVACapacityStats(){
-  const keys = collectVASeatKeys(CURRENT_PREVIEW_HALL);
+  const entries =
+    collectVACapacityEntries(CURRENT_PREVIEW_HALL);
+
+  const keyCounts = new Map();
+
+  entries.forEach(item => {
+    if (!item.key) return;
+
+    keyCounts.set(
+      item.key,
+      (keyCounts.get(item.key) || 0) + 1
+    );
+  });
+
+  const uniqueKeys = keyCounts.size;
+
+  const duplicateKeyNames =
+    Array.from(keyCounts.values())
+      .filter(count => count > 1)
+      .length;
+
+  const duplicateSeats =
+    Array.from(keyCounts.values())
+      .reduce(
+        (sum, count) =>
+          sum + Math.max(0, count - 1),
+        0
+      );
+
+  const invalidKeys =
+    entries.filter(item => !item.key).length;
 
   const byPrice = new Map();
 
@@ -1234,9 +1458,12 @@ function getVACapacityStats(){
   let noPrice = 0;
   let blocked = 0;
 
-  keys.forEach(key => {
-    const state = previewSeatState(key);
-    const price = state.price == null ? null : Number(state.price);
+  entries.forEach(item => {
+    const state = previewSeatState(item.key);
+    const price =
+      state.price == null
+        ? null
+        : Number(state.price);
 
     if (state.sale === false) {
       blocked++;
@@ -1249,11 +1476,19 @@ function getVACapacityStats(){
     }
 
     released++;
-    byPrice.set(price, (byPrice.get(price) || 0) + 1);
+
+    byPrice.set(
+      price,
+      (byPrice.get(price) || 0) + 1
+    );
   });
 
   return {
-    totalSeats: keys.size,
+    totalSeats: entries.length,
+    uniqueKeys,
+    duplicateKeyNames,
+    duplicateSeats,
+    invalidKeys,
     released,
     blocked,
     noPrice,
@@ -1271,20 +1506,33 @@ function updateVACapacityCounter(){
     el.textContent = String(stats.released);
   });
 
+  const keyDiagnostics = [
+    `унікальних ключів: ${stats.uniqueKeys}`,
+    stats.duplicateSeats > 0
+      ? `колізій місць: ${stats.duplicateSeats}`
+      : "",
+    stats.duplicateKeyNames > 0
+      ? `повторюваних ключів: ${stats.duplicateKeyNames}`
+      : "",
+    stats.invalidKeys > 0
+      ? `без ключа: ${stats.invalidKeys}`
+      : ""
+  ].filter(Boolean).join(" • ");
+
+  const capacityDetailsText =
+    `Фізичних місць у схемі: ${stats.totalSeats} • ` +
+    `${keyDiagnostics} • ` +
+    `без ціни: ${stats.noPrice} • ` +
+    `заборонено: ${stats.blocked}`;
+
   const miniEl = document.getElementById("vaCapacityCounterMiniDetails");
   if (miniEl) {
-    miniEl.textContent =
-      `Всього у схемі: ${stats.totalSeats} • ` +
-      `без ціни: ${stats.noPrice} • ` +
-      `заборонено: ${stats.blocked}`;
+    miniEl.textContent = capacityDetailsText;
   }
 
   const detailEl = document.getElementById("vaCapacityDetails");
   if (detailEl) {
-    detailEl.textContent =
-      `Всього у схемі: ${stats.totalSeats} • ` +
-      `без ціни: ${stats.noPrice} • ` +
-      `заборонено: ${stats.blocked}`;
+    detailEl.textContent = capacityDetailsText;
   }
 
   const priceEl = document.getElementById("vaCapacityByPrice");
