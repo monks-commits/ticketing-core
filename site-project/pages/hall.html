@@ -1531,6 +1531,65 @@ body.va-static-bg-active::before{
   }
 }
   
+
+/* ===== VA BUILDER HALL: INITIAL FIT TO THE ACTUAL VIEWPORT ===== */
+.hall-scroll.va-builder-viewer-active{
+  position:relative !important;
+  width:100% !important;
+  height:clamp(560px, calc(100vh - 170px), 920px) !important;
+  min-height:560px !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  touch-action:none !important;
+}
+
+.hall-scroll.va-builder-viewer-active #mobile-hall-viewport,
+.hall-scroll.va-builder-viewer-active #mobile-hall-scale,
+.hall-scroll.va-builder-viewer-active .hall-inner,
+.hall-scroll.va-builder-viewer-active #hall-root,
+.hall-scroll.va-builder-viewer-active .hall-viewer-section{
+  position:relative !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  height:100% !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+}
+
+.hall-scroll.va-builder-viewer-active #mobile-hall-scale{
+  left:auto !important;
+  top:auto !important;
+  transform:none !important;
+  transform-origin:0 0 !important;
+}
+
+.hall-scroll.va-builder-viewer-active #hall-viewer-canvas{
+  position:absolute !important;
+  left:0 !important;
+  top:0 !important;
+  margin:0 !important;
+  transform-origin:0 0 !important;
+  will-change:transform;
+}
+
+@media (max-width:1100px) and (min-width:769px){
+  .hall-scroll.va-builder-viewer-active{
+    height:clamp(520px, calc(100vh - 120px), 850px) !important;
+    min-height:520px !important;
+  }
+}
+
+@media (max-width:768px){
+  .hall-scroll.va-builder-viewer-active{
+    width:100vw !important;
+    height:100% !important;
+    min-height:0 !important;
+  }
+}
+
 </style>
 
 </head>
@@ -3238,18 +3297,36 @@ function renderBuilderSeats(hallData){
   wrap.appendChild(scaleBox);
   root.appendChild(wrap);
 
-  enableHallViewer(wrap, scaleBox, width, height);
+  /*
+    Viewer must measure and receive gestures from the actual visible window.
+    The old code used wrap, whose size followed the 2880×2762 hall canvas.
+    That produced an almost 1:1 initial scale and placed most of the hall
+    outside the browser viewport.
+  */
+  const viewerViewport = document.querySelector(".hall-scroll");
 
-  if (window.VA_HALL_VIEWER) {
-    window.VA_HALL_VIEWER.refit();
+  if (viewerViewport) {
+    viewerViewport.classList.add("va-builder-viewer-active");
   }
+
+  enableHallViewer(
+    viewerViewport || wrap,
+    scaleBox,
+    width,
+    height
+  );
+
+  window.VA_HALL_VIEWER?.refit();
 }
 
 function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
   if (!viewport || !canvas) return;
 
-  const outer = document.querySelector(".hall-scroll");
-  if (outer) outer.style.overflow = "hidden";
+  /*
+    If the viewer is recreated, remove listeners/observers belonging
+    to the previous instance.
+  */
+  window.VA_HALL_VIEWER?.destroy?.();
 
   viewport.style.overflow = "hidden";
   viewport.style.position = "relative";
@@ -3265,6 +3342,7 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
   let maxScale = 3;
   let panX = 0;
   let panY = 0;
+  let userInteracted = false;
 
   const pointers = new Map();
 
@@ -3277,49 +3355,93 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
   let pinchStartDist = 0;
   let pinchStartScale = 1;
 
-  function update(){
-    canvas.style.transform =
-      `translate(${panX}px, ${panY}px) scale(${scale})`;
+  let resizeTimer = 0;
+  let resizeObserver = null;
+
+  function viewportSize(){
+    const rect = viewport.getBoundingClientRect();
+
+    return {
+      width: Math.max(
+        1,
+        Number(viewport.clientWidth || rect.width || 0)
+      ),
+      height: Math.max(
+        1,
+        Number(viewport.clientHeight || rect.height || 0)
+      )
+    };
   }
 
-  function fit(){
-    const r = viewport.getBoundingClientRect();
-    if (!r.width || !r.height || !hallWidth || !hallHeight) return;
+  function update(){
+    canvas.style.transform =
+      `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
+  }
 
-    const realW = canvas.offsetWidth || hallWidth;
-    const realH = canvas.offsetHeight || hallHeight;
+  function fit(force = true){
+    /*
+      Delayed layout callbacks may fire after the visitor has already
+      zoomed or dragged the hall. Only an explicit refit may override
+      that interaction.
+    */
+    if (!force && userInteracted) return;
+
+    const view = viewportSize();
+    const realW = Number(hallWidth || canvas.offsetWidth || 0);
+    const realH = Number(hallHeight || canvas.offsetHeight || 0);
+
+    if (
+      !view.width ||
+      !view.height ||
+      !realW ||
+      !realH
+    ) {
+      return;
+    }
+
+    const padding = isMobile() ? 8 : 24;
+    const availableW = Math.max(1, view.width - padding * 2);
+    const availableH = Math.max(1, view.height - padding * 2);
 
     const fitScale = Math.min(
-      r.width / realW,
-      r.height / realH
-    ) * (isMobile() ? 1.15 : 0.92);
+      availableW / realW,
+      availableH / realH
+    );
 
-   if (isMobile()) {
-    minScale = fitScale * 0.25;
-    maxScale = fitScale * 8;
-} else {
-    minScale = fitScale * 0.25;   // <-- было fitScale
-    maxScale = fitScale * 8;      // <-- вместо 3
-}
+    if (!Number.isFinite(fitScale) || fitScale <= 0) return;
 
+    minScale = Math.max(0.01, fitScale * 0.25);
+    maxScale = Math.max(fitScale * 8, fitScale + 0.5);
     scale = fitScale;
 
-    panX = (r.width - realW * scale) / 2;
-    panY = (r.height - realH * scale) / 2;
+    /*
+      Reset both axes. This is the important part after the poster:
+      no stale pan position and no hall hidden in the lower-right corner.
+    */
+    panX = (view.width - realW * scale) / 2;
+    panY = (view.height - realH * scale) / 2;
 
     update();
   }
 
-  function zoomAt(clientX, clientY, newScale){
-    const r = viewport.getBoundingClientRect();
+  function scheduleFit(){
+    clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => fit(false), 80);
+  }
 
-    const mx = clientX - r.left;
-    const my = clientY - r.top;
+  function zoomAt(clientX, clientY, newScale){
+    const rect = viewport.getBoundingClientRect();
+
+    const mx = clientX - rect.left;
+    const my = clientY - rect.top;
 
     const beforeX = (mx - panX) / scale;
     const beforeY = (my - panY) / scale;
 
-    scale = Math.max(minScale, Math.min(maxScale, newScale)); 
+    scale = Math.max(
+      minScale,
+      Math.min(maxScale, newScale)
+    );
 
     panX = mx - beforeX * scale;
     panY = my - beforeY * scale;
@@ -3333,14 +3455,15 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  viewport.addEventListener("wheel", e => {
+  function onWheel(e){
     e.preventDefault();
+    userInteracted = true;
 
     const factor = e.deltaY < 0 ? 1.12 : 0.88;
     zoomAt(e.clientX, e.clientY, scale * factor);
-  }, { passive:false });
+  }
 
-  viewport.addEventListener("pointerdown", e => {
+  function onPointerDown(e){
     pointers.set(e.pointerId, e);
 
     if (pointers.size === 2) {
@@ -3348,6 +3471,7 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
       pinchStartDist = getDistance(arr[0], arr[1]);
       pinchStartScale = scale;
       dragging = false;
+      userInteracted = true;
       return;
     }
 
@@ -3355,6 +3479,7 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
     if (e.button !== undefined && e.button !== 0) return;
 
     dragging = true;
+    userInteracted = true;
     viewport.classList.add("dragging");
 
     startX = e.clientX;
@@ -3363,9 +3488,9 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
     startPanY = panY;
 
     viewport.setPointerCapture?.(e.pointerId);
-  });
+  }
 
-  viewport.addEventListener("pointermove", e => {
+  function onPointerMove(e){
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, e);
 
@@ -3378,7 +3503,11 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
       const centerX = (arr[0].clientX + arr[1].clientX) / 2;
       const centerY = (arr[0].clientY + arr[1].clientY) / 2;
 
-      zoomAt(centerX, centerY, pinchStartScale * (dist / pinchStartDist));
+      zoomAt(
+        centerX,
+        centerY,
+        pinchStartScale * (dist / pinchStartDist)
+      );
       return;
     }
 
@@ -3388,7 +3517,7 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
     panY = startPanY + (e.clientY - startY);
 
     update();
-  });
+  }
 
   function endPointer(e){
     pointers.delete(e.pointerId);
@@ -3398,30 +3527,75 @@ function enableHallViewer(viewport, canvas, hallWidth, hallHeight){
     viewport.releasePointerCapture?.(e.pointerId);
   }
 
+  function onDoubleClick(e){
+    e.preventDefault();
+    userInteracted = false;
+    fit(true);
+  }
+
+  viewport.addEventListener("wheel", onWheel, { passive:false });
+  viewport.addEventListener("pointerdown", onPointerDown);
+  viewport.addEventListener("pointermove", onPointerMove);
   viewport.addEventListener("pointerup", endPointer);
   viewport.addEventListener("pointercancel", endPointer);
+  viewport.addEventListener("dblclick", onDoubleClick);
 
-  viewport.addEventListener("dblclick", e => {
-    e.preventDefault();
-    fit();
-  });
+  window.addEventListener("resize", scheduleFit);
+  window.addEventListener("orientationchange", scheduleFit);
 
-  window.addEventListener("resize", fit);
+  if (typeof ResizeObserver === "function") {
+    resizeObserver = new ResizeObserver(scheduleFit);
+    resizeObserver.observe(viewport);
+  }
 
   window.VA_HALL_VIEWER = {
-    fit,
+    fit(){
+      userInteracted = false;
+      fit(true);
+    },
+
     refit(){
+      userInteracted = false;
+
       requestAnimationFrame(() => {
-        fit();
-        requestAnimationFrame(fit);
-        setTimeout(fit, 100);
-        setTimeout(fit, 300);
+        fit(true);
+        requestAnimationFrame(() => fit(true));
       });
+
+      setTimeout(() => fit(false), 80);
+      setTimeout(() => fit(false), 220);
+      setTimeout(() => fit(false), 450);
+    },
+
+    destroy(){
+      clearTimeout(resizeTimer);
+      resizeObserver?.disconnect();
+
+      viewport.removeEventListener("wheel", onWheel);
+      viewport.removeEventListener("pointerdown", onPointerDown);
+      viewport.removeEventListener("pointermove", onPointerMove);
+      viewport.removeEventListener("pointerup", endPointer);
+      viewport.removeEventListener("pointercancel", endPointer);
+      viewport.removeEventListener("dblclick", onDoubleClick);
+
+      window.removeEventListener("resize", scheduleFit);
+      window.removeEventListener("orientationchange", scheduleFit);
     }
   };
 
-  window.VA_HALL_VIEWER.refit();
+  if (document.readyState === "complete") {
+    window.VA_HALL_VIEWER.refit();
+  } else {
+    window.addEventListener(
+      "load",
+      () => window.VA_HALL_VIEWER?.refit(),
+      { once:true }
+    );
+
+    window.VA_HALL_VIEWER.refit();
+  }
 }
+
     
 function renderTablesSection(section){
   const wrap = document.createElement("section");
