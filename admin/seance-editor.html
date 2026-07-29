@@ -833,7 +833,7 @@ const VENUE_ID_ALIASES = {
 const HALL_BY_VENUE_ID = {
   academy: "academy-ruhu",
   shevchenko: "shevchenko-v2",
-  opera: "opera",
+  opera: "opera-test",
   filarmoniya: "filarmoniya",
   "client-x": "client-x",
   "big-stage-demo": "big-stage-demo"
@@ -878,7 +878,7 @@ function hallNameForVenueId(venueId){
 
 async function loadVenuesFromDb(configVenues = []){
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/venues?select=id,name,slug&order=name.asc`,
+    `${SUPABASE_URL}/rest/v1/venues?select=id,name,slug,default_hall&order=name.asc`,
     {
       headers:{
         apikey: SUPABASE_ANON_KEY,
@@ -904,13 +904,22 @@ async function loadVenuesFromDb(configVenues = []){
       candidates.includes(v?.slug)
     ) || {};
 
+    const dbDefaultHall = String(
+      row.default_hall ||
+      meta.default_hall ||
+      meta.hall ||
+      row.slug ||
+      hallNameForVenueId(canonicalId)
+    ).trim();
+
     return {
       ...meta,
       id: canonicalId,
       slug: row.slug || canonicalId,
       name: row.name || canonicalId,
       title: row.name || canonicalId,
-      hall: hallNameForVenueId(canonicalId)
+      default_hall: dbDefaultHall,
+      hall: dbDefaultHall
     };
   });
 }
@@ -993,15 +1002,38 @@ function getVenueConfig(id){
 }
 
 function getHallNameByVenue(id){
-  return hallNameForVenueId(id);
+  const canonical = normalizeVenueIdForDb(id);
+  const venue = CONFIG_VENUES.find(v => v.id === canonical) || null;
+
+  return String(
+    venue?.default_hall ||
+    venue?.hall ||
+    venue?.slug ||
+    hallNameForVenueId(canonical)
+  ).trim();
 }
 
 function normalizeHallNameForPreview(value){
   const hallName = String(value || "").trim();
   if (!hallName) return "shevchenko-v2";
 
-  const canonicalVenue = VENUE_ID_BY_HALL[hallName] || normalizeVenueIdForDb(hallName);
-  return hallNameForVenueId(canonicalVenue);
+  const canonicalVenue =
+    VENUE_ID_BY_HALL[hallName] ||
+    normalizeVenueIdForDb(hallName);
+
+  const venue = CONFIG_VENUES.find(v => v.id === canonicalVenue) || null;
+
+  if (venue) {
+    return String(
+      venue.default_hall ||
+      venue.hall ||
+      venue.slug ||
+      hallName
+    ).trim();
+  }
+
+  // Если передано уже готовое имя hall-файла, не переименовываем его.
+  return hallName;
 }
 
 function setVenueByHallName(hallName){
@@ -2019,6 +2051,18 @@ async function renderPreview(){
   previewStage.innerHTML = "";
   previewInfo.textContent = "Завантаження схеми…";
 
+  /*
+    Важно: при смене площадки предыдущая схема больше не является
+    источником данных. Если новый JSON не загрузится, счётчик должен
+    показать ноль, а не вместимость ранее открытого зала.
+  */
+  CURRENT_PREVIEW_HALL = null;
+  updateVACapacityCounter();
+
+  if (output) {
+    output.value = JSON.stringify(buildSeanceEditorPayload(), null, 2);
+  }
+
   const hallName = normalizeHallNameForPreview(
     getHallNameByVenue(venueSelect.value) || venueSelect.value
   );
@@ -2026,7 +2070,9 @@ async function renderPreview(){
   try {
     const res = await fetch(`../data/hall/${hallName}.json`, { cache:"no-store" });
     if (!res.ok) {
-      previewInfo.textContent = `Не вдалося завантажити схему: ${hallName}.json`;
+      previewInfo.textContent =
+        `Не вдалося завантажити схему: ${hallName}.json ` +
+        `(HTTP ${res.status})`;
       return;
     }
 
