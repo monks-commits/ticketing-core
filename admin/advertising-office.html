@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VA — Робоче місце рекламного відділу</title>
+<style>
+:root{
+  --bg:#071426;
+  --panel:#102641;
+  --panel2:#091d33;
+  --line:#294563;
+  --text:#f7fbff;
+  --muted:#aebfd4;
+  --blue:#2f8cff;
+  --green:#19a45b;
+  --red:#b54444;
+  --gold:#f2b632;
+  --violet:#7558d6;
+  --shadow:0 16px 42px rgba(0,0,0,.24);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+a{color:inherit}
+.app-shell{min-height:100vh;display:grid;grid-template-columns:270px minmax(0,1fr)}
+.sidebar{position:sticky;top:0;height:100vh;padding:20px 16px;background:#061120;border-right:1px solid var(--line);overflow:auto}
+.brand{padding:10px 10px 20px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.brand h1{font-size:23px;line-height:1.15;margin:0 0 7px}.brand p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.nav{display:grid;gap:8px}.nav-btn,.back-link{width:100%;border:1px solid var(--line);background:#091c31;color:#fff;border-radius:12px;padding:11px 12px;text-align:left;font-weight:800;cursor:pointer;text-decoration:none;display:flex;gap:10px;align-items:center}
+.nav-btn:hover,.back-link:hover{filter:brightness(1.12)}.nav-btn.active{background:var(--blue);border-color:var(--blue)}.nav-btn:disabled{opacity:.52;cursor:not-allowed}.nav-separator{height:1px;background:var(--line);margin:7px 0}
+.main{min-width:0;padding:20px}.topbar{position:sticky;top:0;z-index:10;background:rgba(7,20,38,.95);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:16px;box-shadow:var(--shadow)}
+.topbar-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}.field{min-width:180px;flex:1 1 190px}.field label{display:block;color:var(--muted);font-size:12px;font-weight:800;margin-bottom:6px}
+select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px;background:#071a2f;color:#fff;padding:10px 11px}.btn{border:0;border-radius:11px;padding:10px 14px;color:#fff;font-weight:900;cursor:pointer;background:#334f6d;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn:hover{filter:brightness(1.09)}.btn.blue{background:var(--blue)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.gold{background:var(--gold);color:#162033}.btn.violet{background:var(--violet)}.btn.small{padding:7px 10px;font-size:12px}.btn:disabled{opacity:.5;cursor:not-allowed}
+.view{display:none}.view.active{display:block}.hero,.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.hero{padding:22px;margin-bottom:16px;background:linear-gradient(135deg,#172e4c,#102641)}.hero h2{font-size:31px;margin:0 0 7px}.hero p{margin:0;color:var(--muted);line-height:1.55;max-width:1000px}
+.status-line{margin-top:13px;display:flex;gap:8px;flex-wrap:wrap}.badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#254768;font-size:12px;font-weight:800}.badge.ok{background:#17613e}.badge.warn{background:#765817}.badge.bad{background:#7a3333}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.kpi{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px}.kpi span{color:var(--muted);font-size:12px}.kpi b{display:block;font-size:27px;margin-top:5px}
+.workflow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:16px}.step{min-height:110px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:13px}.step strong{display:block;margin-bottom:7px}.step span{color:var(--muted);font-size:12px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{padding:18px}.card h3{margin:0 0 8px}.card p{margin:0 0 14px;color:var(--muted);line-height:1.5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.notice{border-radius:13px;padding:13px 14px;margin-bottom:14px;background:#132b48;border:1px solid #31577e;color:#dcecff}.notice.warn{background:#30250c;border-color:#7d621d;color:#ffe9ac}.notice.bad{background:#351919;border-color:#7d3535;color:#ffd0d0}.hidden{display:none!important}
+.module-shell{height:calc(100vh - 144px);min-height:650px;border:1px solid var(--line);border-radius:17px;background:var(--panel);overflow:hidden;box-shadow:var(--shadow)}.module-head{height:58px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);background:#0b2038}.module-head h3{margin:0;flex:1}.module-frame{display:block;width:100%;height:calc(100% - 58px);border:0;background:#fff}
+.distribution-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(360px,.75fr);gap:15px;align-items:start}.filters{display:grid;grid-template-columns:1.4fr repeat(2,minmax(140px,.75fr));gap:10px;margin-bottom:14px}.output-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:12px}.output-card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:11px;cursor:pointer}.output-card:hover,.output-card.active{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset}.preview{height:165px;background:#020811;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:9px}.preview img,.preview video{width:100%;height:100%;object-fit:contain}.output-card h4{margin:0 0 6px;line-height:1.3}.meta{color:var(--muted);font-size:12px;line-height:1.45}.tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.mini{display:inline-flex;padding:5px 8px;border-radius:999px;background:#244866;font-size:11px;font-weight:800}.mini.ok{background:#17613e}.mini.warn{background:#765817}.detail{position:sticky;top:126px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;max-height:calc(100vh - 148px);overflow:auto}.detail-media{background:#020811;border-radius:11px;overflow:hidden;margin-bottom:12px}.detail-media img,.detail-media video{display:block;width:100%;max-height:430px;object-fit:contain}.publication{white-space:pre-wrap;line-height:1.5;background:#061426;border:1px solid var(--line);border-radius:11px;padding:11px;margin:10px 0}.empty{border:1px dashed var(--line);border-radius:13px;padding:16px;color:var(--muted)}
+@media(max-width:1250px){.workflow{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:repeat(2,1fr)}.distribution-layout{grid-template-columns:1fr}.detail{position:static;max-height:none}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:850px){.app-shell{grid-template-columns:1fr}.sidebar{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}.main{padding:12px}.topbar{position:static}.module-shell{height:78vh;min-height:560px}.grid,.workflow,.kpis,.filters{grid-template-columns:1fr}.hero h2{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>VA — Рекламний відділ</h1>
+      <p>Аудиторія → контент → розповсюдження → результат</p>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-view="dashboard">🏠 Робочий стіл</button>
+      <button class="nav-btn" data-app="marketing">📈 Marketing OS</button>
+      <button class="nav-btn" data-app="clients">👥 Аудиторії та КБ</button>
+      <button class="nav-btn" data-app="studio">🎬 Content Studio</button>
+      <button class="nav-btn" data-app="visual">🖼️ Visual Editor</button>
+      <button class="nav-btn" data-view="distribution">📦 Розповсюдження</button>
+      <div class="nav-separator"></div>
+      <button class="nav-btn" disabled title="Буде підключено окремим застосуванням">✉️ Службові комунікації</button>
+      <a class="back-link" href="./control-center.html">← VA Control Center</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <section class="topbar">
+      <div class="topbar-row">
+        <div class="field"><label>Майданчик</label><select id="venueSelect"><option value="">Усі майданчики</option></select></div>
+        <div class="field"><label>Проєкт</label><select id="projectSelect"><option value="">Усі проєкти</option></select></div>
+        <div class="field"><label>Сеанс</label><select id="seanceSelect"><option value="">Усі сеанси</option></select></div>
+        <button class="btn" id="refreshBtn">Оновити</button>
+      </div>
+    </section>
+
+    <div id="globalMessage"></div>
+
+    <section class="view active" id="view-dashboard">
+      <div class="hero">
+        <h2>Робоче місце рекламного відділу</h2>
+        <p>Єдина точка входу до вже створених модулів. Виробничі застосування не переписуються: робоче місце задає контекст, відкриває потрібний інструмент і збирає готову продукцію для поширення.</p>
+        <div class="status-line">
+          <span class="badge" id="apiBadge">Supabase: перевірка…</span>
+          <span class="badge" id="contextBadge">Контекст: усі дані</span>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><span>Майбутні сеанси</span><b id="kpiSeances">0</b></div>
+        <div class="kpi"><span>Готові комплекти</span><b id="kpiReady">0</b></div>
+        <div class="kpi"><span>Опубліковано</span><b id="kpiPublished">0</b></div>
+        <div class="kpi"><span>Канали</span><b id="kpiChannels">0</b></div>
+      </div>
+
+      <div class="workflow">
+        <div class="step"><strong>1. Проєкт і сеанс</strong><span>Робочий контекст конкретної події.</span></div>
+        <div class="step"><strong>2. Аудиторія</strong><span>Сегменти й профілі з КБ.</span></div>
+        <div class="step"><strong>3. Виробництво</strong><span>Тексти, афіші, відео та адаптації.</span></div>
+        <div class="step"><strong>4. Готовий комплект</strong><span>PNG/MP4, текст, CTA та посилання.</span></div>
+        <div class="step"><strong>5. Розповсюдження</strong><span>Публікація, фактичний URL і статус.</span></div>
+        <div class="step"><strong>6. Результат</strong><span>Переходи, продажі та відвідування.</span></div>
+      </div>
+
+      <div class="grid">
+        <article class="card"><h3>📈 Marketing OS</h3><p>Визначає сеанси, що потребують уваги, аудиторії, канали продажу та фактичну ефективність.</p><div class="actions"><button class="btn violet" data-open-app="marketing">Відкрити</button></div></article>
+        <article class="card"><h3>👥 Аудиторії та КБ</h3><p>Покупці, сегменти, RFM, жанрові вподобання, відвідування та історія квитків.</p><div class="actions"><button class="btn blue" data-open-app="clients">Відкрити</button></div></article>
+        <article class="card"><h3>🎬 Content Studio</h3><p>Бібліотека, виробництво, кабінети каналів і склад готової продукції.</p><div class="actions"><button class="btn violet" data-open-app="studio">Відкрити</button></div></article>
+        <article class="card"><h3>🖼️ Visual Editor</h3><p>Візуальне оформлення сеансу. Також доступний безпосередньо у розділі «Виробництво» Studio.</p><div class="actions"><button class="btn blue" data-open-app="visual">Відкрити</button></div></article>
+        <article class="card"><h3>📦 Розповсюдження</h3><p>Операційний екран над готовою продукцією Studio: перегляд комплекту, копіювання публікації та фіксація фактичного розміщення.</p><div class="actions"><button class="btn green" data-open-view="distribution">Перейти</button></div></article>
+        <article class="card"><h3>✉️ Службові комунікації</h3><p>Окреме застосування для повідомлень глядачам, партнерам і службових розсилок. Буде підключене наступним адресом.</p><div class="actions"><button class="btn" disabled>Окремий модуль готується</button></div></article>
+      </div>
+    </section>
+
+    <section class="view" id="view-module">
+      <div class="module-shell">
+        <div class="module-head"><h3 id="moduleTitle">Модуль</h3><a class="btn small" id="moduleExternal" target="_blank" rel="noopener">Відкрити окремо</a><button class="btn small" id="moduleReload">Оновити</button></div>
+        <iframe class="module-frame" id="moduleFrame" title="VA module"></iframe>
+      </div>
+    </section>
+
+    <section class="view" id="view-distribution">
+      <div class="hero"><h2>Розповсюдження готової продукції</h2><p>Цей екран не створює дублікати матеріалів. Він читає готові комплекти з <b>content_final_outputs</b>, пов’язані публікації з <b>channel_publications</b> і фіксує фактичний статус розміщення.</p></div>
+      <div id="warehouseWarning" class="notice warn hidden">Таблиця складу готової продукції поки недоступна. Studio і решта робочого місця продовжують працювати.</div>
+      <div class="distribution-layout">
+        <div class="card">
+          <div class="filters">
+            <div class="field"><label>Пошук</label><input id="distributionSearch" placeholder="Канал, файл, текст, сеанс" /></div>
+            <div class="field"><label>Статус</label><select id="distributionStatus"><option value="">Усі статуси</option><option value="ready">ready</option><option value="approved">approved</option><option value="published">published</option><option value="archived">archived</option></select></div>
+            <div class="field"><label>Канал</label><select id="distributionChannel"><option value="">Усі канали</option></select></div>
+          </div>
+          <div id="outputGrid" class="output-grid"></div>
+        </div>
+        <aside id="outputDetail" class="detail"><div class="empty">Оберіть готовий комплект.</div></aside>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL="https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const APPS={
+  marketing:{title:"Marketing OS",url:"./marketing.html"},
+  clients:{title:"Аудиторії та КБ",url:"./viewers.html"},
+  studio:{title:"Content Studio",url:"./content_studio.html"},
+  visual:{title:"VA Visual Editor",url:"./visual-editor.html"}
+};
+const state={venues:[],projects:[],seances:[],outputs:[],publications:[],selectedOutputId:null,currentApp:null};
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+function message(text,type=""){ $("globalMessage").innerHTML=text?`<div class="notice ${type}">${esc(text)}</div>`:""; }
+async function rest(path,options={}){
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{...options,headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Content-Type":"application/json",...(options.headers||{})}});
+  if(!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+  if(res.status===204) return [];
+  const text=await res.text(); return text?JSON.parse(text):[];
+}
+async function optional(path){try{return await rest(path)}catch(e){console.warn(path,e);return []}}
+function venueId(x){return String(x?.venue_id||x?.venue||"")}
+function venueName(id){const v=state.venues.find(x=>String(x.id)===String(id));return v?.name||v?.title||id||"—"}
+function projectName(id){const p=state.projects.find(x=>String(x.id)===String(id));return p?.title||p?.name||id||"—"}
+function seanceName(id){const s=state.seances.find(x=>String(x.id)===String(id));return s?[s.show||s.title||"Подія",s.date,s.time].filter(Boolean).join(" · "):id||"—"}
+function context(){return {venue_id:$("venueSelect").value,project_id:$("projectSelect").value,seance_id:$("seanceSelect").value}}
+function persistContext(){localStorage.setItem("va_advertising_context",JSON.stringify(context()))}
+function restoreContext(){try{return JSON.parse(localStorage.getItem("va_advertising_context")||"{}")||{}}catch{return {}}}
+function showView(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===`view-${name}`));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));window.scrollTo({top:0,behavior:"smooth"})}
+function appUrl(code){const app=APPS[code],u=new URL(app.url,location.href),c=context();Object.entries(c).forEach(([k,v])=>{if(v)u.searchParams.set(k,v)});u.searchParams.set("return_to",location.href.split("#")[0]);return u.toString()}
+function openApp(code){const app=APPS[code];if(!app)return;state.currentApp=code;const url=appUrl(code);$("moduleTitle").textContent=app.title;$("moduleExternal").href=url;$("moduleFrame").src=url;showView("module");document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.app===code))}
+function populateSelectors(saved={}){
+  const keepVenue=saved.venue_id??$("venueSelect").value, keepProject=saved.project_id??$("projectSelect").value, keepSeance=saved.seance_id??$("seanceSelect").value;
+  $("venueSelect").innerHTML='<option value="">Усі майданчики</option>'+state.venues.map(v=>`<option value="${esc(v.id)}">${esc(v.name||v.title||v.id)}</option>`).join("");
+  if([...$("venueSelect").options].some(o=>o.value===String(keepVenue))) $("venueSelect").value=String(keepVenue);
+  populateProjects(keepProject,keepSeance);
+}
+function populateProjects(keepProject="",keepSeance=""){
+  const vid=$("venueSelect").value;
+  const rows=state.projects.filter(p=>!vid||venueId(p)===String(vid));
+  $("projectSelect").innerHTML='<option value="">Усі проєкти</option>'+rows.map(p=>`<option value="${esc(p.id)}">${esc(p.title||p.name||p.id)}</option>`).join("");
+  if([...$("projectSelect").options].some(o=>o.value===String(keepProject))) $("projectSelect").value=String(keepProject);
+  populateSeances(keepSeance);
+}
+function populateSeances(keep=""){
+  const vid=$("venueSelect").value,pid=$("projectSelect").value;
+  const rows=state.seances.filter(s=>(!vid||venueId(s)===String(vid))&&(!pid||String(s.project_id||"")===String(pid)));
+  $("seanceSelect").innerHTML='<option value="">Усі сеанси</option>'+rows.map(s=>`<option value="${esc(s.id)}">${esc(seanceName(s.id))}</option>`).join("");
+  if([...$("seanceSelect").options].some(o=>o.value===String(keep))) $("seanceSelect").value=String(keep);
+  updateContext();
+}
+function filteredOutputs(){const c=context(),q=$("distributionSearch")?.value.trim().toLowerCase()||"",status=$("distributionStatus")?.value||"",channel=$("distributionChannel")?.value||"";return state.outputs.filter(x=>(!c.venue_id||String(x.venue_id||"")===String(c.venue_id))&&(!c.project_id||String(x.project_id||"")===String(c.project_id))&&(!c.seance_id||String(x.seance_id||"")===String(c.seance_id))&&(!status||String(x.status||"")===status)&&(!channel||String(x.channel||"")===channel)&&(!q||`${x.title||""} ${x.file_name||""} ${x.publication_text||""} ${x.body_text||""} ${x.channel||""} ${seanceName(x.seance_id)}`.toLowerCase().includes(q))).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))}
+function updateContext(){persistContext();const c=context(),parts=[];if(c.venue_id)parts.push(venueName(c.venue_id));if(c.project_id)parts.push(projectName(c.project_id));if(c.seance_id)parts.push(seanceName(c.seance_id));$("contextBadge").textContent=`Контекст: ${parts.length?parts.join(" → "):"усі дані"}`;renderDashboard();renderDistribution();if(state.currentApp){const url=appUrl(state.currentApp);$("moduleExternal").href=url}}
+function scopedOutputs(){const c=context();return state.outputs.filter(x=>(!c.venue_id||String(x.venue_id||"")===String(c.venue_id))&&(!c.project_id||String(x.project_id||"")===String(c.project_id))&&(!c.seance_id||String(x.seance_id||"")===String(c.seance_id)))}
+function renderDashboard(){const c=context(),now=new Date(),seances=state.seances.filter(s=>(!c.venue_id||venueId(s)===String(c.venue_id))&&(!c.project_id||String(s.project_id||"")===String(c.project_id))&&(!c.seance_id||String(s.id)===String(c.seance_id))&&(!s.date||new Date(`${s.date}T${s.time||"00:00"}`)>=now)),out=scopedOutputs();$("kpiSeances").textContent=seances.length;$("kpiReady").textContent=out.filter(x=>["ready","approved"].includes(String(x.status))).length;$("kpiPublished").textContent=out.filter(x=>String(x.status)==="published").length;$("kpiChannels").textContent=new Set(out.map(x=>x.channel).filter(Boolean)).size}
+function previewHtml(x,large=false){if(!x?.file_url)return '<div class="empty">Файл відсутній</div>';if(String(x.file_kind||"").toLowerCase()==="mp4"||String(x.mime_type||"").startsWith("video/"))return `<video ${large?"controls":"muted"} preload="metadata" src="${esc(x.file_url)}"></video>`;return `<img src="${esc(x.file_url)}" alt="${esc(x.title||x.file_name||"Готовий комплект")}" />`}
+function renderChannels(){const current=$("distributionChannel").value,chs=[...new Set(state.outputs.map(x=>x.channel).filter(Boolean))].sort();$("distributionChannel").innerHTML='<option value="">Усі канали</option>'+chs.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if([...$("distributionChannel").options].some(o=>o.value===current))$("distributionChannel").value=current}
+function renderDistribution(){if(!$("outputGrid"))return;renderChannels();const rows=filteredOutputs();if(!rows.length){$("outputGrid").innerHTML='<div class="empty">Готових комплектів за вибраними умовами немає.</div>';$("outputDetail").innerHTML='<div class="empty">Оберіть інший контекст або створіть готовий комплект у Content Studio.</div>';return}if(!rows.some(x=>String(x.id)===String(state.selectedOutputId)))state.selectedOutputId=rows[0].id;$("outputGrid").innerHTML=rows.map(x=>`<article class="output-card ${String(x.id)===String(state.selectedOutputId)?"active":""}" data-output-id="${esc(x.id)}"><div class="preview">${previewHtml(x)}</div><h4>${esc(x.title||x.file_name||"Готовий комплект")}</h4><div class="tags"><span class="mini ${x.status==="published"?"ok":x.status==="archived"?"warn":""}">${esc(x.status||"ready")}</span><span class="mini">${esc(x.channel||"—")}</span><span class="mini">${esc(x.placement||x.format_code||"—")}</span></div><div class="meta">${esc(projectName(x.project_id))}<br>${esc(seanceName(x.seance_id))}</div></article>`).join("");document.querySelectorAll("[data-output-id]").forEach(el=>el.addEventListener("click",()=>{state.selectedOutputId=el.dataset.outputId;renderDistribution()}));renderDetail(rows.find(x=>String(x.id)===String(state.selectedOutputId)))}
+function fullText(x){return x.publication_text||[x.subject,x.body_text,x.hashtags,x.cta_text,x.target_url].filter(Boolean).join("\n\n")}
+function renderDetail(x){if(!x){$("outputDetail").innerHTML='<div class="empty">Оберіть готовий комплект.</div>';return}$("outputDetail").innerHTML=`<div class="detail-media">${previewHtml(x,true)}</div><h3>${esc(x.title||x.file_name||"Готовий комплект")}</h3><div class="tags"><span class="mini">${esc(x.channel||"—")}</span><span class="mini">${esc(x.placement||"—")}</span><span class="mini ${x.status==="published"?"ok":""}">${esc(x.status||"ready")}</span><span class="mini">v${esc(x.version||1)}</span></div><div class="meta">${esc(venueName(x.venue_id))} → ${esc(projectName(x.project_id))} → ${esc(seanceName(x.seance_id))}</div><div class="publication">${esc(fullText(x)||"Текст публікації не збережено.")}</div><div class="field"><label>Цільове посилання</label><input value="${esc(x.target_url||"")}" readonly /></div><div class="field"><label>Фактичний URL публікації</label><input id="publishedUrlInput" value="${esc(x.published_url||"")}" placeholder="Вставте адресу після розміщення" /></div><div class="actions"><a class="btn green small" href="${esc(x.file_url||"#")}" target="_blank" rel="noopener">Відкрити файл</a><button class="btn small" id="copyPublicationBtn">Копіювати публікацію</button><button class="btn gold small" id="markPublishedBtn">Позначити опублікованим</button><button class="btn blue small" id="openStudioBtn">Відкрити Studio</button></div>`;$("copyPublicationBtn").addEventListener("click",async()=>{await navigator.clipboard.writeText(fullText(x)||"");message("Публікацію скопійовано.")});$("markPublishedBtn").addEventListener("click",()=>markPublished(x));$("openStudioBtn").addEventListener("click",()=>openApp("studio"))}
+async function markPublished(x){try{const now=new Date().toISOString(),url=$("publishedUrlInput").value.trim()||null;await rest(`content_final_outputs?id=eq.${encodeURIComponent(x.id)}`,{method:"PATCH",body:JSON.stringify({status:"published",published_at:now,published_url:url,updated_at:now})});if(x.publication_id)await rest(`channel_publications?id=eq.${encodeURIComponent(x.publication_id)}`,{method:"PATCH",body:JSON.stringify({status:"published",published_at:now,published_url:url,updated_at:now})});message("Готовий комплект позначено як опублікований.");await loadData(false)}catch(e){message(`Не вдалося оновити статус: ${e.message}`,"bad")}}
+async function loadData(showMessage=true){try{if(showMessage)message("Оновлення даних…");const [venues,projects,seances,outputs,publications]=await Promise.all([optional("venues?select=*&order=name.asc"),optional("projects?select=*&order=created_at.desc"),optional("seances?select=*&order=date.asc"),optional("content_final_outputs?select=*&order=created_at.desc"),optional("channel_publications?select=*&order=updated_at.desc")]);state.venues=venues;state.projects=projects;state.seances=seances;state.outputs=outputs;state.publications=publications;populateSelectors(restoreContext());$("apiBadge").textContent="Supabase: підключено";$("apiBadge").className="badge ok";$("warehouseWarning").classList.toggle("hidden",outputs.length>0||publications.length>0);message("");renderDashboard();renderDistribution()}catch(e){$("apiBadge").textContent="Supabase: помилка";$("apiBadge").className="badge bad";message(e.message,"bad")}}
+
+document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{showView(b.dataset.view);document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x===b))}));
+document.querySelectorAll("[data-app]").forEach(b=>b.addEventListener("click",()=>openApp(b.dataset.app)));
+document.querySelectorAll("[data-open-app]").forEach(b=>b.addEventListener("click",()=>openApp(b.dataset.openApp)));
+document.querySelectorAll("[data-open-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.openView)));
+$("moduleReload").addEventListener("click",()=>{if(state.currentApp)$("moduleFrame").src=appUrl(state.currentApp)});
+$("refreshBtn").addEventListener("click",()=>loadData());
+$("venueSelect").addEventListener("change",()=>{populateProjects("","");updateContext()});
+$("projectSelect").addEventListener("change",()=>{populateSeances("");updateContext()});
+$("seanceSelect").addEventListener("change",updateContext);
+["distributionSearch","distributionStatus","distributionChannel"].forEach(id=>$(id).addEventListener(id==="distributionSearch"?"input":"change",renderDistribution));
+document.addEventListener("DOMContentLoaded",()=>loadData(false));
+</script>
+</body>
+</html>
