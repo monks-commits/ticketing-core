@@ -896,7 +896,39 @@ body{
   width:100%;
 }
   
-  </style>
+  
+/* ===== CASH BUILDER HALL: REAL VIEWPORT ===== */
+.hall-scroll.cash-builder-viewer-active{
+  position:relative !important;
+  overflow:hidden !important;
+  display:block !important;
+  padding:0 !important;
+}
+
+.hall-scroll.cash-builder-viewer-active .hall-inner,
+.hall-scroll.cash-builder-viewer-active #hall-root,
+.hall-scroll.cash-builder-viewer-active .hall-section--builder{
+  position:relative !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  height:100% !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+}
+
+.hall-scroll.cash-builder-viewer-active #hall-viewer-canvas{
+  position:absolute !important;
+  left:0 !important;
+  top:0 !important;
+  margin:0 !important;
+  transform-origin:0 0 !important;
+  will-change:transform;
+}
+
+</style>
   
 </head>
 
@@ -1213,6 +1245,7 @@ async function loadTakenSeatsOnline(){
     const showSlug  = (qs.get("show")   || "").trim();
 const SEANCE_ID = (qs.get("seance") || "").trim();
     const VENUE_ID = (qs.get("venue") || "").trim();
+    const DIRECT_HALL = (qs.get("hall") || "").trim();
 
 let CLIENT_CONFIG = null;
 
@@ -1334,7 +1367,7 @@ async function loadSeanceConfig() {
         return {
           pricing: rows[0].pricing || {},
           seat_overrides: rows[0].seat_overrides || {},
-          hall: rows[0].hall || "academy"
+          hall: String(rows[0].hall || "").trim()
         };
       }
     }
@@ -1354,7 +1387,7 @@ async function loadSeanceConfig() {
     return {
       pricing: localCfg?.pricing || {},
       seat_overrides: localCfg?.seat_overrides || {},
-      hall: localCfg?.hall || "academy"
+      hall: String(localCfg?.hall || "").trim()
     };
   } catch (e) {
     console.warn("cash loadSeanceConfig local error", e);
@@ -1363,13 +1396,26 @@ async function loadSeanceConfig() {
 }
 
     function seatKey(meta){
-      const row = meta.row ?? 0;
-      const seat = meta.seat ?? 0;
-      if (meta.zone === "Партер") return `P${row}-M${seat}`;
-      if (String(meta.zone).startsWith("Амфітеатр")) return `A${row}-M${seat}`;
-      if (meta.zone === "Балкон") return `B${row}-M${seat}`;
-      if (meta.zone === "Ложа А") return `A0-M${seat}`;
-      if (meta.zone === "Ложа Б") return `B0-M${seat}`;
+      const row = meta?.row ?? 0;
+      const seat = meta?.seat ?? 0;
+
+      /*
+        Builder / Stable halls already contain the canonical address.
+        This is especially important after unique prefixes were assigned
+        to Opera balconies and other sectors.
+      */
+      const explicitKey = String(meta?.key || "").trim();
+      if (explicitKey) return explicitKey;
+
+      const prefix = String(meta?.prefix || "").trim();
+      if (prefix) return `${prefix}${row}-M${seat}`;
+
+      if (meta?.zone === "Партер") return `P${row}-M${seat}`;
+      if (String(meta?.zone || "").startsWith("Амфітеатр")) return `A${row}-M${seat}`;
+      if (meta?.zone === "Балкон") return `B${row}-M${seat}`;
+      if (meta?.zone === "Ложа А") return `A0-M${seat}`;
+      if (meta?.zone === "Ложа Б") return `B0-M${seat}`;
+
       return `P${row}-M${seat}`;
     }
 
@@ -1393,6 +1439,196 @@ async function loadSeanceConfig() {
         try{ return JSON.parse(txt); }catch(e){ return null; }
       }catch(e){ return null; }
     }
+
+    function normalizeCashHallName(value){
+      return String(value || "")
+        .trim()
+        .replace(/\.json$/i, "");
+    }
+
+    function pushCashHallCandidate(list, value){
+      const hall = normalizeCashHallName(value);
+      if (!hall || list.includes(hall)) return;
+
+      list.push(hall);
+
+      /*
+        Compatibility aliases are appended, not substituted.
+        A valid explicit hall always remains the first candidate.
+      */
+      const aliases = {
+        opera: "opera-test",
+        shevchenko: "shevchenko-v2"
+      };
+
+      const alias = aliases[hall];
+      if (alias && !list.includes(alias)) {
+        list.push(alias);
+      }
+    }
+
+    async function loadCashVenueMeta(venueId){
+      const id = String(venueId || "").trim();
+      if (!id) return null;
+
+      const headers = {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      };
+
+      try {
+        const byId = await fetch(
+          `${SUPABASE_URL}/rest/v1/venues` +
+          `?id=eq.${encodeURIComponent(id)}` +
+          `&select=id,name,slug,default_hall`,
+          {
+            headers,
+            cache:"no-store"
+          }
+        );
+
+        if (byId.ok) {
+          const rows = await byId.json();
+          if (Array.isArray(rows) && rows.length) {
+            return rows[0];
+          }
+        }
+      } catch(e) {
+        console.warn("cash venue by id error", e);
+      }
+
+      try {
+        const bySlug = await fetch(
+          `${SUPABASE_URL}/rest/v1/venues` +
+          `?slug=eq.${encodeURIComponent(id)}` +
+          `&select=id,name,slug,default_hall`,
+          {
+            headers,
+            cache:"no-store"
+          }
+        );
+
+        if (bySlug.ok) {
+          const rows = await bySlug.json();
+          if (Array.isArray(rows) && rows.length) {
+            return rows[0];
+          }
+        }
+      } catch(e) {
+        console.warn("cash venue by slug error", e);
+      }
+
+      return null;
+    }
+
+    function cashConfigHallForVenue(venueId){
+      const id = String(venueId || "").trim();
+      if (!id || !CLIENT_CONFIG) return "";
+
+      try {
+        const helperHall =
+          window.VAConfigHelper?.getHallNameByVenue?.(
+            CLIENT_CONFIG.venues || [],
+            id
+          );
+
+        if (helperHall) return helperHall;
+      } catch(e) {
+        console.warn("cash config helper hall error", e);
+      }
+
+      const venue = (CLIENT_CONFIG.venues || []).find(v =>
+        String(v?.id || "").trim() === id ||
+        String(v?.slug || "").trim() === id
+      );
+
+      return (
+        venue?.default_hall ||
+        venue?.hall ||
+        venue?.slug ||
+        ""
+      );
+    }
+
+    async function resolveCashHall(){
+      const venueId = String(
+        VENUE_ID ||
+        SHOW_META?.venue_id ||
+        SHOW_META?.venue ||
+        ""
+      ).trim();
+
+      const venueMeta = await loadCashVenueMeta(venueId);
+      const candidates = [];
+
+      pushCashHallCandidate(candidates, DIRECT_HALL);
+      pushCashHallCandidate(candidates, SEANCE_CONFIG?.hall);
+      pushCashHallCandidate(candidates, SHOW_META?.hall);
+      pushCashHallCandidate(candidates, venueMeta?.default_hall);
+      pushCashHallCandidate(candidates, venueMeta?.slug);
+      pushCashHallCandidate(
+        candidates,
+        cashConfigHallForVenue(venueMeta?.id || venueId)
+      );
+      pushCashHallCandidate(candidates, CLIENT_CONFIG?.default_hall);
+      pushCashHallCandidate(candidates, "academy");
+
+      for (const hallFile of candidates) {
+        const hallData = await fetchJsonSafe(
+          `../data/hall/${encodeURIComponent(hallFile)}.json`
+        );
+
+        if (hallData) {
+          return {
+            hallFile,
+            hallData,
+            venueId,
+            venueMeta,
+            candidates
+          };
+        }
+      }
+
+      return {
+        hallFile:"",
+        hallData:null,
+        venueId,
+        venueMeta,
+        candidates
+      };
+    }
+
+    function renderCashHallLoadError(result){
+      const root = document.getElementById("hall-root");
+      if (!root) return;
+
+      root.innerHTML = `
+        <div style="
+          width:min(720px,calc(100% - 32px));
+          margin:40px auto;
+          padding:22px;
+          border:1px solid #fecaca;
+          border-radius:16px;
+          background:#fff7f7;
+          color:#7f1d1d;
+          font:600 14px/1.5 Arial,sans-serif;
+          box-sizing:border-box;
+        ">
+          <div style="font-size:18px;font-weight:900;margin-bottom:8px;">
+            Схему залу не знайдено
+          </div>
+          <div>
+            Перевірені файли:
+            <b>${(result?.candidates || []).join(", ") || "немає кандидатів"}</b>
+          </div>
+          <div style="margin-top:8px;">
+            venue:
+            <b>${result?.venueId || "не визначено"}</b>
+          </div>
+        </div>
+      `;
+    }
+
 
     // --------- “оболочка кассы”: настройки + индикаторы + журнал ---------
     function fmtTime(ts){
@@ -1550,50 +1786,62 @@ async function loadSeanceConfig() {
 
 
 async function loadShowMeta(){
-
   const elShow = document.getElementById("summary-show");
   const elSeance = document.getElementById("summary-seance");
 
-  // всегда показываем seance
   if (elSeance) {
     elSeance.textContent = "Seance: " + (SEANCE_ID || "—");
   }
 
-  // если нет id — выходим
+  SHOW_META = null;
+
   if (!SEANCE_ID) {
     if (elShow) elShow.textContent = "Вистава: —";
-    return;
+    return null;
   }
 
   try {
-
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(SEANCE_ID)}&select=show`,
+      `${SUPABASE_URL}/rest/v1/seances` +
+      `?id=eq.${encodeURIComponent(SEANCE_ID)}` +
+      `&select=*`,
       {
         headers:{
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
+        },
+        cache:"no-store"
       }
     );
 
-    if (!res.ok) throw new Error("fetch failed");
-
-    const arr = await res.json();
-    const s = arr && arr.length ? arr[0] : null;
-
-    if (elShow) {
-      elShow.textContent = "Вистава: " + (s?.show || "—");
+    if (!res.ok) {
+      throw new Error(`seances HTTP ${res.status}`);
     }
 
-  } catch(e) {
+    const arr = await res.json();
+    SHOW_META = Array.isArray(arr) && arr.length ? arr[0] : null;
 
+    if (elShow) {
+      elShow.textContent =
+        "Вистава: " +
+        (
+          SHOW_META?.show ||
+          SHOW_META?.title ||
+          showSlug ||
+          "—"
+        );
+    }
+
+    return SHOW_META;
+  } catch(e) {
     console.warn("loadShowMeta error:", e);
 
     if (elShow) {
-      elShow.textContent = "Вистава: —";
+      elShow.textContent =
+        "Вистава: " + (showSlug || "—");
     }
 
+    return null;
   }
 }
 
@@ -3426,6 +3674,7 @@ function renderBuilderSeatsCash(hallData){
          s.prefix === "LA" ? "Ложа А" :
          s.prefix === "LB" ? "Ложа Б" :
          "Партер"),
+      key,
       prefix: s.prefix || "",
       row: String(s.row ?? "0"),
       seat: String(s.seat ?? "")
@@ -3445,8 +3694,19 @@ function renderBuilderSeatsCash(hallData){
   wrap.appendChild(canvas);
   root.appendChild(wrap);
 
+  const viewerViewport = document.querySelector(".hall-scroll");
+
+  if (viewerViewport) {
+    viewerViewport.classList.add("cash-builder-viewer-active");
+  }
+
   if (typeof enableHallViewer === "function") {
-    enableHallViewer(wrap, canvas, width, height);
+    enableHallViewer(
+      viewerViewport || wrap,
+      canvas,
+      width,
+      height
+    );
   }
 }
     
@@ -3562,12 +3822,18 @@ document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
     // auto sync when online comes back
     window.addEventListener("online", async ()=>{
       setNetPill();
+      const el = document.getElementById("topOnlineStatus");
+      if (el) el.textContent = "онлайн";
       try{
         const q = loadQueue();
         if (q.length) await syncQueue();
       }catch(e){}
     });
-    window.addEventListener("offline", ()=> setNetPill());
+    window.addEventListener("offline", ()=>{
+      setNetPill();
+      const el = document.getElementById("topOnlineStatus");
+      if (el) el.textContent = "офлайн";
+    });
 
 const topCashierStatusEl = document.getElementById("topCashierStatus");
 if (topCashierStatusEl) {
@@ -3790,6 +4056,17 @@ const filteredRows = Array.isArray(rows) ? rows : [];
   // === ИНИЦИАЛИЗАЦИЯ ===
 
 await loadClientConfig();
+
+setNetPill();
+refreshQueueCount();
+initLastSync();
+
+const topOnlineStatus = document.getElementById("topOnlineStatus");
+if (topOnlineStatus) {
+  topOnlineStatus.textContent =
+    navigator.onLine ? "онлайн" : "офлайн";
+}
+
 await loadSeancesForCash();
 await loadShowMeta();
 
@@ -3798,54 +4075,25 @@ await loadShowMeta();
 SEANCE_CONFIG = await loadSeanceConfig();
 CASH_PATCH = loadCashPatch();
 
-let hallFile = "";
+const hallResult = await resolveCashHall();
+const hallFile = hallResult.hallFile;
+const RAW_HALL = hallResult.hallData;
 
-// 1. Если зал указан в настройках сеанса — он главный
-if (SEANCE_CONFIG?.hall) {
-  hallFile = SEANCE_CONFIG.hall;
-}
+console.log("CASH HALL:", hallFile || "NOT FOUND");
+console.log("CASH HALL CANDIDATES:", hallResult.candidates);
 
-// 2. Если зал не указан, пробуем определить по venue из URL
-if (!hallFile && CLIENT_CONFIG && VENUE_ID) {
-  hallFile = VAConfigHelper.getHallNameByVenue(
-    CLIENT_CONFIG.venues || [],
-    VENUE_ID
-  );
-}
+if (!RAW_HALL) {
+  renderCashHallLoadError(hallResult);
+  renderCashLog();
+  updateSummary();
 
-// 3. Если venue в URL нет, пробуем найти venue по seance_id
-if (!hallFile && CLIENT_CONFIG && SEANCE_ID) {
-  const matchedVenue = (CLIENT_CONFIG.venues || []).find(v =>
-    String(SEANCE_ID).includes(String(v.id))
-  );
-
-  if (matchedVenue) {
-    hallFile = matchedVenue.hall || matchedVenue.id;
+  const topStatus = document.getElementById("topOnlineStatus");
+  if (topStatus) {
+    topStatus.textContent = "схема не знайдена";
   }
+
+  return;
 }
-
-// 4. Последний fallback
-if (!hallFile) {
-  hallFile = CLIENT_CONFIG?.default_hall || "academy";
-}
-
-hallFile = String(hallFile).trim();
-
-if (hallFile === "shevchenko") {
-  hallFile = "shevchenko-v2";
-}
-
-console.log("CASH HALL:", hallFile);
-
-const hallRes = await fetch(`../data/hall/${hallFile}.json`, {
-  cache: "no-store"
-});
-
-if (!hallRes.ok) {
-  throw new Error(`Hall JSON not found: ${hallFile}.json`);
-}
-
-const RAW_HALL = await hallRes.json();
 
 if (Array.isArray(RAW_HALL?.seats)) {
   renderBuilderSeatsCash(RAW_HALL);
