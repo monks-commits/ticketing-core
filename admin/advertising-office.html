@@ -59,7 +59,7 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
       <button class="nav-btn" data-app="visual">🖼️ Visual Editor</button>
       <button class="nav-btn" data-view="distribution">📦 Розповсюдження</button>
       <div class="nav-separator"></div>
-      <button class="nav-btn" disabled title="Буде підключено окремим застосуванням">✉️ Службові комунікації</button>
+      <a class="nav-btn" id="serviceNavLink" href="./service-communications.html">✉️ Службові комунікації</a>
       <a class="back-link" href="./control-center.html">← VA Control Center</a>
     </nav>
   </aside>
@@ -108,7 +108,7 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
         <article class="card"><h3>🎬 Content Studio</h3><p>Бібліотека, виробництво, кабінети каналів і склад готової продукції.</p><div class="actions"><button class="btn violet" data-open-app="studio">Відкрити</button></div></article>
         <article class="card"><h3>🖼️ Visual Editor</h3><p>Візуальне оформлення сеансу. Також доступний безпосередньо у розділі «Виробництво» Studio.</p><div class="actions"><button class="btn blue" data-open-app="visual">Відкрити</button></div></article>
         <article class="card"><h3>📦 Розповсюдження</h3><p>Операційний екран над готовою продукцією Studio: перегляд комплекту, копіювання публікації та фіксація фактичного розміщення.</p><div class="actions"><button class="btn green" data-open-view="distribution">Перейти</button></div></article>
-        <article class="card"><h3>✉️ Службові комунікації</h3><p>Окреме застосування для повідомлень глядачам, партнерам і службових розсилок. Буде підключене наступним адресом.</p><div class="actions"><button class="btn" disabled>Окремий модуль готується</button></div></article>
+        <article class="card"><h3>✉️ Службові комунікації</h3><p>Окреме застосування для повідомлень глядачам, партнерам, ЗМІ та службових розсилок. Контекст майданчика, проєкту й сеансу передається автоматично.</p><div class="actions"><a class="btn" id="serviceDashboardLink" href="./service-communications.html">Відкрити модуль</a></div></article>
       </div>
     </section>
 
@@ -188,7 +188,9 @@ function populateSeances(keep=""){
   updateContext();
 }
 function filteredOutputs(){const c=context(),q=$("distributionSearch")?.value.trim().toLowerCase()||"",status=$("distributionStatus")?.value||"",channel=$("distributionChannel")?.value||"";return state.outputs.filter(x=>(!c.venue_id||String(x.venue_id||"")===String(c.venue_id))&&(!c.project_id||String(x.project_id||"")===String(c.project_id))&&(!c.seance_id||String(x.seance_id||"")===String(c.seance_id))&&(!status||String(x.status||"")===status)&&(!channel||String(x.channel||"")===channel)&&(!q||`${x.title||""} ${x.file_name||""} ${x.publication_text||""} ${x.body_text||""} ${x.channel||""} ${seanceName(x.seance_id)}`.toLowerCase().includes(q))).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))}
-function updateContext(){persistContext();const c=context(),parts=[];if(c.venue_id)parts.push(venueName(c.venue_id));if(c.project_id)parts.push(projectName(c.project_id));if(c.seance_id)parts.push(seanceName(c.seance_id));$("contextBadge").textContent=`Контекст: ${parts.length?parts.join(" → "):"усі дані"}`;renderDashboard();renderDistribution();if(state.currentApp){const url=appUrl(state.currentApp);$("moduleExternal").href=url}}
+function serviceUrl(){const c=context(),p=new URLSearchParams({source:"advertising"});if(c.venue_id)p.set("venue",c.venue_id);if(c.project_id)p.set("project",c.project_id);if(c.seance_id)p.set("seance",c.seance_id);return `./service-communications.html?${p.toString()}`}
+function updateServiceLinks(){const url=serviceUrl();if($("serviceNavLink"))$("serviceNavLink").href=url;if($("serviceDashboardLink"))$("serviceDashboardLink").href=url}
+function updateContext(){persistContext();const c=context(),parts=[];if(c.venue_id)parts.push(venueName(c.venue_id));if(c.project_id)parts.push(projectName(c.project_id));if(c.seance_id)parts.push(seanceName(c.seance_id));$("contextBadge").textContent=`Контекст: ${parts.length?parts.join(" → "):"усі дані"}`;renderDashboard();renderDistribution();updateServiceLinks();if(state.currentApp){const url=appUrl(state.currentApp);$("moduleExternal").href=url}}
 function scopedOutputs(){const c=context();return state.outputs.filter(x=>(!c.venue_id||String(x.venue_id||"")===String(c.venue_id))&&(!c.project_id||String(x.project_id||"")===String(c.project_id))&&(!c.seance_id||String(x.seance_id||"")===String(c.seance_id)))}
 function renderDashboard(){const c=context(),now=new Date(),seances=state.seances.filter(s=>(!c.venue_id||venueId(s)===String(c.venue_id))&&(!c.project_id||String(s.project_id||"")===String(c.project_id))&&(!c.seance_id||String(s.id)===String(c.seance_id))&&(!s.date||new Date(`${s.date}T${s.time||"00:00"}`)>=now)),out=scopedOutputs();$("kpiSeances").textContent=seances.length;$("kpiReady").textContent=out.filter(x=>["ready","approved"].includes(String(x.status))).length;$("kpiPublished").textContent=out.filter(x=>String(x.status)==="published").length;$("kpiChannels").textContent=new Set(out.map(x=>x.channel).filter(Boolean)).size}
 function previewHtml(x,large=false){if(!x?.file_url)return '<div class="empty">Файл відсутній</div>';if(String(x.file_kind||"").toLowerCase()==="mp4"||String(x.mime_type||"").startsWith("video/"))return `<video ${large?"controls":"muted"} preload="metadata" src="${esc(x.file_url)}"></video>`;return `<img src="${esc(x.file_url)}" alt="${esc(x.title||x.file_name||"Готовий комплект")}" />`}
