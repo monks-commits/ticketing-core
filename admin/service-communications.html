@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VA — Службові комунікації</title>
+<style>
+:root{
+  --bg:#071426;--sidebar:#061120;--panel:#102641;--panel2:#091d33;
+  --line:#294563;--text:#f7fbff;--muted:#aebfd4;--blue:#2f8cff;
+  --green:#19a45b;--red:#b54444;--gold:#f2b632;--violet:#7558d6;
+  --shadow:0 16px 42px rgba(0,0,0,.24)
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}a{color:inherit}.hidden{display:none!important}
+.app{min-height:100vh;display:grid;grid-template-columns:270px minmax(0,1fr)}
+.sidebar{position:sticky;top:0;height:100vh;padding:20px 16px;background:var(--sidebar);border-right:1px solid var(--line);overflow:auto}
+.brand{padding:9px 10px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}.brand h1{font-size:23px;line-height:1.15;margin:0 0 7px}.brand p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.source-badge{display:inline-flex;margin-top:12px;padding:6px 9px;border-radius:999px;background:#254768;font-size:11px;font-weight:900}
+.nav{display:grid;gap:8px}.nav-btn,.back-link{width:100%;border:1px solid var(--line);background:#091c31;color:#fff;border-radius:12px;padding:11px 12px;text-align:left;font-weight:800;cursor:pointer;text-decoration:none;display:flex;gap:9px;align-items:center}.nav-btn:hover,.back-link:hover{filter:brightness(1.12)}.nav-btn.active{background:var(--blue);border-color:var(--blue)}.nav-separator{height:1px;background:var(--line);margin:7px 0}
+.main{min-width:0;padding:20px}.topbar{position:sticky;top:0;z-index:12;background:rgba(7,20,38,.95);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:16px;box-shadow:var(--shadow)}
+.topbar-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}.field{min-width:170px;flex:1 1 190px}.field label{display:block;color:var(--muted);font-size:12px;font-weight:800;margin-bottom:6px}
+select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px;background:#071a2f;color:#fff;padding:10px 11px}textarea{min-height:96px;resize:vertical}.editor{min-height:220px;line-height:1.5}
+.btn{border:0;border-radius:11px;padding:10px 14px;color:#fff;font-weight:900;cursor:pointer;background:#334f6d;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn:hover{filter:brightness(1.09)}.btn.blue{background:var(--blue)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.gold{background:var(--gold);color:#172033}.btn.violet{background:var(--violet)}.btn.small{padding:7px 10px;font-size:12px}.btn:disabled{opacity:.5;cursor:not-allowed}
+.view{display:none}.view.active{display:block}.hero,.card,.compact{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.hero{padding:22px;margin-bottom:16px;background:linear-gradient(135deg,#172e4c,#102641)}.hero h2{font-size:31px;margin:0 0 7px}.hero p{margin:0;color:var(--muted);line-height:1.55;max-width:1100px}.card{padding:18px}.compact{padding:14px;background:var(--panel2);box-shadow:none}
+.toolbar,.actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.toolbar{margin-bottom:13px}.actions{margin-top:12px}.grow{flex:1}.no-margin{margin:0}
+.grid-2,.grid-3,.grid-4{display:grid;gap:12px}.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.workspace{display:grid;grid-template-columns:minmax(260px,.68fr) minmax(0,1.75fr);gap:15px;align-items:start}.sticky{position:sticky;top:126px;max-height:calc(100vh - 148px);overflow:auto}
+.list{display:grid;gap:9px}.list-item{border:1px solid var(--line);border-radius:13px;padding:11px;background:#081b30;cursor:pointer}.list-item:hover,.list-item.active{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset}.item-title{font-weight:900;margin-bottom:5px}.meta{color:var(--muted);font-size:12px;line-height:1.45}.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.mini,.badge{display:inline-flex;padding:5px 8px;border-radius:999px;background:#244866;font-size:11px;font-weight:900}.mini.ok,.badge.ok{background:#17613e}.mini.warn,.badge.warn{background:#765817}.mini.bad,.badge.bad{background:#7a3333}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.kpi{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px}.kpi span{color:var(--muted);font-size:12px}.kpi b{display:block;font-size:27px;margin-top:5px}
+.notice{border-radius:13px;padding:13px 14px;margin-bottom:14px;background:#132b48;border:1px solid #31577e;color:#dcecff;line-height:1.5}.notice.warn{background:#30250c;border-color:#7d621d;color:#ffe9ac}.notice.bad{background:#351919;border-color:#7d3535;color:#ffd0d0}
+.preview{white-space:pre-wrap;line-height:1.55;background:#061426;border:1px solid var(--line);border-radius:12px;padding:14px;min-height:210px}.preview h3{margin:0 0 12px}.code{overflow-wrap:anywhere;color:#9dc8f7;margin-top:12px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:13px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;color:#d9e7f7;background:#0d223b;position:sticky;top:0}td{font-size:13px}.empty{border:1px dashed var(--line);border-radius:13px;padding:16px;color:var(--muted)}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 12px}.section-title h3{margin:0}.message-line{min-height:18px;margin-bottom:12px}.message{padding:11px 13px;border-radius:12px;background:#153b2a;border:1px solid #24633f}.message.bad{background:#351919;border-color:#7d3535}.message.warn{background:#30250c;border-color:#7d621d}
+@media(max-width:1200px){.workspace{grid-template-columns:1fr}.sticky{position:static;max-height:none}.grid-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:850px){.app{grid-template-columns:1fr}.sidebar{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}.main{padding:12px}.topbar{position:static}.grid-2,.grid-3,.grid-4,.kpis{grid-template-columns:1fr}.hero h2{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>VA — Службові комунікації</h1>
+      <p>Окремий контур повідомлень, списків одержувачів і журналу виконання.</p>
+      <span class="source-badge" id="sourceBadge">Самостійний вхід</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-view="dashboard">🏠 Робочий стіл</button>
+      <button class="nav-btn" data-view="messages">✉️ Повідомлення</button>
+      <button class="nav-btn" data-view="templates">🧩 Шаблони</button>
+      <button class="nav-btn" data-view="journal">📚 Журнал виконання</button>
+      <div class="nav-separator"></div>
+      <a class="back-link" id="backAdvertising" href="./advertising-office.html">← Рекламний відділ</a>
+      <a class="back-link" href="./control-center.html">← VA Control Center</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <section class="topbar">
+      <div class="topbar-row">
+        <div class="field"><label>Майданчик</label><select id="venueSelect"><option value="">Оберіть майданчик</option></select></div>
+        <div class="field"><label>Проєкт</label><select id="projectSelect"><option value="">Без прив’язки до проєкту</option></select></div>
+        <div class="field"><label>Сеанс</label><select id="seanceSelect"><option value="">Без прив’язки до сеансу</option></select></div>
+        <button class="btn" id="refreshBtn">Оновити</button>
+      </div>
+    </section>
+
+    <div class="message-line" id="globalMessage"></div>
+
+    <section class="view active" id="view-dashboard">
+      <div class="hero">
+        <h2>Службові комунікації</h2>
+        <p>Повідомлення глядачам, партнерам, ЗМІ, запрошеним і працівникам. Модуль працює окремо від Content Studio, але може отримати контекст проєкту та сеансу з рекламного відділу.</p>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><span>Повідомлень у контексті</span><b id="kpiMessages">0</b></div>
+        <div class="kpi"><span>Готово / затверджено</span><b id="kpiReady">0</b></div>
+        <div class="kpi"><span>Надіслано</span><b id="kpiSent">0</b></div>
+        <div class="kpi"><span>Одержувачів</span><b id="kpiRecipients">0</b></div>
+      </div>
+      <div class="grid-3">
+        <article class="card"><h3>✉️ Нове повідомлення</h3><p class="meta">Створіть повідомлення з прив’язкою до майданчика, проєкту або конкретного сеансу.</p><div class="actions"><button class="btn blue" id="dashboardNewMessage">Створити</button></div></article>
+        <article class="card"><h3>🧩 Шаблони</h3><p class="meta">Перенесення, скасування, нагадування, запрошення, повідомлення партнерам та внутрішні звернення.</p><div class="actions"><button class="btn violet" data-open-view="templates">Відкрити шаблони</button></div></article>
+        <article class="card"><h3>📚 Контроль виконання</h3><p class="meta">Статуси, підготовлені одержувачі та журнал ручного або майбутнього автоматичного відправлення.</p><div class="actions"><button class="btn" data-open-view="journal">Відкрити журнал</button></div></article>
+      </div>
+      <div class="notice warn" style="margin-top:16px">Автоматичні провайдери Email, SMS, Viber або Telegram поки не підключені. Модуль повністю готує повідомлення, одержувачів, CSV та журналює ручне виконання.</div>
+    </section>
+
+    <section class="view" id="view-messages">
+      <div class="hero"><h2>Повідомлення</h2><p>Одна картка містить контекст, текст, аудиторію, підготовлених одержувачів, статус і результат виконання.</p></div>
+      <div class="workspace">
+        <aside class="card sticky">
+          <div class="toolbar"><h3 class="no-margin grow">Список</h3><button class="btn blue small" id="newMessageBtn">+ Нове</button></div>
+          <div class="grid-2">
+            <div class="field"><label>Пошук</label><input id="messageSearch" placeholder="назва, текст, тип" /></div>
+            <div class="field"><label>Статус</label><select id="messageStatusFilter"><option value="">Усі</option><option value="draft">Чернетка</option><option value="review">На перевірці</option><option value="approved">Затверджено</option><option value="ready">Готово</option><option value="sent">Надіслано</option><option value="archived">Архів</option></select></div>
+          </div>
+          <div class="list" id="messageList"></div>
+        </aside>
+
+        <section class="card">
+          <div class="toolbar"><h3 class="no-margin grow" id="messageHeading">Нове службове повідомлення</h3><span class="mini warn" id="messageStatusBadge">draft</span></div>
+          <input type="hidden" id="messageId" />
+          <div class="grid-3">
+            <div class="field"><label>Тип</label><select id="messageType"></select></div>
+            <div class="field"><label>Канал</label><select id="messageChannel"></select></div>
+            <div class="field"><label>Шаблон</label><select id="messageTemplate"><option value="">Оберіть шаблон</option></select></div>
+          </div>
+          <div class="grid-3">
+            <div class="field"><label>Проєкт</label><select id="messageProject"></select></div>
+            <div class="field"><label>Сеанс / подія</label><select id="messageSeance"></select></div>
+            <div class="field"><label>Новий сеанс після перенесення</label><select id="replacementSeance"></select></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>Внутрішня назва</label><input id="messageTitle" placeholder="Перенесення вистави — дата" /></div>
+            <div class="field"><label>Причина / уточнення</label><input id="messageReason" placeholder="нова дата, технічна причина…" /></div>
+          </div>
+          <div class="actions" style="margin-top:0;margin-bottom:12px"><button class="btn violet small" id="applyTemplateBtn">Застосувати шаблон</button><button class="btn small" id="refreshVariablesBtn">Оновити змінні</button></div>
+          <div class="field"><label>Тема / заголовок</label><input id="messageSubject" /></div>
+          <div class="field"><label>Текст</label><textarea id="messageBody" class="editor"></textarea></div>
+          <div class="grid-3">
+            <div class="field"><label>Заклик / кнопка</label><input id="messageCta" /></div>
+            <div class="field"><label>Посилання</label><input id="messageTargetUrl" /></div>
+            <div class="field"><label>Статус</label><select id="messageStatus"><option value="draft">Чернетка</option><option value="review">На перевірці</option><option value="approved">Затверджено</option><option value="ready">Готово до відправлення</option><option value="sent">Надіслано / опубліковано</option><option value="archived">Архів</option></select></div>
+          </div>
+          <div class="grid-3">
+            <div class="field"><label>Режим виконання</label><select id="deliveryMode"><option value="manual">Ручне відправлення</option><option value="export">Список / файл</option><option value="provider">Через провайдера</option></select></div>
+            <div class="field"><label>Заплановано на</label><input id="scheduledAt" type="datetime-local" /></div>
+            <div class="field"><label>Відповідальний / примітка</label><input id="ownerNote" /></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>Кому</label><select id="audience"><option value="manual">Власний список</option><option value="seance_buyers">Покупці цього сеансу</option><option value="project_buyers">Покупці проєкту</option><option value="press">ЗМІ / партнери</option><option value="guests">Запрошені</option><option value="staff">Працівники</option><option value="other">Інше</option></select></div>
+            <div class="field"><label>Одержувачі / примітка до списку</label><textarea id="recipientsText" placeholder="Ім’я | email | телефон — один одержувач у рядку"></textarea></div>
+          </div>
+
+          <div class="compact" style="margin-bottom:13px">
+            <div class="toolbar"><h3 class="no-margin grow">Одержувачі</h3><span class="mini" id="recipientSummary">Список не підготовлено</span></div>
+            <div class="notice">Для покупців система бере контакти з <b>orders</b> конкретного сеансу або всіх сеансів проєкту. Ручні списки можна вставити рядками та експортувати в CSV.</div>
+            <div class="actions"><button class="btn blue" id="prepareRecipientsBtn">Підготувати</button><button class="btn" id="copyRecipientsBtn">Скопіювати</button><button class="btn" id="exportRecipientsBtn">Експорт CSV</button><button class="btn red" id="clearRecipientsBtn">Очистити</button></div>
+            <div class="table-wrap" style="margin-top:11px;max-height:290px"><table><thead><tr><th>Ім’я</th><th>Email</th><th>Телефон</th><th>Канал</th><th>Стан</th></tr></thead><tbody id="recipientRows"></tbody></table></div>
+          </div>
+
+          <div class="compact">
+            <div class="toolbar"><h3 class="no-margin grow">Попередній перегляд</h3><span class="mini" id="previewChannel">Канал</span></div>
+            <div class="preview" id="messagePreview"></div>
+          </div>
+
+          <div class="grid-2" style="margin-top:12px">
+            <div class="field"><label>Посилання на результат</label><input id="publishedUrl" placeholder="URL публікації або журналу" /></div>
+            <div class="field"><label>Результат / службова примітка</label><input id="resultNote" placeholder="Надіслано 120, доставлено 114…" /></div>
+          </div>
+          <div class="actions"><button class="btn" id="saveDraftBtn">Зберегти чернетку</button><button class="btn green" id="approveBtn">Затвердити</button><button class="btn violet" id="copyMessageBtn">Скопіювати</button><button class="btn blue" id="openChannelBtn">Відкрити канал</button><button class="btn gold" id="markSentBtn">Позначити надісланим</button><button class="btn red" id="deleteMessageBtn">Видалити</button></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="view" id="view-templates">
+      <div class="hero"><h2>Шаблони</h2><p>Змінні автоматично підставляють дані проєкту, сеансу, нової дати, майданчика та посилання.</p></div>
+      <div class="workspace">
+        <aside class="card sticky"><div class="toolbar"><h3 class="no-margin grow">Шаблони</h3><button class="btn blue small" id="newTemplateBtn">+ Новий</button></div><div class="list" id="templateList"></div></aside>
+        <section class="card">
+          <div class="toolbar"><h3 class="no-margin grow" id="templateHeading">Новий шаблон</h3><span class="mini">{{змінні}}</span></div>
+          <input type="hidden" id="templateId" />
+          <div class="grid-3"><div class="field"><label>Назва</label><input id="templateName" /></div><div class="field"><label>Тип</label><select id="templateType"></select></div><div class="field"><label>Канал</label><select id="templateChannel"></select></div></div>
+          <div class="field"><label>Тема / заголовок</label><input id="templateSubject" /></div>
+          <div class="field"><label>Текст шаблону</label><textarea id="templateBody" class="editor"></textarea></div>
+          <div class="grid-2"><div class="field"><label>Заклик</label><input id="templateCta" /></div><div class="field"><label>Посилання</label><input id="templateTargetUrl" /></div></div>
+          <div class="notice">Доступні змінні: <b>{{project}}</b>, <b>{{event}}</b>, <b>{{date}}</b>, <b>{{time}}</b>, <b>{{new_date}}</b>, <b>{{new_time}}</b>, <b>{{venue}}</b>, <b>{{hall}}</b>, <b>{{ticket_url}}</b>, <b>{{reason}}</b>, <b>{{phone}}</b>.</div>
+          <div class="actions"><button class="btn green" id="saveTemplateBtn">Зберегти шаблон</button><button class="btn red" id="deleteTemplateBtn">Видалити шаблон</button></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="view" id="view-journal">
+      <div class="hero"><h2>Журнал виконання</h2><p>Повідомлення, кількість одержувачів, статуси та записи service_delivery_log.</p></div>
+      <div class="card">
+        <div class="toolbar"><div class="field grow"><label>Пошук</label><input id="journalSearch" placeholder="повідомлення, канал, результат" /></div><button class="btn" id="reloadJournalBtn">Оновити</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Дата</th><th>Повідомлення</th><th>Канал</th><th>Статус</th><th>Одержувачі</th><th>Дія / результат</th></tr></thead><tbody id="journalRows"></tbody></table></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SUPABASE_URL=window.SUPABASE_URL||"https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY=window.SUPABASE_ANON_KEY||"sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const $=id=>document.getElementById(id);
+const state={venues:[],projects:[],seances:[],templates:[],messages:[],recipients:[],deliveries:[],prepared:[],currentMessage:null,currentTemplate:null,source:"direct",schemaReady:false,recipientSchemaReady:false};
+const SERVICE_TYPES={postponement:"Перенесення події",cancellation:"Скасування події",premiere_invitation:"Запрошення на прем’єру",reminder:"Нагадування",schedule_change:"Зміна часу / залу",refund:"Повернення / обмін квитків",partner:"Повідомлення партнерам / ЗМІ",internal:"Внутрішнє повідомлення",other:"Інше"};
+const SERVICE_CHANNELS={all:"Усі / універсальний",site:"Сайт",facebook:"Facebook",instagram:"Instagram",tiktok:"TikTok",youtube:"YouTube",telegram:"Telegram",viber:"Viber",email:"Email",sms:"SMS",other:"Інше"};
+const CHANNEL_URLS={site:"https://monks-commits.github.io/ticketing-core/site-project/pages/index.html",facebook:"https://www.facebook.com/",instagram:"https://www.instagram.com/",tiktok:"https://www.tiktok.com/upload",youtube:"https://studio.youtube.com/",telegram:"https://web.telegram.org/",viber:"https://www.viber.com/"};
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=v=>v?new Intl.DateTimeFormat("uk-UA",{dateStyle:"short",timeStyle:"short"}).format(new Date(v)):"—";
+const dtLocal=v=>{if(!v)return"";const d=new Date(v);if(Number.isNaN(d.getTime()))return"";const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`};
+const isoOrNull=v=>v?new Date(v).toISOString():null;
+function headers(extra={}){return{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Content-Type":"application/json",...extra}}
+async function rest(path,opt={}){const r=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{...opt,headers:headers(opt.headers||{})});if(!r.ok){const raw=await r.text();let msg=raw;try{const j=JSON.parse(raw);msg=j.message||j.error||raw}catch{}throw new Error(msg||`HTTP ${r.status}`)}if(r.status===204)return[];const text=await r.text();return text?JSON.parse(text):[]}
+async function optional(path){try{return await rest(path)}catch(e){console.warn(path,e);return[]}}
+async function saveRow(table,id,payload){if(id){await rest(`${table}?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",body:JSON.stringify(payload)});return id}const rows=await rest(table,{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify(payload)});return rows?.[0]?.id}
+async function deleteRow(table,id){if(id)await rest(`${table}?id=eq.${encodeURIComponent(id)}`,{method:"DELETE"})}
+function notify(text="",kind="ok"){$("globalMessage").innerHTML=text?`<div class="message ${kind}">${esc(text)}</div>`:""}
+function typeLabel(v){return SERVICE_TYPES[v]||v||"Інше"}function channelLabel(v){return SERVICE_CHANNELS[v]||v||"—"}
+function venueId(x){return String(x?.venue_id||x?.venue||"")}function venueName(id){const v=state.venues.find(x=>String(x.id||x.slug||x.code)===String(id));return v?.name_uk||v?.name||v?.title||id||"Без майданчика"}
+function projectName(id){const p=state.projects.find(x=>String(x.id)===String(id));return p?.title||p?.name||id||"Без проєкту"}
+function seanceById(id){return state.seances.find(x=>String(x.id)===String(id))||null}function seanceLabel(s){if(!s)return"—";return [s.show||s.title||s.name||"Подія",s.date,s.time].filter(Boolean).join(" · ")}
+function storefrontUrl(s){return String(s?.ticket_url||s?.sale_url||s?.public_url||s?.buy_url||s?.event_url||s?.shop_url||s?.url||"")}
+function venuePhone(id){const v=state.venues.find(x=>String(x.id||x.slug||x.code)===String(id))||{};return String(v.phone||v.contact_phone||v.contacts?.phone||v.settings?.phone||"")}
+function context(){return{venue_id:$('venueSelect').value,project_id:$('projectSelect').value,seance_id:$('seanceSelect').value}}
+function scopedMessages(){const c=context();return state.messages.filter(m=>(!c.venue_id||String(m.venue_id)===String(c.venue_id))&&(!c.project_id||String(m.project_id||"")===String(c.project_id))&&(!c.seance_id||String(m.seance_id||"")===String(c.seance_id)))}
+function showView(name){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===`view-${name}`));document.querySelectorAll('.nav-btn[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===name));window.scrollTo({top:0,behavior:'smooth'})}
+function fillSelect(id,rows,selected,empty,label){const el=$(id);el.innerHTML=`<option value="">${esc(empty)}</option>`+rows.map(x=>`<option value="${esc(x.id)}">${esc(label(x))}</option>`).join('');if([...el.options].some(o=>o.value===String(selected||"")))el.value=String(selected||"")}
+function populateTypes(){const t=Object.entries(SERVICE_TYPES).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join(''),c=Object.entries(SERVICE_CHANNELS).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('');['messageType','templateType'].forEach(id=>$(id).innerHTML=t);['messageChannel','templateChannel'].forEach(id=>$(id).innerHTML=c)}
+function projectsForVenue(vid){return state.projects.filter(p=>!vid||String(venueId(p))===String(vid)).sort((a,b)=>String(a.title||'').localeCompare(String(b.title||''),'uk'))}
+function seancesFor(vid,pid){return state.seances.filter(s=>(!vid||String(venueId(s))===String(vid))&&(!pid||String(s.project_id||'')===String(pid))).sort((a,b)=>`${a.date||''} ${a.time||''}`.localeCompare(`${b.date||''} ${b.time||''}`))}
+function populateContext(keep={}){const venueKeep=keep.venue_id??$('venueSelect').value,projectKeep=keep.project_id??$('projectSelect').value,seanceKeep=keep.seance_id??$('seanceSelect').value;$('venueSelect').innerHTML='<option value="">Оберіть майданчик</option>'+state.venues.map(v=>`<option value="${esc(v.id||v.slug||v.code)}">${esc(v.name_uk||v.name||v.title||v.id)}</option>`).join('');if([...$('venueSelect').options].some(o=>o.value===String(venueKeep||'')))$('venueSelect').value=String(venueKeep||'');populateProjectContext(projectKeep,seanceKeep)}
+function populateProjectContext(projectKeep='',seanceKeep=''){const vid=$('venueSelect').value;fillSelect('projectSelect',projectsForVenue(vid),projectKeep,'Без прив’язки до проєкту',p=>p.title||p.name||p.id);populateSeanceContext(seanceKeep);populateMessageProject($('messageProject').value||projectKeep,$('messageSeance').value||seanceKeep,$('replacementSeance').value||'')}
+function populateSeanceContext(keep=''){fillSelect('seanceSelect',seancesFor($('venueSelect').value,$('projectSelect').value),keep,'Без прив’язки до сеансу',seanceLabel);updateBackLink();renderAll()}
+function populateMessageProject(projectKeep='',seanceKeep='',replacementKeep=''){fillSelect('messageProject',projectsForVenue($('venueSelect').value),projectKeep,'Без прив’язки до проєкту',p=>p.title||p.id);populateMessageSeances(seanceKeep,replacementKeep)}
+function populateMessageSeances(keep='',replacement=''){const rows=seancesFor($('venueSelect').value,$('messageProject').value);fillSelect('messageSeance',rows,keep,'Без прив’язки до сеансу',seanceLabel);fillSelect('replacementSeance',rows,replacement,'Новий сеанс не вибрано',seanceLabel)}
+function updateBackLink(){const p=new URLSearchParams();const c=context();Object.entries(c).forEach(([k,v])=>{if(v)p.set(k.replace('_id',''),v)});$('backAdvertising').href='./advertising-office.html'+(p.toString()?`?${p}`:'')}
+function parseParams(){const q=new URLSearchParams(location.search);state.source=q.get('source')||'direct';$('sourceBadge').textContent=state.source==='advertising'?'Вхід із рекламного відділу':state.source==='secretary'?'Секретарський контур':'Самостійний вхід';return{venue_id:q.get('venue')||'',project_id:q.get('project')||'',seance_id:q.get('seance')||'',service_type:q.get('service_type')||''}}
+function serviceContext(){const p=state.projects.find(x=>String(x.id)===String($('messageProject').value)),s=seanceById($('messageSeance').value),r=seanceById($('replacementSeance').value),vid=$('venueSelect').value||venueId(p)||venueId(s);return{project:p?.title||'',event:s?.show||s?.title||p?.title||'',date:s?.date||'',time:s?.time||'',new_date:r?.date||'',new_time:r?.time||'',venue:venueName(vid),hall:r?.hall||s?.hall||'',ticket_url:storefrontUrl(r)||storefrontUrl(s)||'',reason:$('messageReason').value||'',phone:venuePhone(vid)}}
+function renderVars(text,ctx=serviceContext()){let out=String(text||'');Object.entries(ctx).forEach(([k,v])=>out=out.split(`{{${k}}}`).join(String(v||'')));return out}
+function templateRows(){const type=$('messageType').value,channel=$('messageChannel').value,vid=$('venueSelect').value;return state.templates.filter(t=>(!t.venue_id||String(t.venue_id)===String(vid))&&(!type||t.service_type===type)&&(!channel||t.channel==='all'||t.channel===channel)&&t.is_active!==false).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.name||'').localeCompare(String(b.name||''),'uk'))}
+function populateMessageTemplates(selected=''){fillSelect('messageTemplate',templateRows(),selected,'Оберіть шаблон',t=>`${t.name} · ${channelLabel(t.channel)}`)}
+function clearMessage(){state.currentMessage=null;$('messageId').value='';$('messageHeading').textContent='Нове службове повідомлення';$('messageType').value='postponement';$('messageChannel').value='all';populateMessageProject($('projectSelect').value,$('seanceSelect').value,'');$('messageTitle').value='';$('messageReason').value='';$('messageSubject').value='';$('messageBody').value='';$('messageCta').value='';$('messageTargetUrl').value='';$('messageStatus').value='draft';$('audience').value='manual';$('recipientsText').value='';$('deliveryMode').value='manual';$('scheduledAt').value='';$('ownerNote').value='';$('publishedUrl').value='';$('resultNote').value='';state.prepared=[];populateMessageTemplates('');renderRecipients();renderPreview();renderMessages()}
+function fillMessage(m){state.currentMessage=m;$('messageId').value=m.id||'';$('messageHeading').textContent=m.title||'Службове повідомлення';$('messageType').value=m.service_type||'other';$('messageChannel').value=m.channel||'all';populateMessageProject(m.project_id||'',m.seance_id||'',m.replacement_seance_id||'');$('messageTitle').value=m.title||'';$('messageReason').value=m.reason||'';$('messageSubject').value=m.subject||'';$('messageBody').value=m.body||'';$('messageCta').value=m.cta_text||'';$('messageTargetUrl').value=m.target_url||'';$('messageStatus').value=m.status||'draft';$('audience').value=m.audience_segment||'manual';$('recipientsText').value=m.recipients_text||'';$('deliveryMode').value=m.delivery_mode||'manual';$('scheduledAt').value=dtLocal(m.scheduled_at);$('ownerNote').value=m.owner_note||'';$('publishedUrl').value=m.published_url||'';$('resultNote').value=m.result_note||'';state.prepared=state.recipients.filter(r=>String(r.service_message_id)===String(m.id));populateMessageTemplates(m.template_id||'');renderRecipients();renderPreview();renderMessages()}
+function renderMessages(){const q=$('messageSearch').value.trim().toLowerCase(),status=$('messageStatusFilter').value;let rows=scopedMessages().filter(m=>(!status||m.status===status)&&(!q||`${m.title||''} ${m.subject||''} ${m.body||''} ${typeLabel(m.service_type)} ${projectName(m.project_id)}`.toLowerCase().includes(q))).sort((a,b)=>new Date(b.updated_at||b.created_at)-new Date(a.updated_at||a.created_at));$('messageList').innerHTML=rows.length?rows.map(m=>`<div class="list-item ${state.currentMessage&&String(state.currentMessage.id)===String(m.id)?'active':''}" data-message-id="${esc(m.id)}"><div class="item-title">${esc(m.title||typeLabel(m.service_type))}</div><div class="meta">${esc(typeLabel(m.service_type))} · ${esc(channelLabel(m.channel))}<br>${esc(projectName(m.project_id))}${m.seance_id?` · ${esc(seanceLabel(seanceById(m.seance_id)))}`:''}</div><div class="tags"><span class="mini ${['approved','ready','sent'].includes(m.status)?'ok':'warn'}">${esc(m.status||'draft')}</span><span class="mini">${esc(fmt(m.updated_at||m.created_at))}</span></div></div>`).join(''):'<div class="empty">Повідомлень немає.</div>';document.querySelectorAll('[data-message-id]').forEach(el=>el.addEventListener('click',()=>fillMessage(state.messages.find(x=>String(x.id)===String(el.dataset.messageId)))));const st=$('messageStatus').value;$('messageStatusBadge').textContent=st;$('messageStatusBadge').className=`mini ${['approved','ready','sent'].includes(st)?'ok':'warn'}`}
+function renderPreview(){const subject=renderVars($('messageSubject').value),body=renderVars($('messageBody').value),cta=renderVars($('messageCta').value),url=renderVars($('messageTargetUrl').value);$('previewChannel').textContent=channelLabel($('messageChannel').value);$('messagePreview').innerHTML=`${subject?`<h3>${esc(subject)}</h3>`:''}<div>${esc(body||'Текст ще не підготовлено.')}</div>${cta||url?`<div style="margin-top:15px"><b>${esc(cta||'Перейти')}</b>${url?`<div class="code">${esc(url)}</div>`:''}</div>`:''}`}
+function applyTemplate(){const t=state.templates.find(x=>String(x.id)===String($('messageTemplate').value));if(!t)throw new Error('Оберіть шаблон.');$('messageSubject').value=renderVars(t.subject_template);$('messageBody').value=renderVars(t.body_template);$('messageCta').value=renderVars(t.cta_template);$('messageTargetUrl').value=renderVars(t.target_url_template);if(!$('messageTitle').value)$('messageTitle').value=`${typeLabel($('messageType').value)} — ${serviceContext().event||venueName($('venueSelect').value)}`;renderPreview()}
+function refreshVariables(){['messageSubject','messageBody','messageCta','messageTargetUrl'].forEach(id=>$(id).value=renderVars($(id).value));renderPreview()}
+function normalizeEmail(v){return String(v||'').trim().toLowerCase()}function normalizePhone(v){return String(v||'').replace(/[^0-9+]/g,'').replace(/^00/,'+')}
+function recipientChannelState(r){const ch=$('messageChannel').value||'all';if(ch==='email')return r.email?['email','ready']:['email','missing'];if(ch==='sms'||ch==='viber')return r.phone?[ch,'ready']:[ch,'missing'];if(ch==='telegram')return(r.phone||r.email)?['telegram','manual']:['telegram','missing'];if(ch==='all')return r.email?['email','ready']:r.phone?['phone','ready']:['—','missing'];return[ch,(r.email||r.phone)?'manual':'missing']}
+function parseManual(text){return String(text||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map((line,i)=>{const email=(line.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)||[])[0]||'',phone=(line.match(/\+?[0-9][0-9()\-\s]{7,}[0-9]/)||[])[0]||'',name=line.replace(email,'').replace(phone,'').replace(/[|;,]+/g,' ').trim();return{name:name||`Одержувач ${i+1}`,email:normalizeEmail(email),phone:normalizePhone(phone),source:'manual'}})}
+function orderRecipient(o){return{name:o.buyer_name||o.customer_name||o.name||o.owner_name||'',email:normalizeEmail(o.buyer_email||o.customer_email||o.email||''),phone:normalizePhone(o.buyer_phone||o.customer_phone||o.phone||''),source:'customer_base',source_order_id:o.id||null,source_seance_id:o.seance_id||null}}
+async function resolveRecipients(){const aud=$('audience').value;if(aud==='manual'||['press','guests','staff','other'].includes(aud))return parseManual($('recipientsText').value);let ids=[];if(aud==='seance_buyers'){const sid=$('messageSeance').value;if(!sid)throw new Error('Оберіть сеанс.');ids=[sid]}else{const pid=$('messageProject').value;if(!pid)throw new Error('Оберіть проєкт.');ids=seancesFor($('venueSelect').value,pid).map(x=>x.id);if(!ids.length)throw new Error('У проєкту немає сеансів.')}const batches=await Promise.all(ids.map(id=>rest(`orders?select=*&seance_id=eq.${encodeURIComponent(id)}`)));return batches.flat().filter(o=>!o.status||['paid','success','completed','approved'].includes(String(o.status).toLowerCase())).map(orderRecipient)}
+function dedupeRecipients(rows){const map=new Map();rows.forEach(r=>{const k=normalizeEmail(r.email)||normalizePhone(r.phone)||String(r.name||'').trim().toLowerCase();if(!k)return;const old=map.get(k)||{};map.set(k,{...old,...r,email:r.email||old.email||'',phone:r.phone||old.phone||'',name:r.name||old.name||''})});return[...map.values()].map(r=>{const[delivery_channel,validation_status]=recipientChannelState(r);return{...r,delivery_channel,validation_status}})}
+function renderRecipients(){const rows=state.prepared,ready=rows.filter(r=>r.validation_status!=='missing').length,missing=rows.length-ready;$('recipientSummary').textContent=rows.length?`${rows.length} контактів · готові ${ready}${missing?` · без контакту ${missing}`:''}`:'Список не підготовлено';$('recipientRows').innerHTML=rows.length?rows.map(r=>`<tr><td>${esc(r.name||'—')}</td><td>${esc(r.email||'—')}</td><td>${esc(r.phone||'—')}</td><td>${esc(r.delivery_channel||'—')}</td><td><span class="mini ${r.validation_status==='ready'?'ok':r.validation_status==='manual'?'warn':'bad'}">${esc(r.validation_status||'—')}</span></td></tr>`).join(''):'<tr><td colspan="5" class="meta">Одержувачі ще не підготовлені.</td></tr>'}
+async function saveRecipients(messageId){if(!messageId||!state.recipientSchemaReady)return;await rest(`service_message_recipients?service_message_id=eq.${encodeURIComponent(messageId)}`,{method:'DELETE'});const rows=state.prepared.map(r=>({service_message_id:messageId,name:r.name||null,email:r.email||null,phone:r.phone||null,source:r.source||'manual',source_order_id:r.source_order_id||null,source_seance_id:r.source_seance_id||null,delivery_channel:r.delivery_channel||null,validation_status:r.validation_status||'ready',delivery_status:r.delivery_status||'prepared',metadata:{}}));if(rows.length)await rest('service_message_recipients',{method:'POST',body:JSON.stringify(rows)})}
+async function prepareRecipients(){const raw=await resolveRecipients();state.prepared=dedupeRecipients(raw);renderRecipients();const id=await saveMessage('draft',false);await saveRecipients(id);await loadData(false);const saved=state.messages.find(x=>String(x.id)===String(id));if(saved)fillMessage(saved);notify(`Підготовлено ${state.prepared.length} унікальних одержувачів.`)}
+async function saveMessage(statusOverride=null,showNotice=true){if(!$('venueSelect').value)throw new Error('Оберіть майданчик.');const status=statusOverride||$('messageStatus').value||'draft',id=$('messageId').value||null,payload={venue_id:$('venueSelect').value,project_id:$('messageProject').value||null,seance_id:$('messageSeance').value||null,replacement_seance_id:$('replacementSeance').value||null,template_id:$('messageTemplate').value||null,service_type:$('messageType').value,channel:$('messageChannel').value,title:$('messageTitle').value.trim()||`${typeLabel($('messageType').value)} — ${serviceContext().event||venueName($('venueSelect').value)}`,subject:$('messageSubject').value,body:$('messageBody').value,cta_text:$('messageCta').value,target_url:$('messageTargetUrl').value,audience_segment:$('audience').value,recipients_text:$('recipientsText').value,recipient_count:state.prepared.length,delivery_mode:$('deliveryMode').value,scheduled_at:isoOrNull($('scheduledAt').value),owner_note:$('ownerNote').value||null,reason:$('messageReason').value,status,event_snapshot:{venue_id:$('venueSelect').value,project_id:$('messageProject').value||null,seance_id:$('messageSeance').value||null,replacement_seance_id:$('replacementSeance').value||null,context:serviceContext(),created_at:new Date().toISOString()},published_url:$('publishedUrl').value||null,result_note:$('resultNote').value||null,updated_at:new Date().toISOString(),approved_at:['approved','ready','sent'].includes(status)?new Date().toISOString():null,sent_at:status==='sent'?new Date().toISOString():null};const savedId=await saveRow('service_messages',id,payload);if(state.prepared.length)await saveRecipients(savedId);if(status==='sent'){await rest(`service_message_recipients?service_message_id=eq.${encodeURIComponent(savedId)}&delivery_status=neq.failed`,{method:'PATCH',body:JSON.stringify({delivery_status:'sent',updated_at:new Date().toISOString()})});await rest('service_delivery_log',{method:'POST',body:JSON.stringify({service_message_id:savedId,recipient_id:null,channel:payload.channel,action:'manual_mark_sent',status:'sent',provider:'manual',response_text:payload.result_note||'Позначено надісланим вручну',attempted_at:new Date().toISOString()})})}await optionalLog(status==='sent'?'service_sent':status==='approved'?'service_approved':'service_saved',savedId,payload);await loadData(false);const saved=state.messages.find(x=>String(x.id)===String(savedId));if(saved)fillMessage(saved);if(showNotice)notify(status==='sent'?'Повідомлення позначено надісланим.':'Повідомлення збережено.');return savedId}
+async function optionalLog(action,id,payload){try{await rest('content_activity_log',{method:'POST',body:JSON.stringify({area:'service',project_id:payload.project_id||null,entity_type:'service_message',entity_id:String(id),action,actor_type:'human',actor_id:'admin',details:{venue_id:payload.venue_id,seance_id:payload.seance_id,channel:payload.channel,status:payload.status}})})}catch(e){console.warn('content_activity_log',e)}}
+async function deleteMessage(){const id=$('messageId').value;if(!id){clearMessage();return}if(!confirm('Видалити це службове повідомлення?'))return;await deleteRow('service_messages',id);clearMessage();await loadData(false);notify('Повідомлення видалено.')}
+async function copyMessage(){const text=[$('messageSubject').value,$('messageBody').value,$('messageCta').value,$('messageTargetUrl').value].filter(Boolean).join('\n\n');await navigator.clipboard.writeText(text);notify('Повідомлення скопійовано.')}
+function openChannel(){const u=CHANNEL_URLS[$('messageChannel').value];if(u)window.open(u,'_blank','noopener');else notify('Скопіюйте текст і відкрийте робочий сервіс каналу вручну.','warn')}
+function clearTemplate(){state.currentTemplate=null;$('templateId').value='';$('templateHeading').textContent='Новий шаблон';$('templateName').value='';$('templateType').value=$('messageType').value||'postponement';$('templateChannel').value=$('messageChannel').value||'all';$('templateSubject').value='';$('templateBody').value='';$('templateCta').value='';$('templateTargetUrl').value='';renderTemplates()}
+function fillTemplate(t){state.currentTemplate=t;$('templateId').value=t.id||'';$('templateHeading').textContent=t.name||'Шаблон';$('templateName').value=t.name||'';$('templateType').value=t.service_type||'other';$('templateChannel').value=t.channel||'all';$('templateSubject').value=t.subject_template||'';$('templateBody').value=t.body_template||'';$('templateCta').value=t.cta_template||'';$('templateTargetUrl').value=t.target_url_template||'';renderTemplates()}
+function renderTemplates(){const vid=$('venueSelect').value,rows=state.templates.filter(t=>!t.venue_id||!vid||String(t.venue_id)===String(vid)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.name||'').localeCompare(String(b.name||''),'uk'));$('templateList').innerHTML=rows.length?rows.map(t=>`<div class="list-item ${state.currentTemplate&&String(state.currentTemplate.id)===String(t.id)?'active':''}" data-template-id="${esc(t.id)}"><div class="item-title">${esc(t.name)}</div><div class="meta">${esc(typeLabel(t.service_type))} · ${esc(channelLabel(t.channel))}${t.venue_id?'':' · загальний'}</div><div class="actions"><button class="btn violet small" data-use-template="${esc(t.id)}">Використати</button></div></div>`).join(''):'<div class="empty">Шаблонів немає.</div>';document.querySelectorAll('[data-template-id]').forEach(el=>el.addEventListener('click',e=>{if(e.target.closest('[data-use-template]'))return;fillTemplate(state.templates.find(x=>String(x.id)===String(el.dataset.templateId)))}));document.querySelectorAll('[data-use-template]').forEach(btn=>btn.addEventListener('click',()=>{showView('messages');const t=state.templates.find(x=>String(x.id)===String(btn.dataset.useTemplate));$('messageType').value=t.service_type||'other';$('messageChannel').value=t.channel==='all'?$('messageChannel').value||'all':t.channel;populateMessageTemplates(t.id);$('messageTemplate').value=t.id;applyTemplate()}));populateMessageTemplates($('messageTemplate').value)}
+async function saveTemplate(){if(!$('venueSelect').value)throw new Error('Оберіть майданчик.');const id=$('templateId').value||null,payload={venue_id:$('venueSelect').value,name:$('templateName').value.trim(),service_type:$('templateType').value,channel:$('templateChannel').value,subject_template:$('templateSubject').value,body_template:$('templateBody').value,cta_template:$('templateCta').value,target_url_template:$('templateTargetUrl').value,is_active:true,updated_at:new Date().toISOString()};if(!payload.name)throw new Error('Вкажіть назву шаблону.');const savedId=await saveRow('service_message_templates',id,payload);await loadData(false);const saved=state.templates.find(x=>String(x.id)===String(savedId));if(saved)fillTemplate(saved);notify('Шаблон збережено.')}
+async function deleteTemplate(){const id=$('templateId').value;if(!id){clearTemplate();return}if(!confirm('Видалити шаблон?'))return;await deleteRow('service_message_templates',id);clearTemplate();await loadData(false);notify('Шаблон видалено.')}
+function renderDashboard(){const rows=scopedMessages();$('kpiMessages').textContent=rows.length;$('kpiReady').textContent=rows.filter(x=>['approved','ready'].includes(x.status)).length;$('kpiSent').textContent=rows.filter(x=>x.status==='sent').length;const ids=new Set(rows.map(x=>String(x.id)));$('kpiRecipients').textContent=state.recipients.filter(x=>ids.has(String(x.service_message_id))).length}
+function renderJournal(){const q=$('journalSearch').value.trim().toLowerCase(),messages=scopedMessages(),ids=new Set(messages.map(x=>String(x.id))),byId=new Map(messages.map(x=>[String(x.id),x])),recipientCounts={};state.recipients.forEach(r=>{const id=String(r.service_message_id);recipientCounts[id]=(recipientCounts[id]||0)+1});const rows=[];messages.forEach(m=>rows.push({date:m.sent_at||m.updated_at||m.created_at,message:m,channel:m.channel,status:m.status,count:recipientCounts[String(m.id)]||m.recipient_count||0,result:m.result_note||m.published_url||''}));state.deliveries.filter(d=>ids.has(String(d.service_message_id))).forEach(d=>rows.push({date:d.attempted_at||d.created_at,message:byId.get(String(d.service_message_id)),channel:d.channel,status:d.status,count:'—',result:[d.action,d.provider,d.response_text].filter(Boolean).join(' · ')}));const filtered=rows.filter(r=>!q||`${r.message?.title||''} ${r.channel||''} ${r.status||''} ${r.result||''}`.toLowerCase().includes(q)).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));$('journalRows').innerHTML=filtered.length?filtered.map(r=>`<tr><td>${esc(fmt(r.date))}</td><td><b>${esc(r.message?.title||'Повідомлення')}</b><br><span class="meta">${esc(typeLabel(r.message?.service_type))}</span></td><td>${esc(channelLabel(r.channel))}</td><td><span class="mini ${r.status==='sent'||r.status==='delivered'?'ok':r.status==='failed'?'bad':'warn'}">${esc(r.status||'—')}</span></td><td>${esc(r.count)}</td><td>${esc(r.result||'—')}</td></tr>`).join(''):'<tr><td colspan="6" class="meta">Записів немає.</td></tr>'}
+function renderAll(){renderDashboard();renderMessages();renderTemplates();renderJournal();renderPreview()}
+async function loadData(first=false){try{notify(first?'Завантаження…':'Оновлення…','warn');const [venues,projects,seances,templates,messages,recipients,deliveries]=await Promise.all([optional('venues?select=*&order=name.asc'),optional('projects?select=*&order=created_at.desc'),optional('seances?select=*&order=date.asc'),rest('service_message_templates?select=*&order=sort_order.asc,name.asc'),rest('service_messages?select=*&order=updated_at.desc'),optional('service_message_recipients?select=*&order=created_at.asc'),optional('service_delivery_log?select=*&order=created_at.desc')]);state.venues=venues;state.projects=projects;state.seances=seances;state.templates=templates;state.messages=messages;state.recipients=recipients;state.deliveries=deliveries;state.schemaReady=true;state.recipientSchemaReady=true;const params=first?parseParams():context();populateContext(params);if(first&&params.service_type&&SERVICE_TYPES[params.service_type])$('messageType').value=params.service_type;renderAll();notify('')}catch(e){state.schemaReady=false;notify(`Службова схема недоступна: ${e.message}`,'bad')}}
+
+// Навігація
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));document.querySelectorAll('[data-open-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.openView)));
+$('dashboardNewMessage').addEventListener('click',()=>{showView('messages');clearMessage()});$('newMessageBtn').addEventListener('click',clearMessage);$('newTemplateBtn').addEventListener('click',clearTemplate);
+$('refreshBtn').addEventListener('click',()=>loadData(false));$('reloadJournalBtn').addEventListener('click',()=>loadData(false));
+$('venueSelect').addEventListener('change',()=>{populateProjectContext('','');clearMessage()});$('projectSelect').addEventListener('change',()=>populateSeanceContext(''));$('seanceSelect').addEventListener('change',()=>{populateMessageProject($('projectSelect').value,$('seanceSelect').value,'');renderAll()});
+$('messageProject').addEventListener('change',()=>populateMessageSeances('',''));$('messageSeance').addEventListener('change',()=>{const s=seanceById($('messageSeance').value);if(s&&!$('messageTitle').value)$('messageTitle').value=`${typeLabel($('messageType').value)} — ${seanceLabel(s)}`;renderPreview()});
+$('messageType').addEventListener('change',()=>{populateMessageTemplates('');renderPreview()});$('messageChannel').addEventListener('change',()=>{populateMessageTemplates('');state.prepared=dedupeRecipients(state.prepared);renderRecipients();renderPreview()});$('messageTemplate').addEventListener('change',()=>{});
+['messageReason','messageSubject','messageBody','messageCta','messageTargetUrl','messageStatus','audience','recipientsText','publishedUrl','resultNote'].forEach(id=>$(id).addEventListener(id==='messageBody'||id==='recipientsText'?'input':'change',()=>{renderPreview();renderMessages()}));
+$('applyTemplateBtn').addEventListener('click',()=>{try{applyTemplate()}catch(e){notify(e.message,'bad')}});$('refreshVariablesBtn').addEventListener('click',refreshVariables);
+$('prepareRecipientsBtn').addEventListener('click',()=>prepareRecipients().catch(e=>notify(e.message,'bad')));$('clearRecipientsBtn').addEventListener('click',()=>{state.prepared=[];renderRecipients()});$('copyRecipientsBtn').addEventListener('click',async()=>{const text=state.prepared.map(r=>[r.name,r.email,r.phone].filter(Boolean).join(' | ')).join('\n');if(!text)return notify('Список порожній.','warn');await navigator.clipboard.writeText(text);notify('Список скопійовано.')});$('exportRecipientsBtn').addEventListener('click',()=>{if(!state.prepared.length)return notify('Список порожній.','warn');const q=v=>`"${String(v||'').replace(/"/g,'""')}"`,csv='\ufeff'+[['Ім’я','Email','Телефон','Канал','Стан'],...state.prepared.map(r=>[r.name,r.email,r.phone,r.delivery_channel,r.validation_status])].map(a=>a.map(q).join(';')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`service-recipients-${Date.now()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
+$('saveDraftBtn').addEventListener('click',()=>saveMessage('draft').catch(e=>notify(e.message,'bad')));$('approveBtn').addEventListener('click',()=>saveMessage('approved').catch(e=>notify(e.message,'bad')));$('markSentBtn').addEventListener('click',()=>saveMessage('sent').catch(e=>notify(e.message,'bad')));$('deleteMessageBtn').addEventListener('click',()=>deleteMessage().catch(e=>notify(e.message,'bad')));$('copyMessageBtn').addEventListener('click',()=>copyMessage().catch(e=>notify(e.message,'bad')));$('openChannelBtn').addEventListener('click',openChannel);
+$('saveTemplateBtn').addEventListener('click',()=>saveTemplate().catch(e=>notify(e.message,'bad')));$('deleteTemplateBtn').addEventListener('click',()=>deleteTemplate().catch(e=>notify(e.message,'bad')));
+$('messageSearch').addEventListener('input',renderMessages);$('messageStatusFilter').addEventListener('change',renderMessages);$('journalSearch').addEventListener('input',renderJournal);
+document.addEventListener('DOMContentLoaded',()=>{populateTypes();clearTemplate();loadData(true)});
+</script>
+</body>
+</html>
