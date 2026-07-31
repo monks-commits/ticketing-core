@@ -280,6 +280,27 @@
       min-height:20px;
     }
 
+    .error--sales-disabled{
+      margin-top:18px;
+      padding:18px 20px;
+      border:2px solid #dc2626;
+      border-radius:16px;
+      background:#fef2f2;
+      color:#991b1b;
+      font-size:22px;
+      line-height:1.35;
+      font-weight:800;
+      text-align:center;
+      box-shadow:0 10px 24px rgba(220,38,38,.14);
+    }
+
+    @media (max-width:760px){
+      .error--sales-disabled{
+        padding:16px;
+        font-size:19px;
+      }
+    }
+
     .trust{
       margin-top:18px;
       padding-top:18px;
@@ -538,16 +559,26 @@ const refCode =
       location.href = `order.html?${params.toString()}`;
     });
 
+    function showCheckoutError(message, type = "default"){
+      const err = document.getElementById("err");
+      if (!err) return;
+
+      err.classList.toggle(
+        "error--sales-disabled",
+        type === "sales-disabled"
+      );
+
+      err.textContent = message || "";
+    }
+
     document.getElementById("payBtn").onclick = async () => {
       const buyer_name = document.getElementById("name").value.trim();
       const buyer_email = document.getElementById("email").value.trim();
       const buyer_phone = document.getElementById("phone").value.trim();
-      const err = document.getElementById("err");
-
-      err.textContent = "";
+      showCheckoutError("");
 
       if (!buyer_name || !buyer_email || !buyer_phone) {
-        err.textContent = "Заповніть всі поля";
+        showCheckoutError("Заповніть всі поля");
         return;
       }
 
@@ -574,14 +605,33 @@ const refCode =
         const j = await r.json();
 
         if (!r.ok || !j.data) {
-          err.textContent = j.error || "Помилка оплати";
+          const errorCode = String(
+            j?.error ||
+            j?.code ||
+            ""
+          ).trim();
+
+          if (errorCode === "online_sales_disabled") {
+            showCheckoutError(
+              "Наразі придбати квитки можна лише в касі.",
+              "sales-disabled"
+            );
+            return;
+          }
+
+          showCheckoutError(
+            j?.message ||
+            "Не вдалося перейти до оплати. Спробуйте ще раз."
+          );
           return;
         }
 
         submitToLiqPay(j.data, j.signature);
 
       } catch (e) {
-        err.textContent = "Помилка мережі";
+        showCheckoutError(
+          "Не вдалося з’єднатися із сервісом оплати. Перевірте інтернет-з’єднання."
+        );
       }
     };
 
