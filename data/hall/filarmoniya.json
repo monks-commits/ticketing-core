@@ -11101,8 +11101,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11121,8 +11121,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11141,15 +11141,15 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782637576798_9",
       "type": "text",
-      "x": 206,
-      "y": 185,
+      "x": 205,
+      "y": 186,
       "w": 160,
       "h": 80,
       "rotate": 0,
@@ -11161,8 +11161,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11181,8 +11181,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11201,8 +11201,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11221,8 +11221,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11241,8 +11241,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11261,8 +11261,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11281,8 +11281,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11301,8 +11301,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11321,8 +11321,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11341,8 +11341,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11361,8 +11361,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11381,8 +11381,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11401,8 +11401,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11421,15 +11421,15 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782637926458_23",
       "type": "text",
-      "x": 205,
-      "y": 547,
+      "x": 206,
+      "y": 548,
       "w": 160,
       "h": 80,
       "rotate": 0,
@@ -11441,8 +11441,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11461,8 +11461,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11481,8 +11481,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11501,8 +11501,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11941,8 +11941,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11961,8 +11961,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11981,8 +11981,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12001,14 +12001,14 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782638398000_52",
       "type": "text",
-      "x": 140,
+      "x": 141,
       "y": 710,
       "w": 160,
       "h": 80,
@@ -12021,14 +12021,14 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782638398000_53",
       "type": "text",
-      "x": 140,
+      "x": 141,
       "y": 734,
       "w": 160,
       "h": 80,
@@ -12041,8 +12041,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12061,8 +12061,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12361,8 +12361,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12381,8 +12381,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12396,13 +12396,13 @@
       "z": 30,
       "size": 17,
       "text": "III",
-      "textColor": "#111827",
-      "color": "#111827",
+      "textColor": "#ffffff",
+      "color": "#ffffff",
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 0,
-      "textGlow": 0,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12421,8 +12421,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12441,8 +12441,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12461,8 +12461,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12481,8 +12481,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12501,8 +12501,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12514,15 +12514,15 @@
       "h": 80,
       "rotate": 0,
       "z": 30,
-      "size": 17,
-      "text": "Лiвi",
+      "size": 18,
+      "text": "Ложi",
       "textColor": "#ffffff",
       "color": "#ffffff",
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
