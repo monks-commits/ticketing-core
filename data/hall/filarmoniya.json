@@ -11003,61 +11003,61 @@
     {
       "id": "text_1782636859430_1",
       "type": "text",
-      "x": 605,
-      "y": 112,
+      "x": 608,
+      "y": 103,
       "w": 160,
       "h": 80,
       "rotate": 0,
       "z": 30,
-      "size": 18,
+      "size": 15,
       "text": "ПАРТЕР",
       "textColor": "#ffffff",
       "color": "#ffffff",
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782636941470_2",
       "type": "text",
-      "x": 604,
-      "y": 377,
+      "x": 606,
+      "y": 378,
       "w": 160,
       "h": 80,
       "rotate": 0,
       "z": 30,
-      "size": 16,
+      "size": 15,
       "text": "ПРОХIД",
       "textColor": "#ffffff",
       "color": "#ffffff",
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782637068318_3",
       "type": "text",
-      "x": 604,
-      "y": 591,
+      "x": 608,
+      "y": 598,
       "w": 160,
       "h": 80,
       "rotate": 0,
       "z": 30,
-      "size": 16,
+      "size": 15,
       "text": "БАЛКОН",
       "textColor": "#ffffff",
       "color": "#ffffff",
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11069,7 +11069,7 @@
       "h": 52,
       "rotate": 0,
       "z": 30,
-      "size": 22,
+      "size": 25,
       "opacity": 1,
       "glow": 0,
       "text": "СЦЕНА",
@@ -11080,8 +11080,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "mediaFit": "cover",
       "layerId": "architecture"
     },
@@ -11521,8 +11521,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11541,8 +11541,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11561,8 +11561,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11581,8 +11581,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11601,8 +11601,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11621,8 +11621,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11641,8 +11641,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11661,8 +11661,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11681,8 +11681,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11701,8 +11701,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11721,8 +11721,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11741,8 +11741,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11761,8 +11761,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11781,8 +11781,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11801,8 +11801,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11821,8 +11821,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11841,8 +11841,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11861,8 +11861,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11881,14 +11881,14 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782638274096_46",
       "type": "text",
-      "x": 1010,
+      "x": 1009,
       "y": 572,
       "w": 160,
       "h": 80,
@@ -11901,8 +11901,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -11921,8 +11921,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12081,8 +12081,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12101,8 +12101,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12121,8 +12121,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12141,8 +12141,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12161,8 +12161,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12181,8 +12181,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12201,8 +12201,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12221,8 +12221,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12241,8 +12241,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12261,15 +12261,15 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782638675131_65",
       "type": "text",
-      "x": 1115,
-      "y": 296,
+      "x": 1116,
+      "y": 297,
       "w": 160,
       "h": 80,
       "rotate": 0,
@@ -12281,8 +12281,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12301,15 +12301,15 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782638720232_67",
       "type": "text",
       "x": 1115,
-      "y": 392,
+      "y": 393,
       "w": 160,
       "h": 80,
       "rotate": 0,
@@ -12321,15 +12321,15 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
       "id": "text_1782638739545_68",
       "type": "text",
       "x": 1115,
-      "y": 436,
+      "y": 434,
       "w": 160,
       "h": 80,
       "rotate": 0,
@@ -12341,8 +12341,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12541,8 +12541,8 @@
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     },
     {
@@ -12554,16 +12554,22 @@
       "h": 80,
       "rotate": 0,
       "z": 30,
-      "size": 17,
-      "text": "Правi",
+      "size": 18,
+      "text": "Ложi",
       "textColor": "#ffffff",
       "color": "#ffffff",
       "fontFamily": "Arial",
       "fontWeight": 900,
       "strokeColor": "#000000",
-      "strokeWidth": 2,
-      "textGlow": 14,
+      "strokeWidth": 0.5,
+      "textGlow": 3,
       "layerId": "text"
     }
-  ]
+  ],
+  "background": {
+    "type": "image",
+    "src": "../assets/halls/opera-bg.jpg",
+    "mode": "contain",
+    "opacity": 1
+  }
 }
