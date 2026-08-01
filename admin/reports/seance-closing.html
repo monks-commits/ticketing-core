@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>VA • Закриття сеансу</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --bg:#061a3a;
+  --card:#1d2d47;
+  --card2:#223552;
+  --field:#10233f;
+  --text:#fff;
+  --muted:#b8c4d6;
+  --line:rgba(255,255,255,.12);
+  --blue:#4c86f7;
+  --green:#22c55e;
+  --orange:#f59e0b;
+  --red:#ef4444;
+  --accent:#7f1d1d;
+  --shadow:0 18px 40px rgba(0,0,0,.22);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+body{background:radial-gradient(circle at top left,rgba(127,29,29,.28),transparent 32%),radial-gradient(circle at top right,rgba(76,134,247,.16),transparent 30%),var(--bg)}
+.page{width:min(1380px,calc(100% - 48px));margin:0 auto;padding:36px 0 56px}
+.topbar{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:24px}
+.back{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 16px;border-radius:12px;background:#fff;color:#111827;text-decoration:none;font-weight:900}
+h1{margin:0 0 8px;font-size:48px;line-height:1.05;text-transform:uppercase}
+.subtitle{max-width:940px;color:var(--muted);line-height:1.45;font-size:16px}
+.card{background:linear-gradient(180deg,rgba(34,53,82,.98),rgba(29,45,71,.98));border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:var(--shadow);margin-bottom:18px}
+.card h2{margin:0 0 8px;font-size:25px}.card h3{margin:0 0 10px;font-size:21px}.muted{color:var(--muted);line-height:1.45}
+.filters{display:grid;grid-template-columns:minmax(300px,1fr) 220px 220px;gap:14px;align-items:end;margin-top:18px}
+.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:13px;color:var(--muted)}
+select,input,textarea{width:100%;border:1px solid var(--line);background:var(--field);color:#fff;border-radius:14px;padding:12px;font:inherit;outline:none}
+textarea{min-height:92px;resize:vertical}select:focus,input:focus,textarea:focus{border-color:rgba(76,134,247,.7);box-shadow:0 0 0 3px rgba(76,134,247,.16)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 17px;border:0;border-radius:14px;font:inherit;font-weight:900;cursor:pointer;text-decoration:none;color:#fff;background:var(--blue)}
+button:hover,.btn:hover{filter:brightness(1.08)}button.green,.btn.green{background:var(--green);color:#07111f}button.orange,.btn.orange{background:var(--orange);color:#111827}button.red,.btn.red{background:var(--red)}button.dark,.btn.dark{background:#111827;border:1px solid var(--line)}button.ghost,.btn.ghost{background:rgba(255,255,255,.08);border:1px solid var(--line)}button:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.status{padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.05);color:var(--muted);line-height:1.45;margin-bottom:18px}.status.ok{border-color:rgba(34,197,94,.5);color:#d9ffe8}.status.warn{border-color:rgba(245,158,11,.55);color:#fff2c2}.status.bad{border-color:rgba(239,68,68,.55);color:#ffd7d7}
+.kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.metric{background:rgba(16,35,63,.84);border:1px solid var(--line);border-radius:18px;padding:17px;min-height:118px}.metric-label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}.metric-value{font-size:30px;font-weight:900}.metric-note{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.35}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:17px;margin-top:14px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:14px}th{color:#dbeafe;background:rgba(255,255,255,.04);font-size:12px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:0}.num{text-align:right;white-space:nowrap}
+.tag{display:inline-flex;align-items:center;justify-content:center;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:900;white-space:nowrap}.tag.ok{background:rgba(34,197,94,.16);color:#bdffd3;border:1px solid rgba(34,197,94,.4)}.tag.warn{background:rgba(245,158,11,.15);color:#fff0b8;border:1px solid rgba(245,158,11,.45)}.tag.bad{background:rgba(239,68,68,.15);color:#ffd0d0;border:1px solid rgba(239,68,68,.45)}.tag.info{background:rgba(76,134,247,.16);color:#d7e5ff;border:1px solid rgba(76,134,247,.45)}
+.checks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.check{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.04)}.check input{width:auto;margin-top:3px}.check strong{display:block;margin-bottom:4px}.check span{color:var(--muted);font-size:13px;line-height:1.35}
+.source-row{display:grid;grid-template-columns:minmax(180px,1fr) minmax(220px,1.2fr) auto;gap:12px;align-items:end;padding:14px 0;border-bottom:1px solid var(--line)}.source-row:last-child{border-bottom:0}.source-meta{font-size:13px;color:var(--muted);line-height:1.4}
+.section-title{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.section-title h2{margin:0}.empty{padding:16px;color:var(--muted);border:1px dashed var(--line);border-radius:15px;margin-top:12px}.mono{font-family:Consolas,Monaco,monospace;font-size:12px;word-break:break-all}.hidden{display:none!important}
+.notice{margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(76,134,247,.10);border:1px solid rgba(76,134,247,.28);color:#dbeafe;line-height:1.45;font-size:13px}
+@media(max-width:1050px){.filters,.kpi,.two,.three,.checks{grid-template-columns:1fr 1fr}.source-row{grid-template-columns:1fr}}
+@media(max-width:700px){.page{width:min(100% - 24px,1380px);padding:24px 0 36px}.topbar{display:block}.back{margin-top:14px}h1{font-size:34px}.filters,.kpi,.two,.three,.checks{grid-template-columns:1fr}button,.btn{width:100%}}
+@media print{body{background:#fff;color:#000}.topbar,.actions,.operator-actions,.checks,.no-print{display:none!important}.page{width:100%;padding:0}.card,.metric,.status{box-shadow:none;background:#fff!important;color:#000!important;border:1px solid #ccc!important}.muted,.metric-label,.metric-note,.source-meta{color:#444!important}th{background:#f3f4f6!important;color:#000!important}select,input,textarea{color:#000;background:#fff;border:1px solid #bbb}}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="topbar">
+    <div>
+      <h1>🔒 Закриття сеансу</h1>
+      <div class="subtitle">Єдина фінальна операція квиткового відділу: перевірка власного обороту VA, операторських звітів, доступу та компенсаційного обліку без змішування цих контурів.</div>
+    </div>
+    <a class="back" href="./index.html">← Звіти</a>
+  </div>
+
+  <section class="card">
+    <h2>Сеанс і відповідальний</h2>
+    <div class="filters">
+      <div class="field"><label for="seance">Сеанс</label><select id="seance"><option value="">Завантаження…</option></select></div>
+      <div class="field"><label for="closedBy">Відповідальний</label><input id="closedBy" type="text" placeholder="ПІБ працівника"></div>
+      <div class="field"><label for="closingMode">Режим</label><select id="closingMode"><option value="final">Остаточне закриття</option><option value="draft">Контрольна перевірка</option><option value="correction">Коригування</option></select></div>
+    </div>
+    <div class="actions">
+      <button onclick="loadAll()">Оновити дані</button>
+      <button class="ghost" onclick="openKg10()">Відкрити КГ-10</button>
+      <button class="ghost" onclick="openAccess()">Контроль доступу</button>
+      <button class="ghost" onclick="openCompensation()">Компенсаційний облік</button>
+      <button class="dark" onclick="window.print()">Друк перевірки</button>
+    </div>
+  </section>
+
+  <div id="status" class="status">Оберіть сеанс.</div>
+
+  <section class="card">
+    <div class="section-title"><div><h2>Зведення</h2><div class="muted">Окремі контури показані поруч, але не зливаються в одну арифметику.</div></div><div id="dbMode" class="tag info">Перевірка сховища…</div></div>
+    <div class="kpi" style="margin-top:16px">
+      <div class="metric"><div class="metric-label">Випуск VA</div><div class="metric-value" id="mIssued">0</div><div class="metric-note">seances.capacity / лічильник редактора</div></div>
+      <div class="metric"><div class="metric-label">Надано місць VA</div><div class="metric-value" id="mVaSeats">0</div><div class="metric-note">дійсні квитки з місцем; компенсації виключені</div></div>
+      <div class="metric"><div class="metric-label">Активна бронь / КГ-7</div><div class="metric-value" id="mBookings">0</div><div class="metric-note">місця, що ще потребують завершення</div></div>
+      <div class="metric"><div class="metric-label">Місця операторів</div><div class="metric-value" id="mOperatorSeats">0</div><div class="metric-note">за останніми імпортованими звітами</div></div>
+      <div class="metric"><div class="metric-label">Виручка VA</div><div class="metric-value" id="mVaRevenue">0 грн</div><div class="metric-note">фактична сума по дійсних квитках VA</div></div>
+      <div class="metric"><div class="metric-label">Виручка операторів</div><div class="metric-value" id="mOperatorRevenue">0 грн</div><div class="metric-note">за звітами операторів; не є даними VA</div></div>
+      <div class="metric"><div class="metric-label">Пройшло по квитках VA</div><div class="metric-value" id="mPassed">0</div><div class="metric-note">звичайний контроль доступу</div></div>
+      <div class="metric"><div class="metric-label">Компенсаційних проходів</div><div class="metric-value" id="mCompPassed">0</div><div class="metric-note">без місця і без доходу поточного сеансу</div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Готовність до закриття</h2>
+    <div class="muted">Система показує тільки джерела і проблеми, які потребують уваги. Остаточне рішення залишається за працівником.</div>
+    <div class="table-wrap"><table><thead><tr><th>Контур</th><th>Стан</th><th>Показник</th><th>Джерело / примітка</th></tr></thead><tbody id="readinessBody"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <div class="section-title">
+      <div><h2>Звіти зовнішніх операторів</h2><div class="muted">CSV/XLSX завантажується один раз. VA визначає основні колонки, виключає повернення та додає результат у загальну перевірку.</div></div>
+      <button class="orange no-print" onclick="toggleAddSource()">+ Додати оператора</button>
+    </div>
+    <div id="addSourceBox" class="three hidden" style="margin-top:16px">
+      <div class="field"><label for="sourceName">Назва оператора</label><input id="sourceName" placeholder="Karabas / Concert.ua / інший"></div>
+      <div class="field"><label for="sourceCode">Код</label><input id="sourceCode" placeholder="karabas"></div>
+      <div class="field"><label for="sourceRequired">Обов’язковий для закриття</label><select id="sourceRequired"><option value="true">Так</option><option value="false">Ні</option></select></div>
+      <div class="actions" style="grid-column:1/-1;margin-top:0"><button class="green" onclick="addSource()">Зберегти оператора</button><button class="ghost" onclick="toggleAddSource(false)">Скасувати</button></div>
+    </div>
+    <div id="sourcesBox" style="margin-top:14px"></div>
+    <div class="notice">Перший робочий рівень — імпорт файлів. API, пошта або хмарна папка надалі записують дані в ті самі таблиці, тому екран закриття не переробляється.</div>
+  </section>
+
+  <section class="two">
+    <div class="card">
+      <h2>Оборот наданих місць</h2>
+      <div class="muted">Повна, часткова або нульова вартість не змінює факту надання місця. Компенсаційний прохід сюди не входить.</div>
+      <div class="table-wrap"><table><thead><tr><th>Джерело</th><th class="num">Надано місць</th><th class="num">Повернуто</th><th>Актуальність</th></tr></thead><tbody id="seatBody"></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>Фінансовий результат</h2>
+      <div class="muted">Гроші VA та операторів показуються окремо. Безкоштовно надані місця залишаються в обороті місць із сумою 0.</div>
+      <div class="table-wrap"><table><thead><tr><th>Джерело</th><th class="num">Документів</th><th class="num">Сума</th><th>Примітка</th></tr></thead><tbody id="financeBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="card">
+      <h2>Контроль доступу</h2>
+      <div class="muted">Тільки фактичний прохід. Продажі тут не перераховуються.</div>
+      <div class="table-wrap"><table><thead><tr><th>Тип / джерело</th><th class="num">Оформлено</th><th class="num">Пройшло</th><th class="num">%</th></tr></thead><tbody id="accessBody"></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>Компенсаційний знімок</h2>
+      <div class="muted">Дані читаються з окремого компенсаційного обліку й не включаються ні в місця, ні у виручку поточного сеансу.</div>
+      <div class="table-wrap"><table><thead><tr><th>Показник</th><th class="num">Кількість</th><th>Зміст</th></tr></thead><tbody id="compBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Розбіжності та попередження</h2>
+    <div id="discrepanciesBox"></div>
+  </section>
+
+  <section class="card">
+    <h2>Підтвердження і формування пакета</h2>
+    <div class="checks">
+      <label class="check"><input id="checkReturns" type="checkbox"><span><strong>Повернення перевірено</strong>Касові, партнерські та операторські повернення враховані.</span></label>
+      <label class="check"><input id="checkAccess" type="checkbox"><span><strong>Контроль доступу завершено</strong>Фінальні дані сканування отримані.</span></label>
+      <label class="check"><input id="checkOperators" type="checkbox"><span><strong>Операторські звіти остаточні</strong>Усі потрібні джерела отримані або підтверджено їх відсутність.</span></label>
+    </div>
+    <div class="field" style="margin-top:16px"><label for="closingNote">Примітка / пояснення розбіжностей</label><textarea id="closingNote" placeholder="Обов’язково при закритті з невирішеними попередженнями"></textarea></div>
+    <label class="check" style="margin-top:12px"><input id="overrideBlockers" type="checkbox"><span><strong>Закрити з протоколом розбіжностей</strong>Дозволяє сформувати пакет за наявності блокуючих позицій. Причина буде зафіксована.</span></label>
+    <div class="actions">
+      <button id="closeBtn" class="green" onclick="closeSeance()">Закрити сеанс і сформувати ZIP</button>
+      <button class="ghost" onclick="downloadCurrentPackage()">Сформувати пакет без закриття</button>
+      <button class="dark" onclick="showLatestClosing()">Останнє закриття</button>
+    </div>
+    <div id="closingResult" class="status" style="margin-top:16px;margin-bottom:0">Закриття ще не виконувалось.</div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="../../shared/config.js"></script>
+<script src="../../shared/config-helper.js"></script>
+<script>
+"use strict";
+const SUPABASE_URL="https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_KEY="sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const qs=new URLSearchParams(location.search);
+const URL_SEANCE=qs.get("seance")||qs.get("seance_id")||"";
+const URL_VENUE=qs.get("venue")||"";
+const LS_SOURCES="va_closing_sources_v1";
+const LS_BATCHES="va_closing_batches_v1";
+const LS_CLOSINGS="va_closing_records_v1";
+const LS_CHECKS="va_closing_checks_v1";
+let SEANCES=[],CURRENT=null,DATA=null,SOURCES=[],BATCHES=[],LATEST_CLOSING=null;
+let DB={sources:false,batches:false,closings:false};
+const $=id=>document.getElementById(id);
+function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function money(v){return Number(v||0).toLocaleString("uk-UA",{minimumFractionDigits:2,maximumFractionDigits:2})+" грн"}
+function fmt(v){if(!v)return"—";const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString("uk-UA")}
+function slug(v){return String(v||"").trim().toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,"-").replace(/^-+|-+$/g,"")}
+function status(kind,text){const el=$("status");el.className="status"+(kind?" "+kind:"");el.textContent=text||""}
+function tag(kind,text){return `<span class="tag ${kind}">${esc(text)}</span>`}
+function getLS(key,def=[]){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(def))}catch{return def}}
+function setLS(key,val){localStorage.setItem(key,JSON.stringify(val))}
+async function api(table,query="",options={}){const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`,{method:options.method||"GET",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json",Prefer:options.prefer||"return=representation"},body:options.body?JSON.stringify(options.body):undefined,cache:"no-store"});if(!res.ok){const text=await res.text();const e=new Error(text||`HTTP ${res.status}`);e.status=res.status;throw e}const text=await res.text();return text?JSON.parse(text):[]}
+async function optionalTable(table){try{await api(table,"?select=*&limit=1");return true}catch(e){console.warn(table,"not ready",e.message);return false}}
+async function detectDb(){const [a,b,c]=await Promise.all([optionalTable("va_operator_sources"),optionalTable("va_operator_import_batches"),optionalTable("va_seance_closings")]);DB={sources:a,batches:b,closings:c};$("dbMode").textContent=a&&b&&c?"Supabase":"Локальний демо-режим";$("dbMode").className="tag "+(a&&b&&c?"ok":"warn")}
+function normalizeVenue(v){return String(v||"").trim()}
+async function loadSeances(){const rows=await api("seances","?select=id,show,date,time,venue_id,status,active,archived,capacity&order=date.desc,time.desc");SEANCES=Array.isArray(rows)?rows:[];const sel=$("seance");sel.innerHTML='<option value="">Оберіть сеанс…</option>'+SEANCES.filter(s=>!URL_VENUE||normalizeVenue(s.venue_id)===normalizeVenue(URL_VENUE)).map(s=>`<option value="${esc(s.id)}">${esc([s.date,s.time,"—",s.show||s.id].filter(Boolean).join(" "))}</option>`).join("");if(URL_SEANCE&&SEANCES.some(s=>String(s.id)===String(URL_SEANCE)))sel.value=URL_SEANCE;else if(SEANCES.length)sel.value=SEANCES[0].id;sel.onchange=()=>{saveChecks();loadAll()}}
+function activeTicket(t){const st=String(t.status||"").toLowerCase();const tp=String(t.ticket_type||"").toLowerCase();return !["returned","cancelled","canceled","refunded"].includes(st)&&tp!=="compensation"}
+function seatsFromBooking(b){if(Array.isArray(b.seats))return b.seats;if(Array.isArray(b.seat_labels))return b.seat_labels;if(b.seat_label)return[b.seat_label];return[]}
+function activeBooking(b){const st=String(b.status||"").toLowerCase();if(!["hold","reserved","issued_to_partner"].includes(st))return false;if(st==="hold"&&b.expires_at&&b.expires_at<=new Date().toISOString())return false;return true}
+function boolValue(v){if(v===true||v===1)return true;const s=String(v||"").trim().toLowerCase();return["true","1","yes","y","так","ok","used","checked","passed"].includes(s)}
+function normalizeStatus(v){const s=String(v||"").trim().toLowerCase();if(["return","returned","refund","refunded","повернення","повернуто"].includes(s))return"returned";if(["cancel","cancelled","canceled","скасовано"].includes(s))return"cancelled";return"active"}
+async function fetchCurrentData(){const id=$("seance").value;if(!id)throw new Error("Оберіть сеанс");CURRENT=SEANCES.find(s=>String(s.id)===String(id))||{id};const [tickets,bookings,issues,returns,tokens,audit]=await Promise.all([
+ api("tickets",`?seance_id=eq.${encodeURIComponent(id)}&select=id,seance_id,seat_label,price,channel,ref_code,ticket_type,checked_in_at,checked_in_by,status,created_at`),
+ api("bookings",`?seance_id=eq.${encodeURIComponent(id)}&select=*`),
+ api("ticket_issues",`?seance_id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]),
+ api("ticket_returns",`?seance_id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]),
+ api("recovery_tokens","?select=*").catch(()=>[]),
+ api("recovery_audit","?select=*").catch(()=>[])
+]);
+ DATA={tickets,bookings,issues,returns,tokens,audit};
+}
+async function loadSources(){const venue=CURRENT?.venue_id||URL_VENUE||"";if(DB.sources){const sourceQuery=venue?`?active=eq.true&or=(venue_id.eq.${encodeURIComponent(venue)},venue_id.is.null)&order=operator_name.asc`:`?active=eq.true&order=operator_name.asc`;SOURCES=await api("va_operator_sources",sourceQuery)}else{SOURCES=getLS(LS_SOURCES,[]).filter(s=>s.active!==false&&(!s.venue_id||s.venue_id===venue))}if(DB.batches){BATCHES=await api("va_operator_import_batches",`?seance_id=eq.${encodeURIComponent(CURRENT.id)}&order=imported_at.desc`)}else{BATCHES=getLS(LS_BATCHES,[]).filter(b=>String(b.seance_id)===String(CURRENT.id))}}
+function latestBatch(sourceId){return BATCHES.filter(b=>String(b.source_id)===String(sourceId)).sort((a,b)=>new Date(b.imported_at||0)-new Date(a.imported_at||0))[0]||null}
+function effectiveUsedSeance(token){if(token.used_seance_id)return String(token.used_seance_id);const ok=(DATA.audit||[]).filter(a=>String(a.token||"")===String(token.token||"")&&String(a.result||"").toUpperCase()==="OK").sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))[0];return ok?.scan_seance_id?String(ok.scan_seance_id):""}
+function snapshot(){const id=CURRENT.id;const vaTickets=(DATA.tickets||[]).filter(activeTicket);const vaSeatSet=new Set(vaTickets.map(t=>String(t.seat_label||"").trim()).filter(Boolean));const activeBookings=(DATA.bookings||[]).filter(activeBooking);const bookingSet=new Set();activeBookings.forEach(b=>seatsFromBooking(b).forEach(x=>{const k=String(x||"").trim();if(k&&!vaSeatSet.has(k))bookingSet.add(k)}));const issued=Number(CURRENT.capacity||0);const vaRevenue=vaTickets.reduce((s,t)=>s+Number(t.price||0),0);const vaPassed=vaTickets.filter(t=>!!t.checked_in_at).length;const typeStats={};vaTickets.forEach(t=>{const k=t.ticket_type||"Не вказано";if(!typeStats[k])typeStats[k]={expected:0,passed:0};typeStats[k].expected++;if(t.checked_in_at)typeStats[k].passed++});
+ const latest=SOURCES.map(s=>({source:s,batch:latestBatch(s.id)}));const operatorRows=[];latest.forEach(x=>{const rows=Array.isArray(x.batch?.normalized_rows)?x.batch.normalized_rows:[];rows.forEach(r=>operatorRows.push({...r,__source:x.source.operator_name,__sourceId:x.source.id,__importedAt:x.batch.imported_at}))});const operatorActive=operatorRows.filter(r=>normalizeStatus(r.status)==="active");const operatorSeatSet=new Set(operatorActive.map(r=>String(r.seat_label||"").trim()).filter(Boolean));const operatorRevenue=operatorActive.reduce((s,r)=>s+Number(r.paid_amount??r.nominal??0),0);const operatorPassed=operatorActive.filter(r=>boolValue(r.checked_in)).length;
+ const compCreated=(DATA.tokens||[]).filter(t=>String(t.source_seance_id||"")===String(id));const compAccepted=(DATA.tokens||[]).filter(t=>t.compensation_used===true&&effectiveUsedSeance(t)===String(id));const compRepeated=(DATA.audit||[]).filter(a=>String(a.scan_seance_id||"")===String(id)&&String(a.result||"").toUpperCase()==="ALREADY_USED").length;
+ const returnedTickets=(DATA.tickets||[]).filter(t=>["returned","refunded"].includes(String(t.status||"").toLowerCase())).length;const returnDocs=(DATA.returns||[]).length;
+ const issues=[];const vaBySeat={};vaTickets.forEach(t=>{const k=String(t.seat_label||"").trim();if(k)(vaBySeat[k]||(vaBySeat[k]=[])).push(t)});Object.entries(vaBySeat).filter(([,v])=>v.length>1).forEach(([seat,v])=>issues.push({level:"block",code:"VA_DUPLICATE_SEAT",text:`Місце ${seat} має ${v.length} дійсні квитки VA.`}));operatorSeatSet.forEach(seat=>{if(vaSeatSet.has(seat))issues.push({level:"block",code:"VA_OPERATOR_DUPLICATE",text:`Місце ${seat} одночасно присутнє у VA та операторському звіті.`})});bookingSet.forEach(seat=>{if(operatorSeatSet.has(seat))issues.push({level:"warn",code:"BOOKING_OPERATOR_OVERLAP",text:`Місце ${seat} у броні VA та операторському звіті.`})});const compInTickets=(DATA.tickets||[]).filter(t=>String(t.ticket_type||"").toLowerCase()==="compensation");if(compInTickets.length)issues.push({level:"block",code:"COMP_IN_TICKETS",text:`У tickets знайдено ${compInTickets.length} компенсаційних записів. Компенсація не повинна створювати касовий квиток.`});if(activeBookings.length)issues.push({level:"block",code:"OPEN_BOOKINGS",text:`Залишилось ${activeBookings.length} активних бронювань / видач КГ-7.`});latest.forEach(x=>{if(x.source.required_for_closing!==false&&!x.batch)issues.push({level:"block",code:"MISSING_OPERATOR_REPORT",text:`Не отримано фінальний звіт: ${x.source.operator_name}.`})});
+ const endAt=CURRENT.date?new Date(`${CURRENT.date}T${String(CURRENT.time||"00:00").slice(0,5)}:00`):null;if(endAt&&!Number.isNaN(endAt.getTime())&&endAt>new Date())issues.push({level:"warn",code:"SEANCE_NOT_STARTED",text:"Дата/час сеансу ще не настали. Для демонстрації можна сформувати контрольний пакет."});
+ return {version:"VA_SEANCE_CLOSING_V1",generated_at:new Date().toISOString(),seance:CURRENT,va:{issued,active_ticket_count:vaTickets.length,provided_seats:vaSeatSet.size,active_booking_rows:activeBookings.length,active_booking_seats:bookingSet.size,free_in_va_quota:Math.max(issued-vaSeatSet.size-bookingSet.size,0),revenue:vaRevenue,passed:vaPassed,not_passed:Math.max(vaTickets.length-vaPassed,0),attendance:vaTickets.length?Math.round(vaPassed/vaTickets.length*100):0,returned_tickets:returnedTickets,return_documents:returnDocs,type_stats:typeStats},operators:{sources:latest.map(x=>({id:x.source.id,name:x.source.operator_name,required:x.source.required_for_closing!==false,batch:x.batch?{id:x.batch.id,file_name:x.batch.file_name,imported_at:x.batch.imported_at,active_count:x.batch.active_count,returned_count:x.batch.returned_count,gross_amount:x.batch.gross_amount}:null})),active_rows:operatorActive.length,provided_seats:operatorSeatSet.size,revenue:operatorRevenue,passed:operatorPassed,rows:operatorRows},compensation:{created_by_seance:compCreated.length,created_used:compCreated.filter(t=>t.compensation_used===true).length,created_open:compCreated.filter(t=>t.compensation_used!==true).length,accepted_on_seance:compAccepted.length,repeated_attempts:compRepeated},issues};}
+function render(){const s=snapshot();$("mIssued").textContent=s.va.issued;$("mVaSeats").textContent=s.va.provided_seats;$("mBookings").textContent=s.va.active_booking_seats;$("mOperatorSeats").textContent=s.operators.provided_seats;$("mVaRevenue").textContent=money(s.va.revenue);$("mOperatorRevenue").textContent=money(s.operators.revenue);$("mPassed").textContent=s.va.passed;$("mCompPassed").textContent=s.compensation.accepted_on_seance;renderReadiness(s);renderSources();renderSeats(s);renderFinance(s);renderAccess(s);renderComp(s);renderIssues(s);loadChecks();renderLatestClosingStatus();}
+function renderReadiness(s){const rows=[];rows.push(["Дані VA",tag("ok","Отримано"),`${s.va.active_ticket_count} квитків / ${s.va.provided_seats} місць`,"public.tickets"]);rows.push(["Броні та КГ-7",s.va.active_booking_rows?tag("bad","Не завершено"):tag("ok","Готово"),`${s.va.active_booking_rows} записів / ${s.va.active_booking_seats} місць`,"public.bookings"]);rows.push(["Повернення",tag("ok","Зчитано"),`${s.va.returned_tickets} квитків / ${s.va.return_documents} документів`,"tickets + ticket_returns"]);rows.push(["Контроль доступу",tag("ok","Зчитано"),`${s.va.passed} з ${s.va.active_ticket_count}`,"tickets.checked_in_at"]);rows.push(["Компенсаційний облік",tag("ok","Зчитано"),`${s.compensation.accepted_on_seance} проходів`,"recovery_tokens + recovery_audit"]);s.operators.sources.forEach(x=>rows.push([`Оператор: ${x.name}`,x.batch?tag("ok","Звіт отримано"):(x.required?tag("bad","Очікується"):tag("warn","Необов’язково")),x.batch?`${x.batch.active_count||0} дійсних / ${x.batch.returned_count||0} повернень`:"—",x.batch?`${x.batch.file_name||"файл"} • ${fmt(x.batch.imported_at)}`:"Немає імпорту"]));rows.push(["Розбіжності",s.issues.some(x=>x.level==="block")?tag("bad","Є блокуючі"):s.issues.length?tag("warn","Є попередження"):tag("ok","Не знайдено"),String(s.issues.length),"автоматична перевірка"]);$("readinessBody").innerHTML=rows.map(r=>`<tr><td><strong>${esc(r[0])}</strong></td><td>${r[1]}</td><td>${esc(r[2])}</td><td class="muted">${esc(r[3])}</td></tr>`).join("")}
+function renderSeats(s){const rows=[`<tr><td><strong>VA</strong></td><td class="num">${s.va.provided_seats}</td><td class="num">${s.va.returned_tickets}</td><td>актуально зараз</td></tr>`];s.operators.sources.forEach(x=>rows.push(`<tr><td><strong>${esc(x.name)}</strong></td><td class="num">${x.batch?.active_count||0}</td><td class="num">${x.batch?.returned_count||0}</td><td>${x.batch?esc(fmt(x.batch.imported_at)):"звіт не отримано"}</td></tr>`));rows.push(`<tr><td><strong>Активна бронь / КГ-7</strong></td><td class="num">${s.va.active_booking_seats}</td><td class="num">—</td><td>не є остаточно наданими місцями</td></tr>`);$("seatBody").innerHTML=rows.join("")}
+function renderFinance(s){const rows=[`<tr><td><strong>VA</strong></td><td class="num">${s.va.active_ticket_count}</td><td class="num">${money(s.va.revenue)}</td><td>включає повну, часткову та нульову вартість</td></tr>`];s.operators.sources.forEach(x=>rows.push(`<tr><td><strong>${esc(x.name)}</strong></td><td class="num">${x.batch?.active_count||0}</td><td class="num">${money(x.batch?.gross_amount||0)}</td><td>джерело істини — звіт оператора</td></tr>`));rows.push(`<tr><td><strong>Компенсації</strong></td><td class="num">${s.compensation.accepted_on_seance}</td><td class="num">0,00 грн</td><td>не є доходом поточного сеансу</td></tr>`);$("financeBody").innerHTML=rows.join("")}
+function renderAccess(s){const rows=Object.entries(s.va.type_stats).sort((a,b)=>b[1].expected-a[1].expected).map(([type,x])=>`<tr><td>${esc(type)}</td><td class="num">${x.expected}</td><td class="num">${x.passed}</td><td class="num">${x.expected?Math.round(x.passed/x.expected*100):0}%</td></tr>`);if(s.operators.active_rows)rows.push(`<tr><td><strong>Операторські квитки (за імпортом)</strong></td><td class="num">${s.operators.active_rows}</td><td class="num">${s.operators.passed}</td><td class="num">${s.operators.active_rows?Math.round(s.operators.passed/s.operators.active_rows*100):0}%</td></tr>`);rows.push(`<tr><td><strong>Компенсаційний доступ без місця</strong></td><td class="num">—</td><td class="num">${s.compensation.accepted_on_seance}</td><td class="num">—</td></tr>`);$("accessBody").innerHTML=rows.join("")||'<tr><td colspan="4">Немає даних</td></tr>'}
+function renderComp(s){$("compBody").innerHTML=`<tr><td>Створено цим сеансом</td><td class="num">${s.compensation.created_by_seance}</td><td>компенсаційні права після переривання / перенесення</td></tr><tr><td>З них уже погашено</td><td class="num">${s.compensation.created_used}</td><td>на інших або поточному сеансі</td></tr><tr><td>Залишок боргу цього сеансу</td><td class="num">${s.compensation.created_open}</td><td>окремий компенсаційний облік</td></tr><tr><td>Прийнято на поточному сеансі</td><td class="num">${s.compensation.accepted_on_seance}</td><td>проходи без місця і без нової виручки</td></tr><tr><td>Повторні спроби</td><td class="num">${s.compensation.repeated_attempts}</td><td>ALREADY_USED</td></tr>`}
+function renderIssues(s){const box=$("discrepanciesBox");if(!s.issues.length){box.innerHTML='<div class="empty">Автоматичних розбіжностей не знайдено.</div>';return}box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Рівень</th><th>Код</th><th>Опис</th></tr></thead><tbody>'+s.issues.map(x=>`<tr><td>${tag(x.level==="block"?"bad":"warn",x.level==="block"?"Блокує":"Попередження")}</td><td class="mono">${esc(x.code)}</td><td>${esc(x.text)}</td></tr>`).join("")+'</tbody></table></div>'}
+function toggleAddSource(force){const b=$("addSourceBox");const show=force===undefined?b.classList.contains("hidden"):force;b.classList.toggle("hidden",!show)}
+async function addSource(){const name=$("sourceName").value.trim();if(!name)return alert("Вкажіть назву оператора");const source={id:crypto.randomUUID(),venue_id:CURRENT?.venue_id||null,operator_name:name,operator_code:$("sourceCode").value.trim()||slug(name),required_for_closing:$("sourceRequired").value==="true",active:true,created_at:new Date().toISOString()};if(DB.sources){const rows=await api("va_operator_sources","",{method:"POST",body:source});SOURCES.push(rows[0]||source)}else{const all=getLS(LS_SOURCES,[]);all.push(source);setLS(LS_SOURCES,all);SOURCES.push(source)}$("sourceName").value="";$("sourceCode").value="";toggleAddSource(false);render()}
+function renderSources(){const box=$("sourcesBox");if(!SOURCES.length){box.innerHTML='<div class="empty">Операторів ще не додано. Для чистої роботи тільки VA це нормально.</div>';return}box.innerHTML=SOURCES.map(s=>{const b=latestBatch(s.id);return `<div class="source-row"><div><strong>${esc(s.operator_name)}</strong> ${s.required_for_closing!==false?tag("info","обов’язковий"):tag("warn","необов’язковий")}<div class="source-meta">${b?`Останній імпорт: ${esc(fmt(b.imported_at))}<br>${esc(b.file_name||"")} • дійсних ${b.active_count||0} • повернень ${b.returned_count||0} • ${money(b.gross_amount||0)}`:"Звіт по цьому сеансу ще не імпортовано."}</div></div><div class="field operator-actions"><label>CSV / XLSX</label><input id="file_${esc(s.id)}" type="file" accept=".csv,.txt,.xlsx,.xls"></div><div class="actions operator-actions" style="margin:0"><button class="orange" onclick="importOperatorFile('${esc(s.id)}')">Імпортувати</button><button class="ghost" onclick="removeSource('${esc(s.id)}')">Вимкнути</button></div></div>`}).join("")}
+async function removeSource(id){if(!confirm("Вимкнути цього оператора?"))return;if(DB.sources){await api("va_operator_sources",`?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",body:{active:false}})}else{const all=getLS(LS_SOURCES,[]).map(s=>String(s.id)===String(id)?{...s,active:false}:s);setLS(LS_SOURCES,all)}SOURCES=SOURCES.filter(s=>String(s.id)!==String(id));render()}
+function parseCsv(text){const rows=[];let row=[],cell="",q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&q&&n==='"'){cell+='"';i++;continue}if(c==='"'){q=!q;continue}if((c===','||c===';'||c==='\t')&&!q){row.push(cell.trim());cell="";continue}if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell.trim());cell="";if(row.some(x=>x!==""))rows.push(row);row=[];continue}cell+=c}row.push(cell.trim());if(row.some(x=>x!==""))rows.push(row);if(rows.length<2)return[];const headers=rows[0].map(x=>String(x||"").trim());return rows.slice(1).map(cols=>{const o={};headers.forEach((h,i)=>o[h]=cols[i]??"");return o})}
+function pick(row,names){const keys=Object.keys(row);for(const name of names){const k=keys.find(x=>String(x).trim().toLowerCase()===name);if(k!==undefined)return row[k]}return""}
+function normalizeRows(raw){return raw.map((r,i)=>{const ticket=pick(r,["ticket_id","external_ticket_id","id","номер квитка","номер билета","ticket","barcode","qr","token"]);const seat=pick(r,["seat_label","seat","place","місце","место","ряд/місце","row/seat"]);const statusRaw=pick(r,["status","статус","state"]);const nominal=pick(r,["nominal","price","ціна","цена","номінал"]);const paid=pick(r,["paid_amount","amount","paid","сума","сумма","оплачено"]);const type=pick(r,["ticket_type","type","тип"]);const channel=pick(r,["channel","канал","sale_channel"]);const checked=pick(r,["checked_in","used","passed","прохід","проход","погашено"]);const soldAt=pick(r,["sold_at","sale_date","created_at","дата продажу","дата продажи"]);const refundAt=pick(r,["refunded_at","return_date","дата повернення","дата возврата"]);return{external_ticket_id:String(ticket||`row-${i+1}`),seat_label:String(seat||"").trim(),status:normalizeStatus(statusRaw),nominal:Number(String(nominal||0).replace(",",".").replace(/[^\d.-]/g,""))||0,paid_amount:Number(String(paid||nominal||0).replace(",",".").replace(/[^\d.-]/g,""))||0,ticket_type:String(type||"Не вказано"),channel:String(channel||"operator"),checked_in:boolValue(checked),sold_at:soldAt||null,refunded_at:refundAt||null,raw:r}})}
+async function fileRows(file){const buf=await file.arrayBuffer();const lower=file.name.toLowerCase();if(lower.endsWith(".csv")||lower.endsWith(".txt")){return{rows:parseCsv(new TextDecoder("utf-8").decode(buf)),buffer:buf}}if(!window.XLSX)throw new Error("XLSX-бібліотека не завантажена");const wb=XLSX.read(buf,{type:"array"});const sheet=wb.Sheets[wb.SheetNames[0]];return{rows:XLSX.utils.sheet_to_json(sheet,{defval:""}),buffer:buf}}
+async function sha256(buf){const hash=await crypto.subtle.digest("SHA-256",buf);return Array.from(new Uint8Array(hash)).map(x=>x.toString(16).padStart(2,"0")).join("")}
+async function importOperatorFile(sourceId){try{const input=$("file_"+sourceId);const file=input?.files?.[0];if(!file)return alert("Оберіть CSV або XLSX");status("warn","Читаю операторський звіт…");const parsed=await fileRows(file);const rows=normalizeRows(parsed.rows);if(!rows.length)throw new Error("Файл не містить рядків даних");const hash=await sha256(parsed.buffer);const active=rows.filter(r=>r.status==="active");const returned=rows.filter(r=>r.status!=="active");const batch={id:crypto.randomUUID(),source_id:sourceId,seance_id:CURRENT.id,file_name:file.name,file_type:file.type||file.name.split(".").pop(),file_hash:hash,imported_at:new Date().toISOString(),rows_total:rows.length,rows_accepted:rows.length,rows_rejected:0,active_count:active.length,returned_count:returned.length,gross_amount:active.reduce((s,r)=>s+Number(r.paid_amount||0),0),normalized_rows:rows,warnings:[]};const duplicate=BATCHES.some(b=>String(b.source_id)===String(sourceId)&&String(b.file_hash)===hash);if(duplicate)throw new Error("Цей файл уже імпортовано");if(DB.batches){const rowsSaved=await api("va_operator_import_batches","",{method:"POST",body:batch});BATCHES.unshift(rowsSaved[0]||batch)}else{const all=getLS(LS_BATCHES,[]);all.push(batch);setLS(LS_BATCHES,all);BATCHES.unshift(batch)}status("ok",`Імпортовано: ${file.name}. Прийнято ${rows.length} рядків.`);render()}catch(e){console.error(e);status("bad","Помилка імпорту: "+String(e.message||e))}}
+function checksKey(){return String(CURRENT?.id||"")}
+function saveChecks(){if(!CURRENT)return;const all=getLS(LS_CHECKS,{});all[checksKey()]={returns:$("checkReturns").checked,access:$("checkAccess").checked,operators:$("checkOperators").checked,note:$("closingNote").value,override:$("overrideBlockers").checked,closedBy:$("closedBy").value};setLS(LS_CHECKS,all)}
+function loadChecks(){const x=getLS(LS_CHECKS,{})[checksKey()]||{};$("checkReturns").checked=!!x.returns;$("checkAccess").checked=!!x.access;$("checkOperators").checked=!!x.operators;$("closingNote").value=x.note||"";$("overrideBlockers").checked=!!x.override;if(!$("closedBy").value)$("closedBy").value=x.closedBy||localStorage.getItem("va_closing_responsible")||"";["checkReturns","checkAccess","checkOperators","closingNote","overrideBlockers","closedBy"].forEach(id=>$(id).onchange=saveChecks)}
+async function loadLatestClosing(){if(!CURRENT)return null;if(DB.closings){const rows=await api("va_seance_closings",`?seance_id=eq.${encodeURIComponent(CURRENT.id)}&order=revision.desc&limit=1`);LATEST_CLOSING=rows[0]||null}else{LATEST_CLOSING=getLS(LS_CLOSINGS,[]).filter(x=>String(x.seance_id)===String(CURRENT.id)).sort((a,b)=>Number(b.revision||0)-Number(a.revision||0))[0]||null}return LATEST_CLOSING}
+function renderLatestClosingStatus(){const el=$("closingResult");if(!LATEST_CLOSING){el.className="status";el.textContent="Закриття ще не виконувалось.";return}el.className="status ok";el.innerHTML=`<strong>Сеанс зафіксовано</strong><br>Ревізія: ${esc(LATEST_CLOSING.revision||1)} • ${esc(fmt(LATEST_CLOSING.closed_at))} • ${esc(LATEST_CLOSING.closed_by||"—")}<br><span class="mono">${esc(LATEST_CLOSING.checksum||"")}</span>`}
+async function showLatestClosing(){await loadLatestClosing();renderLatestClosingStatus()}
+async function hashObject(obj){return sha256(new TextEncoder().encode(JSON.stringify(obj)))}
+function csvCell(v){const s=String(v??"");return /[",;\n]/.test(s)?'"'+s.replaceAll('"','""')+'"':s}
+function csv(rows){return "\ufeff"+rows.map(r=>r.map(csvCell).join(";")).join("\n")}
+function summaryHtml(s){return `<!doctype html><html lang="uk"><meta charset="utf-8"><title>Закриття ${esc(s.seance.show||s.seance.id)}</title><style>body{font-family:Arial;padding:28px}table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #ccc;padding:8px;text-align:left}h1{margin:0 0 8px}</style><h1>Паспорт закриття сеансу</h1><p><b>${esc(s.seance.show||s.seance.id)}</b><br>${esc(s.seance.date||"")} ${esc(s.seance.time||"")} • ${esc(s.seance.venue_id||"")}</p><h2>Оборот місць</h2><table><tr><th>Випуск VA</th><th>Надано місць VA</th><th>Бронь / КГ-7</th><th>Місця операторів</th></tr><tr><td>${s.va.issued}</td><td>${s.va.provided_seats}</td><td>${s.va.active_booking_seats}</td><td>${s.operators.provided_seats}</td></tr></table><h2>Фінанси</h2><table><tr><th>VA</th><th>Оператори</th></tr><tr><td>${money(s.va.revenue)}</td><td>${money(s.operators.revenue)}</td></tr></table><h2>Доступ</h2><table><tr><th>По квитках VA</th><th>Компенсаційно без місця</th></tr><tr><td>${s.va.passed}</td><td>${s.compensation.accepted_on_seance}</td></tr></table><h2>Розбіжності</h2><ul>${s.issues.map(x=>`<li>${esc(x.code)} — ${esc(x.text)}</li>`).join("")||"<li>Не знайдено</li>"}</ul></html>`}
+async function makePackage(s,meta={}){if(!window.JSZip)throw new Error("JSZip не завантажено");const zip=new JSZip();const info={...s,closing:meta};zip.file("00_Паспорт_закриття.html",summaryHtml(s));zip.file("01_Зведення_сеансу.csv",csv([["Показник","Значення"],["Сеанс",s.seance.show||s.seance.id],["Дата",s.seance.date||""],["Час",s.seance.time||""],["Випуск VA",s.va.issued],["Надано місць VA",s.va.provided_seats],["Активна бронь / КГ-7",s.va.active_booking_seats],["Місця операторів",s.operators.provided_seats],["Виручка VA",s.va.revenue],["Виручка операторів",s.operators.revenue],["Пройшло по квитках VA",s.va.passed],["Компенсаційних проходів",s.compensation.accepted_on_seance]]));zip.file("02_Оборот_місць.csv",csv([["Джерело","Надано місць","Повернуто"],["VA",s.va.provided_seats,s.va.returned_tickets],...s.operators.sources.map(x=>[x.name,x.batch?.active_count||0,x.batch?.returned_count||0]),["Активна бронь / КГ-7",s.va.active_booking_seats,""]]));zip.file("03_Фінансовий_результат.csv",csv([["Джерело","Документів","Сума"],["VA",s.va.active_ticket_count,s.va.revenue],...s.operators.sources.map(x=>[x.name,x.batch?.active_count||0,x.batch?.gross_amount||0]),["Компенсації",s.compensation.accepted_on_seance,0]]));zip.file("04_Контроль_доступу.csv",csv([["Тип","Оформлено","Пройшло","Відсоток"],...Object.entries(s.va.type_stats).map(([k,v])=>[k,v.expected,v.passed,v.expected?Math.round(v.passed/v.expected*100):0]),["Компенсаційний доступ без місця","",s.compensation.accepted_on_seance,""]]));zip.file("05_Компенсаційний_знімок.csv",csv([["Показник","Кількість"],["Створено цим сеансом",s.compensation.created_by_seance],["Погашено з них",s.compensation.created_used],["Залишок боргу",s.compensation.created_open],["Прийнято на поточному сеансі",s.compensation.accepted_on_seance],["Повторні спроби",s.compensation.repeated_attempts]]));zip.file("06_Операторські_дані.csv",csv([["Оператор","ID квитка","Місце","Статус","Номінал","Оплачено","Тип","Пройшов"],...s.operators.rows.map(r=>[r.__source,r.external_ticket_id,r.seat_label,r.status,r.nominal,r.paid_amount,r.ticket_type,r.checked_in?"так":"ні"])]));zip.file("07_Броні_та_КГ7.csv",csv([["Статус","Місця","Організація / покупець","Сума"],...(DATA.bookings||[]).map(b=>[b.status,seatsFromBooking(b).join(", "),b.organization||b.buyer_name||b.contact_name||"",b.amount||0])]));zip.file("08_Розбіжності.csv",csv([["Рівень","Код","Опис"],...s.issues.map(x=>[x.level,x.code,x.text])]));zip.file("09_КГ-10_посилання.txt",`КГ-10 формується окремим чинним модулем VA:\n${new URL(`./kg10.html?seance=${encodeURIComponent(s.seance.id)}&seance_id=${encodeURIComponent(s.seance.id)}`,location.href).href}\n`);zip.file("manifest.json",JSON.stringify(info,null,2));const blob=await zip.generateAsync({type:"blob"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`VA_Закриття_${slug(s.seance.show||s.seance.id)||"seance"}_${s.seance.date||""}.zip`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+async function downloadCurrentPackage(){try{const s=snapshot();await makePackage(s,{mode:"preview",generated_at:new Date().toISOString()})}catch(e){alert(String(e.message||e))}}
+async function closeSeance(){try{saveChecks();const s=snapshot();const by=$("closedBy").value.trim();if(!by)throw new Error("Вкажіть відповідального");localStorage.setItem("va_closing_responsible",by);const checks=$("checkReturns").checked&&$("checkAccess").checked&&$("checkOperators").checked;if(!checks)throw new Error("Підтвердьте повернення, контроль доступу та операторські звіти");const blockers=s.issues.filter(x=>x.level==="block");const override=$("overrideBlockers").checked;const note=$("closingNote").value.trim();if(blockers.length&&!override)throw new Error("Є блокуючі розбіжності. Усуньте їх або увімкніть закриття з протоколом");if(blockers.length&&override&&!note)throw new Error("Для закриття з протоколом потрібне пояснення");status("warn","Фіксую знімок і формую пакет…");await loadLatestClosing();const revision=Number(LATEST_CLOSING?.revision||0)+1;const record={id:crypto.randomUUID(),seance_id:CURRENT.id,revision,status:$("closingMode").value==="draft"?"draft":"closed",closed_at:new Date().toISOString(),closed_by:by,notes:note,snapshot:s,source_state:{checks:{returns:$("checkReturns").checked,access:$("checkAccess").checked,operators:$("checkOperators").checked},override_blockers:override},discrepancies:s.issues,package_manifest:{files:["00_Паспорт_закриття.html","01_Зведення_сеансу.csv","02_Оборот_місць.csv","03_Фінансовий_результат.csv","04_Контроль_доступу.csv","05_Компенсаційний_знімок.csv","06_Операторські_дані.csv","07_Броні_та_КГ7.csv","08_Розбіжності.csv","09_КГ-10_посилання.txt","manifest.json"]}};record.checksum=await hashObject(record.snapshot);if(DB.closings){const rows=await api("va_seance_closings","",{method:"POST",body:record});LATEST_CLOSING=rows[0]||record}else{const all=getLS(LS_CLOSINGS,[]);all.push(record);setLS(LS_CLOSINGS,all);LATEST_CLOSING=record}renderLatestClosingStatus();await makePackage(s,{revision,closed_at:record.closed_at,closed_by:by,checksum:record.checksum,notes:note});status("ok",`Сеанс зафіксовано. Ревізія ${revision}. Пакет сформовано.`)}catch(e){console.error(e);status("bad","Закриття не виконано: "+String(e.message||e))}}
+function openKg10(){const id=$("seance").value;if(id)location.href=`./kg10.html?seance=${encodeURIComponent(id)}&seance_id=${encodeURIComponent(id)}`}
+function openAccess(){const id=$("seance").value;if(id)window.open(`../access-control.html?seance=${encodeURIComponent(id)}&seance_id=${encodeURIComponent(id)}`,"_blank")}
+function openCompensation(){window.open("../compensation-cabinet.html","_blank")}
+async function loadAll(){try{status("warn","Завантаження даних…");await fetchCurrentData();await loadSources();await loadLatestClosing();render();status("ok",`Дані оновлено: ${CURRENT.show||CURRENT.id} • ${new Date().toLocaleTimeString("uk-UA")}`)}catch(e){console.error(e);status("bad","Помилка: "+String(e.message||e))}}
+window.addEventListener("load",async()=>{try{await detectDb();await loadSeances();await loadAll()}catch(e){console.error(e);status("bad","Помилка запуску: "+String(e.message||e))}});
+</script>
+</body>
+</html>
