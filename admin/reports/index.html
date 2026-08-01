@@ -4,579 +4,65 @@
 <meta charset="UTF-8">
 <title>Звіти — VA Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-:root{
-  --bg:#061a3a;
-  --card:#1d2d47;
-  --card-2:#223552;
-  --text:#ffffff;
-  --muted:#b8c4d6;
-  --line:rgba(255,255,255,.10);
-
-  --primary:#4c86f7;
-  --primary-hover:#3f78e6;
-
-  --success:#2ecc71;
-  --orange:#f59e0b;
-  --red:#ef4444;
-  --neutral:#50627d;
-
-  --shadow:0 18px 40px rgba(0,0,0,.22);
-  --radius-xl:24px;
-  --radius-lg:18px;
-}
-
-*{box-sizing:border-box}
-
-html,body{
-  margin:0;
-  padding:0;
-  min-height:100%;
-  font-family:Arial, sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-.page-wrap{
-  width:min(1180px, calc(100% - 48px));
-  margin:0 auto;
-  padding:48px 0 56px;
-}
-
-.topbar{
-  margin-bottom:28px;
-}
-
-.back-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:12px 18px;
-  border:none;
-  border-radius:12px;
-  background:#fff;
-  color:#111827;
-  font-size:16px;
-  cursor:pointer;
-  text-decoration:none;
-  font-weight:700;
-  box-shadow:0 8px 20px rgba(0,0,0,.16);
-}
-
-.back-btn:hover{
-  transform:translateY(-1px);
-}
-
-.hero{
-  margin-bottom:28px;
-}
-
-.hero h1{
-  margin:0 0 10px;
-  font-size:58px;
-  line-height:1.05;
-  font-weight:900;
-}
-
-.hero p{
-  margin:0;
-  color:var(--muted);
-  font-size:18px;
-  line-height:1.45;
-  max-width:840px;
-}
-
-.section-card{
-  background:var(--card);
-  border-radius:var(--radius-xl);
-  padding:28px 24px;
-  box-shadow:var(--shadow);
-  margin-bottom:22px;
-}
-
-.section-head{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom:20px;
-}
-
-.section-head h2{
-  margin:0;
-  font-size:26px;
-  line-height:1.15;
-}
-
-.section-head p{
-  margin:8px 0 0;
-  color:var(--muted);
-  font-size:15px;
-  line-height:1.45;
-  max-width:780px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
-  gap:18px;
-}
-
-.report{
-  background:var(--card-2);
-  border:1px solid var(--line);
-  border-radius:var(--radius-lg);
-  padding:18px;
-  min-height:220px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-}
-
-.report.disabled{
-  opacity:.72;
-}
-
-.badge{
-  display:inline-flex;
-  align-items:center;
-  width:max-content;
-  font-size:12px;
-  line-height:1;
-  padding:7px 12px;
-  border-radius:999px;
-  background:rgba(255,255,255,.10);
-  color:#fff;
-  margin-bottom:14px;
-  font-weight:800;
-}
-
-.badge.required{
-  background:rgba(76,134,247,.24);
-}
-
-.badge.va{
-  background:rgba(245,158,11,.24);
-}
-
-.badge.ready{
-  background:rgba(34,197,94,.22);
-}
-
-.badge.v2{
-  background:rgba(255,255,255,.10);
-  color:var(--muted);
-}
-
-.report h4{
-  margin:0 0 10px;
-  font-size:21px;
-  line-height:1.2;
-}
-
-.report p{
-  margin:0;
-  color:var(--muted);
-  font-size:15px;
-  line-height:1.45;
-}
-
-.report-actions{
-  margin-top:20px;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:132px;
-  height:46px;
-  padding:0 18px;
-  border:none;
-  border-radius:14px;
-  font-size:16px;
-  font-weight:800;
-  cursor:pointer;
-  text-decoration:none;
-  transition:.15s ease;
-}
-
-.btn:hover{
-  transform:translateY(-1px);
-}
-
-.btn-primary{
-  background:var(--primary);
-  color:#fff;
-}
-
-.btn-primary:hover{
-  background:var(--primary-hover);
-}
-
-.btn-green{
-  background:var(--success);
-  color:#07111f;
-}
-
-.btn-orange{
-  background:var(--orange);
-  color:#111827;
-}
-
-.btn-neutral{
-  background:var(--neutral);
-  color:#fff;
-}
-
-.btn-disabled{
-  background:rgba(255,255,255,.12);
-  color:var(--muted);
-  cursor:not-allowed;
-}
-
-.btn-disabled:hover{
-  transform:none;
-}
-
-.note{
-  margin-top:18px;
-  color:var(--muted);
-  font-size:14px;
-  line-height:1.45;
-}
-
-.audit-note{
-  margin-top:10px;
-  padding:12px 14px;
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:14px;
-  background:rgba(255,255,255,.05);
-  color:var(--muted);
-  font-size:14px;
-  line-height:1.45;
-}
-
-@media (max-width:1024px){
-  .hero h1{
-    font-size:48px;
-  }
-
-  .grid{
-    grid-template-columns:repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width:720px){
-  .page-wrap{
-    width:min(100% - 24px, 1180px);
-    padding:24px 0 32px;
-  }
-
-  .hero h1{
-    font-size:38px;
-  }
-
-  .hero p{
-    font-size:16px;
-  }
-
-  .section-card{
-    padding:20px 16px;
-    border-radius:20px;
-  }
-
-  .section-head{
-    display:block;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-    gap:14px;
-  }
-
-  .report{
-    min-height:auto;
-  }
-
-  .btn{
-    width:100%;
-  }
-}
+:root{--bg:#061a3a;--card:#1d2d47;--card2:#223552;--text:#fff;--muted:#b8c4d6;--line:rgba(255,255,255,.10);--primary:#4c86f7;--primary-hover:#3f78e6;--success:#2ecc71;--orange:#f59e0b;--red:#ef4444;--neutral:#50627d;--accent:#7f1d1d;--shadow:0 18px 40px rgba(0,0,0,.22)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}body{background:radial-gradient(circle at top left,rgba(127,29,29,.28),transparent 32%),radial-gradient(circle at top right,rgba(76,134,247,.13),transparent 30%),var(--bg)}
+.page-wrap{width:min(1180px,calc(100% - 48px));margin:0 auto;padding:48px 0 56px}.topbar{margin-bottom:28px}.back-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:0;border-radius:12px;background:#fff;color:#111827;font-size:16px;text-decoration:none;font-weight:700;box-shadow:0 8px 20px rgba(0,0,0,.16)}.hero{margin-bottom:28px}.hero h1{margin:0 0 10px;font-size:58px;line-height:1.05;font-weight:900}.hero p{margin:0;color:var(--muted);font-size:18px;line-height:1.45;max-width:840px}
+.section-card{background:var(--card);border-radius:24px;padding:28px 24px;box-shadow:var(--shadow);margin-bottom:22px}.section-card.closing{border:1px solid rgba(34,197,94,.36);background:linear-gradient(135deg,rgba(29,45,71,.98),rgba(24,61,61,.95))}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}.section-head h2{margin:0;font-size:26px}.section-head p{margin:8px 0 0;color:var(--muted);font-size:15px;line-height:1.45;max-width:780px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.report{background:var(--card2);border:1px solid var(--line);border-radius:18px;padding:18px;min-height:220px;display:flex;flex-direction:column;justify-content:space-between}.report.wide{min-height:auto}.report.disabled{opacity:.72}.badge{display:inline-flex;align-items:center;width:max-content;font-size:12px;line-height:1;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.10);color:#fff;margin-bottom:14px;font-weight:800}.badge.required{background:rgba(76,134,247,.24)}.badge.va{background:rgba(245,158,11,.24)}.badge.ready{background:rgba(34,197,94,.22)}.badge.closing{background:rgba(34,197,94,.28);color:#d8ffe7}.badge.v2{color:var(--muted)}.report h4{margin:0 0 10px;font-size:21px}.report p{margin:0;color:var(--muted);font-size:15px;line-height:1.45}.report-actions{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-width:132px;height:46px;padding:0 18px;border:0;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;text-decoration:none}.btn-primary{background:var(--primary);color:#fff}.btn-green{background:var(--success);color:#07111f}.btn-orange{background:var(--orange);color:#111827}.btn-neutral{background:var(--neutral);color:#fff}.btn-accent{background:var(--accent);color:#fff}.btn-disabled{background:rgba(255,255,255,.12);color:var(--muted);cursor:not-allowed}.note{margin-top:18px;color:var(--muted);font-size:14px;line-height:1.45}.audit-note{margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.05);color:var(--muted);font-size:14px;line-height:1.45}.closing-flow{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.closing-flow span{padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:13px;font-weight:800}
+@media(max-width:1024px){.hero h1{font-size:48px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:720px){.page-wrap{width:min(100% - 24px,1180px);padding:24px 0 32px}.hero h1{font-size:38px}.hero p{font-size:16px}.section-card{padding:20px 16px}.section-head{display:block}.grid{grid-template-columns:1fr}.report{min-height:auto}.btn{width:100%}}
 </style>
 </head>
-
 <body>
-
 <main class="page-wrap">
+  <div class="topbar"><a class="back-btn" href="../ticket-office.html">← Назад</a></div>
+  <section class="hero"><h1>📊 Звіти</h1><p>Офіційні форми, робочі звіти квиткового відділу, перевірочна аналітика та єдине закриття сеансу.</p></section>
 
-  <div class="topbar">
-    <a class="back-btn" href="../ticket-office.html">← Назад</a>
-  </div>
-
-  <section class="hero">
-    <h1>📊 Звіти</h1>
-    <p>
-      Офіційні форми, робочі звіти квиткового відділу та аналітика VA.
-      Тут залишаємо тільки те, що має сенс для поточного рівня системи.
-    </p>
+  <section class="section-card closing">
+    <div class="section-head"><div><h2>🔒 Закриття сеансу</h2><p>Збирає дані VA й операторів, перевіряє незавершені броні та розбіжності, фіксує окремі результати обороту місць, фінансів, доступу й компенсацій та формує ZIP-пакет.</p></div></div>
+    <div class="closing-flow"><span>VA</span><span>Оператори</span><span>Броні / КГ-7 / КГ-8</span><span>Контроль доступу</span><span>Компенсаційний облік</span><span>Протокол розбіжностей</span><span>ZIP-пакет</span></div>
+    <div class="report-actions"><button class="btn btn-green" onclick="openClosing()">Перевірити готовність і закрити</button><button class="btn btn-neutral" onclick="openReport('kg10.html')">Відкрити КГ-10</button></div>
+    <div class="note">КГ-13 сюди не входить: це щоденний касовий звіт за всіма сеансами обраної дати.</div>
   </section>
 
   <section class="section-card">
-    <div class="section-head">
-      <div>
-        <h2>Обов’язкові форми</h2>
-        <p>
-          Базові звіти квиткового господарства для АСПК:
-          щоденний касовий звіт, зведений звіт по сеансу, видача та повернення квитків розповсюджувачам.
-        </p>
-      </div>
-    </div>
-
+    <div class="section-head"><div><h2>Обов’язкові форми</h2><p>Офіційні та робочі форми квиткового господарства. КГ-13 належить до денного касового / бухгалтерського контуру, КГ-10 — до окремого сеансу.</p></div></div>
     <div class="grid">
-
-      <article class="report">
-        <div>
-          <span class="badge required">КГ-13</span>
-          <h4>КГ-13 — щоденний касовий звіт</h4>
-          <p>
-            Звіт касира за день. Перший обов’язковий звіт для касової зміни.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-primary" onclick="openReport('kg13.html')">Відкрити</button>
-        </div>
-      </article>
-
-      <article class="report">
-        <div>
-          <span class="badge required">КГ-10</span>
-          <h4>КГ-10 — зведений звіт по сеансу</h4>
-          <p>
-            Підсумковий звіт по заходу. Має привести систему до формули:
-            видано − повернуто = реалізовано.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-primary" onclick="openReport('kg10.html')">Відкрити</button>
-        </div>
-      </article>
-
-      <article class="report">
-        <div>
-          <span class="badge required">КГ-7</span>
-          <h4>КГ-7 — видача квитків</h4>
-          <p>
-            Накладна на видачу квитків комісіонеру / розповсюджувачу.
-            Зараз працює через розділ “Комісіонери” в обороті квитків.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Комісіонери</button>
-        </div>
-      </article>
-
-      <article class="report">
-        <div>
-          <span class="badge required">КГ-8</span>
-          <h4>КГ-8 — повернення квитків</h4>
-          <p>
-            Накладна на повернення нереалізованих квитків від комісіонера / розповсюджувача.
-            Зараз працює через розділ “Комісіонери”.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Комісіонери</button>
-        </div>
-      </article>
-
-      <article class="report disabled">
-        <div>
-          <span class="badge v2">V2</span>
-          <h4>КГ-12 — акт списання / закриття залишків</h4>
-          <p>
-            Майбутній звіт для закриття нереалізованих / погашених залишків після завершення сеансу.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-disabled" disabled>Пізніше</button>
-        </div>
-      </article>
-
+      <article class="report"><div><span class="badge required">КГ-13</span><h4>КГ-13 — щоденний касовий звіт</h4><p>Звіт касира за день по всіх касових продажах і всіх сеансах обраної дати. Не є частиною пакета одного сеансу.</p></div><div class="report-actions"><button class="btn btn-primary" onclick="openReport('kg13.html')">Відкрити</button></div></article>
+      <article class="report"><div><span class="badge required">КГ-10</span><h4>КГ-10 — зведений звіт по сеансу</h4><p>Випуск, видача, повернення, реалізація, залишок і сума по конкретному сеансу.</p></div><div class="report-actions"><button class="btn btn-primary" onclick="openReport('kg10.html')">Відкрити</button></div></article>
+      <article class="report"><div><span class="badge required">КГ-7</span><h4>КГ-7 — видача квитків</h4><p>Накладна на видачу квитків комісіонеру / розповсюджувачу. Робота ведеться через розділ «Комісіонери».</p></div><div class="report-actions"><button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Комісіонери</button></div></article>
+      <article class="report"><div><span class="badge required">КГ-8</span><h4>КГ-8 — повернення квитків</h4><p>Повернення нереалізованих квитків від комісіонера / розповсюджувача через той самий контур.</p></div><div class="report-actions"><button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Комісіонери</button></div></article>
+      <article class="report disabled"><div><span class="badge v2">V2</span><h4>КГ-12 — акт списання / закриття залишків</h4><p>Майбутня форма для нормативного закриття залишків після завершення сеансу.</p></div><div class="report-actions"><button class="btn btn-disabled" disabled>Пізніше</button></div></article>
     </div>
+    <div class="note">КГ-1 / КГ-2 / КГ-5 / КГ-6 / КГ-9 / КГ-11 поки не виносимо в робочий інтерфейс.</div>
+  </section>
 
-    <div class="note">
-      КГ-1 / КГ-2 / КГ-5 / КГ-6 / КГ-9 / КГ-11 поки не виносимо в робочий інтерфейс:
-      для нашого електронного контуру першочергові КГ-10, КГ-13, КГ-7, КГ-8.
+  <section class="section-card">
+    <div class="section-head"><div><h2>Операційні звіти VA</h2><p>Власний випуск VA, компенсаційний борг, контроль доступу та реальний оборот місць.</p></div></div>
+    <div class="grid">
+      <article class="report"><div><span class="badge va">VA</span><h4>VA-випуск / оборот місць</h4><p>Скільки місць випущено в оборот VA, надано, заброньовано, повернуто та залишилося.</p></div><div class="report-actions"><button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Оборот</button></div></article>
+      <article class="report"><div><span class="badge va">борг</span><h4>Компенсаційний облік</h4><p>Створені права, погашення, залишок боргу та матриця «звідки → куди».</p></div><div class="report-actions"><button class="btn btn-orange" onclick="openAdminPage('../compensation-cabinet.html')">Відкрити</button></div></article>
+      <article class="report"><div><span class="badge va">контроль</span><h4>Контроль доступу</h4><p>Оформлено, пройшло, не пройшло, типи квитків, канали та окремий компенсаційний доступ.</p></div><div class="report-actions"><button class="btn btn-orange" onclick="openAdminPage('../access-control.html')">Відкрити</button></div></article>
+      <article class="report"><div><span class="badge va">броні</span><h4>Броні / комісіонери</h4><p>Актуальна робота ведеться через оборот квитків та картку комісіонера. Старий окремий звіт бронювання не є джерелом істини.</p></div><div class="report-actions"><button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Оборот</button></div></article>
     </div>
   </section>
 
   <section class="section-card">
-    <div class="section-head">
-      <div>
-        <h2>Операційні звіти VA</h2>
-        <p>
-          Те, що з’явилося в системі додатково: VA-квота, компенсаційний борг,
-          контроль доступу та реальний оборот квитків.
-        </p>
-      </div>
-    </div>
-
+    <div class="section-head"><div><h2>Аналітика та перевірка</h2><p>Не бухгалтерські форми, а перевірочні та управлінські зрізи: канали, системні дії, аудит і CSV.</p></div></div>
     <div class="grid">
-
-      <article class="report">
-        <div>
-          <span class="badge va">VA</span>
-          <h4>VA-квота / випуск</h4>
-          <p>
-            Скільки місць випущено в оборот VA, скільки продано, заброньовано,
-            повернуто та залишилося.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Оборот</button>
-        </div>
-      </article>
-
-      <article class="report">
-        <div>
-          <span class="badge va">борг</span>
-          <h4>Компенсаційний борг</h4>
-          <p>
-            Створені компенсації, погашені компенсації, залишок боргу театру,
-            звідки виникло та де погашено.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-orange" onclick="openAdminPage('../compensation-cabinet.html')">Відкрити</button>
-        </div>
-      </article>
-
-      <article class="report">
-        <div>
-          <span class="badge va">контроль</span>
-          <h4>Контроль доступу</h4>
-          <p>
-            Звичайні проходи, компенсаційні проходи, повтори, інциденти та стан входу по сеансу.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-orange" onclick="openAdminPage('../access-control.html')">Відкрити</button>
-        </div>
-      </article>
-
-      <article class="report">
-        <div>
-          <span class="badge va">броні</span>
-          <h4>Броні / комісіонери</h4>
-          <p>
-            Старий звіт “Бронювання” більше не відображає повну логіку.
-            Актуальна робота ведеться через оборот квитків та картку комісіонера.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-orange" onclick="openTicketOfficeTurnover()">Оборот</button>
-        </div>
-      </article>
-
+      <article class="report"><div><span class="badge ready">channels</span><h4>Продажі по каналах</h4><p>Канали продажу, суми, середній чек, явка, ціни та типи квитків.</p></div><div class="report-actions"><button class="btn btn-primary" onclick="openReport('sales-channels.html')">Відкрити</button></div></article>
+      <article class="report"><div><span class="badge ready">audit</span><h4>Журнал контролю та системних дій</h4><p>Сканування, повтори, службові події, компенсаційні дії та інші записи аудиту.</p></div><div class="report-actions"><button class="btn btn-primary" onclick="openReport('audit.html')">Відкрити</button></div></article>
+      <article class="report disabled"><div><span class="badge v2">пізніше</span><h4>Продажі по майданчиках</h4><p>Повернеться після стабілізації мультиплощадочної аналітики.</p></div><div class="report-actions"><button class="btn btn-disabled" disabled>Неактивно</button></div></article>
     </div>
+    <div class="audit-note">Розділ не дублює директорський дашборд. Тут залишаються форми, друковані звіти, перевірочні журнали та фінальна операція закриття.</div>
   </section>
-
-  <section class="section-card">
-    <div class="section-head">
-      <div>
-        <h2>Аналітика та перевірка</h2>
-        <p>
-          Не бухгалтерські форми, а перевірочні та управлінські звіти:
-          канали продажу, системні дії, аудит, CSV.
-        </p>
-      </div>
-    </div>
-
-    <div class="grid">
-
-      <article class="report">
-        <div>
-          <span class="badge ready">channels</span>
-          <h4>Продажі по каналах</h4>
-          <p>
-            Канали продажу, суми, середній чек, явка, ціни та типи квитків.
-            Не дублює директорські “Продажі”, а працює як перевірочний звіт.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-primary" onclick="openReport('sales-channels.html')">Відкрити</button>
-        </div>
-      </article>
-
-      <article class="report">
-        <div>
-          <span class="badge ready">audit</span>
-          <h4>Журнал контролю та системних дій</h4>
-          <p>
-            Сканування, повтори, службові події, компенсаційні дії та інші записи аудиту.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-primary" onclick="openReport('audit.html')">Відкрити</button>
-        </div>
-      </article>
-
-      <article class="report disabled">
-        <div>
-          <span class="badge v2">пізніше</span>
-          <h4>Продажі по майданчиках</h4>
-          <p>
-            Поки приховано з робочого контуру. Повернемо, коли буде стабільна мультиплощадочна аналітика.
-          </p>
-        </div>
-        <div class="report-actions">
-          <button class="btn btn-disabled" disabled>Неактивно</button>
-        </div>
-      </article>
-
-    </div>
-
-    <div class="audit-note">
-      Розділ “Звіти” тепер не дублює директорський дашборд і не повторює кухню квиткового відділу.
-      Тут залишаються офіційні форми, друковані звіти та перевірочні журнали.
-    </div>
-  </section>
-
 </main>
-
 <script>
-const qs = new URLSearchParams(location.search);
-
-function withContext(page){
-  const params = new URLSearchParams();
-
-  ["city", "venue", "hall", "seance", "seance_id", "view"].forEach(key => {
-    const value = qs.get(key);
-    if (value) params.set(key, value);
-  });
-
-  const query = params.toString();
-  return query ? `${page}?${query}` : page;
-}
-
-function openReport(page){
-  location.href = withContext(page);
-}
-
-function openAdminPage(page){
-  location.href = withContext(page);
-}
-
-function openTicketOfficeTurnover(){
-  const url = withContext("../ticket-office.html");
-  location.href = url + (url.includes("#") ? "" : "#turnover");
-}
+const qs=new URLSearchParams(location.search);
+function withContext(page){const p=new URLSearchParams();["city","venue","hall","seance","seance_id","view"].forEach(k=>{const v=qs.get(k);if(v)p.set(k,v)});const q=p.toString();return q?`${page}?${q}`:page}
+function openReport(page){location.href=withContext(page)}
+function openAdminPage(page){location.href=withContext(page)}
+function openClosing(){location.href=withContext('seance-closing.html')}
+function openTicketOfficeTurnover(){const id=qs.get('seance')||qs.get('seance_id')||'';const p=new URLSearchParams();["city","venue","hall"].forEach(k=>{const v=qs.get(k);if(v)p.set(k,v)});if(id)p.set('seance',id);location.href='../ticket-office.html'+(p.toString()?'?'+p.toString():'')+'#turnover'}
 </script>
-
 </body>
 </html>
