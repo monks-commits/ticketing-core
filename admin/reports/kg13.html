@@ -621,9 +621,9 @@ async function run() {
   const { startIso, endIso } = dateStartEnd(day);
 
   let tickets = await fetchRows(
-    "tickets",
-    `?select=id,order_id,seance_id,seat_label,price,created_at,channel,ref_code,ticket_type,status,buyer_name,buyer_phone,buyer_email&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
-  );
+  "tickets",
+  `?select=*&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
+);
 
   tickets = tickets.filter(ticketIsActive);
 
