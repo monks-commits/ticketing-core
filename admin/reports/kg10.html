@@ -793,10 +793,12 @@ async function run() {
       "seances",
       `?id=eq.${encodeURIComponent(seanceId)}&select=id,show,date,time,venue_id,status,capacity`
     ),
-    fetchRows(
-      "tickets",
-      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=id,order_id,seance_id,seat_label,price,channel,ref_code,ticket_type,checked_in_at,checked_in_by,buyer_name,buyer_email,buyer_phone,created_at,status`
-    ),
+
+fetchRows(
+  "tickets",
+  `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
+),
+    
     fetchRows(
       "bookings",
       `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
