@@ -1109,14 +1109,56 @@ body{
     Акційна ціна
   </label>
 
-  <select id="promoMode" style="width:100%;padding:10px;border-radius:10px;background:#10233f;color:#fff;">
+  <select
+    id="promoMode"
+    style="
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background:#10233f;
+      color:#fff;
+      font:inherit;
+    "
+  >
     <option value="percent">Знижка %</option>
     <option value="fixed">Фіксована ціна</option>
   </select>
 
-  
+  <label
+    id="promoValueLabel"
+    for="promoValue"
+    style="
+      display:block;
+      margin:10px 0 6px;
+      font-size:13px;
+      opacity:.9;
+    "
+  >
+    Розмір знижки, %
+  </label>
+
+  <input
+    id="promoValue"
+    type="number"
+    inputmode="decimal"
+    min="0"
+    max="100"
+    step="1"
+    placeholder="Наприклад: 20"
+    style="
+      width:100%;
+      box-sizing:border-box;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background:#10233f;
+      color:#fff;
+      font:inherit;
+    "
+  />
 </div>
-  <div class="cash-actions cash-actions-premium">
+<div class="cash-actions cash-actions-premium">
     <button id="btn-sell" class="btn btn-sell" disabled>ПРОДАТИ (КАСА) + ДРУК</button>
     <button id="btn-reserve" class="btn btn-reserve" disabled>ДО РЕЗЕРВУ</button>
     <button id="btn-clear" class="btn btn-clear">ОЧИСТИТИ · СКАСУВАТИ ВИБІР · ЗНЯТИ РЕЗЕРВ</button>
@@ -2147,6 +2189,32 @@ function calcFinalPrice(basePrice){
   return basePrice;
 }
 
+function refreshPromoControls(){
+  const mode = document.getElementById("promoMode")?.value || "percent";
+  const input = document.getElementById("promoValue");
+  const label = document.getElementById("promoValueLabel");
+
+  if (!input) return;
+
+  if (mode === "fixed") {
+    if (label) label.textContent = "Фіксована ціна, грн";
+    input.removeAttribute("max");
+    input.min = "0";
+    input.step = "1";
+    input.placeholder = "Наприклад: 100";
+  } else {
+    if (label) label.textContent = "Розмір знижки, %";
+    input.min = "0";
+    input.max = "100";
+    input.step = "1";
+    input.placeholder = "Наприклад: 20";
+
+    if (Number(input.value) > 100) {
+      input.value = "100";
+    }
+  }
+}
+
 document.getElementById("ticketType")?.addEventListener("change", () => {
   const type = document.getElementById("ticketType")?.value;
   const promoBox = document.getElementById("promoBox");
@@ -2155,11 +2223,35 @@ document.getElementById("ticketType")?.addEventListener("change", () => {
     promoBox.style.display = type === "promo" ? "block" : "none";
   }
 
+  if (type === "promo") {
+    refreshPromoControls();
+  }
+
   updateSummary();
 });
 
-document.getElementById("promoMode")?.addEventListener("change", updateSummary);
-document.getElementById("promoValue")?.addEventListener("input", updateSummary);
+document.getElementById("promoMode")?.addEventListener("change", () => {
+  refreshPromoControls();
+  updateSummary();
+});
+
+document.getElementById("promoValue")?.addEventListener("input", () => {
+  const input = document.getElementById("promoValue");
+  const mode = document.getElementById("promoMode")?.value || "percent";
+
+  if (input && input.value !== "") {
+    let value = Number(input.value);
+
+    if (!Number.isFinite(value) || value < 0) value = 0;
+    if (mode === "percent" && value > 100) value = 100;
+
+    input.value = String(value);
+  }
+
+  updateSummary();
+});
+
+refreshPromoControls();
     
     
 async function applyStatusToSelectedLocal(status){
