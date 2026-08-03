@@ -2288,6 +2288,51 @@ async function applyStatusToSelectedLocal(status){
       return `CASH-${base}-${op_id}`;
     }
 
+    /*
+      Единый источник QR для кассы.
+
+      Точно такой формат уже хранится сервером в tickets.qr_payload:
+      order + seance + show + seat.
+
+      Один и тот же payload используется:
+      - при первой печати;
+      - при повторной печати;
+      - в локальном журнале продажи;
+      - после SYNC в public.tickets.
+    */
+    function resolveCashShowSlug(){
+      return String(
+        SHOW_META?.show_slug ||
+        SHOW_META?.show ||
+        showSlug ||
+        SEANCE_ID ||
+        "cash"
+      ).trim();
+    }
+
+    function buildCashQrPayload(ticket){
+      const orderId = String(ticket?.order_id || "").trim();
+      const seanceId = String(
+        ticket?.seance_id ||
+        SEANCE_ID ||
+        ""
+      ).trim();
+
+      const show = String(
+        ticket?.show_slug ||
+        resolveCashShowSlug()
+      ).trim();
+
+      const seat = String(ticket?.seat_label || "").trim();
+
+      return [
+        orderId ? `order:${orderId}` : "",
+        seanceId ? `seance:${seanceId}` : "",
+        show ? `show:${show}` : "",
+        seat ? `seat:${seat}` : ""
+      ].filter(Boolean).join("|");
+    }
+
 // ---- печать билетов (с QR) ----
     async function openPrintWindowOffline(tickets, meta){
   const theatre = "Найменування майданчика";
@@ -2305,7 +2350,10 @@ async function applyStatusToSelectedLocal(status){
   const cardsHtml = [];
 
   for (const t of safeTickets){
-    const payload = `order:${t.order_id}|show:${t.show_slug}|seat:${t.seat_label}`;
+    const payload = String(
+      t?.qr_payload ||
+      buildCashQrPayload(t)
+    ).trim();
 
     let qrDataUrl = "";
     try{
@@ -2644,7 +2692,7 @@ async function sellAndPrintOffline(){
     return;
   }
 
-  const safeShowSlug = showSlug || "test";
+  const safeShowSlug = resolveCashShowSlug();
   const ticketTypeData = getTicketTypeData();
 
   const prices = {};
@@ -2710,22 +2758,27 @@ const buyer_email =
 
   const order_id = `CASH-${SEANCE_ID}-${op_id}`;
 
-  const tickets = keys.map(k => ({
-  op_id,
-  order_id,
-  channel: "cash",
+  const tickets = keys.map(k => {
+    const ticket = {
+      op_id,
+      order_id,
+      channel: "cash",
 
-  buyer_name,
-  buyer_email,
+      buyer_name,
+      buyer_email,
 
-  ticket_type: ticketTypeData.ticket_type,
-  ticket_type_label: ticketTypeData.ticket_type_label,
+      ticket_type: ticketTypeData.ticket_type,
+      ticket_type_label: ticketTypeData.ticket_type_label,
 
-  show_slug: safeShowSlug,
-  seance_id: SEANCE_ID,
-  seat_label: k,
-  price: prices[k] || 0
-}));
+      show_slug: safeShowSlug,
+      seance_id: SEANCE_ID,
+      seat_label: k,
+      price: prices[k] || 0
+    };
+
+    ticket.qr_payload = buildCashQrPayload(ticket);
+    return ticket;
+  });
 
  pushCashLog({
   ts: Date.now(),
@@ -2782,7 +2835,17 @@ const buyer_email =
         return;
       }
 
-      const savedTickets = last.tickets.map(ticket => ({ ...ticket }));
+      const savedTickets = last.tickets.map(ticket => {
+        const restored = { ...ticket };
+
+        /*
+          Старые записи журнала могли не иметь qr_payload.
+          Повторная печать автоматически строит новый правильный QR,
+          совпадающий с public.tickets.
+        */
+        restored.qr_payload = buildCashQrPayload(restored);
+        return restored;
+      });
 
       const currentTitle =
         document.getElementById("summary-show")
