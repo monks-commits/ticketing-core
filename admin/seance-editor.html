@@ -488,7 +488,9 @@ Seance ID — технічний ключ.
         </div>
 
         <div class="note">
-         Назва вистави — для глядача. Seance ID — технічний ключ.
+          Назва події — для глядача. Seance ID — технічний ключ.<br>
+          <b>Чернетка</b> доступна редактору та Content Studio, але не показується на сайті.<br>
+          Публічний показ починається тільки після окремої публікації.
         </div>
 
 <div class="note" style="margin-top:18px;">
@@ -718,11 +720,13 @@ Seance ID — технічний ключ.
 
         <div class="actions">
           <button class="btn btn-neutral" onclick="copyJson()">📋 Скопіювати</button>
+          <button id="saveSeanceBtn" class="btn btn-primary">💾 Зберегти</button>
           <button id="publish" class="btn btn-success">🚀 Опублікувати</button>
         </div>
 
         <div class="note">
-          JSON формується автоматично на основі поточних правил і параметрів сеансу.
+          <b>Зберегти</b> — записати чернетку для внутрішньої роботи та Content Studio без показу на сайті.<br>
+          <b>Опублікувати</b> — зробити сеанс доступним публічному сайту.
         </div>
       </section>
 
@@ -816,7 +820,7 @@ const seanceId = document.getElementById("seanceId");
 const venueSelect = document.getElementById("venueSelect");
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];
-let currentActive = true;
+let currentActive = false;
 let CURRENT_PREVIEW_HALL = null;
 let CURRENT_VA_CAPACITY = 0;
 let CURRENT_VA_PRICE_SEGMENTS = {};
@@ -995,6 +999,7 @@ const seatSale = document.getElementById("seatSale");
 const output = document.getElementById("output");
 const rulesList = document.getElementById("rulesList");
 const seatOverridesList = document.getElementById("seatOverridesList");
+const saveSeanceBtn = document.getElementById("saveSeanceBtn");
 const publish = document.getElementById("publish");
 
 function getVenueConfig(id){
@@ -2291,28 +2296,41 @@ async function loadVenueSeances(){
 
     const rows = await res.json();
 
-    const activeRows = Array.isArray(rows)
+    // Внутрішній редактор повинен бачити і чернетки.
+    // active=false означає лише «не показувати на публічному сайті».
+    const venueRows = Array.isArray(rows)
       ? rows.filter(s =>
           acceptedVenueIds.has(String(s.venue_id || "").trim()) &&
-          s.active !== false &&
           s.status !== "archived"
         )
       : [];
 
-    if (!activeRows.length) {
+    if (!venueRows.length) {
       venueSeanceSelect.innerHTML =
-        `<option value="">Активних сеансів немає</option>`;
+        `<option value="">Сеансів немає</option>`;
       return;
     }
 
+    const statusLabels = {
+      draft: "Чернетка",
+      published: "Опубліковано",
+      sales_open: "Продаж відкрито",
+      sales_closed: "Продаж закрито",
+      cancelled: "Скасовано"
+    };
+
     venueSeanceSelect.innerHTML =
       `<option value="">Оберіть сеанс…</option>` +
-      activeRows.map(s => {
+      venueRows.map(s => {
         const title = s.show || s.id;
         const dt = [s.date, s.time].filter(Boolean).join(" ");
+        const status = String(s.status || "draft");
+        const statusLabel = statusLabels[status] || status;
+        const visibilityLabel = s.active === false ? " • сайт: ні" : "";
+
         return `
           <option value="${s.id}">
-            ${dt ? dt + " — " : ""}${title}
+            [${statusLabel}${visibilityLabel}] ${dt ? dt + " — " : ""}${title}
           </option>
         `;
       }).join("");
@@ -2369,8 +2387,12 @@ function createNewSeance(){
 
   data.pricing = {};
   data.seat_overrides = {};
-  currentActive = true;
-  if (showActive) showActive.value = "true";
+
+  // Новий сеанс одразу доступний внутрішнім модулям після збереження,
+  // але до окремої публікації не показується на сайті.
+  currentActive = false;
+  if (showStatus) showStatus.value = "draft";
+  if (showActive) showActive.value = "false";
 
   render();
   renderPreview();
@@ -2383,7 +2405,10 @@ function createNewSeance(){
     "Створено новий seance_id:\n\n" +
     id +
     "\n\nМайданчик: " + venue +
-    "\n\nТепер заповніть назву вистави, дату, час, poster URL і натисніть «Опублікувати»."
+    "\n\nСеанс поки що не записаний у базу. " +
+    "Заповніть дані та натисніть «Зберегти».\n\n" +
+    "Після збереження чернетка буде доступна Content Studio, " +
+    "але не з’явиться на публічному сайті до натискання «Опублікувати»."
   );
 }
 
@@ -2557,83 +2582,146 @@ function copyJson(){
   alert("Скопійовано");
 }
 
-publish.onclick = async () => {
+async function saveSeanceToServer({ publishNow = false } = {}) {
   const seance = seanceId.value.trim();
-  if (!seance) return alert("Вкажи Seance ID");
+  if (!seance) return alert("Вкажіть Seance ID");
 
   const show = showName.value.trim();
   const date = showDate.value || null;
   const time = showTime.value || null;
-  
-  const status = showStatus.value;
+
+  if (!show) return alert("Вкажіть назву події");
+  if (!date) return alert("Вкажіть дату");
+  if (!time) return alert("Вкажіть час");
+
   const venueId = venueToDbVenueId(venueSelect.value);
   const hall = getHallNameByVenue(venueId);
 
-  if (!show) return alert("Вкажи назву вистави");
-  if (!date) return alert("Вкажи дату");
-  if (!time) return alert("Вкажи час");
+  let status = showStatus?.value || "draft";
+  let active = showActive
+    ? showActive.value === "true"
+    : currentActive;
 
-if (
-  Object.keys(data.pricing || {}).length === 0 &&
-  Object.keys(data.seat_overrides || {}).length === 0
-) {
- 
-  const ok = confirm(
-    "УВАГА: pricing і seat_overrides порожні.\n\n" +
-    "Якщо зберегти зараз — ціни та кольори для цього сеансу будуть стерті.\n\n" + 
-    "Продовжити?"
-  );
-  if (!ok) return;
-}
-  
+  if (publishNow) {
+    // Публікація — окрема дія після підготовки матеріалів у Content Studio.
+    if (status === "draft") status = "published";
+    active = true;
+
+    if (showStatus) showStatus.value = status;
+    if (showActive) showActive.value = "true";
+  } else if (status === "draft") {
+    // Чернетка зберігається у спільній базі для внутрішніх модулів,
+    // але ніколи не повинна потрапити на публічний сайт.
+    active = false;
+    if (showActive) showActive.value = "false";
+  }
+
+  if (
+    Object.keys(data.pricing || {}).length === 0 &&
+    Object.keys(data.seat_overrides || {}).length === 0
+  ) {
+    const actionText = publishNow ? "опублікувати" : "зберегти";
+    const ok = confirm(
+      "УВАГА: pricing і seat_overrides порожні.\n\n" +
+      `Якщо ${actionText} зараз — ціни та кольори для цього сеансу будуть стерті.\n\n` +
+      "Продовжити?"
+    );
+    if (!ok) return;
+  }
+
   const payload = buildSeanceEditorPayload();
+  const originalSaveText = saveSeanceBtn?.textContent || "💾 Зберегти";
+  const originalPublishText = publish?.textContent || "🚀 Опублікувати";
+
+  if (saveSeanceBtn) saveSeanceBtn.disabled = true;
+  if (publish) publish.disabled = true;
+
+  if (publishNow && publish) {
+    publish.textContent = "Публікація…";
+  } else if (saveSeanceBtn) {
+    saveSeanceBtn.textContent = "Збереження…";
+  }
 
   try {
-   const res = await fetch(SUPABASE_FUNCTION_URL, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    ...payload,
+    const res = await fetch(SUPABASE_FUNCTION_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        ...payload,
 
-    seance_id: seance,
-    venue_id: venueId,
-    hall: hall,
-    show: show,
-    event_type: eventType.value || null,
-    genre: genre.value || null,
-    date: date,
-    time: time,
-    
-    status: status,
-    active: showActive ? showActive.value === "true" : currentActive,
+        seance_id: seance,
+        venue_id: venueId,
+        hall,
+        show,
+        event_type: eventType.value || null,
+        genre: genre.value || null,
+        date,
+        time,
+        status,
+        active,
 
-    // Випуск VA: записується як seances.capacity
-    // і використовується кабінетом квиткового відділу як точка відліку.
-    capacity: payload.capacity,
-    capacity_source: payload.capacity_source,
-    capacity_total_hall: payload.capacity_total_hall,
-    capacity_no_price: payload.capacity_no_price,
-    capacity_blocked: payload.capacity_blocked,
-    capacity_by_price: payload.capacity_by_price,
+        capacity: payload.capacity,
+        capacity_source: payload.capacity_source,
+        capacity_total_hall: payload.capacity_total_hall,
+        capacity_no_price: payload.capacity_no_price,
+        capacity_blocked: payload.capacity_blocked,
+        capacity_by_price: payload.capacity_by_price,
 
-    pricing: data.pricing,
-    seat_overrides: data.seat_overrides
-  })
-});
+        pricing: data.pricing,
+        seat_overrides: data.seat_overrides
+      })
+    });
+
     const text = await res.text();
 
     if (!res.ok) {
-      alert("❌ Помилка збереження:\n" + text);
+      alert(
+        publishNow
+          ? "❌ Помилка публікації:\n" + text
+          : "❌ Помилка збереження:\n" + text
+      );
       return;
     }
 
-    alert("✅ Сеанс створено / оновлено");
+    currentActive = active;
+    render();
+    await loadVenueSeances();
+
+    if (venueSeanceSelect) {
+      venueSeanceSelect.value = seance;
+    }
+
+    alert(
+      publishNow
+        ? "✅ Сеанс збережено та опубліковано"
+        : status === "draft"
+          ? "✅ Чернетку збережено. Вона доступна Content Studio і не показується на сайті."
+          : "✅ Сеанс збережено"
+    );
   } catch (err) {
     alert("❌ Помилка: " + err.message);
+  } finally {
+    if (saveSeanceBtn) {
+      saveSeanceBtn.disabled = false;
+      saveSeanceBtn.textContent = originalSaveText;
+    }
+
+    if (publish) {
+      publish.disabled = false;
+      publish.textContent = originalPublishText;
+    }
   }
-};
+}
+
+saveSeanceBtn?.addEventListener("click", () => {
+  saveSeanceToServer({ publishNow: false });
+});
+
+publish?.addEventListener("click", () => {
+  saveSeanceToServer({ publishNow: true });
+});
 
 async function loadSeance(){
   const seance = seanceId.value.trim();
