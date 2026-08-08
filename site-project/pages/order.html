@@ -416,6 +416,7 @@
   </style>
 </head>
 <body>
+  <script src="../../shared/gateway-client.js"></script>
   <div class="page">
 
     <section class="hero">
@@ -495,6 +496,11 @@
     const PROJECT_REF = "fhusjlkneckbvnrdhbil";
 
     const qs = new URLSearchParams(location.search);
+    const GATEWAY_MODE = qs.get("source") === "gateway";
+    const GATEWAY_VENUE_CODE = (qs.get("venue") || "filarmoniya").trim();
+    const GATEWAY_HOLD_REF = GATEWAY_MODE
+      ? window.VA_GATEWAY?.getOrCreateHoldRef((qs.get("seance") || "").trim())
+      : null;
 
 const refFromUrl = qs.get("ref") || "";
 const refCode = refFromUrl || sessionStorage.getItem("va_ref_code") || "";
@@ -532,6 +538,7 @@ if (refCode) {
     function venueToHuman(v){
       if (v === "academy") return "Академія Руху";
       if (v === "shevchenko" || v === "shevchenko-v2") return "Театр Шевченка";
+      if (v === "filarmoniya") return "Дніпровська філармонія";
       return "—";
     }
 
@@ -567,6 +574,16 @@ if (refCode) params.set("ref", refCode);
     }
 
     async function clearSeatBooking(seatKey){
+      if (GATEWAY_MODE) {
+        const nextSeats = seats.filter(s => s !== seatKey);
+        if (nextSeats.length) {
+          await window.VA_GATEWAY.setHold(seance, GATEWAY_HOLD_REF, nextSeats);
+        } else {
+          await window.VA_GATEWAY.releaseHold(seance, GATEWAY_HOLD_REF);
+        }
+        return;
+      }
+
       const resp = await fetch(
         `https://${PROJECT_REF}.functions.supabase.co/clear-booking-seat`,
         {
@@ -590,6 +607,24 @@ if (refCode) params.set("ref", refCode);
 
     async function loadSeanceMeta(){
       if (!seance) return;
+
+      if (GATEWAY_MODE) {
+        try {
+          const result = await window.VA_GATEWAY.stateRead(seance, GATEWAY_HOLD_REF);
+          const payload = result?.payload || result?.transaction?.response_payload || {};
+          seanceMeta = {
+            show: payload?.seance?.show || title || "Подія",
+            date: payload?.seance?.date || "",
+            time: payload?.seance?.time || "",
+            poster_url: payload?.seance?.poster_url || "",
+            venue_id: payload?.venue?.id || GATEWAY_VENUE_CODE
+          };
+          return;
+        } catch(e) {
+          console.warn("Gateway loadSeanceMeta error", e);
+          return;
+        }
+      }
 
       try {
         const res = await fetch(
@@ -715,12 +750,16 @@ if (refCode) params.set("ref", refCode);
     document.getElementById("btnClearAll").addEventListener("click", async () => {
       if (!seats.length) return;
 
-      const copy = [...seats];
-
       try {
-        for (const seatKey of copy){
-          await clearSeatBooking(seatKey);
-          delete prices[seatKey];
+        if (GATEWAY_MODE) {
+          await window.VA_GATEWAY.releaseHold(seance, GATEWAY_HOLD_REF);
+          for (const seatKey of seats) delete prices[seatKey];
+        } else {
+          const copy = [...seats];
+          for (const seatKey of copy){
+            await clearSeatBooking(seatKey);
+            delete prices[seatKey];
+          }
         }
 
         seats = [];
@@ -737,6 +776,10 @@ if (refCode) params.set("ref", refCode);
       if (seance) u.searchParams.set("seance", seance);
       if (title) u.searchParams.set("title", title);
       if (refCode) u.searchParams.set("ref", refCode);
+      if (GATEWAY_MODE) {
+        u.searchParams.set("source", "gateway");
+        u.searchParams.set("venue", GATEWAY_VENUE_CODE);
+      }
 
       if (seats.length) {
         u.searchParams.set("seats", seats.join(","));
@@ -757,6 +800,10 @@ if (refCode) params.set("ref", refCode);
       params.set("prices", JSON.stringify(prices));
       params.set("amount", String(calcTotal()));
       if (refCode) params.set("ref", refCode);
+      if (GATEWAY_MODE) {
+        params.set("source", "gateway");
+        params.set("venue", GATEWAY_VENUE_CODE);
+      }
 
       location.href = `checkout.html?${params.toString()}`;
     });
