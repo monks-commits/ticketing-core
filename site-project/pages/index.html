@@ -589,6 +589,7 @@ const CONFIG_PATH = "../../shared/config.js";
 </script>
 
 <script src="../../shared/config.js"></script>
+<script src="../../shared/gateway-client.js"></script>
 
 <script>
 console.log("INDEX FINAL VERSION");
@@ -859,7 +860,11 @@ const img =
         <a
   class="btn buy-ticket-btn"
   data-seance="${s.id}"
-  href="hall.html?seance=${encodeURIComponent(s.id)}"
+  href="${
+    s.gateway_source === true
+      ? `hall.html?seance=${encodeURIComponent(s.id)}&source=gateway&venue=${encodeURIComponent(s.gateway_venue_code || s.venue_id || "filarmoniya")}`
+      : `hall.html?seance=${encodeURIComponent(s.id)}`
+  }"
 >
   Купити квитки
 </a>
@@ -870,25 +875,63 @@ const img =
   });
 }
 
+async function loadGatewaySeances(){
+  if (!window.VA_GATEWAY) return [];
+
+  try {
+    const data = await window.VA_GATEWAY.listSeances();
+    const rows = Array.isArray(data?.seances) ? data.seances : [];
+
+    for (const s of rows) {
+      const venueId = s.gateway_venue_code || s.venue_id || "filarmoniya";
+      VENUES[venueId] = {
+        title: s.venue_name || "Дніпровська філармонія",
+        city: s.city_code || "dnipro"
+      };
+    }
+
+    return rows.map(s => ({
+      ...s,
+      active: true,
+      status: s.status || "published",
+      gateway_source: true,
+      gateway_venue_code: s.gateway_venue_code || s.venue_id || "filarmoniya"
+    }));
+  } catch (e) {
+    console.warn("Gateway seances unavailable", e);
+    return [];
+  }
+}
+
 async function loadSeances(){
   const url =
     `${SUPABASE_URL}/rest/v1/seances` +
     `?select=id,show,date,time,poster_url,venue_id,active,status,seance_visuals(poster_url,event_text,live_poster_url)` +
     `&active=eq.true&order=date.asc,time.asc`;
 
-  const res = await fetch(url, {
-    headers:{
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-    },
-    cache:"no-store"
-  });
+  let nativeRows = [];
 
-  const data = await res.json();
+  try {
+    const res = await fetch(url, {
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      cache:"no-store"
+    });
 
-  console.log("SEANCES:", data);
+    const data = await res.json();
+    nativeRows = Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.warn("VA seances unavailable", e);
+  }
 
-  ALL_SEANCES = Array.isArray(data) ? data : [];
+  const gatewayRows = await loadGatewaySeances();
+
+  ALL_SEANCES = [...nativeRows, ...gatewayRows];
+
+  fillVenueSelect();
+  renderVenueCards();
   renderSeances();
 }
 
@@ -956,8 +999,6 @@ async function boot(){
 
   await loadSeances();
 }
-
-boot();
 
 boot();
 
@@ -1070,8 +1111,6 @@ async function openVideoIntro(targetUrl, btn){
 
   video.play().catch(() => {});
 }
-</script>
-  
 </script>
 
 </body>
