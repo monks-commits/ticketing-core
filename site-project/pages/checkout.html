@@ -689,6 +689,7 @@ const refCode =
 
           showCheckoutError(
             j?.message ||
+            j?.error ||
             "Не вдалося перейти до оплати. Спробуйте ще раз."
           );
           return;
