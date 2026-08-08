@@ -449,6 +449,8 @@
 
   </div>
 
+  <script src="../../shared/gateway-client.js"></script>
+
   <script>
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
     const LIQPAY_INIT_URL = `${SUPABASE_URL}/functions/v1/liqpay-init`; 
@@ -466,6 +468,12 @@ const refCode =
     const seance = p.get("seance") || "";
     const title = p.get("title") || "Вистава";
     const show = p.get("show") || "demo";
+
+    const GATEWAY_MODE = p.get("source") === "gateway";
+    const GATEWAY_VENUE_CODE = (p.get("venue") || "filarmoniya").trim();
+    const GATEWAY_HOLD_REF = GATEWAY_MODE
+      ? String(window.VA_GATEWAY?.existingHoldRef(seance) || "").trim()
+      : "";
 
     let prices = {};
     try {
@@ -555,6 +563,10 @@ const refCode =
       params.set("prices", JSON.stringify(prices));
       params.set("amount", String(amount));
       if (refCode) params.set("ref", refCode);
+      if (GATEWAY_MODE) {
+        params.set("source", "gateway");
+        params.set("venue", GATEWAY_VENUE_CODE);
+      }
 
       location.href = `order.html?${params.toString()}`;
     });
@@ -582,18 +594,74 @@ const refCode =
         return;
       }
 
+      let gateway = null;
+
+      if (GATEWAY_MODE) {
+        if (!window.VA_GATEWAY) {
+          showCheckoutError("Gateway-клієнт не завантажено.");
+          return;
+        }
+
+        if (!GATEWAY_HOLD_REF) {
+          showCheckoutError(
+            "Сесію утримання місць втрачено. Поверніться до схеми залу та оберіть місця повторно."
+          );
+          return;
+        }
+
+        try {
+          const stateResult = await window.VA_GATEWAY.stateRead(
+            seance,
+            GATEWAY_HOLD_REF
+          );
+
+          const gp = stateResult?.payload || {};
+
+          gateway = {
+            source: "gateway",
+            venue_code: GATEWAY_VENUE_CODE,
+            seance_ref: seance,
+            hold_ref: GATEWAY_HOLD_REF,
+            seat_keys: seats,
+            event_meta: {
+              show: gp?.seance?.show || title || show,
+              title: title || gp?.seance?.show || show,
+              date: gp?.seance?.date || "",
+              time: gp?.seance?.time || "",
+              event_type: gp?.seance?.event_type || "Подія",
+              poster_url: gp?.seance?.poster_url || "",
+              venue_name:
+                gp?.venue?.name ||
+                gp?.venue?.legal_name ||
+                "Дніпровська філармонія",
+              venue_address: gp?.venue?.address || "",
+              venue_phone: gp?.venue?.phone || "",
+              venue_footer: gp?.venue?.ticket_footer || "",
+              hall_name: gp?.hall?.name || ""
+            }
+          };
+        } catch (e) {
+          console.error("Gateway checkout preflight failed", e);
+          showCheckoutError(
+            "Не вдалося підтвердити утримання місць у майданчика. Поверніться до схеми залу."
+          );
+          return;
+        }
+      }
+
       const payload = {
-  idempotency_key: newIdempotencyKey(),
-  show_slug: show,
-  seance_id: seance,
-  seats,
-  amount,
-  currency: "UAH",
-  buyer_name,
-  buyer_email,
-  buyer_phone,
-  ref_code: refCode || null
-};
+        idempotency_key: newIdempotencyKey(),
+        show_slug: show,
+        seance_id: seance,
+        seats,
+        amount,
+        currency: "UAH",
+        buyer_name,
+        buyer_email,
+        buyer_phone,
+        ref_code: refCode || null,
+        gateway
+      };
 
       try {
         const r = await fetch(LIQPAY_INIT_URL, {
