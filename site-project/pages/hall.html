@@ -1704,6 +1704,7 @@ body.va-static-bg-active::before{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../shared/config.js"></script>
 <script src="../../shared/config-helper.js"></script>
+<script src="../../shared/gateway-client.js"></script>
   
   <script>
     // ===== STATE =====
@@ -1714,6 +1715,10 @@ body.va-static-bg-active::before{
     let CURRENT_HALL_DATA = null;
 let HALL_VISUAL_CONFIG = null;
     const qs = new URLSearchParams(location.search);
+    const GATEWAY_MODE = qs.get("source") === "gateway";
+    const GATEWAY_VENUE_CODE = (qs.get("venue") || "filarmoniya").trim();
+    let GATEWAY_STATE = null;
+    let GATEWAY_HOLD_REF = null;
 
 const refFromUrl = qs.get("ref") || "";
 const refCode = refFromUrl;
@@ -3849,9 +3854,324 @@ function applyMobileHallScale() {
   });
 }
 
+
+function gatewayStatePayload(result){
+  return result?.payload || result?.transaction?.response_payload || null;
+}
+
+function gatewayBuildSeanceConfig(payload){
+  const overrides = {};
+
+  for (const seat of payload?.seats || []) {
+    const key = String(seat?.seat_key || "").trim();
+    if (!key) continue;
+
+    const state = String(seat?.state || "available");
+    overrides[key] = {
+      price: seat?.price == null ? 0 : Number(seat.price),
+      color: seat?.color || "#ffffff",
+      sale: seat?.sale_enabled === true && !["sold", "reserved", "blocked"].includes(state)
+    };
+  }
+
+  return {
+    pricing: {},
+    seat_overrides: overrides,
+    hall: payload?.hall?.id || GATEWAY_VENUE_CODE
+  };
+}
+
+function gatewayApplySeatState(payload, { rebuildSelection = false } = {}){
+  GATEWAY_STATE = payload || null;
+  takenSeats = new Set();
+  reservedSeats = new Set();
+  holdSeats = new Set();
+
+  if (rebuildSelection) selected.clear();
+
+  for (const seat of payload?.seats || []) {
+    const key = String(seat?.seat_key || "").trim();
+    const state = String(seat?.state || "available");
+    if (!key) continue;
+
+    if (state === "sold") takenSeats.add(key);
+    if (state === "reserved") reservedSeats.add(key);
+    if (state === "hold") holdSeats.add(key);
+    if (state === "mine") {
+      holdSeats.add(key);
+      if (rebuildSelection) {
+        const geom = (payload?.geometry?.seats || []).find(x => String(x?.seat_key || "") === key);
+        selected.set(key, {
+          meta: geom ? {
+            zone: geom.zone || "Партер",
+            prefix: geom.prefix || "P",
+            row: String(geom.row_label || "0"),
+            seat: Number(geom.seat_number || 0)
+          } : null,
+          price: Number(seat?.price || 0)
+        });
+      }
+    }
+  }
+}
+
+function gatewayGeometryToHall(payload){
+  const geometry = payload?.geometry || {};
+
+  return {
+    title: payload?.hall?.name || "Зал",
+    name: payload?.hall?.name || "Зал",
+    width: Number(geometry.width || 1200),
+    height: Number(geometry.height || 900),
+    decor: Array.isArray(geometry.decor) ? geometry.decor : [],
+    background: geometry.background || null,
+    seats: (geometry.seats || []).map(s => ({
+      key: s.seat_key,
+      zone: s.zone || "Партер",
+      prefix: s.prefix || "P",
+      row: String(s.row_label || "0"),
+      seat: Number(s.seat_number || 0),
+      x: Number(s.x || 0),
+      y: Number(s.y || 0),
+      w: Number(s.w || 15),
+      h: Number(s.h || 15),
+      rotate: Number(s.rotate || 0)
+    }))
+  };
+}
+
+function renderGatewayHall(hallData){
+  const root = document.getElementById("hall-root");
+  if (!root) return;
+
+  CURRENT_HALL_DATA = hallData;
+  root.innerHTML = "";
+
+  const width = Number(hallData?.width || 1200);
+  const height = Number(hallData?.height || 900);
+
+  const wrap = document.createElement("section");
+  wrap.className = "hall-section hall-viewer-section";
+  wrap.style.width = "100%";
+  wrap.style.height = "100%";
+  wrap.style.position = "relative";
+  wrap.style.overflow = "hidden";
+  wrap.style.cursor = "grab";
+
+  const canvas = document.createElement("div");
+  canvas.id = "hall-viewer-canvas";
+  Object.assign(canvas.style, {
+    position: "relative",
+    width: width + "px",
+    height: height + "px",
+    overflow: "hidden",
+    background: "#ffffff",
+    border: "0",
+    borderRadius: "0",
+    boxShadow: "none"
+  });
+
+  for (const s of hallData?.seats || []) {
+    const meta = {
+      zone: s.zone || "Партер",
+      prefix: s.prefix || "P",
+      row: String(s.row || "0"),
+      seat: Number(s.seat || 0)
+    };
+
+    const key = String(s.key || seatKey(meta));
+    const cfg = SEANCE_CONFIG?.seat_overrides?.[key] || {};
+    const btn = makeSeatElement(key, "", "", Number(cfg.price || 0), meta);
+    const w = Number(s.w || 15);
+    const h = Number(s.h || 15);
+
+    Object.assign(btn.style, {
+      position: "absolute",
+      left: `${Number(s.x || 0) - w / 2}px`,
+      top: `${Number(s.y || 0) - h / 2}px`,
+      width: `${w}px`,
+      height: `${h}px`,
+      minWidth: `${w}px`,
+      minHeight: `${h}px`,
+      padding: "0",
+      borderRadius: "4px",
+      transform: `rotate(${Number(s.rotate || 0)}deg)`,
+      zIndex: "30"
+    });
+
+    canvas.appendChild(btn);
+  }
+
+  renderDecor(hallData, canvas);
+  wrap.appendChild(canvas);
+  root.appendChild(wrap);
+
+  const viewerViewport = document.querySelector(".hall-scroll");
+  viewerViewport?.classList.add("va-builder-viewer-active");
+  enableHallViewer(viewerViewport || wrap, canvas, width, height);
+  window.VA_HALL_VIEWER?.refit();
+}
+
+async function gatewayRefreshState({ rebuildSelection = false } = {}){
+  const result = await window.VA_GATEWAY.stateRead(SEANCE_ID, GATEWAY_HOLD_REF);
+  const payload = gatewayStatePayload(result);
+  if (!payload?.seance?.id) throw new Error("gateway_state_payload_invalid");
+
+  gatewayApplySeatState(payload, { rebuildSelection });
+  SEANCE_CONFIG = gatewayBuildSeanceConfig(payload);
+  return payload;
+}
+
+async function gatewaySetSelection(nextKeys){
+  const keys = [...new Set((nextKeys || []).map(x => String(x || "").trim()).filter(Boolean))];
+
+  if (!GATEWAY_HOLD_REF) {
+    GATEWAY_HOLD_REF = window.VA_GATEWAY.getOrCreateHoldRef(SEANCE_ID);
+  }
+
+  if (keys.length) {
+    await window.VA_GATEWAY.setHold(SEANCE_ID, GATEWAY_HOLD_REF, keys);
+  } else {
+    await window.VA_GATEWAY.releaseHold(SEANCE_ID, GATEWAY_HOLD_REF);
+  }
+
+  return gatewayRefreshState({ rebuildSelection: true });
+}
+
+async function bootGatewayHall(){
+  if (!window.VA_GATEWAY) {
+    throw new Error("VA Gateway client not loaded");
+  }
+
+  GATEWAY_HOLD_REF = window.VA_GATEWAY.getOrCreateHoldRef(SEANCE_ID);
+  const payload = await gatewayRefreshState({ rebuildSelection: true });
+  const HALL = gatewayGeometryToHall(payload);
+
+  setHeroInfo(HALL.title, {
+    show: payload?.seance?.show || showTitle || "Подія",
+    date: payload?.seance?.date || "",
+    time: payload?.seance?.time || "",
+    venue_id: payload?.venue?.id || GATEWAY_VENUE_CODE,
+    poster_url: payload?.seance?.poster_url || ""
+  });
+
+  setEventPosterFromSeance({ poster_url: payload?.seance?.poster_url || "" });
+  renderGatewayHall(HALL);
+  renderPriceLegendMobile();
+
+  for (const [key] of selected) {
+    const btn = document.querySelector(`.seat[data-key="${CSS.escape(key)}"]`);
+    if (!btn) continue;
+    btn.classList.add("seat--hold", "seat--selected");
+    btn.disabled = false;
+  }
+
+  updateSummary();
+
+  setInterval(async () => {
+    try {
+      const before = new Set(selected.keys());
+      await gatewayRefreshState({ rebuildSelection: true });
+
+      document.querySelectorAll(".seat").forEach(btn => {
+        const key = btn.dataset?.key;
+        if (!key) return;
+
+        const cfg = SEANCE_CONFIG?.seat_overrides?.[key] || {};
+        const stateRow = (GATEWAY_STATE?.seats || []).find(x => String(x?.seat_key || "") === key);
+        const state = String(stateRow?.state || "available");
+        const isMine = state === "mine";
+
+        btn.classList.remove("seat--taken", "seat--sold", "seat--hold", "seat--reserved", "seat--selected", "seat--no-sale");
+
+        if (cfg.color) {
+          btn.style.background = cfg.color;
+          btn.style.color = "#fff";
+        }
+
+        if (state === "sold") {
+          btn.classList.add("seat--taken");
+          btn.disabled = true;
+        } else if (state === "reserved") {
+          btn.classList.add("seat--reserved");
+          btn.disabled = true;
+        } else if (state === "hold") {
+          btn.classList.add("seat--hold");
+          btn.disabled = true;
+        } else if (state === "blocked" || cfg.sale === false) {
+          btn.classList.add("seat--no-sale");
+          btn.disabled = true;
+        } else if (isMine) {
+          btn.classList.add("seat--hold", "seat--selected");
+          btn.disabled = false;
+        } else {
+          btn.disabled = false;
+        }
+      });
+
+      const after = new Set(selected.keys());
+      if (before.size !== after.size || [...before].some(x => !after.has(x))) {
+        updateSummary();
+      }
+    } catch (e) {
+      console.warn("Gateway state refresh failed", e);
+    }
+  }, 2000);
+}
+
 // ===== Selection / holds =====
 async function onSeatClick(btn, key, meta, price){
   if (!SEANCE_ID) return;
+
+  if (GATEWAY_MODE) {
+    if (btn.disabled && !selected.has(key)) return;
+
+    const next = new Set(selected.keys());
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+
+    if (next.size > 12) {
+      alert("Можна обрати не більше 12 місць в одному замовленні.");
+      return;
+    }
+
+    btn.disabled = true;
+
+    try {
+      await gatewaySetSelection([...next]);
+
+      document.querySelectorAll(".seat").forEach(seatBtn => {
+        const seatKeyValue = seatBtn.dataset?.key;
+        if (!seatKeyValue) return;
+        const isMine = selected.has(seatKeyValue);
+        const row = (GATEWAY_STATE?.seats || []).find(x => String(x?.seat_key || "") === seatKeyValue);
+        const state = String(row?.state || "available");
+
+        seatBtn.classList.remove("seat--selected");
+        if (isMine) {
+          seatBtn.classList.add("seat--hold", "seat--selected");
+          seatBtn.disabled = false;
+        } else if (state === "hold") {
+          seatBtn.classList.add("seat--hold");
+          seatBtn.disabled = true;
+        }
+      });
+
+      updateSummary();
+    } catch (e) {
+      console.warn("Gateway hold error", e);
+      const conflict = e?.data?.conflicting_seats || e?.data?.payload?.conflicting_seats || [];
+      alert(
+        conflict.length
+          ? `Місце вже зайнято: ${conflict.join(", ")}`
+          : "Не вдалося утримати місце. Оновлюємо стан залу."
+      );
+      try { await gatewayRefreshState({ rebuildSelection: true }); } catch (_) {}
+      btn.disabled = false;
+      updateSummary();
+    }
+    return;
+  }
 
   const cfg = applySeanceConfig(meta);
 
@@ -4004,12 +4324,22 @@ document.getElementById("go-order").addEventListener("click", ()=>{
   u.searchParams.set("prices", JSON.stringify(prices));
   u.searchParams.set("amount", String(total));
 
+  if (GATEWAY_MODE) {
+    u.searchParams.set("source", "gateway");
+    u.searchParams.set("venue", GATEWAY_VENUE_CODE);
+  }
+
   location.href = u.toString();
 });
 
 // ===== Boot =====
 (async ()=>{
 await loadClientConfig();
+
+  if (GATEWAY_MODE) {
+    await bootGatewayHall();
+    return;
+  }
   
   SEANCE_CONFIG = await loadSeanceConfig();
   const SEANCE_META = await loadSeanceMeta();
