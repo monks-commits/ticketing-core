@@ -4043,8 +4043,40 @@ async function bootGatewayHall(){
     throw new Error("VA Gateway client not loaded");
   }
 
-  GATEWAY_HOLD_REF = window.VA_GATEWAY.getOrCreateHoldRef(SEANCE_ID);
-  const payload = await gatewayRefreshState({ rebuildSelection: true });
+  /*
+    Если браузер уже хранит hold_ref этого сеанса,
+    сначала проверяем, есть ли за ним ещё живая корзина.
+
+    Если своей активной брони уже нет — это старая/завершённая
+    корзина. Удаляем её hold_ref и создаём новый.
+  */
+  const existingHoldRef =
+    window.VA_GATEWAY.existingHoldRef(SEANCE_ID);
+
+  GATEWAY_HOLD_REF =
+    existingHoldRef ||
+    window.VA_GATEWAY.getOrCreateHoldRef(SEANCE_ID);
+
+  let payload =
+    await gatewayRefreshState({ rebuildSelection: true });
+
+  if (existingHoldRef) {
+    const hasActiveOwnHold =
+      (payload?.seats || []).some(
+        row => String(row?.state || "") === "mine"
+      );
+
+    if (!hasActiveOwnHold) {
+      window.VA_GATEWAY.forgetHoldRef(SEANCE_ID);
+
+      GATEWAY_HOLD_REF =
+        window.VA_GATEWAY.getOrCreateHoldRef(SEANCE_ID);
+
+      payload =
+        await gatewayRefreshState({ rebuildSelection: true });
+    }
+  }
+
   const HALL = gatewayGeometryToHall(payload);
 
   setHeroInfo(HALL.title, {
@@ -4055,13 +4087,20 @@ async function bootGatewayHall(){
     poster_url: payload?.seance?.poster_url || ""
   });
 
-  setEventPosterFromSeance({ poster_url: payload?.seance?.poster_url || "" });
+  setEventPosterFromSeance({
+    poster_url: payload?.seance?.poster_url || ""
+  });
+
   renderGatewayHall(HALL);
   renderPriceLegendMobile();
 
   for (const [key] of selected) {
-    const btn = document.querySelector(`.seat[data-key="${CSS.escape(key)}"]`);
+    const btn = document.querySelector(
+      `.seat[data-key="${CSS.escape(key)}"]`
+    );
+
     if (!btn) continue;
+
     btn.classList.add("seat--hold", "seat--selected");
     btn.disabled = false;
   }
@@ -4071,18 +4110,36 @@ async function bootGatewayHall(){
   setInterval(async () => {
     try {
       const before = new Set(selected.keys());
-      await gatewayRefreshState({ rebuildSelection: true });
+
+      await gatewayRefreshState({
+        rebuildSelection: true
+      });
 
       document.querySelectorAll(".seat").forEach(btn => {
         const key = btn.dataset?.key;
         if (!key) return;
 
-        const cfg = SEANCE_CONFIG?.seat_overrides?.[key] || {};
-        const stateRow = (GATEWAY_STATE?.seats || []).find(x => String(x?.seat_key || "") === key);
-        const state = String(stateRow?.state || "available");
+        const cfg =
+          SEANCE_CONFIG?.seat_overrides?.[key] || {};
+
+        const stateRow =
+          (GATEWAY_STATE?.seats || []).find(
+            x => String(x?.seat_key || "") === key
+          );
+
+        const state =
+          String(stateRow?.state || "available");
+
         const isMine = state === "mine";
 
-        btn.classList.remove("seat--taken", "seat--sold", "seat--hold", "seat--reserved", "seat--selected", "seat--no-sale");
+        btn.classList.remove(
+          "seat--taken",
+          "seat--sold",
+          "seat--hold",
+          "seat--reserved",
+          "seat--selected",
+          "seat--no-sale"
+        );
 
         if (cfg.color) {
           btn.style.background = cfg.color;
@@ -4092,33 +4149,52 @@ async function bootGatewayHall(){
         if (state === "sold") {
           btn.classList.add("seat--taken");
           btn.disabled = true;
+
         } else if (state === "reserved") {
           btn.classList.add("seat--reserved");
           btn.disabled = true;
+
         } else if (state === "hold") {
           btn.classList.add("seat--hold");
           btn.disabled = true;
-        } else if (state === "blocked" || cfg.sale === false) {
+
+        } else if (
+          state === "blocked" ||
+          cfg.sale === false
+        ) {
           btn.classList.add("seat--no-sale");
           btn.disabled = true;
+
         } else if (isMine) {
-          btn.classList.add("seat--hold", "seat--selected");
+          btn.classList.add(
+            "seat--hold",
+            "seat--selected"
+          );
           btn.disabled = false;
+
         } else {
           btn.disabled = false;
         }
       });
 
       const after = new Set(selected.keys());
-      if (before.size !== after.size || [...before].some(x => !after.has(x))) {
+
+      if (
+        before.size !== after.size ||
+        [...before].some(x => !after.has(x))
+      ) {
         updateSummary();
       }
+
     } catch (e) {
-      console.warn("Gateway state refresh failed", e);
+      console.warn(
+        "Gateway state refresh failed",
+        e
+      );
     }
   }, 2000);
 }
-
+    
 // ===== Selection / holds =====
 async function onSeatClick(btn, key, meta, price){
   if (!SEANCE_ID) return;
