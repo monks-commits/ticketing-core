@@ -1720,6 +1720,35 @@ let HALL_VISUAL_CONFIG = null;
     let GATEWAY_STATE = null;
     let GATEWAY_HOLD_REF = null;
 
+    function flightDeckGatewayErrorCode(error) {
+      const data = error?.data || {};
+      const text = String(
+        data?.response_code ||
+        data?.failure_code ||
+        data?.error ||
+        error?.message ||
+        error ||
+        ""
+      );
+
+      if (text.includes("seat_conflict")) return "seat_conflict";
+      return text.slice(0, 120) || "rejected";
+    }
+
+    function reportFlightDeckGatewayHold(payload) {
+      if (window.parent === window) return;
+
+      try {
+        window.parent.postMessage(
+          {
+            type: "gateway-flight-deck-hold",
+            payload
+          },
+          location.origin
+        );
+      } catch (_) {}
+    }
+
 const refFromUrl = qs.get("ref") || "";
 const refCode = refFromUrl;
 
@@ -4024,13 +4053,60 @@ async function gatewayRefreshState({ rebuildSelection = false } = {}){
 
 async function gatewaySetSelection(nextKeys){
   const keys = [...new Set((nextKeys || []).map(x => String(x || "").trim()).filter(Boolean))];
+  const before = new Set(selected.keys());
+  const addedKeys = keys.filter(key => !before.has(key));
+  const telemetrySeat = String(addedKeys[addedKeys.length - 1] || "");
 
   if (!GATEWAY_HOLD_REF) {
     GATEWAY_HOLD_REF = window.VA_GATEWAY.getOrCreateHoldRef(SEANCE_ID);
   }
 
   if (keys.length) {
-    await window.VA_GATEWAY.setHold(SEANCE_ID, GATEWAY_HOLD_REF, keys);
+    const startedAt = Date.now();
+    const t0 = performance.now();
+
+    try {
+      const holdResult = await window.VA_GATEWAY.setHold(
+        SEANCE_ID,
+        GATEWAY_HOLD_REF,
+        keys
+      );
+
+      if (telemetrySeat) {
+        const ok =
+          !holdResult?.result ||
+          String(holdResult.result) === "succeeded";
+
+        reportFlightDeckGatewayHold({
+          source: "va",
+          seance: SEANCE_ID,
+          seat: telemetrySeat,
+          startedAt,
+          ms: performance.now() - t0,
+          result: ok ? "succeeded" : "rejected",
+          code:
+            holdResult?.response_code ||
+            holdResult?.failure_code ||
+            (ok ? "hold_accepted" : "rejected")
+        });
+      }
+
+    } catch (error) {
+      if (telemetrySeat) {
+        reportFlightDeckGatewayHold({
+          source: "va",
+          seance: SEANCE_ID,
+          seat: telemetrySeat,
+          startedAt,
+          ms: performance.now() - t0,
+          result: "rejected",
+          code: flightDeckGatewayErrorCode(error)
+        });
+      }
+
+      throw error;
+    }
+
   } else {
     await window.VA_GATEWAY.releaseHold(SEANCE_ID, GATEWAY_HOLD_REF);
   }
