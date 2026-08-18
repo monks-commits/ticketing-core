@@ -2402,6 +2402,15 @@ async function applyStatusToSelectedLocal(status){
       ).trim();
     }
 
+    function cashTicketHumanNo(orderId, idx){
+      const id = String(orderId || "").trim();
+      return `TK-${id.slice(-6).toUpperCase()}-${Number(idx) + 1}`;
+    }
+
+    /*
+      Legacy structured QR builder.
+      Keep this for reprints of cash tickets issued before TK-direct QR.
+    */
     function buildCashQrPayload(ticket){
       const orderId = String(ticket?.order_id || "").trim();
       const seanceId = String(
@@ -2442,8 +2451,11 @@ async function applyStatusToSelectedLocal(status){
   const cardsHtml = [];
 
   for (const t of safeTickets){
+    const ticketNo = String(t?.ticket_number || "").trim();
+
     const payload = String(
       t?.qr_payload ||
+      ticketNo ||
       buildCashQrPayload(t)
     ).trim();
 
@@ -2462,7 +2474,10 @@ async function applyStatusToSelectedLocal(status){
       <div class="t">
         <div class="h">
           <div class="theatre">${theatre}</div>
-          <div class="ord">Канал: Каса<br/>OP: ${t.op_id || "—"}</div>
+          <div class="ord">
+            <b>№ ${ticketNo || "—"}</b><br/>
+            Канал: Каса
+          </div>
         </div>
 
         <div class="show">${title}</div>
@@ -2484,6 +2499,8 @@ async function applyStatusToSelectedLocal(status){
             ? `<img class="qr" src="${qrDataUrl}" alt="QR"/>`
             : `<div class="qr-miss">QR не згенеровано</div>`
         }
+
+        <div class="ticket-code">Код: ${ticketNo || payload}</div>
 
         <div class="note">
           Квиток дійсний на одну особу. Зберігайте до кінця вистави.<br/>
@@ -2592,6 +2609,14 @@ async function applyStatusToSelectedLocal(status){
     border-radius:10px;
     color:#6b7280;
     text-align:center;
+  }
+
+  .ticket-code{
+    margin:2px 0 8px;
+    font-size:11px;
+    font-weight:800;
+    text-align:center;
+    color:#111827;
   }
 
   .note{
@@ -2832,6 +2857,7 @@ const buyer_email =
     seats: keys,
     prices,
     total,
+    ticket_format: "tk-v1",
     sold_at: new Date().toISOString()
   };
 
@@ -2850,8 +2876,10 @@ const buyer_email =
 
   const order_id = `CASH-${SEANCE_ID}-${op_id}`;
 
-  const tickets = keys.map(k => {
-    const ticket = {
+  const tickets = keys.map((k, idx) => {
+    const ticket_number = cashTicketHumanNo(order_id, idx);
+
+    return {
       op_id,
       order_id,
       channel: "cash",
@@ -2865,11 +2893,12 @@ const buyer_email =
       show_slug: safeShowSlug,
       seance_id: SEANCE_ID,
       seat_label: k,
-      price: prices[k] || 0
-    };
+      price: prices[k] || 0,
 
-    ticket.qr_payload = buildCashQrPayload(ticket);
-    return ticket;
+      // Same human-readable contract as current online VA tickets.
+      ticket_number,
+      qr_payload: ticket_number
+    };
   });
 
  pushCashLog({
@@ -2931,11 +2960,15 @@ const buyer_email =
         const restored = { ...ticket };
 
         /*
-          Старые записи журнала могли не иметь qr_payload.
-          Повторная печать автоматически строит новый правильный QR,
-          совпадающий с public.tickets.
+          New tickets keep TK-... as both ticket_number and QR.
+          Old journal entries keep their historical structured QR.
+          If an old row has no saved QR, rebuild only the legacy payload.
         */
-        restored.qr_payload = buildCashQrPayload(restored);
+        restored.qr_payload = String(
+          restored.qr_payload ||
+          restored.ticket_number ||
+          buildCashQrPayload(restored)
+        ).trim();
         return restored;
       });
 
