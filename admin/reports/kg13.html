@@ -394,6 +394,7 @@ tr:last-child td{
     <h1>📘 КГ-13</h1>
     <p>
       Щоденний звіт касира. Рахує тільки касовий канал: cash / kasa / каса.
+      Якщо вказано касира — у звіт входять лише його синхронізовані касові продажі.
       Онлайн-продажі, КГ-8 комісіонерів та компенсації у цей звіт не входять.
     </p>
   </section>
@@ -410,7 +411,7 @@ tr:last-child td{
 
       <div class="field field--grow">
         <label for="cashier">Касир</label>
-        <input type="text" id="cashier" value="cash" placeholder="Ім’я касира або cash">
+        <input type="text" id="cashier" value="" placeholder="Наприклад: kassa-1">
       </div>
     </div>
 
@@ -440,6 +441,7 @@ const SUPABASE_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 const qs = new URLSearchParams(location.search);
 const URL_VENUE = qs.get("venue") || "";
+const URL_CASHIER = (qs.get("cashier") || "").trim();
 
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];
@@ -604,9 +606,40 @@ function numberFromNominalLabel(label){
   );
 }
 
+function normalizeCashierId(value){
+  return String(value || "").trim().toLowerCase();
+}
+
+async function loadCashierOrderIds(cashierId, startIso, endIso){
+  const wanted = normalizeCashierId(cashierId);
+  if (!wanted) return null;
+
+  const auditRows = await fetchRows(
+    "audit_log",
+    `?select=entity_id,after_data,created_at,action,source&action=eq.cash_sale&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
+  );
+
+  const ids = new Set();
+
+  auditRows.forEach(row => {
+    const after = row?.after_data && typeof row.after_data === "object"
+      ? row.after_data
+      : {};
+
+    const rowCashier = normalizeCashierId(after.cashier_id);
+    if (rowCashier !== wanted) return;
+
+    const orderId = String(after.order_id || row.entity_id || "").trim();
+    if (orderId) ids.add(orderId);
+  });
+
+  return ids;
+}
+
 async function run() {
   const day = document.getElementById("day").value;
-  const cashierRaw = document.getElementById("cashier").value.trim() || "cash";
+  const cashierRaw = document.getElementById("cashier").value.trim();
+  const cashierLabel = cashierRaw || "Усі касири";
 
   if (!day) {
     alert("Вкажіть дату");
@@ -621,15 +654,24 @@ async function run() {
   const { startIso, endIso } = dateStartEnd(day);
 
   let tickets = await fetchRows(
-  "tickets",
-  `?select=*&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
-);
+    "tickets",
+    `?select=id,order_id,seance_id,seat_label,price,created_at,channel,ref_code,ticket_type,status,buyer_name,buyer_phone,buyer_email&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
+  );
 
   tickets = tickets.filter(ticketIsActive);
 
   let cashTickets = tickets.filter(t => {
     return normalizeChannel(channelValue(t)) === "cash";
   });
+
+  // Якщо касира вказано, прив'язуємо квитки до його cash_sale через audit_log.
+  // cash-sync-ts зберігає cashier_id в after_data та order_id в entity_id/after_data.
+  const cashierOrderIds = await loadCashierOrderIds(cashierRaw, startIso, endIso);
+  if (cashierOrderIds) {
+    cashTickets = cashTickets.filter(t =>
+      cashierOrderIds.has(String(t.order_id || "").trim())
+    );
+  }
 
   const seanceIds = [
     ...new Set(
@@ -671,8 +713,6 @@ async function run() {
   const count = cashTickets.length;
   const sum = cashTickets.reduce((total, t) => total + Number(t.price || 0), 0);
 
-  const returnQty = 0;
-  const returnSum = 0;
   const finalSum = sum;
 
   const typeMap = {};
@@ -705,14 +745,13 @@ async function run() {
     "КГ-13 — ЩОДЕННИЙ ЗВІТ КАСИРА",
     "Сформовано: " + reportDate,
     "Дата: " + day,
-    "Касир: " + cashierRaw,
+    "Касир: " + cashierLabel,
     "",
     "Квитків: " + count,
     "Сума каси: " + money(sum) + " грн",
-    "Касові повернення: " + returnQty + " / " + money(returnSum) + " грн",
     "Підсумок дня: " + money(finalSum) + " грн",
     "",
-    "Примітка: звіт рахує тільки касовий канал. Онлайн, КГ-8 комісіонерів та компенсації не включаються."
+    "Примітка: звіт рахує тільки касовий канал" + (cashierRaw ? " для касира " + cashierRaw : " для всіх касирів") + ". Онлайн, КГ-8 комісіонерів та компенсації не включаються."
   ].join("\n");
 
   const typeRows = Object.entries(typeMap)
@@ -770,7 +809,7 @@ async function run() {
     <div class="report-section">
       <h3>Дата: ${esc(day)}</h3>
       <p>
-        Касир: <b>${esc(cashierRaw)}</b><br>
+        Касир: <b>${esc(cashierLabel)}</b><br>
         Канал: <b>Каса</b><br>
         Сформовано: ${esc(reportDate)}
       </p>
@@ -786,19 +825,13 @@ async function run() {
       <div class="metric">
         <div class="metric-label">Сума каси</div>
         <div class="metric-value">${money(sum)} грн</div>
-        <div class="metric-note">tickets.channel / ref_code = cash / kasa / каса</div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Касові повернення</div>
-        <div class="metric-value">${returnQty}</div>
-        <div class="metric-note">${money(returnSum)} грн</div>
+        <div class="metric-note">тільки синхронізовані касові квитки</div>
       </div>
 
       <div class="metric">
         <div class="metric-label">Підсумок дня</div>
         <div class="metric-value">${money(finalSum)} грн</div>
-        <div class="metric-note">каса мінус касові повернення</div>
+        <div class="metric-note">касові продажі обраного касира за день</div>
       </div>
 
       <div class="metric">
@@ -912,6 +945,16 @@ async function copyReport(){
 }
 
 document.getElementById("day").value = localDateInputValue();
+
+const cashierInput = document.getElementById("cashier");
+if (cashierInput && URL_CASHIER) {
+  cashierInput.value = URL_CASHIER;
+}
+
+// Якщо звіт відкрито з робочого місця касира, одразу показуємо його день.
+if (URL_CASHIER) {
+  run();
+}
 </script>
 
 </body>
