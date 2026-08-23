@@ -610,23 +610,46 @@ function normalizeCashierId(value){
   return String(value || "").trim().toLowerCase();
 }
 
-async function loadCashierOrderIds(cashierId){
+async function loadCashOrders(day, cashierId){
+  const { startIso, endIso } = dateStartEnd(day);
   const wanted = String(cashierId || "").trim();
-  if (!wanted) return null;
 
-  // Мінімальний і надійний запит: беремо тільки order_id касира.
-  // День відсіюється вже по tickets.created_at, тому тут не залежимо
-  // від можливого розходження часу створення order і ticket.
-  const orderRows = await fetchRows(
-    "orders",
-    `?select=order_id&seller_id=eq.${encodeURIComponent(wanted)}&channel=eq.cash`
-  );
+  let query =
+    `?select=order_id,seance_id,amount,created_at,seller_id,buyer_name,buyer_phone,buyer_email,channel` +
+    `&channel=eq.cash` +
+    `&created_at=gte.${encodeURIComponent(startIso)}` +
+    `&created_at=lt.${encodeURIComponent(endIso)}` +
+    `&order=created_at.asc`;
 
-  return new Set(
-    orderRows
-      .map(row => String(row.order_id || "").trim())
-      .filter(Boolean)
-  );
+  if (wanted) {
+    query += `&seller_id=eq.${encodeURIComponent(wanted)}`;
+  }
+
+  return await fetchRows("orders", query);
+}
+
+async function loadTicketsByOrderIds(orderIds){
+  const ids = [...new Set((orderIds || []).map(x => String(x || "").trim()).filter(Boolean))];
+  if (!ids.length) return [];
+
+  const rows = [];
+  const CHUNK = 40;
+
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const part = ids.slice(i, i + CHUNK);
+    const inList = part
+      .map(id => `"${id.replace(/"/g, "")}"`)
+      .join(",");
+
+    const batch = await fetchRows(
+      "tickets",
+      `?select=id,order_id,seance_id,seat_label,price,created_at,channel,ref_code,ticket_type,status,buyer_name,buyer_phone,buyer_email&order_id=in.(${inList})&order=created_at.asc`
+    );
+
+    rows.push(...batch);
+  }
+
+  return rows;
 }
 
 async function run() {
@@ -644,35 +667,19 @@ async function run() {
 
   await loadOptionalConfig();
 
-  const { startIso, endIso } = dateStartEnd(day);
+  // КГ-13 починається з касового замовлення, а не з довільного списку tickets.
+  // cashier_id з cash-sync-ts зберігається у orders.seller_id.
+  const cashOrders = await loadCashOrders(day, cashierRaw);
+  const orderIds = cashOrders.map(o => o.order_id).filter(Boolean);
 
-  let tickets = await fetchRows(
-    "tickets",
-    `?select=id,order_id,seance_id,seat_label,price,created_at,channel,ref_code,ticket_type,status,buyer_name,buyer_phone,buyer_email&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
-  );
-
-  tickets = tickets.filter(ticketIsActive);
-
-  let cashTickets = tickets.filter(t => {
-    return normalizeChannel(channelValue(t)) === "cash";
-  });
-
-  // Якщо касира вказано, прив'язуємо квитки до його касових orders.seller_id.
-  // Це поле заповнюється cash-sync-ts значенням cashier_id.
-  const cashierOrderIds = await loadCashierOrderIds(cashierRaw);
-  if (cashierOrderIds) {
-    cashTickets = cashTickets.filter(t =>
-      cashierOrderIds.has(String(t.order_id || "").trim())
-    );
-  }
+  let cashTickets = await loadTicketsByOrderIds(orderIds);
+  cashTickets = cashTickets.filter(ticketIsActive);
 
   const seanceIds = [
-    ...new Set(
-      cashTickets
-        .map(t => t.seance_id)
-        .filter(Boolean)
-        .map(String)
-    )
+    ...new Set([
+      ...cashOrders.map(o => o.seance_id),
+      ...cashTickets.map(t => t.seance_id)
+    ].filter(Boolean).map(String))
   ];
 
   let seances = [];
@@ -693,21 +700,20 @@ async function run() {
     if (s.id) seanceMap[String(s.id)] = s;
   });
 
-  if (URL_VENUE) {
-    const allowed = new Set(
-      seances
-        .filter(s => normalizeVenue(s.venue_id) === normalizeVenue(URL_VENUE))
-        .map(s => String(s.id))
-    );
-
-    cashTickets = cashTickets.filter(t => allowed.has(String(t.seance_id)));
-  }
-
   const count = cashTickets.length;
-  const sum = cashTickets.reduce((total, t) => total + Number(t.price || 0), 0);
-  const cashierLegacyNote = cashierRaw && count === 0
-    ? "Для цього касира не знайдено квитків за вибрану дату. Якщо продажі точно є — перевірте seller_id у orders."
-    : "";
+  const sum = cashOrders.reduce((total, o) => total + Number(o.amount || 0), 0);
+  const ticketSum = cashTickets.reduce((total, t) => total + Number(t.price || 0), 0);
+
+  let cashierLegacyNote = "";
+  if (cashOrders.length === 0) {
+    cashierLegacyNote = cashierRaw
+      ? `За ${day} касових замовлень касира ${cashierRaw} не знайдено.`
+      : `За ${day} касових замовлень не знайдено.`;
+  } else if (cashTickets.length === 0) {
+    cashierLegacyNote = `Знайдено касових замовлень: ${cashOrders.length}, але пов'язані квитки не завантажилися. Це помилка зв'язку orders → tickets.`;
+  } else if (Math.abs(sum - ticketSum) > 0.01) {
+    cashierLegacyNote = `Контроль: сума orders ${money(sum)} грн, сума tickets ${money(ticketSum)} грн. Потрібна звірка.`;
+  }
 
   const finalSum = sum;
 
@@ -807,7 +813,8 @@ async function run() {
       <p>
         Касир: <b>${esc(cashierLabel)}</b><br>
         Канал: <b>Каса</b><br>
-        Сформовано: ${esc(reportDate)}
+        Сформовано: ${esc(reportDate)}<br>
+        Касових замовлень: <b>${cashOrders.length}</b>
       </p>
       ${cashierLegacyNote ? `<p class="metric-note" style="margin-top:10px;">${esc(cashierLegacyNote)}</p>` : ""}
     </div>
@@ -822,7 +829,7 @@ async function run() {
       <div class="metric">
         <div class="metric-label">Сума каси</div>
         <div class="metric-value">${money(sum)} грн</div>
-        <div class="metric-note">тільки синхронізовані касові квитки</div>
+        <div class="metric-note">за синхронізованими касовими orders</div>
       </div>
 
       <div class="metric">
