@@ -610,28 +610,23 @@ function normalizeCashierId(value){
   return String(value || "").trim().toLowerCase();
 }
 
-async function loadCashierOrderIds(cashierId, startIso, endIso){
-  const wanted = normalizeCashierId(cashierId);
+async function loadCashierOrderIds(cashierId){
+  const wanted = String(cashierId || "").trim();
   if (!wanted) return null;
 
-  // Canonical source for a cashier is orders.seller_id.
-  // cash-sync-ts writes seller_id = cashier_id for every new synchronized cash sale.
+  // Мінімальний і надійний запит: беремо тільки order_id касира.
+  // День відсіюється вже по tickets.created_at, тому тут не залежимо
+  // від можливого розходження часу створення order і ticket.
   const orderRows = await fetchRows(
     "orders",
-    `?select=order_id,seller_id,created_at,channel,ref_code&created_at=gte.${encodeURIComponent(startIso)}&created_at=lt.${encodeURIComponent(endIso)}&order=created_at.asc`
+    `?select=order_id&seller_id=eq.${encodeURIComponent(wanted)}&channel=eq.cash`
   );
 
-  const ids = new Set();
-
-  orderRows.forEach(row => {
-    if (normalizeChannel(row.channel || row.ref_code || "") !== "cash") return;
-    if (normalizeCashierId(row.seller_id) !== wanted) return;
-
-    const orderId = String(row.order_id || "").trim();
-    if (orderId) ids.add(orderId);
-  });
-
-  return ids;
+  return new Set(
+    orderRows
+      .map(row => String(row.order_id || "").trim())
+      .filter(Boolean)
+  );
 }
 
 async function run() {
@@ -664,7 +659,7 @@ async function run() {
 
   // Якщо касира вказано, прив'язуємо квитки до його касових orders.seller_id.
   // Це поле заповнюється cash-sync-ts значенням cashier_id.
-  const cashierOrderIds = await loadCashierOrderIds(cashierRaw, startIso, endIso);
+  const cashierOrderIds = await loadCashierOrderIds(cashierRaw);
   if (cashierOrderIds) {
     cashTickets = cashTickets.filter(t =>
       cashierOrderIds.has(String(t.order_id || "").trim())
@@ -711,7 +706,7 @@ async function run() {
   const count = cashTickets.length;
   const sum = cashTickets.reduce((total, t) => total + Number(t.price || 0), 0);
   const cashierLegacyNote = cashierRaw && count === 0
-    ? "Якщо продаж був синхронізований до оновлення cash-sync-ts із seller_id, він не може бути надійно віднесений до конкретного касира."
+    ? "Для цього касира не знайдено квитків за вибрану дату. Якщо продажі точно є — перевірте seller_id у orders."
     : "";
 
   const finalSum = sum;
