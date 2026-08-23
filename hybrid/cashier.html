@@ -1029,8 +1029,8 @@ body{
     </div>
 
     <div class="cash-pos-row">
-      <span class="cash-pos-label">Seance</span>
-      <span id="summary-seance" class="cash-pos-value">Seance: —</span>
+      <span class="cash-pos-label">Дата / час</span>
+      <span id="summary-seance" class="cash-pos-value">—</span>
     </div>
 
     <div class="cash-pos-row">
@@ -1801,13 +1801,30 @@ async function loadSeanceConfig() {
     let SHOW_META = null;
 // SEANCE_ID берётся из query (?seance=...)
 
+function formatSeanceDate(value){
+  const raw = String(value || "").trim();
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : raw;
+}
+
+function formatSeanceTime(value){
+  const raw = String(value || "").trim();
+  const m = raw.match(/^(\d{2}):(\d{2})/);
+  return m ? `${m[1]}:${m[2]}` : raw;
+}
+
+function seanceDateTimeLabel(meta){
+  const d = formatSeanceDate(meta?.date);
+  const t = formatSeanceTime(meta?.time);
+  return [d, t].filter(Boolean).join(" · ") || "—";
+}
 
 async function loadShowMeta(){
   const elShow = document.getElementById("summary-show");
   const elSeance = document.getElementById("summary-seance");
 
   if (elSeance) {
-    elSeance.textContent = "Seance: " + (SEANCE_ID || "—");
+    elSeance.textContent = "—";
   }
 
   SHOW_META = null;
@@ -1849,6 +1866,10 @@ async function loadShowMeta(){
         );
     }
 
+    if (elSeance) {
+      elSeance.textContent = seanceDateTimeLabel(SHOW_META);
+    }
+
     return SHOW_META;
   } catch(e) {
     console.warn("loadShowMeta error:", e);
@@ -1856,6 +1877,10 @@ async function loadShowMeta(){
     if (elShow) {
       elShow.textContent =
         "Вистава: " + (showSlug || "—");
+    }
+
+    if (elSeance) {
+      elSeance.textContent = "—";
     }
 
     return null;
@@ -2309,8 +2334,8 @@ refreshPromoControls();
     async function openPrintWindowOffline(tickets, meta){
   const theatre = "Найменування майданчика";
   const title = meta?.title || showSlug || "Квиток";
-  const dt = (meta?.date && meta?.time) ? `${meta.date} ${meta.time}` : "";
-  const seance = SEANCE_ID || "";
+  const printDate = formatSeanceDate(meta?.date);
+  const printTime = formatSeanceTime(meta?.time);
 
   const safeTickets = Array.isArray(tickets) ? tickets : [];
 
@@ -2354,9 +2379,9 @@ refreshPromoControls();
         <div class="show">${title}</div>
 
         <div class="meta">
-          ${dt ? `<div>Дата/час: ${dt}</div>` : ``}
+          ${printDate ? `<div>Дата: ${printDate}</div>` : ``}
+          ${printTime ? `<div>Початок: ${printTime}</div>` : ``}
           <div><b>${seatKeyToHuman(t.seat_label)}</b></div>
-          ${seance ? `<div class="muted">Seance: ${seance}</div>` : ``}
           <div class="muted">Order: ${t.order_id || "—"}</div>
         </div>
 
@@ -2783,6 +2808,8 @@ const buyer_email =
       ?.textContent
       ?.replace("Вистава:", "")
       .trim() || safeShowSlug,
+  show_date: SHOW_META?.date || "",
+  show_time: SHOW_META?.time || "",
   buyer_name,
   buyer_phone,
   buyer_email,
@@ -2802,7 +2829,9 @@ const buyer_email =
   try{
     if (typeof openPrintWindowOffline === "function"){
      await openPrintWindowOffline(tickets, {
-  title: document.getElementById("summary-show")?.textContent?.replace("Вистава:", "").trim() || safeShowSlug
+  title: document.getElementById("summary-show")?.textContent?.replace("Вистава:", "").trim() || safeShowSlug,
+  date: SHOW_META?.date || "",
+  time: SHOW_META?.time || ""
 });
     }
   }catch(e){
@@ -2856,8 +2885,12 @@ const buyer_email =
         showSlug ||
         "Квиток";
 
+      const sameSeance = String(last.seance_id || "") === String(SEANCE_ID || "");
+      const date = last.show_date || (sameSeance ? (SHOW_META?.date || "") : "");
+      const time = last.show_time || (sameSeance ? (SHOW_META?.time || "") : "");
+
       try{
-        await openPrintWindowOffline(savedTickets, { title });
+        await openPrintWindowOffline(savedTickets, { title, date, time });
       }catch(e){
         console.warn("reprint error", e);
         alert("Не вдалося повторити друк останньої продажі.");
