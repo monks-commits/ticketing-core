@@ -643,7 +643,7 @@ async function loadTicketsByOrderIds(orderIds){
 
     const batch = await fetchRows(
       "tickets",
-      `?select=id,order_id,seance_id,seat_label,price,created_at,channel,ref_code,ticket_type,status,buyer_name,buyer_phone,buyer_email&order_id=in.(${inList})&order=created_at.asc`
+      `?select=id,order_id,seance_id,seat_label,price,created_at,channel,ticket_type,buyer_name,buyer_email,ticket_number&order_id=in.(${inList})&order=created_at.asc`
     );
 
     rows.push(...batch);
@@ -671,6 +671,11 @@ async function run() {
   // cashier_id з cash-sync-ts зберігається у orders.seller_id.
   const cashOrders = await loadCashOrders(day, cashierRaw);
   const orderIds = cashOrders.map(o => o.order_id).filter(Boolean);
+  const orderMap = Object.fromEntries(
+    cashOrders
+      .filter(o => o.order_id)
+      .map(o => [String(o.order_id), o])
+  );
 
   let cashTickets = await loadTicketsByOrderIds(orderIds);
   cashTickets = cashTickets.filter(ticketIsActive);
@@ -710,7 +715,7 @@ async function run() {
       ? `За ${day} касових замовлень касира ${cashierRaw} не знайдено.`
       : `За ${day} касових замовлень не знайдено.`;
   } else if (cashTickets.length === 0) {
-    cashierLegacyNote = `Знайдено касових замовлень: ${cashOrders.length}, але пов'язані квитки не завантажилися. Це помилка зв'язку orders → tickets.`;
+    cashierLegacyNote = `Знайдено касових замовлень: ${cashOrders.length}, але пов'язані квитки не завантажилися. Перевірте console: запит tickets має повернути рядки за order_id.`;
   } else if (Math.abs(sum - ticketSum) > 0.01) {
     cashierLegacyNote = `Контроль: сума orders ${money(sum)} грн, сума tickets ${money(ticketSum)} грн. Потрібна звірка.`;
   }
@@ -791,6 +796,8 @@ async function run() {
   const ticketRows = cashTickets
     .map(t => {
       const s = seanceMap[String(t.seance_id || "")] || { id:t.seance_id || "" };
+      const o = orderMap[String(t.order_id || "")] || {};
+      const buyer = t.buyer_name || o.buyer_name || o.buyer_phone || t.buyer_email || o.buyer_email || "—";
 
       return `
         <tr>
@@ -799,7 +806,7 @@ async function run() {
           <td>${esc(t.seat_label || "—")}</td>
           <td>${esc(typeLabel(t.ticket_type))}</td>
           <td>${money(t.price || 0)} грн</td>
-          <td>${esc(t.buyer_name || t.buyer_phone || t.buyer_email || "—")}</td>
+          <td>${esc(buyer)}</td>
         </tr>
       `;
     })
@@ -840,8 +847,8 @@ async function run() {
 
       <div class="metric">
         <div class="metric-label">Середній чек</div>
-        <div class="metric-value">${count ? money(sum / count) : "0,00"} грн</div>
-        <div class="metric-note">по касових квитках</div>
+        <div class="metric-value">${cashOrders.length ? money(sum / cashOrders.length) : "0,00"} грн</div>
+        <div class="metric-note">на одну касову продажу</div>
       </div>
 
       <div class="metric">
