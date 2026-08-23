@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>VA CONTROL CENTER</title>
 <style>
-:root{--bg:#111827;--panel:#1f2937;--line:#374151;--text:#fff;--muted:#9ca3af;--blue:#2563eb;--violet:#7c3aed;--red:#991b1b;--yellow:#d6a900;--green:#16a34a}
+:root{--bg:#111827;--panel:#1f2937;--line:#374151;--text:#fff;--muted:#9ca3af;--blue:#2563eb;--violet:#7c3aed;--red:#991b1b;--yellow:#d6a900;--green:#16a34a;--cash:#0f766e}
 *{margin:0;padding:0;box-sizing:border-box}
 body{min-height:100vh;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at 15% 0%,rgba(37,99,235,.12),transparent 32%),var(--bg);color:var(--text)}
 header{padding:30px;border-bottom:1px solid #2d3748;background:rgba(17,24,39,.94)}
@@ -17,7 +17,7 @@ main{padding:30px}.intro{margin-bottom:24px}.intro h2{font-size:28px;margin-bott
 .panel{min-height:260px;background:linear-gradient(145deg,#1f2937,#192334);border:1px solid var(--line);border-radius:22px;padding:25px;display:flex;flex-direction:column;box-shadow:0 18px 44px rgba(0,0,0,.22)}
 .panel-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}.icon{width:54px;height:54px;flex:0 0 54px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11)}
 .panel h2{font-size:24px;margin:2px 0 6px}.panel p{color:var(--muted);line-height:1.5;margin-bottom:17px}.tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}.tag{display:inline-flex;align-items:center;min-height:27px;padding:5px 9px;border-radius:999px;background:#2a3a50;color:#d6e5f7;font-size:12px;font-weight:700}
-.btn{margin-top:auto;min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:12px 17px;border-radius:13px;color:#fff;text-decoration:none;font-weight:900;border:1px solid rgba(255,255,255,.13);transition:.15s ease}.btn:hover{filter:brightness(1.10);transform:translateY(-1px)}.btn.blue{background:var(--blue)}.btn.violet{background:var(--violet)}.btn.red{background:var(--red)}.btn.yellow{background:var(--yellow);color:#111827}.btn.green{background:var(--green)}
+.btn{margin-top:auto;min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:12px 17px;border-radius:13px;color:#fff;text-decoration:none;font-weight:900;border:1px solid rgba(255,255,255,.13);transition:.15s ease}.btn:hover{filter:brightness(1.10);transform:translateY(-1px)}.btn.blue{background:var(--blue)}.btn.violet{background:var(--violet)}.btn.red{background:var(--red)}.btn.yellow{background:var(--yellow);color:#111827}.btn.green{background:var(--green)}.btn.cash{background:var(--cash)}
 .note{margin-top:24px;padding:17px 19px;border:1px solid #33465f;border-left:4px solid var(--blue);border-radius:14px;background:#152238;color:#c9d8eb;line-height:1.55}
 footer{padding:0 30px 28px;color:#718096;font-size:13px}
 @media(max-width:640px){header,main{padding:22px 18px}h1{font-size:27px}.intro h2{font-size:24px}.panel{min-height:0}footer{padding:0 18px 22px}}
@@ -29,6 +29,9 @@ footer{padding:0 30px 28px;color:#718096;font-size:13px}
 <section class="intro"><h2>Оберіть робоче місце</h2><p>Панель не дублює функції підрозділів. Кожна картка веде безпосередньо до готового робочого місця або самостійного модуля VA.</p></section>
 <section class="grid">
 <article class="panel"><div class="panel-head"><div class="icon">🎟️</div><div><h2>Квитковий відділ</h2><p>Сеанси, онлайн-продаж, каса, бронювання, оборот квитків, повернення, компенсації та звіти.</p></div></div><div class="tags"><span class="tag">готове робоче місце</span><span class="tag">операційний контур</span></div><a class="btn blue" href="./ticket-office.html">Увійти до квиткового відділу</a></article>
+
+<article class="panel"><div class="panel-head"><div class="icon">💳</div><div><h2>Касир</h2><p>Продаж квитків у касі, друк, повторний друк, синхронізація та щоденний звіт КГ-13.</p></div></div><div class="tags"><span class="tag">окреме робоче місце</span><span class="tag">продаж і друк</span></div><a class="btn cash" href="../hybrid/cashier.html">Увійти до каси</a></article>
+
 <article class="panel"><div class="panel-head"><div class="icon">📣</div><div><h2>Рекламний відділ</h2><p>Аудиторії, Marketing OS, Content Studio, Visual Editor, готова продукція, розповсюдження та оцінка результату.</p></div></div><div class="tags"><span class="tag">новий модуль</span><span class="tag">виробництво і просування</span></div><a class="btn violet" href="./advertising-office.html">Увійти до рекламного відділу</a></article>
 <article class="panel"><div class="panel-head"><div class="icon">🎩</div><div><h2>Директорська ложа</h2><p>Сеанси, продажі, компенсації, контроль доступу та управлінська аналітика.</p></div></div><div class="tags"><span class="tag">готовий модуль</span><span class="tag">управлінський рівень</span></div><a class="btn red" href="./director-dashboard.html">Увійти до директорської ложі</a></article>
 <article class="panel"><div class="panel-head"><div class="icon">🚪</div><div><h2>Місце контролера</h2><p>Єдиний вхід до звичайного контролю квитків і компенсаційного режиму.</p></div></div><div class="tags"><span class="tag">контроль доступу</span><span class="tag">два режими</span></div><a class="btn yellow" href="./access-control.html">Відкрити контроль доступу</a></article>
