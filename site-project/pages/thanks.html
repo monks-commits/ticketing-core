@@ -437,23 +437,24 @@ async function resolveVenueIdFromOrder(orderRow) {
   return "";
 }
 
-async function loadLastPaid() {
+async function loadPaidOrder() {
   const orderIdFromQs = (qs.get("order_id") || "").trim();
 
-  let url =
+  if (!orderIdFromQs) {
+    orderEl.textContent = "—";
+    amountEl.textContent = "—";
+    debugEl.textContent = "order_id is missing from result URL";
+    msgEl.textContent =
+      "Не вдалося визначити конкретне замовлення. Дані інших або останніх оплат не завантажуються з міркувань безпеки.";
+    return;
+  }
+
+  const url =
     `${SUPABASE_URL}/rest/v1/orders` +
     `?select=*` +
+    `&order_id=eq.${encodeURIComponent(orderIdFromQs)}` +
     `&status=eq.paid` +
-    `&order=updated_at.desc` +
     `&limit=1`;
-
-  if (orderIdFromQs) {
-    url =
-      `${SUPABASE_URL}/rest/v1/orders` +
-      `?select=*` +
-      `&order_id=eq.${encodeURIComponent(orderIdFromQs)}` +
-      `&limit=1`;
-  }
 
   const orderRes = await fetchJson(url);
 
@@ -462,7 +463,7 @@ async function loadLastPaid() {
 
   if (!orderRes.ok) {
     msgEl.textContent =
-      "Оплату отримано, але дані замовлення не завантажились. Оновіть сторінку або зверніться до підтримки.";
+      "Оплату отримано, але дані цього замовлення не завантажились. Оновіть сторінку або зверніться до підтримки.";
     return;
   }
 
@@ -470,7 +471,7 @@ async function loadLastPaid() {
 
   if (!rows.length) {
     msgEl.textContent =
-      "Оплату отримано. Дані замовлення ще обробляються. Оновіть сторінку через 10–20 секунд.";
+      "Платіж ще обробляється. Оновіть сторінку через 10–20 секунд.";
     return;
   }
 
@@ -489,7 +490,7 @@ async function loadLastPaid() {
   debugEl.textContent += `\nreturn href: ${returnHref}`;
 }
 
-loadLastPaid().catch((e) => {
+loadPaidOrder().catch((e) => {
   debugEl.textContent += "\n\nerror:\n" + String(e);
   msgEl.textContent =
     "Сталася помилка при завантаженні даних. Оновіть сторінку.";
