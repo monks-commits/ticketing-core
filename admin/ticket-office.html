@@ -452,7 +452,7 @@
                 <button class="btn ghost" onclick="openAudit()">Audit</button>
                 <button class="btn green" id="seanceActiveBtn" onclick="toggleSelectedSeanceActive()">Активувати</button>
                 <button class="btn accent" onclick="postponeSeance()">Перенести</button>
-                <button class="btn orange" onclick="openRecovery()">Recovery</button>
+                <button class="btn orange" onclick="openRecoveryActions()">Recovery</button>
                 <button class="btn red" onclick="cancelSeance()">Скасувати</button>
                 <button class="btn red" onclick="archiveSeance()">Архівувати</button>
               </div>
@@ -474,8 +474,8 @@
       <p>Оборот по VA-квоте: випуск → видача → бронь → повернення → компенсація → погашення.</p>
     </div>
 
-    <button class="btn orange" onclick="openRecovery()">
-      Recovery / компенсаційний облік
+    <button class="btn orange" onclick="openCompensationAccounting()">
+      Облік компенсацій
     </button>
   </div>
   
@@ -585,6 +585,7 @@
   </div>
 
   <script src="./ticket-office/seance-operations.js"></script>
+  <script src="./ticket-office/recovery-actions.js"></script>
 
   <script>
     "use strict";
@@ -694,14 +695,28 @@ let LAST_TURNOVER_DATA = {
       history.replaceState(null, "", `ticket-office.html?seance=${encodeURIComponent(id)}#turnover`);
     }
 
-function openRecovery(){
+function openRecoveryActions(){
+  const id = requireSeance();
+  if(!id) return;
+  VARecoveryActions.open(id);
+}
+
+function openRecoveryCabinet(){
+  const id = requireSeance();
+  if(!id) return;
+  const url = `https://monks-commits.github.io/hall-engine-lab/recovery/cabinet.html?source_seance_id=${encodeURIComponent(id)}&seance=${encodeURIComponent(id)}`;
+  window.open(url, "_blank");
+}
+
+function openCompensationAccounting(){
   const id = requireSeance();
   if(!id) return;
   window.open(`./compensation-cabinet.html?seance=${encodeURIComponent(id)}&source_seance_id=${encodeURIComponent(id)}`, "_blank");
 }
 
-function openCompensationCabinet(){ openRecovery(); }
-function openCompensation(){ openRecovery(); }
+function openRecovery(){ openRecoveryActions(); }
+function openCompensationCabinet(){ openCompensationAccounting(); }
+function openCompensation(){ openRecoveryActions(); }
 
 function selectedSeanceRow(){
   const id = selectedSeanceId();
@@ -1040,6 +1055,16 @@ function setText(id, value){
           }
         },
         venueLabel: (venue) => venue || "—"
+      });
+      VARecoveryActions.init({
+        supabaseUrl: SUPABASE_URL,
+        supabaseKey: SUPABASE_ANON_KEY,
+        getSeances: () => SEANCES,
+        getSelectedSeanceId: () => selectedSeanceId(),
+        getSelectedSeance: () => selectedSeanceRow(),
+        reloadSeances: () => loadSeances(),
+        openCabinet: (id) => openRecoveryCabinet(id),
+        openAccounting: (id) => openCompensationAccounting(id)
       });
       await loadSeances();
       await VASeanceOps.handleRequestedView();
