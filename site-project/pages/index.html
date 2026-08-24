@@ -284,6 +284,11 @@
     box-shadow:0 18px 36px rgba(0,0,0,.30);
   }
 
+  .card.return-target{
+    outline:3px solid var(--accent);
+    outline-offset:4px;
+  }
+
   .poster-wrap{
     position:relative;
     background:#0b1827;
@@ -601,6 +606,11 @@ const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 const qs = new URLSearchParams(location.search);
 
+const RETURN_SEANCE_ID =
+  (qs.get("seance_id") || qs.get("seance") || "").trim();
+
+let returnSeanceFocused = false;
+
 const citySelect = document.getElementById("citySelect");
 const venueSelect = document.getElementById("venueSelect");
 const searchInput = document.getElementById("searchInput");
@@ -828,6 +838,7 @@ const img =
 
     const el = document.createElement("div");
     el.className = "card";
+    el.dataset.seance = String(s.id || "");
 
     el.innerHTML = `
       <div class="poster-wrap">
@@ -872,6 +883,33 @@ const img =
     `;
 
     grid.appendChild(el);
+  });
+
+  focusReturnedSeance();
+}
+
+function focusReturnedSeance(){
+  if (returnSeanceFocused || !RETURN_SEANCE_ID) return;
+
+  const card = Array.from(
+    document.querySelectorAll(".card[data-seance]")
+  ).find(el => String(el.dataset.seance) === String(RETURN_SEANCE_ID));
+
+  if (!card) return;
+
+  returnSeanceFocused = true;
+
+  requestAnimationFrame(() => {
+    card.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+
+    card.classList.add("return-target");
+
+    setTimeout(() => {
+      card.classList.remove("return-target");
+    }, 2200);
   });
 }
 
