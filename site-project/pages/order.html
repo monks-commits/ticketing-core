@@ -568,8 +568,12 @@ if (refCode) {
       if (seats.length) params.set("seats", seats.join(","));
       params.set("prices", JSON.stringify(prices));
       params.set("amount", String(calcTotal()));
-if (refCode) params.set("ref", refCode);
-      
+      if (refCode) params.set("ref", refCode);
+      if (GATEWAY_MODE) {
+        params.set("source", "gateway");
+        params.set("venue", GATEWAY_VENUE_CODE);
+      }
+
       history.replaceState(null, "", `order.html?${params.toString()}`);
     }
 
