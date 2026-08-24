@@ -1,0 +1,55 @@
+/* VA Ticket Office — seance lifecycle operations (postpone/cancel/incident processing) */
+.va-seance-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.68);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:18px;
+}
+.va-seance-modal.hidden{display:none!important;}
+.va-seance-modal-content{
+  width:min(1180px,96vw);
+  max-height:92vh;
+  overflow:auto;
+  background:#1e293b;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 28px 90px rgba(0,0,0,.45);
+}
+.va-seance-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
+.va-seance-modal-head h3{margin:0;font-size:26px;}
+.va-seance-modal-close{min-width:42px;width:42px;height:42px;border:0;border-radius:12px;background:#475569;color:#fff;cursor:pointer;font-size:20px;}
+.va-incident-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.va-incident-form-grid .wide{grid-column:1/-1;}
+.va-seance-modal textarea{width:100%;min-height:88px;resize:vertical;border:1px solid rgba(255,255,255,.12);background:#10233f;color:#fff;border-radius:14px;padding:12px;outline:none;font:inherit;}
+.va-incident-info{padding:14px 16px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.04);margin-bottom:16px;line-height:1.5;}
+.va-incident-check{display:flex;gap:10px;align-items:flex-start;padding:14px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.08);border-radius:14px;color:#fff;}
+.va-incident-check input{width:auto;min-height:auto;margin-top:3px;}
+.va-incident-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+.va-incident-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:16px 0;}
+.va-incident-stat{padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.04);}
+.va-incident-stat span{display:block;color:#b8c4d6;font-size:12px;margin-bottom:5px;}
+.va-incident-stat strong{font-size:22px;line-height:1.15;}
+.va-incident-banner{padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.12);margin:12px 0;line-height:1.45;}
+.va-incident-banner.warn{background:rgba(245,158,11,.09);border-color:rgba(245,158,11,.35);}
+.va-incident-banner.bad{background:rgba(239,68,68,.09);border-color:rgba(239,68,68,.35);}
+.va-incident-banner.ok{background:rgba(34,197,94,.09);border-color:rgba(34,197,94,.35);}
+.va-incident-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) minmax(180px,.35fr);gap:10px;margin:14px 0;}
+.va-incident-table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.12);border-radius:16px;max-height:52vh;}
+.va-incident-table{width:100%;border-collapse:collapse;font-size:13px;min-width:1050px;}
+.va-incident-table th,.va-incident-table td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;text-align:left;}
+.va-incident-table th{position:sticky;top:0;background:#17263d;z-index:2;color:#cbd5e1;}
+.va-incident-table tr:last-child td{border-bottom:0;}
+.va-incident-mini-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.va-incident-mini-actions button{border:0;border-radius:9px;padding:7px 9px;cursor:pointer;font-weight:700;font-size:12px;}
+.va-mi-blue{background:#4c86f7;color:#fff}.va-mi-green{background:#2ecc71;color:#08111f}.va-mi-gold{background:#f5b400;color:#111}.va-mi-gray{background:#50627d;color:#fff}.va-mi-red{background:#f44336;color:#fff}
+@media(max-width:900px){
+  .va-incident-form-grid,.va-incident-toolbar{grid-template-columns:1fr;}
+  .va-incident-form-grid .wide{grid-column:auto;}
+  .va-incident-stats{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:640px){.va-incident-stats{grid-template-columns:1fr;}}
