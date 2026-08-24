@@ -1077,11 +1077,34 @@ document.addEventListener("click", e => {
   }
 });
   
+function rememberReturnTarget(seanceId){
+  const id = String(seanceId || "").trim();
+  if (!id) return;
+
+  try {
+    const returnUrl = new URL(location.href);
+
+    // Keep the exact showcase/filter page the buyer used,
+    // and add the seance only so we can return to its exact card.
+    returnUrl.searchParams.set("seance", id);
+    returnUrl.searchParams.set("seance_id", id);
+
+    sessionStorage.setItem(
+      `va_return_url:${id}`,
+      returnUrl.href
+    );
+  } catch (e) {
+    console.warn("Cannot save return target", e);
+  }
+}
+
 document.addEventListener("click", e => {
   const btn = e.target.closest(".buy-ticket-btn");
   if (!btn) return;
 
   e.preventDefault();
+
+  rememberReturnTarget(btn.dataset.seance);
   openVideoIntro(btn.href, btn);
 });
 
