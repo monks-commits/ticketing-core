@@ -1099,7 +1099,6 @@ body{
 <option value="promo">Акційний</option>
 <option value="rental">Орендний</option>
 <option value="service">Службовий</option>
-<option value="compensation">Компенсаційний</option>
 <option value="vip">VIP</option>
   </select>
 
@@ -2173,7 +2172,7 @@ btn.dataset.baseColor = (cfg && cfg.color) ? "#fff" : "";
 function calcFinalPrice(basePrice){
   const { ticket_type, promo_mode, promo_value } = getTicketTypeData();
 
-  if (["discount", "invite", "compensation", "service"].includes(ticket_type)) {
+  if (["discount", "invite", "service"].includes(ticket_type)) {
   return 0;
 }
 
@@ -2617,7 +2616,6 @@ function normalizeTicketType(type) {
   const map = {
     standard: "full",
     benefit: "discount",
-    recovery: "compensation",
     staff: "service"
   };
 
@@ -2652,7 +2650,6 @@ function ticketTypeLabel(type) {
     discount: "Пільговий",
     invite: "Запрошення",
     promo: "Акційний",
-    compensation: "Компенсаційний",
     rental: "Орендний",
     service: "Службовий",
     vip: "VIP",
@@ -2660,7 +2657,6 @@ function ticketTypeLabel(type) {
     // старые коды для совместимости
     standard: "Звичайний",
     benefit: "Пільговий",
-    recovery: "Компенсаційний",
     staff: "Службовий"
   };
 
@@ -2669,7 +2665,7 @@ function ticketTypeLabel(type) {
 function calcFinalPrice(basePrice) {
   const { ticket_type, promo_mode, promo_value } = getTicketTypeData();
 
-  if (["discount", "invite", "compensation", "service"].includes(ticket_type)) {
+  if (["discount", "invite", "service"].includes(ticket_type)) {
     return 0;
   }
 
