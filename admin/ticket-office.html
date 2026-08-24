@@ -5,6 +5,7 @@
   <title>VA • Квитковий відділ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />   
   <link rel="stylesheet" href="./shared/va-toolbar.css">
+  <link rel="stylesheet" href="./ticket-office/seance-operations.css">
 
   <style>
     :root{
@@ -196,6 +197,17 @@
     }
 
     .status-link.main{ background:var(--accent); }
+    button.status-link{font:inherit;cursor:pointer;text-align:left;}
+    .status-link.active{outline:2px solid rgba(255,255,255,.38);background:var(--accent);}
+    .status-count{min-width:30px;height:30px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.14);font-size:13px;}
+    .status-seance-list{display:grid;gap:12px;margin-top:14px;}
+    .status-empty{padding:18px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);}
+    .status-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:16px 18px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.045);}
+    .status-card-title{font-size:19px;font-weight:900;margin-bottom:5px;}
+    .status-card-meta{color:var(--muted);font-size:14px;line-height:1.45;}
+    .status-card-note{margin-top:7px;font-size:13px;color:#fde68a;}
+    .status-card-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;}
+    .status-card .btn{min-height:38px;padding:0 12px;}
 
     .work-grid{
       display:grid;
@@ -308,6 +320,7 @@
       .status-grid,
       .action-grid{ grid-template-columns:1fr; }
     }
+      @media(max-width:900px){.status-card{grid-template-columns:1fr}.status-card-actions{justify-content:flex-start;}}
   </style>
 </head>
 
@@ -371,26 +384,28 @@
           <h3>Статус сеансів</h3>
 
           <div class="status-grid">
-            <a class="status-link main" href="./director-seances.html#sale">
-              <span>В продажі</span><span>→</span>
-            </a>
+            <button class="status-link main" type="button" data-seance-status="sale" onclick="showSeanceStatus('sale')">
+              <span>В продажі</span><span class="status-count" id="statusCountSale">0</span>
+            </button>
 
-            <a class="status-link" href="./director-seances.html#past">
-              <span>Відбулися</span><span>→</span>
-            </a>
+            <button class="status-link" type="button" data-seance-status="past" onclick="showSeanceStatus('past')">
+              <span>Відбулися</span><span class="status-count" id="statusCountPast">0</span>
+            </button>
 
-            <a class="status-link" href="./director-seances.html#postponed">
-              <span>Перенесені</span><span>→</span>
-            </a>
+            <button class="status-link" type="button" data-seance-status="postponed" onclick="showSeanceStatus('postponed')">
+              <span>Перенесені</span><span class="status-count" id="statusCountPostponed">0</span>
+            </button>
 
-            <a class="status-link" href="./director-seances.html#cancelled">
-              <span>Скасовані</span><span>→</span>
-            </a>
+            <button class="status-link" type="button" data-seance-status="cancelled" onclick="showSeanceStatus('cancelled')">
+              <span>Скасовані</span><span class="status-count" id="statusCountCancelled">0</span>
+            </button>
 
-            <a class="status-link" href="./director-seances.html#archive">
-              <span>Архів</span><span>→</span>
-            </a>
+            <button class="status-link" type="button" data-seance-status="archive" onclick="showSeanceStatus('archive')">
+              <span>Архів</span><span class="status-count" id="statusCountArchive">0</span>
+            </button>
           </div>
+
+          <div id="statusSeanceList" class="status-seance-list"></div>
         </div>
 
         <div class="panel">
@@ -428,6 +443,7 @@
                 <button class="btn orange" onclick="openCash()">Каса</button>
                 <button class="btn" onclick="openEditor()">Редагувати</button>
                 <button class="btn dark" onclick="openTurnover()">Оборот</button>
+                <button class="btn ghost" onclick="openAudit()">Audit</button>
                 <button class="btn accent" onclick="postponeSeance()">Перенести</button>
                 <button class="btn accent" onclick="openCompensation()">Компенсації</button>
                 <button class="btn red" onclick="cancelSeance()">Скасувати</button>
@@ -561,6 +577,8 @@
     </main>
   </div>
 
+  <script src="./ticket-office/seance-operations.js"></script>
+
   <script>
     "use strict";
 
@@ -574,6 +592,8 @@
     const toggleState = document.getElementById("toggleState");
 
     let SEANCES = [];
+    let INCIDENT_HEADERS = [];
+    let CURRENT_STATUS_FILTER = "sale";
 
 let CURRENT_TURNOVER_JOURNAL = "";
 let LAST_TURNOVER_DATA = {
@@ -654,6 +674,12 @@ let LAST_TURNOVER_DATA = {
       window.open(`./seance-editor.html?seance=${encodeURIComponent(id)}&seance_id=${encodeURIComponent(id)}`, "_blank");
     }
 
+    function openAudit(){
+      const id = requireSeance();
+      if(!id) return;
+      window.open(`./reports/audit.html?seance=${encodeURIComponent(id)}&seance_id=${encodeURIComponent(id)}`, "_blank");
+    }
+
     function openTurnover(){
       const id = requireSeance();
       if(!id) return;
@@ -668,50 +694,35 @@ function openCompensationCabinet(){
     function openCompensation(){
       const id = requireSeance();
       if(!id) return;
-      window.open(`./manage.html?seance=${encodeURIComponent(id)}&view=compensation`, "_blank");
+      window.open(`./compensation-cabinet.html?seance=${encodeURIComponent(id)}&source_seance_id=${encodeURIComponent(id)}`, "_blank");
     }
 
     function postponeSeance(){
       const id = requireSeance();
       if(!id) return;
-      window.open(`./manage.html?seance=${encodeURIComponent(id)}&view=postpone`, "_blank");
+      VASeanceOps.openPostpone(id);
     }
 
     function cancelSeance(){
       const id = requireSeance();
       if(!id) return;
-      window.open(`./manage.html?seance=${encodeURIComponent(id)}&view=cancel`, "_blank");
+      VASeanceOps.openCancel(id);
     }
 
     async function archiveSeance(){
-      const id = requireSeance();
-      if(!id) return;
-
-      const ok = confirm("Архівувати обраний сеанс?");
-      if(!ok) return;
-
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`,
-        {
-          method:"PATCH",
-          headers:{
-            apikey:SUPABASE_ANON_KEY,
-            Authorization:`Bearer ${SUPABASE_ANON_KEY}`,
-            "Content-Type":"application/json"
-          },
-          body:JSON.stringify({
-            archived:true,
-            active:false
-          })
+      const id=requireSeance();if(!id)return;
+      try{
+        const openIncident=INCIDENT_HEADERS.find(x=>String(x.seance_id)===String(id)&&x.operational_status!=="completed");
+        if(openIncident){
+          alert("Спочатку завершіть обробку перенесення/скасування. Відкритий інцидент не можна прибрати в архів.");
+          openIncidentProcessing(id,openIncident.incident_type);
+          return;
         }
-      );
-
-      if(!res.ok){
-        alert("Помилка архівації.");
-        return;
-      }
-
-      await loadSeances();
+        if(!confirm("Архівувати обраний сеанс? Історія буде збережена."))return;
+        const res=await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({archived:true,active:false})});
+        if(!res.ok){alert("Помилка архівації.");return;}
+        await loadSeances();
+      }catch(e){alert("Помилка архівації: "+String(e.message||e));}
     }
 
     function getToggleSecret(){
@@ -781,13 +792,116 @@ function openCompensationCabinet(){
       }
     }
 
+    function seanceStartMs(s){
+      const date = String(s?.date || "").trim();
+      const time = String(s?.time || "00:00").trim().slice(0,8) || "00:00";
+      if(!date) return NaN;
+      const d = new Date(`${date}T${time}`);
+      return d.getTime();
+    }
+
+    function latestIncident(seanceId, type){
+      return INCIDENT_HEADERS
+        .filter(x => String(x.seance_id) === String(seanceId) && x.incident_type === type)
+        .sort((a,b) => String(b.occurred_at || "").localeCompare(String(a.occurred_at || "")))[0] || null;
+    }
+
+    function statusRows(kind){
+      const now = Date.now();
+      return SEANCES.filter(s => {
+        const archived = s.archived === true;
+        const cancelled = String(s.status || "").toLowerCase() === "cancelled" || !!s.cancelled_at;
+        const postponed = !!s.postponed_at;
+        const start = seanceStartMs(s);
+        const past = Number.isFinite(start) && start < now;
+        if(kind === "archive") return archived;
+        if(kind === "cancelled") return cancelled && !archived;
+        if(kind === "postponed") return postponed && !cancelled && !archived;
+        if(kind === "past") return past && !cancelled && !archived;
+        return !past && !cancelled && !archived;
+      }).sort((a,b) => (seanceStartMs(a)||0) - (seanceStartMs(b)||0));
+    }
+
+    function formatShortDate(value){
+      const raw = String(value || "").trim();
+      const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      return m ? `${m[3]}.${m[2]}.${m[1]}` : raw;
+    }
+
+    function renderStatusCounts(){
+      const ids={sale:"statusCountSale",past:"statusCountPast",postponed:"statusCountPostponed",cancelled:"statusCountCancelled",archive:"statusCountArchive"};
+      Object.entries(ids).forEach(([kind,id])=>{const el=document.getElementById(id);if(el)el.textContent=String(statusRows(kind).length);});
+    }
+
+    function chooseSeanceFromStatus(id){
+      const exists = Array.from(seanceSelect.options).some(o => o.value === id);
+      if(exists){
+        seanceSelect.value=id;
+        seanceSelect.dispatchEvent(new Event("change"));
+        document.querySelector(".panel:nth-of-type(2)")?.scrollIntoView({behavior:"smooth",block:"start"});
+      }
+    }
+
+    function openIncidentProcessing(id,type){
+      VASeanceOps.openIncident(id,type);
+    }
+
+    async function restoreSeanceFromArchive(id){
+      const s = SEANCES.find(x=>String(x.id)===String(id));
+      const cancelled = String(s?.status || "").toLowerCase() === "cancelled" || !!s?.cancelled_at;
+      const res=await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({archived:false,active:cancelled?false:true})});
+      if(!res.ok){alert("Помилка відновлення сеансу.");return;}
+      await loadSeances();
+      showSeanceStatus("archive",false);
+    }
+
+    function renderStatusSeances(kind){
+      const box=document.getElementById("statusSeanceList");
+      if(!box)return;
+      const rows=statusRows(kind);
+      if(!rows.length){box.innerHTML='<div class="status-empty">У цьому розділі сеансів немає.</div>';return;}
+      box.innerHTML=rows.map(s=>{
+        const id=String(s.id||"");
+        const incident = kind === "postponed" ? latestIncident(id,"postponed") : kind === "cancelled" ? latestIncident(id,"cancelled") : null;
+        let note="";
+        if(kind === "postponed" && incident){
+          note=`Було: ${formatShortDate(incident.old_date)} ${String(incident.old_time||"").slice(0,5)} → Стало: ${formatShortDate(incident.new_date)} ${String(incident.new_time||"").slice(0,5)} · Причина: ${escapeHtml(incident.reason||"—")} · Обробка: ${escapeHtml(incident.operational_status||"open")}`;
+        } else if(kind === "cancelled" && incident){
+          note=`Причина: ${escapeHtml(incident.reason||"—")} · Обробка: ${escapeHtml(incident.operational_status||"open")}`;
+        }
+        let actions=`<button class="btn ghost" onclick="chooseSeanceFromStatus('${escapeHtml(id)}')">Обрати</button>`;
+        if(kind === "postponed") actions += `<button class="btn orange" onclick="openIncidentProcessing('${escapeHtml(id)}','postponed')">Обробка перенесення</button>`;
+        if(kind === "cancelled") actions += `<button class="btn red" onclick="openIncidentProcessing('${escapeHtml(id)}','cancelled')">Повернення / контроль</button>`;
+        if(kind === "archive") actions = `<button class="btn green" onclick="restoreSeanceFromArchive('${escapeHtml(id)}')">Відновити</button>`;
+        return `<div class="status-card"><div><div class="status-card-title">${escapeHtml(s.show||s.id||"Без назви")}</div><div class="status-card-meta">${escapeHtml(formatShortDate(s.date))} · ${escapeHtml(String(s.time||"").slice(0,5))} · ${escapeHtml(s.venue_id||"")}<br>Seance ID: ${escapeHtml(id)}</div>${note?`<div class="status-card-note">${note}</div>`:""}</div><div class="status-card-actions">${actions}</div></div>`;
+      }).join("");
+    }
+
+    function showSeanceStatus(kind,updateHash=true){
+      const allowed=["sale","past","postponed","cancelled","archive"];
+      CURRENT_STATUS_FILTER=allowed.includes(kind)?kind:"sale";
+      document.querySelectorAll("[data-seance-status]").forEach(el=>el.classList.toggle("active",el.dataset.seanceStatus===CURRENT_STATUS_FILTER));
+      renderStatusCounts();
+      renderStatusSeances(CURRENT_STATUS_FILTER);
+      if(updateHash) history.replaceState(null,"",`${location.pathname}${location.search}#${CURRENT_STATUS_FILTER}`);
+    }
+
+    async function loadIncidentHeaders(){
+      try{
+        const res=await fetch(`${SUPABASE_URL}/rest/v1/va_seance_incidents?select=id,seance_id,incident_type,operational_status,occurred_at,reason,old_date,old_time,new_date,new_time&order=occurred_at.desc`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`},cache:"no-store"});
+        if(!res.ok) throw new Error(await res.text());
+        const rows=await res.json();
+        INCIDENT_HEADERS=Array.isArray(rows)?rows:[];
+      }catch(e){console.warn("incident headers unavailable",e);INCIDENT_HEADERS=[];}
+    }
+
     async function loadSeances(){
       seanceSelect.innerHTML = "<option value=''>Завантаження…</option>";
 
       try{
         const url =
           `${SUPABASE_URL}/rest/v1/seances` +
-         "?select=id,show,date,time,status,active,archived,venue_id,capacity" +
+         "?select=id,show,date,time,status,active,archived,venue_id,capacity,postponed_at,cancelled_at" +
           "&order=date.asc,time.asc";
 
         const res = await fetch(url, {
@@ -804,6 +918,7 @@ function openCompensationCabinet(){
 
         const rows = await res.json();
         SEANCES = Array.isArray(rows) ? rows : [];
+        await loadIncidentHeaders();
         const visible = SEANCES.filter(s => s.archived !== true);
 
         seanceSelect.innerHTML =
@@ -819,6 +934,8 @@ function openCompensationCabinet(){
         }
 
 loadTurnover(seanceSelect.value);
+        const requestedStatus = String(location.hash || "").replace("#","");
+        showSeanceStatus(["sale","past","postponed","cancelled","archive"].includes(requestedStatus) ? requestedStatus : CURRENT_STATUS_FILTER, false);
         
       }catch(e){
         console.error(e);
@@ -844,10 +961,23 @@ function setText(id, value){
       if(saved){
         toggleSecret.value = saved;
       }
+      VASeanceOps.init({
+        supabaseUrl: SUPABASE_URL,
+        supabaseKey: SUPABASE_ANON_KEY,
+        getSeances: () => SEANCES,
+        getSelectedSeanceId: () => selectedSeanceId(),
+        reloadSeances: () => loadSeances(),
+        selectSeance: (id) => {
+          if(Array.from(seanceSelect.options).some(o => o.value === id)){
+            seanceSelect.value = id;
+            seanceSelect.dispatchEvent(new Event("change"));
+          }
+        },
+        venueLabel: (venue) => venue || "—"
+      });
       await loadSeances();
+      await VASeanceOps.handleRequestedView();
 
-
-      
 seanceSelect.addEventListener("change", () => {
   loadTurnover(seanceSelect.value);
 });
