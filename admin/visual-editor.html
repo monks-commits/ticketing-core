@@ -7,19 +7,15 @@
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff} 
+body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}
 .page{max-width:1100px;margin:0 auto;padding:28px 16px}
-.card{background:#111827;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;margin-bottom:18px} 
+.card{background:#111827;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;margin-bottom:18px}
 h1{margin:0 0 8px}
 label{display:block;margin:14px 0 6px;color:#cbd5e1;font-size:13px}
 select,input{width:100%;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:#020617;color:#fff}
 button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}
-button:disabled{opacity:.48;cursor:default}
 .btn{background:#d4af37;color:#111827;width:100%;margin-top:14px}
 .btn2{background:#334155;color:#fff;width:100%;margin-top:10px}
-.btnDanger{background:#7f1d1d;color:#fff;width:100%;margin-top:8px;padding:9px 12px}
-.btnDangerWide{background:#991b1b;color:#fff;width:100%;margin-top:10px}
-.deleteNote{margin-top:9px;color:#94a3b8;font-size:12px;line-height:1.4}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .preview{display:grid;grid-template-columns:260px 1fr;gap:18px}
 .box{background:#020617;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;min-height:220px}
@@ -62,16 +58,10 @@ button:disabled{opacity:.48;cursor:default}
       <div>
         <label>Афіша</label>
         <input id="posterFile" type="file" accept="image/*">
-        <button class="btnDanger" id="deletePosterBtn" type="button" disabled>
-          Видалити афішу з visual
-        </button>
       </div>
       <div>
         <label>Live Poster mp4</label>
         <input id="livePosterFile" type="file" accept="video/mp4,video/*">
-        <button class="btnDanger" id="deleteLivePosterBtn" type="button" disabled>
-          Видалити Live Poster з visual
-        </button>
       </div>
 
      <div class="field">
@@ -86,9 +76,6 @@ button:disabled{opacity:.48;cursor:default}
       <div>
         <label>Статичний фон</label>
         <input id="bgImageFile" type="file" accept="image/*">
-        <button class="btnDanger" id="deleteBgImageBtn" type="button" disabled>
-          Видалити статичний фон з visual
-        </button>
 
         <label style="display:flex;gap:10px;align-items:center;margin-top:12px">
           <input
@@ -102,9 +89,6 @@ button:disabled{opacity:.48;cursor:default}
       <div>
         <label>Відеофон</label>
         <input id="bgVideoFile" type="file" accept="video/webm,video/mp4,video/*">
-        <button class="btnDanger" id="deleteBgVideoBtn" type="button" disabled>
-          Видалити відеофон з visual
-        </button>
         <div class="small" style="margin-top:8px">
           Відеофон використовується, коли статичний фон вимкнено.
         </div>
@@ -185,13 +169,6 @@ style="width:auto">
 
     <button class="btn" id="saveBtn">Завантажити файли і зберегти</button>
     <button class="btn2" id="loadBtn">Завантажити поточний visual</button>
-    <button class="btnDangerWide" id="clearAllMediaBtn" type="button" disabled>
-      Видалити всі медіафайли з visual
-    </button>
-    <div class="deleteNote">
-      Видалення відв’язує файл від цього сеансу. Сам файл у Storage не видаляється,
-      тому випадкове очищення можна відновити повторним завантаженням.
-    </div>
 
     <div class="status" id="status"></div>
   </div>
@@ -301,19 +278,7 @@ async function uploadFile(bucket, folder, file){
 
 async function loadCurrentVisual(){
   const seanceId = seanceSelect.value;
-
-  posterFile.value = "";
-  livePosterFile.value = "";
-  bgImageFile.value = "";
-  bgVideoFile.value = "";
-
-  if (!seanceId) {
-    currentVisual = null;
-    renderPreview(null);
-    updateDeleteButtons();
-    setStatus("");
-    return;
-  }
+  if (!seanceId) return;
 
   setStatus("Завантажую visual...");
 
@@ -331,53 +296,48 @@ async function loadCurrentVisual(){
 
   currentVisual = data || null;
 
-  const eventTextEl = document.getElementById("eventText");
+const eventTextEl = document.getElementById("eventText");
 
-  if (eventTextEl) {
-    eventTextEl.value =
-      currentVisual?.event_text ||
-      currentVisual?.ticket_text ||
-      "";
+if (eventTextEl) {
+  eventTextEl.value =
+    currentVisual?.event_text ||
+    currentVisual?.ticket_text ||
+    "";
+}
+  
+  if (currentVisual?.live_poster_duration) {
+    durationInput.value = currentVisual.live_poster_duration;
   }
 
-  durationInput.value =
-    Number(currentVisual?.live_poster_duration ?? 6200);
+document.getElementById("enableLivePoster").checked =
+currentVisual?.enable_live_poster ?? true;
 
-  enableLivePoster.checked =
-    currentVisual?.enable_live_poster ?? true;
+document.getElementById("showEventInfo").checked =
+currentVisual?.show_event_info ?? true;
 
-  showEventInfo.checked =
-    currentVisual?.show_event_info ?? true;
+enableBackgroundImage.checked =
+  currentVisual?.background_image_enabled === true;
 
-  enableBackgroundImage.checked =
-    currentVisual?.background_image_enabled === true;
+backgroundImageFit.value =
+  currentVisual?.background_image_fit || "cover";
 
-  backgroundImageFit.value =
-    currentVisual?.background_image_fit || "cover";
+backgroundImageOpacity.value =
+  Number(currentVisual?.background_image_opacity ?? 1);
 
-  backgroundImageOpacity.value =
-    Number(currentVisual?.background_image_opacity ?? 1);
+backgroundImageScale.value =
+  Number(currentVisual?.background_image_scale ?? 1);
 
-  backgroundImageScale.value =
-    Number(currentVisual?.background_image_scale ?? 1);
+backgroundImageX.value =
+  Number(currentVisual?.background_image_x ?? 0);
 
-  backgroundImageX.value =
-    Number(currentVisual?.background_image_x ?? 0);
+backgroundImageY.value =
+  Number(currentVisual?.background_image_y ?? 0);
 
-  backgroundImageY.value =
-    Number(currentVisual?.background_image_y ?? 0);
-
-  backgroundOverlayOpacity.value =
-    Number(currentVisual?.background_overlay_opacity ?? 0);
+backgroundOverlayOpacity.value =
+  Number(currentVisual?.background_overlay_opacity ?? 0);
 
   renderPreview(currentVisual);
-  updateDeleteButtons();
-
-  setStatus(
-    currentVisual
-      ? "Visual завантажено"
-      : "Для цього сеансу visual ще не створено"
-  );
+  setStatus(currentVisual ? "Visual завантажено" : "Для цього сеансу visual ще не створено");
 }
 
 function renderPreview(v){
@@ -436,197 +396,6 @@ function renderPreview(v){
   }
 }
 
-function hasSelectedFile(input){
-  return Boolean(input?.files?.length);
-}
-
-function hasAnyMedia(){
-  return Boolean(
-    currentVisual?.poster_url ||
-    currentVisual?.live_poster_url ||
-    currentVisual?.background_image_url ||
-    currentVisual?.background_video_url ||
-    hasSelectedFile(posterFile) ||
-    hasSelectedFile(livePosterFile) ||
-    hasSelectedFile(bgImageFile) ||
-    hasSelectedFile(bgVideoFile)
-  );
-}
-
-function updateDeleteButtons(){
-  deletePosterBtn.disabled = !(
-    currentVisual?.poster_url ||
-    hasSelectedFile(posterFile)
-  );
-
-  deleteLivePosterBtn.disabled = !(
-    currentVisual?.live_poster_url ||
-    hasSelectedFile(livePosterFile)
-  );
-
-  deleteBgImageBtn.disabled = !(
-    currentVisual?.background_image_url ||
-    hasSelectedFile(bgImageFile)
-  );
-
-  deleteBgVideoBtn.disabled = !(
-    currentVisual?.background_video_url ||
-    hasSelectedFile(bgVideoFile)
-  );
-
-  clearAllMediaBtn.disabled = !hasAnyMedia();
-}
-
-async function updateCurrentVisual(patch, successText){
-  const seanceId = seanceSelect.value;
-
-  if (!seanceId) {
-    alert("Оберіть сеанс");
-    return false;
-  }
-
-  if (!currentVisual) {
-    setStatus("Для цього сеансу visual ще не створено");
-    return false;
-  }
-
-  setStatus("Оновлюю visual...");
-
-  const { data, error } = await sb
-    .from("seance_visuals")
-    .update({
-      ...patch,
-      updated_at: new Date().toISOString()
-    })
-    .eq("seance_id", seanceId)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  currentVisual = data;
-  renderPreview(currentVisual);
-  updateDeleteButtons();
-  setStatus(successText);
-  return true;
-}
-
-async function deleteVisualAsset(type){
-  const configs = {
-    poster: {
-      title: "афішу",
-      input: posterFile,
-      hasStored: () => Boolean(currentVisual?.poster_url),
-      patch: { poster_url: null },
-      success: "Афішу видалено з visual."
-    },
-    livePoster: {
-      title: "Live Poster",
-      input: livePosterFile,
-      hasStored: () => Boolean(currentVisual?.live_poster_url),
-      patch: {
-        live_poster_url: null,
-        enable_live_poster: false
-      },
-      success: "Live Poster видалено з visual."
-    },
-    bgImage: {
-      title: "статичний фон",
-      input: bgImageFile,
-      hasStored: () => Boolean(currentVisual?.background_image_url),
-      patch: {
-        background_image_url: null,
-        background_image_enabled: false
-      },
-      success: "Статичний фон видалено з visual."
-    },
-    bgVideo: {
-      title: "відеофон",
-      input: bgVideoFile,
-      hasStored: () => Boolean(currentVisual?.background_video_url),
-      patch: { background_video_url: null },
-      success: "Відеофон видалено з visual."
-    }
-  };
-
-  const config = configs[type];
-  if (!config) return;
-
-  const hasStored = config.hasStored();
-  const hasSelected = hasSelectedFile(config.input);
-
-  if (!hasStored && hasSelected) {
-    config.input.value = "";
-    updateDeleteButtons();
-    setStatus(`Новий файл «${config.title}» прибрано з форми.`);
-    return;
-  }
-
-  if (!hasStored) return;
-
-  if (!confirm(`Видалити ${config.title} з поточного visual?`)) {
-    return;
-  }
-
-  try {
-    config.input.value = "";
-
-    if (type === "livePoster") {
-      enableLivePoster.checked = false;
-    }
-
-    if (type === "bgImage") {
-      enableBackgroundImage.checked = false;
-    }
-
-    await updateCurrentVisual(config.patch, config.success);
-  } catch(e) {
-    console.error(e);
-    setStatus("Помилка видалення: " + (e.message || e));
-  }
-}
-
-async function clearAllMedia(){
-  if (!hasAnyMedia()) return;
-
-  if (!confirm(
-    "Видалити з цього visual афішу, Live Poster, статичний фон і відеофон?"
-  )) {
-    return;
-  }
-
-  posterFile.value = "";
-  livePosterFile.value = "";
-  bgImageFile.value = "";
-  bgVideoFile.value = "";
-
-  enableLivePoster.checked = false;
-  enableBackgroundImage.checked = false;
-
-  if (!currentVisual) {
-    updateDeleteButtons();
-    setStatus("Вибрані, але ще не збережені файли прибрано з форми.");
-    return;
-  }
-
-  try {
-    await updateCurrentVisual(
-      {
-        poster_url: null,
-        live_poster_url: null,
-        enable_live_poster: false,
-        background_image_url: null,
-        background_image_enabled: false,
-        background_video_url: null
-      },
-      "Усі медіафайли видалено з visual. Опис події збережено."
-    );
-  } catch(e) {
-    console.error(e);
-    setStatus("Помилка очищення: " + (e.message || e));
-  }
-}
-
 async function saveVisual(){
   const seanceId = seanceSelect.value;
   if (!seanceId) {
@@ -647,8 +416,6 @@ async function saveVisual(){
   poster_url: posterUrl || currentVisual?.poster_url || null,
   live_poster_url: livePosterUrl || currentVisual?.live_poster_url || null, 
   live_poster_duration: Number(durationInput.value || currentVisual?.live_poster_duration || 6200),
-  enable_live_poster: enableLivePoster.checked === true,
-  show_event_info: showEventInfo.checked === true,
   background_video_url: bgVideoUrl || currentVisual?.background_video_url || null,
 
   background_image_url:
@@ -698,13 +465,6 @@ ticket_text:
 
 currentVisual = data;
 renderPreview(currentVisual);
-updateDeleteButtons();
-
-posterFile.value = "";
-livePosterFile.value = "";
-bgImageFile.value = "";
-bgVideoFile.value = "";
-updateDeleteButtons();
 
 setStatus("Готово. Visual і опис події збережено.");
   } catch (e) {
@@ -713,29 +473,11 @@ setStatus("Готово. Visual і опис події збережено.");
   }
 }
 
-posterFile.addEventListener("change", updateDeleteButtons);
-
-livePosterFile.addEventListener("change", () => {
-  if (livePosterFile.files?.length) {
-    enableLivePoster.checked = true;
-  }
-  updateDeleteButtons();
-});
-
 bgImageFile.addEventListener("change", () => {
   if (bgImageFile.files?.length) {
     enableBackgroundImage.checked = true;
   }
-  updateDeleteButtons();
 });
-
-bgVideoFile.addEventListener("change", updateDeleteButtons);
-
-deletePosterBtn.addEventListener("click", () => deleteVisualAsset("poster"));
-deleteLivePosterBtn.addEventListener("click", () => deleteVisualAsset("livePoster"));
-deleteBgImageBtn.addEventListener("click", () => deleteVisualAsset("bgImage"));
-deleteBgVideoBtn.addEventListener("click", () => deleteVisualAsset("bgVideo"));
-clearAllMediaBtn.addEventListener("click", clearAllMedia);
 
 document.getElementById("saveBtn").addEventListener("click", saveVisual);
 document.getElementById("loadBtn").addEventListener("click", loadCurrentVisual);
@@ -750,12 +492,11 @@ document.getElementById("openSeanceBtn").addEventListener("click", () => {
   }
 
   window.open(
-  `../site-project/pages/hall-client-x.html?seance=${encodeURIComponent(seanceId)}`,
+  `../site-project/pages/hall.html?seance=${encodeURIComponent(seanceId)}`,
   "_blank"
 );
 });
   
-updateDeleteButtons();
 loadSeances();
 </script>
 </body>
