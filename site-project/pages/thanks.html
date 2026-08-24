@@ -493,7 +493,22 @@ async function loadPaidOrder() {
 
   const venueId = await resolveVenueIdFromOrder(o);
   const seanceId = String(o.seance_id || "").trim();
-  const returnHref = getReturnHrefByVenue(venueId, seanceId);
+
+  let returnHref = "";
+
+  if (seanceId) {
+    try {
+      returnHref =
+        sessionStorage.getItem(`va_return_url:${seanceId}`) || "";
+    } catch (e) {
+      console.warn("Cannot read saved return target", e);
+    }
+  }
+
+  // Fallback only if the exact source page was not saved.
+  if (!returnHref) {
+    returnHref = getReturnHrefByVenue(venueId, seanceId);
+  }
 
   returnLinkEl.href = returnHref;
 
