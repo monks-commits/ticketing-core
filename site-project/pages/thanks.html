@@ -386,10 +386,20 @@ function supaHeaders() {
   };
 }
 
-function getReturnHrefByVenue(venueId) {
-  if (venueId === "academy") return "./index-academy.html";
-  if (venueId === "shevchenko") return "./index-shevchenko.html";
-  return "./index.html";
+function getReturnHrefByVenue(venueId, seanceId) {
+  let base = "./index.html";
+
+  if (venueId === "academy") base = "./index-academy.html";
+  if (venueId === "shevchenko") base = "./index-shevchenko.html";
+
+  const id = String(seanceId || "").trim();
+  if (!id) return base;
+
+  const params = new URLSearchParams();
+  params.set("seance", id);
+  params.set("seance_id", id);
+
+  return `${base}?${params.toString()}`;
 }
 
 async function fetchJson(url) {
@@ -482,11 +492,13 @@ async function loadPaidOrder() {
     `${Number(o.amount || 0).toFixed(2)} ${o.currency || "UAH"}`;
 
   const venueId = await resolveVenueIdFromOrder(o);
-  const returnHref = getReturnHrefByVenue(venueId);
+  const seanceId = String(o.seance_id || "").trim();
+  const returnHref = getReturnHrefByVenue(venueId, seanceId);
 
   returnLinkEl.href = returnHref;
 
   debugEl.textContent += `\n\nresolved venue_id: ${venueId || "(empty)"}`;
+  debugEl.textContent += `\nresolved seance_id: ${seanceId || "(empty)"}`;
   debugEl.textContent += `\nreturn href: ${returnHref}`;
 }
 
