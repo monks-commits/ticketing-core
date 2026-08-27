@@ -294,10 +294,13 @@
     const inc=state.currentIncident;if(!inc)return;
     if(String(inc.operational_status||"").toLowerCase()==="completed") return;
     const pending=state.currentTickets.filter(r=>!["completed","not_required"].includes(r.resolution_status)).length;
-    let allowPending=false;if(pending>0){allowPending=confirm(`Незавершених рядків: ${pending}.\n\nЗавершити обробку з фіксацією цього залишку?`);if(!allowPending)return;}
+    if(pending>0){
+      alert(`Завершити обробку поки не можна.\n\nНезавершених рядків: ${pending}.\nСпочатку по кожному квитку зафіксуйте результат: «Повернено» або «Інше».`);
+      return;
+    }
     const actor=actorValue()||prompt("Відповідальний:","")||"";rememberActor(actor);
-    const note=prompt("Підсумкова примітка:",pending?`Завершено з незакритими зверненнями: ${pending}`:"Обробку завершено")||null;
-    try{await rpc("va_complete_seance_incident",{p_incident_id:inc.id,p_actor:actor||"Квитковий відділ",p_note:note,p_allow_pending:allowPending});await reload(inc.seance_id);await refreshIncident();}catch(e){alert("Не вдалося завершити обробку:\n"+e.message);}
+    const note=prompt("Підсумкова примітка:","Обробку завершено")||null;
+    try{await rpc("va_complete_seance_incident",{p_incident_id:inc.id,p_actor:actor||"Квитковий відділ",p_note:note,p_allow_pending:false});await reload(inc.seance_id);await refreshIncident();}catch(e){alert("Не вдалося завершити обробку:\n"+e.message);}
   }
 
   async function handleRequestedView(){
