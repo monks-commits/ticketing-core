@@ -14,7 +14,8 @@
     currentRefundRequestTickets:[],
     currentOrderContext:null,
     refundDraftSelectedIds:new Set(),
-    refundFocusTicketId:""
+    refundFocusTicketId:"",
+    cancelOrderQuery:""
   };
 
   function cfg(){
@@ -127,6 +128,7 @@
     state.selectedIncidentTicketIds.clear();
     state.refundDraftSelectedIds.clear();
     state.refundFocusTicketId="";
+    state.cancelOrderQuery="";
   }
 
   async function loadSeanceById(id){
@@ -354,8 +356,9 @@
         <div class="va-incident-actions">${incidentActions}</div>
         <div class="va-refund-search-grid">
           <div class="va-refund-search-box">
-            <label>1. Пошук за ордером</label>
-            <div class="va-refund-search-row"><input id="vaRefundOrderSearch" placeholder="Ордер, ПІБ платника, телефон, email" oninput="VASeanceOps.renderCancelOrderList()"><button class="btn ghost" onclick="VASeanceOps.renderCancelOrderList()">Знайти</button></div>
+            <label>1. Ордери скасованого сеансу</label>
+            <div class="va-refund-search-row"><input id="vaRefundOrderSearch" autocomplete="off" spellcheck="false" placeholder="Фільтр: № ордера, ПІБ, телефон або email"><button class="btn ghost" onclick="VASeanceOps.applyCancelOrderSearch()">Знайти</button><button class="btn ghost" onclick="VASeanceOps.clearCancelOrderSearch()">Усі</button></div>
+            <div class="va-refund-muted" style="margin-top:7px">Список ордерів показано нижче автоматично. Пошук лише звужує список.</div>
           </div>
           <div class="va-refund-search-box">
             <label>2. Пошук за квитком / QR</label>
@@ -379,17 +382,33 @@
 
   function renderCancelOrderList(){
     const host=document.getElementById("vaCancelOrderListHost");if(!host)return;
-    const q=String(document.getElementById("vaRefundOrderSearch")?.value||"").trim().toLowerCase();
-    const groups=cancelOrderGroups().filter(g=>{
+    const q=String(state.cancelOrderQuery||"").trim().toLowerCase();
+    const all=cancelOrderGroups();
+    const groups=all.filter(g=>{
       if(!q)return true;
       return [g.orderId,g.buyer,g.email,g.phone,g.channel].join(" ").toLowerCase().includes(q);
     });
-    host.innerHTML=`<div class="va-refund-order-list">${groups.length?groups.map(g=>{
+    const title=q
+      ? `<div class="va-incident-info" style="margin-top:12px"><b>Знайдено ордерів: ${groups.length}</b> з ${all.length}. Фільтр: ${esc(state.cancelOrderQuery)}</div>`
+      : `<div class="va-incident-info" style="margin-top:12px"><b>Ордери цього скасованого сеансу: ${all.length}</b><br>Оберіть потрібний ордер зі списку або скористайтеся пошуком.</div>`;
+    const list=groups.length?groups.map(g=>{
       const pending=g.total-g.completed;
       const reqInWork=g.requests.filter(r=>["registered","processing"].includes(r.status)).length;
       const noOrder=!g.orderId;
       return `<div class="va-refund-order-card"><div><h4>${noOrder?`⚠️ Квиток без ордера`:`Ордер ${esc(g.orderId)}`}</h4><div class="va-refund-order-meta">Платник / покупець: <b>${esc(g.buyer)}</b>${g.phone?` · ${esc(g.phone)}`:""}${g.email?` · ${esc(g.email)}`:""}<br>Канал: ${esc(g.channel)} · Квитків: <b>${g.total}</b> · ${money(g.amount)} · Заяв: ${g.requests.length}</div><div class="va-refund-order-progress">Закрито: ${g.completed}/${g.total}${reqInWork?` · заяв у роботі: ${reqInWork}`:""}${pending?` · залишилось: ${pending}`:" · завершено"}</div></div><div>${noOrder?`<span class="va-refund-danger">Стандартне повернення неможливе без ордера</span>`:`<button class="btn blue" onclick="VASeanceOps.openRefundOrder('${esc(g.orderId)}')">Відкрити</button>`}</div></div>`;
-    }).join(""):`<div class="va-incident-info">Ордерів за цим пошуком не знайдено.</div>`}</div>`;
+    }).join(""):`<div class="va-incident-info">За цим фільтром ордерів не знайдено. Натисніть «Усі», щоб повернути повний список.</div>`;
+    host.innerHTML=`${title}<div class="va-refund-order-list">${list}</div>`;
+  }
+
+  function applyCancelOrderSearch(){
+    state.cancelOrderQuery=String(document.getElementById("vaRefundOrderSearch")?.value||"").trim();
+    renderCancelOrderList();
+  }
+
+  function clearCancelOrderSearch(){
+    state.cancelOrderQuery="";
+    const input=document.getElementById("vaRefundOrderSearch");if(input)input.value="";
+    renderCancelOrderList();
   }
 
   function findRefundTicket(){
@@ -648,5 +667,5 @@
 
   function init(config){state.cfg=config;mount();}
 
-  window.VASeanceOps={init,openPostpone,submitPostpone,closePostpone,openCancel,submitCancel,closeCancel,openIncident,closeIncident,renderIncidentTable,refreshIncident,setStage,confirmRefund,otherDecision,grantRepertoireReplacement,createInterruptionCompensation,completeIncident,handleRequestedView,renderCancelOrderList,findRefundTicket,openRefundOrder,backToCancelOrders,setRefundPriceQty,toggleRefundDraftTicket,createRefundRequest,completeRefundRequest,cancelRefundRequest,downloadRefundStatement};
+  window.VASeanceOps={init,openPostpone,submitPostpone,closePostpone,openCancel,submitCancel,closeCancel,openIncident,closeIncident,renderIncidentTable,refreshIncident,setStage,confirmRefund,otherDecision,grantRepertoireReplacement,createInterruptionCompensation,completeIncident,handleRequestedView,renderCancelOrderList,applyCancelOrderSearch,clearCancelOrderSearch,findRefundTicket,openRefundOrder,backToCancelOrders,setRefundPriceQty,toggleRefundDraftTicket,createRefundRequest,completeRefundRequest,cancelRefundRequest,downloadRefundStatement};
 })();
