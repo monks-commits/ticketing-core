@@ -250,17 +250,19 @@ function getHall(s) {
     ""
   );
 }
+    function isCancelledSeance(s) {
+      const rawStatus = String(s?.status || "").toLowerCase();
+      return rawStatus === "cancelled" || rawStatus === "canceled" || !!s?.cancelled_at;
+    }
+
+    function isCurrentPostponedSeance(s) {
+      return !!s?.postponed_at && s?.archived !== true && !isCancelledSeance(s);
+    }
+
     function classifySeance(s) {
   if (s.archived === true) return "archive";
 
-  const rawStatus = String(s.status || "").toLowerCase();
-
-  if (
-    rawStatus === "cancelled" ||
-    rawStatus === "canceled"
-  ) {
-    return "cancelled";
-  }
+  if (isCancelledSeance(s)) return "cancelled";
 
   const startRaw = getStartAt(s);
   if (!startRaw) return "sale";
@@ -323,7 +325,7 @@ function getHall(s) {
 
 async function loadPostponedTicketStats() {
   const postponedIds = allSeances
-    .filter(s => s.postponed_at)
+    .filter(isCurrentPostponedSeance)
     .map(s => String(s.id));
 
   postponedTicketStats = {};
@@ -377,7 +379,7 @@ async function loadPostponedTicketStats() {
     if (!el) return;
 
     if (key === "postponed") {
-      el.textContent = allSeances.filter(s => s.postponed_at).length;
+      el.textContent = allSeances.filter(isCurrentPostponedSeance).length;
       return;
     }
 
@@ -434,7 +436,7 @@ ${postponedInfo}
 function renderPostponedList() {
   const list = document.getElementById("seance-list");
 
-  const rows = allSeances.filter(s => s.postponed_at);
+  const rows = allSeances.filter(isCurrentPostponedSeance);
 
   if (!rows.length) {
     list.innerHTML = `<div class="empty">Перенесених сеансів немає.</div>`;
