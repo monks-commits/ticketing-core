@@ -407,7 +407,7 @@ async function loadPostponedTicketStats() {
  list.innerHTML = rows.map(s => {
   const id = String(s.id);
 
-  const postponedInfo = s.postponed_at
+  const postponedInfo = activeStatus !== "cancelled" && s.postponed_at
     ? `
       <div class="small" style="color:#f0c36a;font-weight:700;margin-top:8px;">
         📅 Перенесено:
@@ -415,7 +415,9 @@ async function loadPostponedTicketStats() {
         → стало ${formatDate(s.postponed_to_at)}
       </div>
     `
-    : "";
+    : activeStatus === "cancelled"
+      ? `<div class="small" style="color:#ff9b9b;font-weight:700;margin-top:8px;">⛔ Скасовано${s.cancelled_at ? `: ${formatDate(s.cancelled_at)}` : ""}</div>`
+      : "";
 
   return `
 
