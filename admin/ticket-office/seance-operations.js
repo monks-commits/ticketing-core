@@ -120,9 +120,11 @@
 
   async function loadTicketPreview(id){
     try{
-      const rows=await apiJson(`tickets?seance_id=eq.${encodeURIComponent(id)}&select=id,price,status,channel,checked_in_at`);
-      const active=(Array.isArray(rows)?rows:[]).filter(t=>!["cancelled","canceled","refunded","returned"].includes(String(t.status||"").toLowerCase()));
-      return {count:active.length,amount:active.reduce((sum,t)=>sum+Number(t.price||0),0),checked:active.filter(t=>t.checked_in_at||String(t.status||"").toLowerCase()==="used").length};
+      // У live VA public.tickets не має колонки status.
+      // Для прев'ю скасування беремо фактичний реєстр tickets, а погашення визначаємо по checked_in_at.
+      const rows=await apiJson(`tickets?seance_id=eq.${encodeURIComponent(id)}&select=id,price,channel,checked_in_at`);
+      const active=Array.isArray(rows)?rows:[];
+      return {count:active.length,amount:active.reduce((sum,t)=>sum+Number(t.price||0),0),checked:active.filter(t=>!!t.checked_in_at).length};
     }catch(e){console.warn("ticket preview error",e);return{count:0,amount:0,checked:0};}
   }
 
