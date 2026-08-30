@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VA Director Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     *{
@@ -24,11 +25,11 @@
     }
 
     .dashboard{
-      width:min(880px, 100%);
+      width:min(980px, 100%);
       background:#1d2a3d;
       border:1px solid rgba(255,255,255,.12);
       border-radius:28px;
-      padding:70px 40px;
+      padding:46px 40px 56px;
       text-align:center;
       box-shadow:0 20px 60px rgba(0,0,0,.35);
     }
@@ -36,7 +37,7 @@
     h1{
       font-size:46px;
       line-height:1.1;
-      margin-bottom:20px;
+      margin-bottom:14px;
       font-weight:900;
       letter-spacing:.02em;
     }
@@ -44,7 +45,113 @@
     .subtitle{
       font-size:22px;
       color:#c8d0dd;
-      margin-bottom:54px;
+      margin-bottom:28px;
+    }
+
+    .context-bridge{
+      text-align:left;
+      background:#10213a;
+      border:1px solid #2f8cff;
+      border-radius:20px;
+      padding:18px;
+      margin:0 auto 34px;
+      box-shadow:0 10px 28px rgba(0,0,0,.18);
+    }
+
+    .context-head{
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+
+    .context-kicker{
+      color:#78b7ff;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      margin-bottom:7px;
+    }
+
+    .context-title{
+      font-size:27px;
+      font-weight:900;
+      line-height:1.15;
+    }
+
+    .context-meta{
+      color:#b9c9dd;
+      margin-top:7px;
+      line-height:1.5;
+    }
+
+    .bridge-nav{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .bridge-btn{
+      border:1px solid #3a5679;
+      background:#29425f;
+      color:#fff;
+      padding:9px 13px;
+      border-radius:11px;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .bridge-btn:hover{
+      filter:brightness(1.1);
+    }
+
+    .bridge-btn.primary{
+      background:#2f8cff;
+      border-color:#2f8cff;
+    }
+
+    .context-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .context-card{
+      background:#0b1a30;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:12px;
+      min-height:82px;
+    }
+
+    .context-card span{
+      display:block;
+      color:#8fa8c6;
+      font-size:12px;
+      margin-bottom:7px;
+    }
+
+    .context-card b{
+      display:block;
+      font-size:17px;
+      line-height:1.25;
+      overflow-wrap:anywhere;
+    }
+
+    .context-note{
+      margin-top:12px;
+      padding:11px 12px;
+      border-radius:12px;
+      background:#132943;
+      color:#d8e7f7;
+      line-height:1.45;
+    }
+
+    .context-note.empty{
+      color:#a8b8cb;
     }
 
     .director-actions{
@@ -98,18 +205,18 @@
     }
 
     .version{
-      margin-top:46px;
+      margin-top:38px;
       color:#7fa0d8;
       font-size:16px;
     }
 
-    @media(max-width:640px){
+    @media(max-width:760px){
       body{
-        padding:18px;
+        padding:14px;
       }
 
       .dashboard{
-        padding:44px 20px;
+        padding:34px 16px 42px;
         border-radius:22px;
       }
 
@@ -119,12 +226,22 @@
 
       .subtitle{
         font-size:18px;
-        margin-bottom:36px;
+        margin-bottom:24px;
+      }
+
+      .context-grid{
+        grid-template-columns:repeat(2, minmax(0,1fr));
       }
 
       .director-btn{
         min-height:66px;
         font-size:21px;
+      }
+    }
+
+    @media(max-width:460px){
+      .context-grid{
+        grid-template-columns:1fr;
       }
     }
   </style>
@@ -139,30 +256,277 @@
       Директорська ложа управління театром
     </div>
 
+    <section class="context-bridge" id="contextBridge">
+      <div class="context-head">
+        <div>
+          <div class="context-kicker">VA Context Bridge · Директор</div>
+          <div class="context-title" id="contextTitle">Контекст не вибрано</div>
+          <div class="context-meta" id="contextMeta">
+            Відкрийте Dashboard із Marketing, КБ або Content Studio — сеанс і кампанія будуть передані автоматично.
+          </div>
+        </div>
+
+        <div class="bridge-nav">
+          <button class="bridge-btn primary" onclick="openWorkspace('marketing')">Маркетинг</button>
+          <button class="bridge-btn" onclick="openWorkspace('clients')">КБ</button>
+          <button class="bridge-btn" onclick="openWorkspace('studio')">Studio</button>
+        </div>
+      </div>
+
+      <div class="context-grid">
+        <div class="context-card">
+          <span>Кампанія</span>
+          <b id="ctxCampaign">—</b>
+        </div>
+        <div class="context-card">
+          <span>Аудиторія</span>
+          <b id="ctxAudience">—</b>
+        </div>
+        <div class="context-card">
+          <span>Канал / статус</span>
+          <b id="ctxChannel">—</b>
+        </div>
+        <div class="context-card">
+          <span>Бюджет</span>
+          <b id="ctxBudget">—</b>
+        </div>
+      </div>
+
+      <div class="context-note empty" id="contextNote">
+        Наскрізний контекст VA поки не активний.
+      </div>
+    </section>
+
     <div class="director-actions">
 
-      <button class="director-btn red" onclick="location.href='./director-seances.html#sale'">
+      <button class="director-btn red" onclick="openDirectorPage('./director-seances.html', '#sale')">
         Сеанси
       </button>
 
-     <button class="director-btn blue" onclick="location.href='./director-sales.html'">
-  Продажі
-</button>
+      <button class="director-btn blue" onclick="openDirectorPage('./director-sales.html')">
+        Продажі
+      </button>
 
-      <button class="director-btn yellow" onclick="location.href='./compensation-cabinet.html'">
+      <button class="director-btn yellow" onclick="openDirectorPage('./compensation-cabinet.html')">
         Компенсації
       </button>
 
-      <button class="director-btn green" onclick="location.href='./access-control.html'">
+      <button class="director-btn green" onclick="openDirectorPage('./access-control.html')">
         Контроль доступу
       </button>
 
     </div>
 
     <div class="version">
-      VA Director V1
+      VA Director V1.1 · Context Bridge
     </div>
   </main>
+
+  <script>
+    const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+    const VA_WORKSPACE_CONTEXT_KEY = "va_workspace_context_v1";
+    const VA_CAMPAIGN_STORAGE_KEY = "va_marketing_campaigns_v24";
+
+    const VA_ROUTES = {
+      marketing: "./marketing.html",
+      clients: "./viewers.html",
+      studio: "./content_studio.html"
+    };
+
+    let VA_CONTEXT = {
+      seance_id: "",
+      campaign_id: "",
+      source: ""
+    };
+
+    let VA_CAMPAIGN = null;
+    let VA_SEANCE = null;
+
+    function esc(v){
+      return String(v ?? "").replace(/[&<>"']/g, s => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+      })[s]);
+    }
+
+    function readJson(key, fallback){
+      try{
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      }catch(e){
+        return fallback;
+      }
+    }
+
+    function resolveContext(){
+      const params = new URLSearchParams(location.search);
+      const saved = readJson(VA_WORKSPACE_CONTEXT_KEY, {}) || {};
+
+      VA_CONTEXT = {
+        seance_id: String(params.get("seance_id") || saved.seance_id || ""),
+        campaign_id: String(params.get("campaign_id") || saved.campaign_id || ""),
+        source: String(params.get("va_from") || saved.source || "")
+      };
+
+      const campaigns = readJson(VA_CAMPAIGN_STORAGE_KEY, []);
+      VA_CAMPAIGN = Array.isArray(campaigns)
+        ? campaigns.find(c => String(c.id) === String(VA_CONTEXT.campaign_id)) || null
+        : null;
+
+      if(!VA_CONTEXT.seance_id && VA_CAMPAIGN?.seance_id){
+        VA_CONTEXT.seance_id = String(VA_CAMPAIGN.seance_id);
+      }
+
+      persistContext("director-dashboard");
+    }
+
+    function persistContext(target){
+      const payload = {
+        seance_id: VA_CONTEXT.seance_id || "",
+        campaign_id: VA_CONTEXT.campaign_id || "",
+        target: target || "director-dashboard",
+        source: "director-dashboard",
+        updated_at: new Date().toISOString()
+      };
+      try{
+        localStorage.setItem(VA_WORKSPACE_CONTEXT_KEY, JSON.stringify(payload));
+      }catch(e){}
+      return payload;
+    }
+
+    async function loadSeance(){
+      if(!VA_CONTEXT.seance_id) return;
+      if(!window.supabase?.createClient) return;
+
+      try{
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let { data, error } = await sb
+          .from("seances")
+          .select("id,show,title,name,date,time,genre,venue_id,show_slug")
+          .eq("id", VA_CONTEXT.seance_id)
+          .maybeSingle();
+
+        if(error) console.warn("Director context seance by id", error);
+
+        if(!data){
+          const alt = await sb
+            .from("seances")
+            .select("id,show,title,name,date,time,genre,venue_id,show_slug")
+            .eq("show_slug", VA_CONTEXT.seance_id)
+            .maybeSingle();
+          if(!alt.error) data = alt.data;
+        }
+
+        VA_SEANCE = data || null;
+      }catch(e){
+        console.warn("Director Context Bridge", e);
+      }
+    }
+
+    function seanceTitle(){
+      return VA_SEANCE?.show || VA_SEANCE?.title || VA_SEANCE?.name || VA_CONTEXT.seance_id || "Контекст не вибрано";
+    }
+
+    function campaignStatusTitle(v){
+      const s = String(v || "draft").toLowerCase();
+      if(s === "active") return "Активна";
+      if(s === "done" || s === "completed") return "Завершена";
+      return "Чернетка";
+    }
+
+    function formatMoney(v){
+      const n = Number(v || 0);
+      return n ? `${Math.round(n).toLocaleString("uk-UA")} грн` : "0 грн";
+    }
+
+    function renderContext(){
+      const hasContext = !!(VA_CONTEXT.seance_id || VA_CONTEXT.campaign_id);
+
+      document.getElementById("contextTitle").textContent = seanceTitle();
+
+      const meta = [];
+      if(VA_SEANCE?.date) meta.push(VA_SEANCE.date);
+      if(VA_SEANCE?.time) meta.push(String(VA_SEANCE.time).slice(0,5));
+      if(VA_SEANCE?.genre) meta.push(VA_SEANCE.genre);
+      if(VA_CONTEXT.seance_id) meta.push(`seance_id: ${VA_CONTEXT.seance_id}`);
+
+      document.getElementById("contextMeta").textContent = meta.length
+        ? meta.join(" • ")
+        : "Відкрийте Dashboard із Marketing, КБ або Content Studio — сеанс і кампанія будуть передані автоматично.";
+
+      document.getElementById("ctxCampaign").innerHTML = VA_CAMPAIGN
+        ? `${esc(VA_CAMPAIGN.name || "Кампанія")}<br><span style="font-size:12px;color:#8fa8c6">${esc(VA_CAMPAIGN.id || "")}</span>`
+        : (VA_CONTEXT.campaign_id ? esc(VA_CONTEXT.campaign_id) : "—");
+
+      document.getElementById("ctxAudience").textContent = VA_CAMPAIGN
+        ? `${VA_CAMPAIGN.segmentLabel || VA_CAMPAIGN.segmentKey || "Аудиторія"} · ${Number(VA_CAMPAIGN.audienceCount || 0)}`
+        : "—";
+
+      document.getElementById("ctxChannel").textContent = VA_CAMPAIGN
+        ? `${VA_CAMPAIGN.channel || "—"} · ${campaignStatusTitle(VA_CAMPAIGN.status)}`
+        : "—";
+
+      document.getElementById("ctxBudget").textContent = VA_CAMPAIGN
+        ? formatMoney(VA_CAMPAIGN.budget)
+        : "—";
+
+      const note = document.getElementById("contextNote");
+
+      if(VA_CAMPAIGN){
+        const parts = [];
+        if(VA_CAMPAIGN.goal) parts.push(`Ціль: ${VA_CAMPAIGN.goal}`);
+        if(VA_CAMPAIGN.passport?.corePromise) parts.push(`Теза: ${VA_CAMPAIGN.passport.corePromise}`);
+        if(VA_CAMPAIGN.reachableCount != null) parts.push(`Доступні контакти: ${Number(VA_CAMPAIGN.reachableCount || 0)}`);
+
+        note.classList.remove("empty");
+        note.textContent = parts.length
+          ? parts.join(" · ")
+          : "Контекст маркетингової кампанії прийнято.";
+      }else if(hasContext){
+        note.classList.remove("empty");
+        note.textContent = "Контекст сеансу прийнято. Кампанію не вибрано або її локальна картка недоступна на цьому браузері.";
+      }else{
+        note.classList.add("empty");
+        note.textContent = "Наскрізний контекст VA поки не активний.";
+      }
+    }
+
+    function contextUrl(route, hash = "", target = ""){
+      const payload = persistContext(target || route);
+      const url = new URL(route, location.href);
+
+      if(payload.seance_id) url.searchParams.set("seance_id", payload.seance_id);
+      if(payload.campaign_id) url.searchParams.set("campaign_id", payload.campaign_id);
+      url.searchParams.set("va_from", "director-dashboard");
+
+      if(hash) url.hash = hash;
+      return url.toString();
+    }
+
+    function openWorkspace(key){
+      const route = VA_ROUTES[key];
+      if(!route) return;
+      location.href = contextUrl(route, "", key);
+    }
+
+    function openDirectorPage(route, hash = ""){
+      location.href = contextUrl(route, hash, "director-module");
+    }
+
+    async function boot(){
+      resolveContext();
+      await loadSeance();
+      renderContext();
+    }
+
+    document.addEventListener("DOMContentLoaded", boot);
+  </script>
 
 </body>
 </html>
