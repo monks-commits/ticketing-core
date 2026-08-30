@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.3</title>
+  <title>VA Marketing Control Center V2.5</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -142,6 +142,27 @@ textarea::placeholder{
   @media(max-width:800px){.passport-grid{grid-template-columns:1fr}}
   @media(max-width:560px){.four-col{grid-template-columns:1fr}}
 
+
+  /* ===== V2.5 • VA Context Bridge + real workspace routes ===== */
+  .context-bridge{position:sticky;top:0;z-index:20;background:rgba(7,26,53,.96);backdrop-filter:blur(10px);border:1px solid rgba(141,194,255,.2)}
+  .context-bridge-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+  .context-main{min-width:260px;flex:1}
+  .context-title{font-size:20px;font-weight:700;margin:2px 0 4px}
+  .context-meta{font-size:12px;color:#8fa8ca;line-height:1.45}
+  .workspace-nav{display:flex;gap:8px;flex-wrap:wrap}
+  .workspace-btn{border:1px solid rgba(255,255,255,.13);background:#0d1d34;color:#dce8ff;border-radius:10px;padding:9px 11px;cursor:pointer;font-weight:700}
+  .workspace-btn.active{background:#2d8cff;border-color:#2d8cff;color:#fff}
+  .workspace-btn.pending{opacity:.6}
+  .campaign-strip{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .campaign-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border-radius:999px;background:#102a50;border:1px solid rgba(45,140,255,.32);font-size:12px}
+  .campaign-id{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#8dc2ff}
+  .campaign-card{border:1px solid rgba(98,176,255,.28);background:linear-gradient(180deg,rgba(45,140,255,.08),rgba(45,140,255,.025))}
+  .campaign-list{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+  .campaign-row{display:grid;grid-template-columns:minmax(180px,1.4fr) minmax(120px,.7fr) minmax(120px,.7fr) auto;gap:10px;align-items:center;background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:11px}
+  .campaign-row.active{border-color:#2d8cff;background:#0d2548}
+  .status-draft{background:#6f5720}.status-active{background:#1f6f45}.status-done{background:#314766}
+  @media(max-width:800px){.campaign-row{grid-template-columns:1fr}.context-bridge{position:relative;top:auto}}
+
   </style>
 </head>
 
@@ -152,16 +173,33 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.3</h1>
+        <h1>Marketing Control Center V2.4</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          Основна аналітика читає live-дані Supabase; окремо записується тільки журнал маркетингових дій.
+          Основна аналітика читає live-дані Supabase; V2.4 додає наскрізний контекст сеансу та постійний об’єкт кампанії.
         </div>
       </div>
       <div class="hero-badges">
         <span class="badge">LIVE DATA</span>
         <span class="badge">Без дублювання КБ</span>
         <span class="badge">Без зовнішнього AI API</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card context-bridge" id="vaContextBridge">
+    <div class="context-bridge-row">
+      <div class="context-main">
+        <div class="eyebrow">VA Context Bridge</div>
+        <div class="context-title" id="bridgeSeanceTitle">Контекст не вибрано</div>
+        <div class="context-meta" id="bridgeSeanceMeta">Оберіть сеанс кнопкою «Фокус». Контекст буде збережено в URL.</div>
+        <div class="campaign-strip" id="bridgeCampaignStrip"></div>
+      </div>
+      <div class="workspace-nav">
+        <button class="workspace-btn active" onclick="openVAWorkspace('marketing')">Маркетинг</button>
+        <button class="workspace-btn pending" onclick="openVAWorkspace('clients')">КБ</button>
+        <button class="workspace-btn pending" onclick="openVAWorkspace('studio')">Studio</button>
+        <button class="workspace-btn pending" onclick="openVAWorkspace('director')">Директор</button>
       </div>
     </div>
   </div>
@@ -211,6 +249,203 @@ let CAMPAIGN_DRAFT = {
   objective: "",
   comment: ""
 };
+
+const CAMPAIGN_STORAGE_KEY = "va_marketing_campaigns_v24";
+let CAMPAIGNS = [];
+let ACTIVE_CAMPAIGN_ID = "";
+
+// Реальні робочі маршрути VA. Контекст передається через seance_id + campaign_id.
+const VA_WORKSPACE_ROUTES = {
+  marketing: "marketing.html",
+  clients: "https://monks-commits.github.io/ticketing-core/admin/viewers.html",
+  studio: "https://monks-commits.github.io/ticketing-core/admin/content_studio.html",
+  director: "https://monks-commits.github.io/ticketing-core/admin/director-dashboard.html"
+};
+const VA_WORKSPACE_CONTEXT_KEY = "va_workspace_context_v1";
+
+
+
+function loadLocalCampaigns(){
+  try{
+    const raw = localStorage.getItem(CAMPAIGN_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    CAMPAIGNS = Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    console.warn("VA campaigns local load", e);
+    CAMPAIGNS = [];
+  }
+}
+
+function saveLocalCampaigns(){
+  try{ localStorage.setItem(CAMPAIGN_STORAGE_KEY, JSON.stringify(CAMPAIGNS)); }
+  catch(e){ console.warn("VA campaigns local save", e); }
+}
+
+function makeCampaignId(){
+  const stamp = Date.now().toString(36).toUpperCase();
+  const rnd = Math.random().toString(36).slice(2,6).toUpperCase();
+  return `VAC-${stamp}-${rnd}`;
+}
+
+function getActiveCampaign(){
+  return CAMPAIGNS.find(c => String(c.id) === String(ACTIVE_CAMPAIGN_ID)) || null;
+}
+
+function campaignForJournalId(journalId){
+  const jid = String(journalId || "");
+  if(!jid) return null;
+  return CAMPAIGNS.find(c => Array.isArray(c.journalIds) && c.journalIds.map(String).includes(jid)) || null;
+}
+
+function updateUrlContext(){
+  try{
+    const url = new URL(location.href);
+    if(CURRENT_SEANCE_IDS.length === 1) url.searchParams.set("seance_id", CURRENT_SEANCE_IDS[0]);
+    else url.searchParams.delete("seance_id");
+    if(ACTIVE_CAMPAIGN_ID) url.searchParams.set("campaign_id", ACTIVE_CAMPAIGN_ID);
+    else url.searchParams.delete("campaign_id");
+    history.replaceState(null, "", url.toString());
+  }catch(e){}
+}
+
+function restoreContextFromUrl(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const sid = params.get("seance_id");
+    const cid = params.get("campaign_id");
+    if(sid && SEANCES.some(s => String(s.id) === String(sid))) CURRENT_SEANCE_IDS = [String(sid)];
+    if(cid && CAMPAIGNS.some(c => String(c.id) === String(cid))){
+      const campaign = CAMPAIGNS.find(c => String(c.id) === String(cid));
+      ACTIVE_CAMPAIGN_ID = String(cid);
+      if(campaign?.seance_id && SEANCES.some(s => String(s.id) === String(campaign.seance_id))) CURRENT_SEANCE_IDS = [String(campaign.seance_id)];
+    }
+  }catch(e){}
+}
+
+function renderContextBridge(){
+  const title = document.getElementById("bridgeSeanceTitle");
+  const meta = document.getElementById("bridgeSeanceMeta");
+  const strip = document.getElementById("bridgeCampaignStrip");
+  if(!title || !meta || !strip) return;
+
+  const s = getFocusSeance();
+  const c = getActiveCampaign();
+  if(s){
+    title.textContent = s.show || "Вибраний сеанс";
+    meta.textContent = [fmtDate(s.date), s.time ? String(s.time).slice(0,5) : "", s.genre || "", `seance_id: ${s.id}`].filter(Boolean).join(" • ");
+  }else{
+    title.textContent = CURRENT_SEANCE_IDS.length > 1 ? `Вибрано сеансів: ${CURRENT_SEANCE_IDS.length}` : "Контекст не вибрано";
+    meta.textContent = CURRENT_SEANCE_IDS.length > 1 ? "Для наскрізного переходу між кабінетами потрібен один сеанс." : "Оберіть сеанс кнопкою «Фокус». Контекст буде збережено в URL.";
+  }
+
+  strip.innerHTML = c ? `
+    <span class="campaign-chip"><b>Кампанія:</b> ${esc(c.name || "Без назви")}</span>
+    <span class="campaign-chip"><span class="campaign-id">${esc(c.id)}</span></span>
+    <span class="pill status-${esc(c.status || "draft")}">${esc(c.status === "active" ? "Активна" : c.status === "done" ? "Завершена" : "Чернетка")}</span>
+  ` : `<span class="micro">Активної кампанії немає. Її можна створити у розділі «Кампанії».</span>`;
+}
+
+function persistWorkspaceContext(target = "marketing"){
+  const ctx = {
+    seance_id: CURRENT_SEANCE_IDS.length === 1 ? String(CURRENT_SEANCE_IDS[0]) : "",
+    campaign_id: ACTIVE_CAMPAIGN_ID ? String(ACTIVE_CAMPAIGN_ID) : "",
+    target,
+    source: "marketing",
+    updated_at: new Date().toISOString()
+  };
+  try{ localStorage.setItem(VA_WORKSPACE_CONTEXT_KEY, JSON.stringify(ctx)); }catch(e){}
+  return ctx;
+}
+
+function openVAWorkspace(key){
+  if(key === "marketing") return openMarketingSection(ACTIVE_SECTION);
+  const route = VA_WORKSPACE_ROUTES[key];
+  if(!route) return;
+
+  const ctx = persistWorkspaceContext(key);
+  const url = new URL(route, location.href);
+  if(ctx.seance_id) url.searchParams.set("seance_id", ctx.seance_id);
+  if(ctx.campaign_id) url.searchParams.set("campaign_id", ctx.campaign_id);
+  url.searchParams.set("va_from", "marketing");
+  location.href = url.toString();
+}
+
+function campaignSnapshotFromDraft(){
+  const seance = getFocusSeance();
+  if(!seance || !CAMPAIGN_DRAFT.segmentKey) return null;
+  const passport = marketingContextStatus(seance.id);
+  return {
+    seance_id: String(seance.id),
+    name: `${seance.show || "Подія"} • ${CAMPAIGN_DRAFT.segmentLabel || "Кампанія"}`,
+    goal: CAMPAIGN_DRAFT.objective || "",
+    segmentKey: CAMPAIGN_DRAFT.segmentKey,
+    segmentLabel: CAMPAIGN_DRAFT.segmentLabel,
+    audienceCount: Number(CAMPAIGN_DRAFT.audienceCount || 0),
+    reachableCount: Number(CAMPAIGN_DRAFT.reachableCount || 0),
+    channel: CAMPAIGN_DRAFT.channel || "",
+    comment: CAMPAIGN_DRAFT.comment || "",
+    passport: {
+      primaryAudience: passport.ctx.primaryAudience || "",
+      corePromise: passport.ctx.corePromise || "",
+      tone: passport.ctx.tone || "",
+      cta: passport.ctx.cta || ""
+    }
+  };
+}
+
+function saveCampaignEntity(){
+  const snap = campaignSnapshotFromDraft();
+  if(!snap){ alert("Оберіть один сеанс і сегмент аудиторії."); return; }
+  const now = new Date().toISOString();
+  let campaign = getActiveCampaign();
+  if(campaign && String(campaign.seance_id) === String(snap.seance_id)) Object.assign(campaign, snap, {updated_at: now});
+  else{
+    campaign = {id:makeCampaignId(), ...snap, status:"draft", budget:0, journalIds:[], created_at:now, updated_at:now};
+    CAMPAIGNS.unshift(campaign);
+    ACTIVE_CAMPAIGN_ID = campaign.id;
+  }
+  saveLocalCampaigns();
+  updateUrlContext();
+  renderContextBridge();
+  renderCampaignsSection();
+}
+
+function openCampaignEntity(id){
+  const c = CAMPAIGNS.find(x => String(x.id) === String(id));
+  if(!c) return;
+  ACTIVE_CAMPAIGN_ID = String(c.id);
+  if(c.seance_id) CURRENT_SEANCE_IDS = [String(c.seance_id)];
+  CAMPAIGN_DRAFT = {
+    segmentKey:c.segmentKey || "", segmentLabel:c.segmentLabel || "", audienceCount:Number(c.audienceCount || 0),
+    reachableCount:Number(c.reachableCount || 0), channel:c.channel || "", objective:c.goal || "", comment:c.comment || ""
+  };
+  updateUrlContext();
+  renderContextBridge();
+  openMarketingSection(3);
+}
+
+function newCampaignEntity(){
+  ACTIVE_CAMPAIGN_ID = "";
+  resetCampaignDraft();
+  updateUrlContext();
+  renderContextBridge();
+  openMarketingSection(1);
+}
+
+function setCampaignStatus(status){
+  const c = getActiveCampaign();
+  if(!c) return;
+  c.status = status;
+  c.updated_at = new Date().toISOString();
+  saveLocalCampaigns();
+  renderContextBridge();
+  renderCampaignsSection();
+}
+
+function selectedSeanceCampaigns(){
+  const sid = CURRENT_SEANCE_IDS.length === 1 ? String(CURRENT_SEANCE_IDS[0]) : "";
+  return CAMPAIGNS.filter(c => !sid || String(c.seance_id) === sid);
+}
 
  function getActiveSeanceIds(){
   if (CURRENT_SEANCE_IDS.length) {
@@ -318,6 +553,7 @@ function initMarketingSections(){
 
 function openMarketingSection(index){
   ACTIVE_SECTION = index;
+  renderContextBridge();
   document.querySelectorAll(".tool").forEach(x => x.classList.remove("active"));
   const tool = document.getElementById(`tool-${index}`);
   if(tool) tool.classList.add("active");
@@ -471,18 +707,27 @@ function toggleSeance(id){
     CURRENT_SEANCE_IDS.push(id);
   }
   resetCampaignDraft();
+  ACTIVE_CAMPAIGN_ID = "";
+  updateUrlContext();
+  renderContextBridge();
   refreshActiveSection();
 }
 
 function clearSeanceSelection(){
   CURRENT_SEANCE_IDS = [];
+  ACTIVE_CAMPAIGN_ID = "";
   resetCampaignDraft();
+  updateUrlContext();
+  renderContextBridge();
   refreshActiveSection();
 }
 
 function selectAllVisibleSeances(){
   CURRENT_SEANCE_IDS = upcomingSeances().slice(0, 30).map(s => String(s.id));
+  ACTIVE_CAMPAIGN_ID = "";
   resetCampaignDraft();
+  updateUrlContext();
+  renderContextBridge();
   refreshActiveSection();
 }
 
@@ -817,7 +1062,11 @@ function resetCampaignDraft(){
 
 function setFocusSeance(id){
   CURRENT_SEANCE_IDS = [String(id)];
+  const active = getActiveCampaign();
+  if(active && String(active.seance_id) !== String(id)) ACTIVE_CAMPAIGN_ID = "";
   resetCampaignDraft();
+  updateUrlContext();
+  renderContextBridge();
   refreshActiveSection();
 }
 
@@ -1780,6 +2029,8 @@ function renderCampaignsSection(){
   const passport = focusSeance ? marketingContextStatus(focusSeance.id) : null;
   const ctx = passport?.ctx || emptyMarketingContext();
   const copies = buildCampaignCopies(focusSeance, ctx, selected);
+  const activeCampaign = getActiveCampaign();
+  const campaignRows = selectedSeanceCampaigns();
 
   document.getElementById("activeSectionPanel").innerHTML = `
     <div class="section-caption">
@@ -1787,6 +2038,27 @@ function renderCampaignsSection(){
         <div class="eyebrow">CAMPAIGN WORKBENCH</div>
         <h2>🎯 Кампанія: від діагнозу до дії</h2>
         <div class="muted">Без автоматичної відправки. VA готує обґрунтоване завдання, маркетолог приймає рішення.</div>
+      </div>
+    </div>
+
+    <div class="box campaign-card" style="margin-bottom:14px">
+      <div class="eyebrow">VA Campaign Object • V2.4</div>
+      ${activeCampaign ? `
+        <div class="context-bridge-row">
+          <div>
+            <h3>${esc(activeCampaign.name || "Кампанія")}</h3>
+            <div class="micro"><span class="campaign-id">${esc(activeCampaign.id)}</span> • створено ${fmtDate(activeCampaign.created_at)}</div>
+          </div>
+          <div class="toolbar" style="margin:0">
+            <button class="btn secondary small" onclick="setCampaignStatus('draft')">Чернетка</button>
+            <button class="btn small" onclick="setCampaignStatus('active')">Активна</button>
+            <button class="btn secondary small" onclick="setCampaignStatus('done')">Завершена</button>
+          </div>
+        </div>
+      ` : `<div class="muted">Поки це робоча чернетка. Після вибору сегмента натисніть «Зберегти як кампанію» — VA створить постійний campaign_id.</div>`}
+      <div class="toolbar">
+        <button class="btn" onclick="saveCampaignEntity()" ${CAMPAIGN_DRAFT.segmentKey ? "" : "disabled"}>${activeCampaign ? "Оновити кампанію" : "Зберегти як кампанію"}</button>
+        <button class="btn secondary" onclick="newCampaignEntity()">Нова кампанія</button>
       </div>
     </div>
 
@@ -1874,9 +2146,26 @@ function renderCampaignsSection(){
       </div>
     </div>
 
+    <div class="box" style="margin-top:14px">
+      <div class="eyebrow">Кампанії цього сеансу</div>
+      <h3>Постійні об'єкти, а не записи журналу</h3>
+      ${campaignRows.length ? `
+        <div class="campaign-list">
+          ${campaignRows.slice(0,8).map(c => `
+            <div class="campaign-row ${String(c.id) === String(ACTIVE_CAMPAIGN_ID) ? "active" : ""}">
+              <div><b>${esc(c.name || "Кампанія")}</b><div class="micro campaign-id">${esc(c.id)}</div></div>
+              <div><span class="pill status-${esc(c.status || "draft")}">${esc(c.status === "active" ? "Активна" : c.status === "done" ? "Завершена" : "Чернетка")}</span></div>
+              <div class="micro">${esc(c.segmentLabel || "—")} • ${Number(c.audienceCount || 0)} ос.</div>
+              <div><button class="btn secondary small" onclick="openCampaignEntity('${escAttr(c.id)}')">Відкрити</button></div>
+            </div>
+          `).join("")}
+        </div>
+      ` : `<div class="muted">Для цього сеансу ще немає збережених кампаній.</div>`}
+    </div>
+
     <div class="notice">
       <b>Що вже замкнуто:</b> стан сеансу → маркетинговий паспорт → релевантна аудиторія → виключення тих, хто вже купив → вибір сегмента → змістова основа кампанії → журнал дії.
-      У V2.3 уже зібрано перший генератор чернеток під канал: соцмережі, email, SMS/месенджер і рекламне оголошення. Наступний шар — оцінка та навчання на фактичних результатах кампаній.
+      У V2.5 кампанія вже має власний campaign_id і може передаватися між кабінетами через URL. Збережено перший генератор чернеток під канал: соцмережі, email, SMS/месенджер і рекламне оголошення. Наступний шар — оцінка та навчання на фактичних результатах кампаній.
     </div>
   `;
 }
@@ -1905,6 +2194,7 @@ function renderJournalSection(){
 
   panel.innerHTML = `
     <h2>📒 Журнал маркетингу</h2>
+    ${getActiveCampaign() ? `<div class="notice"><b>Активна кампанія:</b> ${esc(getActiveCampaign().name)} <span class="campaign-id">${esc(getActiveCampaign().id)}</span><br><span class="micro">Нова дія після збереження буде локально прив'язана до цієї кампанії.</span></div>` : ""}
     <div class="muted" style="margin-bottom:12px">
       Дії по вибраних сеансах.
     </div>
@@ -1935,6 +2225,7 @@ function renderJournalSection(){
           <tr>
             <th>Дата</th>
             <th>Сеанс</th>
+            <th>Кампанія</th>
             <th>Дія</th>
             <th>Канал</th>
             <th>Бюджет</th>
@@ -1947,10 +2238,12 @@ function renderJournalSection(){
             rows.length
               ? rows.map(j => {
                   const s = SEANCES.find(x => String(x.id) === String(j.seance_id));
+                  const campaign = campaignForJournalId(j.id);
                   return `
                     <tr>
                       <td>${fmtDate(j.action_date || j.created_at)}</td>
                       <td>${esc(s?.show || j.seance_id)}</td>
+                      <td>${campaign ? `<span class="campaign-id">${esc(campaign.id)}</span><br><span class="micro">${esc(campaign.name || "")}</span>` : "—"}</td>
                       <td>${esc(j.action_type || "—")}</td>
                       <td>${esc(j.channel || "—")}</td>
                       <td>${Number(j.budget || 0).toLocaleString("uk-UA")} грн</td>
@@ -1962,7 +2255,7 @@ function renderJournalSection(){
                     </tr>
                   `;
                 }).join("")
-              : `<tr><td colspan="7" class="muted">Поки немає записів.</td></tr>`
+              : `<tr><td colspan="8" class="muted">Поки немає записів.</td></tr>`
           }
         </tbody>
       </table>
@@ -2008,6 +2301,17 @@ async function saveJournalEntry(){
   }
 
   JOURNAL = JOURNAL.concat(data || []);
+
+  const campaign = getActiveCampaign();
+  if(campaign && Array.isArray(data)){
+    const ids = data.map(x => x?.id).filter(Boolean).map(String);
+    campaign.journalIds = Array.from(new Set([...(campaign.journalIds || []).map(String), ...ids]));
+    campaign.budget = Number(campaign.budget || 0) + budget;
+    campaign.updated_at = new Date().toISOString();
+    saveLocalCampaigns();
+    renderContextBridge();
+  }
+
   renderJournalSection();
 }
   
@@ -2106,6 +2410,7 @@ async function boot(){
   buildTools();
   initMarketingSections();
   loadLocalMarketingContexts();
+  loadLocalCampaigns();
 
   try{
     const [orders, tickets, seances, journal] = await Promise.all([
@@ -2137,6 +2442,9 @@ async function boot(){
 
     buildClients(ORDERS, TICKETS, SEANCES);
     await loadRemoteMarketingContextsOptional();
+    restoreContextFromUrl();
+    updateUrlContext();
+    renderContextBridge();
     openMarketingSection(0);
 
   }catch(e){
