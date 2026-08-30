@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="deck">
-<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2 · READ</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
+<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.1 · READ + VA</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
 <section class="instrument"><div class="lamps">
 <div class="lampbox"><div id="lampVenue" class="lamp"></div><div id="venueLampTitle" class="lamp-title">МАЙДАНЧИК</div><div id="valVenue" class="lamp-value">OFF</div></div>
 <div class="lampbox"><div id="lampGateway" class="lamp"></div><div class="lamp-title">GATEWAY</div><div id="valGateway" class="lamp-value">OFF</div></div>
@@ -28,8 +28,8 @@
 <article class="card"><div class="step"><div><h2>Ваш Адмін</h2><div class="hint">Після Gateway ONLINE виконуємо реальний READ вибраного сеансу через backend.</div></div><div class="stepno">3</div></div><div class="controls"><button id="vaBtn" class="btn green big" disabled>ПІДКЛЮЧИТИ VA</button><div id="vaStatus" class="statusline">Очікуємо Gateway.</div></div></article>
 <article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">На V2 закриваємо тільки GATEWAY + READ. HOLD і SALE навмисно ще вимкнені.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
 </section>
-<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — реальна схема вибраного сеансу VA. Зліва — фактичний READ snapshot, отриманий через новий Gateway SaaS backend.</div></div><div id="readyBadge" class="ready-badge">SaaS V2 · READ</div></div><div class="panes">
-<section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span></div><div class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Після GATEWAY ON → ПІДКЛЮЧИТИ VA тут з'явиться READ snapshot саме цього venue/seance.</div><iframe id="gatewayFrame" title="VA Gateway READ"></iframe></div></section>
+<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — реальна схема вибраного сеансу. Зліва — реальна афіша VA SaaS, обмежена цим майданчиком. READ перевіряється через Gateway backend і лишається у телеметрії.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.1 · READ</div></div><div class="panes">
+<section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span></div><div class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Після GATEWAY ON → ПІДКЛЮЧИТИ VA тут відкриється реальна афіша VA SaaS тільки цього майданчика.</div><iframe id="gatewayFrame" title="VA SaaS storefront"></iframe></div></section>
 <section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • демонстраційний прямий контур</b><span id="directMeta" class="pane-meta">оберіть сеанс</span></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
 </div></section>
 <div class="notice">V2 чесно залишається READ-only. Gateway уже є окремим серверним маршрутом з перевіркою <b>venue_id ↔ seance_id</b>. Якщо підставити сеанс іншого майданчика, backend повертає <b>venue_seance_mismatch</b>. HOLD/SALE не імітуються — це наступний окремий крок.</div>
@@ -40,6 +40,7 @@
 const SUPABASE_URL="https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY="sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 const GATEWAY_URL=`${SUPABASE_URL}/functions/v1/gateway-saas-demo`;
+const VA_STOREFRONT_BASE=new URL("../site-project/pages/index.html",location.href);
 const ALIASES={"academy-ruhu":"academy","shevchenko-v2":"shevchenko","opera-test":"opera"};
 const HALL_ALIASES={academy:"academy-ruhu",shevchenko:"shevchenko-v2",opera:"opera-test"};
 const $=id=>document.getElementById(id);
@@ -81,7 +82,7 @@ function resetGatewayStage(){
   $("gatewayBtn").disabled=!selected;$("vaBtn").disabled=true;
   setStatus("gatewayStatus",selected?"Майданчик готовий. Натисніть GATEWAY ON.":"Спочатку оберіть сеанс.");
   setStatus("vaStatus","Очікуємо Gateway.");
-  $("gatewayFrame").removeAttribute("srcdoc");$("gatewayFrame").src="about:blank";$("gatewayPlaceholder").classList.remove("hidden");$("gatewayPaneMeta").textContent="ще не підключено";
+  $("gatewayFrame").removeAttribute("srcdoc");$("gatewayFrame").removeAttribute("src");$("gatewayPlaceholder").classList.remove("hidden");$("gatewayPaneMeta").textContent="ще не підключено";
   updateReady();
 }
 
@@ -94,9 +95,9 @@ function updateReady(){
     setStatus("readyStatus","READ підтверджено. Ізоляція працює. HOLD/SALE — наступний етап.","ok");
     $("readyBadge").textContent="READ ГОТОВО";
   }else if(selected){
-    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Очікуємо Gateway і READ.");$("readyBadge").textContent="SaaS V2 · READ";
+    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Очікуємо Gateway і READ.");$("readyBadge").textContent="SaaS V2.1 · READ";
   }else{
-    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Оберіть сеанс.");$("readyBadge").textContent="SaaS V2 · READ";
+    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Оберіть сеанс.");$("readyBadge").textContent="SaaS V2.1 · READ";
   }
 }
 
@@ -105,10 +106,30 @@ function openDirect(){
   const u=new URL("../site-project/pages/hall.html",location.href);u.searchParams.set("seance",selected);$("directFrame").src=u.toString();$("directPlaceholder").classList.add("hidden");const s=seances.find(x=>x.id===selected);$("directMeta").textContent=s?`${s.show||s.id} • ${s.date||""} ${String(s.time||"").slice(0,5)}`:selected;setLamp("lampVenue",true);$("valVenue").textContent="ГОТОВИЙ";resetGatewayStage();
 }
 
-function snapshotHtml(data){
-  const s=data?.seance||{},v=data?.venue||{},m=data?.summary||{};
-  const metric=(label,value)=>`<div class="m"><span>${esc(label)}</span><b>${esc(value??"—")}</b></div>`;
-  return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#0e151d;color:#e8eef5}.p{padding:22px}.ok{display:inline-block;padding:7px 10px;border-radius:999px;background:#173d28;color:#7ceaa5;font-weight:900;font-size:12px}.h{font-size:26px;font-weight:900;margin:14px 0 4px}.sub{color:#8fa0b3;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.m{border:1px solid #2b3a49;border-radius:13px;background:#111922;padding:13px}.m span{display:block;color:#8fa0b3;font-size:11px;margin-bottom:5px}.m b{font-size:20px}.meta{margin-top:16px;border-top:1px solid #273545;padding-top:14px;color:#9eb0c1;font-size:12px;line-height:1.6}.mono{font-family:ui-monospace,Consolas,monospace}@media(max-width:700px){.grid{grid-template-columns:1fr 1fr}}</style></head><body><div class="p"><span class="ok">● READ ПІДТВЕРДЖЕНО</span><div class="h">${esc(s.show||s.id||"Сеанс")}</div><div class="sub">${esc(v.name||v.id||"")} • ${esc(s.date||"")} ${esc(String(s.time||"").slice(0,5))} • ${esc(s.hall||"зал")}</div><div class="grid">${metric("Випуск VA",m.issued_va)}${metric("Продано",m.sold)}${metric("HOLD",m.hold)}${metric("Бронь",m.reserved)}${metric("Зайнято унікально",m.occupied_unique)}${metric("Залишок VA",m.remaining_va)}</div><div class="meta">Gateway: <b>${esc(data.service||"va-gateway-saas-demo")}</b> • ${esc(data.version||"")}<br>response_code: <span class="mono">${esc(data.response_code||"")}</span><br>server: ${esc(data.duration_ms??"—")} ms • browser route: ${esc(data.browser_ms??"—")} ms<br>request_id: <span class="mono">${esc(data.request_id||"")}</span></div></div></body></html>`;
+function storefrontUrl(){
+  const u=new URL(VA_STOREFRONT_BASE);
+  u.searchParams.set("venue",VENUE_ID);
+  return u.toString();
+}
+
+function lockStorefrontToVenue(){
+  try{
+    const frame=$("gatewayFrame");
+    const doc=frame.contentDocument;
+    if(!doc)return;
+    const filters=doc.querySelector(".filters");
+    if(filters)filters.style.setProperty("display","none","important");
+    const venuesGrid=doc.querySelector("#venuesGrid");
+    if(venuesGrid)venuesGrid.style.setProperty("display","none","important");
+  }catch(_){ }
+}
+
+function openVaStorefront(read){
+  const frame=$("gatewayFrame");
+  frame.removeAttribute("srcdoc");
+  frame.src=storefrontUrl();
+  $("gatewayPlaceholder").classList.add("hidden");
+  $("gatewayPaneMeta").textContent=`афіша VA SaaS • READ ${Number(read?.browser_ms||0).toFixed(1)} ms`;
 }
 
 async function gatewayOn(){
@@ -129,7 +150,7 @@ async function connectVa(){
   try{
     const r=await gatewayRequest("state",{seance_id:selected});
     if(String(r.result||"")!=="succeeded")throw new Error(r.response_code||"gateway_state_rejected");
-    vaConnected=true;readOk=true;setLamp("lampVa",true);setLamp("lampRead",true);$("valVa").textContent="CONNECTED";$("valRead").textContent=`${Number(r.browser_ms||0).toFixed(0)} ms`;$("vaBtn").textContent="VA ПІДКЛЮЧЕНО";setStatus("vaStatus",`READ ${r.response_code||"state_returned"} • server ${Number(r.duration_ms||0).toFixed(1)} ms • route ${Number(r.browser_ms||0).toFixed(1)} ms`,"ok");$("gatewayFrame").srcdoc=snapshotHtml(r);$("gatewayPlaceholder").classList.add("hidden");$("gatewayPaneMeta").textContent=`READ • ${Number(r.browser_ms||0).toFixed(1)} ms`;
+    vaConnected=true;readOk=true;setLamp("lampVa",true);setLamp("lampRead",true);$("valVa").textContent="CONNECTED";$("valRead").textContent=`${Number(r.browser_ms||0).toFixed(0)} ms`;$("vaBtn").textContent="VA ПІДКЛЮЧЕНО";setStatus("vaStatus",`READ ${r.response_code||"state_returned"} • server ${Number(r.duration_ms||0).toFixed(1)} ms • route ${Number(r.browser_ms||0).toFixed(1)} ms`,"ok");openVaStorefront(r);
   }catch(e){vaConnected=false;readOk=false;setLamp("lampVa",false);setLamp("lampRead",false);$("valVa").textContent="ПОМИЛКА";$("valRead").textContent="відмова";setStatus("vaStatus",String(e.message||e),"bad");}
   updateReady();
 }
@@ -140,6 +161,17 @@ async function load(){
   const name=venue.name||VENUE_ID;document.title=`Gateway Flight Deck — ${name}`;$("subtitle").textContent=`${name} • ізольований демонстраційний READ-контур • Universal Gateway`;$("venueLampTitle").textContent=name.toUpperCase().slice(0,18);$("venueNode").textContent=name;$("venueStepTitle").textContent=name;$("directTitle").textContent=`${name} • демонстраційний прямий контур`;
   const halls=hallsForVenue();$("hallSelect").innerHTML='<option value="">Усі зали</option>'+halls.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join("");renderSeances();setStatus("venueStatus",`Завантажено: ${seances.length} сеанс(ів). Інші майданчики приховані.`,"ok");resetGatewayStage();
 }
+
+$("gatewayFrame").addEventListener("load",()=>{
+  if(!readOk)return;
+  lockStorefrontToVenue();
+  try{
+    const href=$("gatewayFrame").contentWindow.location.href;
+    if(href.includes("hall.html"))$("gatewayPaneMeta").textContent="реальна схема VA SaaS";
+    else if(href.includes("order.html"))$("gatewayPaneMeta").textContent="оформлення VA SaaS";
+    else $("gatewayPaneMeta").textContent="реальна афіша VA SaaS";
+  }catch(_){ }
+});
 
 $("hallSelect").addEventListener("change",()=>{selected="";renderSeances();openDirect();});
 $("seanceSelect").addEventListener("change",()=>{selected=$("seanceSelect").value;openDirect();});
