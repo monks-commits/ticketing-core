@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.2</title>
+  <title>VA Marketing Control Center V2.3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -126,6 +126,18 @@ textarea::placeholder{
   .passport-score{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .score-circle{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#0b1b31;border:5px solid #2d8cff;font-weight:700;font-size:17px}
   .context-preview{white-space:pre-wrap;line-height:1.5}
+  .quick-passport{border:1px solid rgba(45,140,255,.45);background:linear-gradient(180deg,rgba(45,140,255,.08),rgba(45,140,255,.02))}
+  .quick-passport h3{margin-bottom:6px}
+  details.advanced-passport{background:#0b1b31;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:0 14px;margin-bottom:16px}
+  details.advanced-passport summary{cursor:pointer;padding:15px 0;font-weight:700;list-style:none}
+  details.advanced-passport summary::-webkit-details-marker{display:none}
+  .copy-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+  .copy-card{background:#09182c;border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:14px}
+  .copy-card h3{font-size:16px;margin-bottom:8px}
+  .copy-text{white-space:pre-wrap;line-height:1.48;color:#e7effc;min-height:88px}
+  .copy-subject{font-size:12px;color:#8dc2ff;margin-bottom:8px;line-height:1.4}
+  .quick-ready{display:inline-block;padding:5px 9px;border-radius:999px;background:#1f6f45;color:#eafff2;font-size:12px;font-weight:700}
+  @media(max-width:800px){.copy-grid{grid-template-columns:1fr}}
   @media(max-width:1100px){.four-col{grid-template-columns:1fr 1fr}}
   @media(max-width:800px){.passport-grid{grid-template-columns:1fr}}
   @media(max-width:560px){.four-col{grid-template-columns:1fr}}
@@ -140,7 +152,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.2</h1>
+        <h1>Marketing Control Center V2.3</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           Основна аналітика читає live-дані Supabase; окремо записується тільки журнал маркетингових дій.
@@ -978,13 +990,21 @@ function marketingContextCompleteness(ctx){
   return fields.reduce((sum,k) => sum + (String(ctx?.[k] || "").trim() ? weights[k] : 0), 0);
 }
 
+function marketingContextQuickReady(ctx){
+  return ["primaryAudience","corePromise","tone","cta"]
+    .every(k => String(ctx?.[k] || "").trim());
+}
+
 function marketingContextStatus(seanceId){
   const ctx = getMarketingContext(seanceId);
   const completeness = marketingContextCompleteness(ctx);
+  const quickReady = marketingContextQuickReady(ctx);
   return {
     ctx,
     completeness,
-    ready: completeness >= 80,
+    quickReady,
+    ready: quickReady,
+    expertReady: completeness >= 80,
     source: MARKETING_CONTEXT_SOURCE[String(seanceId)] || (MARKETING_CONTEXTS[String(seanceId)] ? "Локально" : "Не збережено")
   };
 }
@@ -1072,7 +1092,7 @@ function renderMarketingPassportMini(s){
       <h3>🧭 Паспорт сеансу</h3>
       <div class="metric-row"><span>Готовність</span><b>${st.completeness}%</b></div>
       <div class="metric-row"><span>Збереження</span><b>${esc(st.source)}</b></div>
-      <div class="muted" style="margin-top:8px">${st.ready ? "Контекст достатній для кампаній і контенту." : "Треба зафіксувати аудиторію, головний аргумент і тон."}</div>
+      <div class="muted" style="margin-top:8px">${st.quickReady ? "Швидкий паспорт готовий: уже можна збирати кампанію." : "Для старту достатньо 4 полів: аудиторія, причина піти, тон і CTA."}</div>
       <div class="progress"><div style="width:${st.completeness}%"></div></div>
       <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openMarketingSection(7)">${st.completeness ? "Редагувати" : "Заповнити"}</button></div>
     </div>`;
@@ -1105,15 +1125,16 @@ function renderMarketingPassportSection(){
   panel.innerHTML = `
     <div class="section-caption">
       <div>
-        <div class="eyebrow">SEANCE CONTEXT • V1</div>
+        <div class="eyebrow">SEANCE CONTEXT • QUICK + PRO</div>
         <h2>🧭 Маркетинговий паспорт</h2>
-        <div class="muted">Єдине джерело змісту для кампаній, текстів, реклами та Content Studio.</div>
+        <div class="muted">Не анкета. Чотири поля запускають кампанію; решта потрібна лише коли маркетолог хоче поглибити контекст.</div>
       </div>
       <div class="passport-score">
         <div class="score-circle">${st.completeness}%</div>
         <div>
           <b>${esc(seance.show || "Подія")}</b><br>
           <span class="pill ${sourceClass}">${esc(st.source)}</span>
+          ${st.quickReady ? `<br><span class="quick-ready" style="margin-top:7px">ШВИДКИЙ ПАСПОРТ ГОТОВИЙ</span>` : ""}
         </div>
       </div>
     </div>
@@ -1121,89 +1142,87 @@ function renderMarketingPassportSection(){
     ${renderScopeHeader()}
     ${PASSPORT_NOTICE ? `<div class="notice">${esc(PASSPORT_NOTICE)}</div>` : ""}
 
-    <div class="box">
-      <div class="eyebrow">1 • Для кого</div>
+    <div class="box quick-passport">
+      <div class="eyebrow">ШВИДКИЙ ПАСПОРТ • 4 ПОЛЯ</div>
+      <h3>Цього достатньо, щоб VA зібрала перші повідомлення</h3>
+      <div class="muted" style="margin-bottom:14px">Заповнюємо не все, що знаємо про подію, а мінімум для осмисленої комунікації.</div>
       <div class="passport-grid">
         <div class="field">
-          <label>Основна цільова аудиторія *</label>
+          <label>1. Кому продаємо *</label>
           <textarea id="mpPrimaryAudience" placeholder="Напр.: 25–40, міська аудиторія, яка любить живі культурні події...">${esc(c.primaryAudience)}</textarea>
         </div>
         <div class="field">
-          <label>Додаткова аудиторія</label>
-          <textarea id="mpSecondaryAudience" placeholder="Хто ще може прийти і чому">${esc(c.secondaryAudience)}</textarea>
-        </div>
-      </div>
-    </div>
-
-    <div class="box">
-      <div class="eyebrow">2 • Що продаємо насправді</div>
-      <div class="passport-grid">
-        <div class="field">
-          <label>Головна причина піти / обіцянка події *</label>
-          <textarea id="mpCorePromise" placeholder="Не назва вистави, а причина витратити вечір саме на неї">${esc(c.corePromise)}</textarea>
+          <label>2. Чому варто піти саме на цю подію *</label>
+          <textarea id="mpCorePromise" placeholder="Одна головна причина витратити вечір саме на цю подію">${esc(c.corePromise)}</textarea>
         </div>
         <div class="field">
-          <label>Ключові аргументи *</label>
-          <textarea id="mpKeyArguments" placeholder="3–5 конкретних сильних сторін: склад, формат, емоція, унікальність...">${esc(c.keyArguments)}</textarea>
-        </div>
-        <div class="field">
-          <label>Бар'єри / заперечення глядача</label>
-          <textarea id="mpBarriers" placeholder="Дорого, незнайомий твір, будній день, далеко їхати...">${esc(c.barriers)}</textarea>
-        </div>
-        <div class="field">
-          <label>Ціновий кут</label>
-          <textarea id="mpPriceAngle" placeholder="Як говоримо про ціну: доступний вхід, різні зони, преміум-місця...">${esc(c.priceAngle)}</textarea>
-        </div>
-      </div>
-    </div>
-
-    <div class="box">
-      <div class="eyebrow">3 • Як говоримо</div>
-      <div class="passport-grid">
-        <div class="field">
-          <label>Tone of voice *</label>
+          <label>3. Як говоримо *</label>
           <select id="mpTone">${toneHtml}</select>
         </div>
         <div class="field">
-          <label>Заклик до дії *</label>
+          <label>4. Що людина має зробити *</label>
           <input id="mpCta" value="${escAttr(c.cta)}" placeholder="Напр.: Оберіть місця на 12 вересня">
-        </div>
-        <div class="field">
-          <label>Не використовувати</label>
-          <textarea id="mpDoNotUse" placeholder="Штампи, слова, обіцянки або образи, яких треба уникати">${esc(c.doNotUse)}</textarea>
-        </div>
-        <div class="field">
-          <label>Примітки маркетолога</label>
-          <textarea id="mpNotes" placeholder="Все, що важливо не втратити в кампанії">${esc(c.notes)}</textarea>
         </div>
       </div>
     </div>
 
+    <details class="advanced-passport" ${st.completeness > 64 ? "open" : ""}>
+      <summary>▸ Розширений паспорт — аргументи, бар'єри, ціна, заборони та примітки</summary>
+      <div style="padding-bottom:14px">
+        <div class="passport-grid">
+          <div class="field">
+            <label>Додаткова аудиторія</label>
+            <textarea id="mpSecondaryAudience" placeholder="Хто ще може прийти і чому">${esc(c.secondaryAudience)}</textarea>
+          </div>
+          <div class="field">
+            <label>Ключові аргументи</label>
+            <textarea id="mpKeyArguments" placeholder="3–5 конкретних сильних сторін: склад, формат, емоція, унікальність...">${esc(c.keyArguments)}</textarea>
+          </div>
+          <div class="field">
+            <label>Бар'єри / заперечення глядача</label>
+            <textarea id="mpBarriers" placeholder="Дорого, незнайомий твір, будній день, далеко їхати...">${esc(c.barriers)}</textarea>
+          </div>
+          <div class="field">
+            <label>Ціновий кут</label>
+            <textarea id="mpPriceAngle" placeholder="Як говоримо про ціну: доступний вхід, різні зони, преміум-місця...">${esc(c.priceAngle)}</textarea>
+          </div>
+          <div class="field">
+            <label>Не використовувати</label>
+            <textarea id="mpDoNotUse" placeholder="Штампи, слова, обіцянки або образи, яких треба уникати">${esc(c.doNotUse)}</textarea>
+          </div>
+          <div class="field">
+            <label>Примітки маркетолога</label>
+            <textarea id="mpNotes" placeholder="Все, що важливо не втратити в кампанії">${esc(c.notes)}</textarea>
+          </div>
+        </div>
+      </div>
+    </details>
+
     <div class="two-col">
       <div class="box">
-        <div class="eyebrow">4 • Контроль якості</div>
-        <h3>Готовність контексту: ${st.completeness}%</h3>
+        <div class="eyebrow">ГОТОВНІСТЬ</div>
+        <h3>${st.quickReady ? "Можна працювати" : "Потрібні 4 базові відповіді"}</h3>
         <div class="progress"><div style="width:${st.completeness}%"></div></div>
         <div class="muted" style="margin-top:10px">
-          80%+ — достатньо для осмисленої кампанії. VA не буде вигадувати позиціонування з порожнього місця.
+          Швидкий паспорт = 4 обов'язкові поля. ${st.completeness}% показує вже глибину розширеного контексту, а не дозвіл починати роботу.
         </div>
       </div>
       <div class="box">
-        <div class="eyebrow">5 • Наступний крок</div>
-        <h3>${st.ready ? "Контекст готовий" : "Спочатку заповніть основу"}</h3>
-        <div class="muted">Після збереження цей паспорт підтягується у Campaign Workbench і стає змістовою основою наступних інструментів.</div>
+        <div class="eyebrow">НАСТУПНИЙ КРОК</div>
+        <h3>${st.quickReady ? "Збираємо повідомлення" : "Збережіть основу"}</h3>
+        <div class="muted">Campaign Workbench використовує ці чотири відповіді разом із реальним сегментом аудиторії та станом продажів.</div>
       </div>
     </div>
 
     <div class="toolbar">
       <button class="btn" onclick="saveMarketingPassport()">Зберегти паспорт</button>
-      <button class="btn secondary" onclick="openMarketingSection(3)">До кампанії</button>
+      <button class="btn secondary" onclick="openMarketingSection(3)" ${st.quickReady ? "" : "disabled"}>До кампанії</button>
       <button class="btn secondary" onclick="openMarketingSection(0)">Control Center</button>
       <button class="btn danger" onclick="clearMarketingPassportDraft()">Очистити локальну чернетку</button>
     </div>
 
     <div class="notice">
-      <b>Зберігання без ризику для поточної схеми:</b> паспорт завжди має локальну копію в браузері. Якщо в Supabase вже існує таблиця <code>marketing_seance_context</code>, VA автоматично синхронізує його туди; якщо ні — робота сторінки не ламається.
+      <b>Принцип V2.3:</b> маркетолог не повинен заповнювати CRM-анкету перед кожною кампанією. Чотири відповіді — робочий мінімум. Розширений паспорт накопичується поступово.
     </div>`;
 
   PASSPORT_NOTICE = "";
@@ -1666,6 +1685,74 @@ function renderChannelsSection(){
   `;
 }
 
+function compactText(v, max=140){
+  const x = String(v || "").replace(/\s+/g," ").trim();
+  return x.length > max ? x.slice(0, max - 1).trim() + "…" : x;
+}
+
+function splitArguments(v){
+  return String(v || "")
+    .split(/\n|;|•/)
+    .map(x => x.replace(/^[-–—\s]+/,"").trim())
+    .filter(Boolean)
+    .slice(0,4);
+}
+
+function seanceDateLine(seance){
+  if(!seance) return "";
+  const date = seance.date ? fmtDate(seance.date) : "";
+  const time = seance.time ? String(seance.time).slice(0,5) : "";
+  return [date,time].filter(Boolean).join(" • ");
+}
+
+function buildCampaignCopies(seance, ctx, segment){
+  if(!seance || !marketingContextQuickReady(ctx) || !segment) return null;
+  const title = seance.show || "Подія";
+  const when = seanceDateLine(seance);
+  const audience = segment.label || ctx.primaryAudience;
+  const promise = String(ctx.corePromise || "").trim();
+  const cta = String(ctx.cta || "").trim();
+  const args = splitArguments(ctx.keyArguments);
+  const argText = args.length ? `\n\n${args.map(x => "• " + x).join("\n")}` : "";
+  const price = ctx.priceAngle ? `\n\n${String(ctx.priceAngle).trim()}` : "";
+
+  const social = `«${title}»${when ? ` — ${when}` : ""}.\n\n${promise}${argText}${price}\n\n${cta}`;
+  const emailSubject = compactText(`${title}: ${promise}`, 75);
+  const emailBody = `${audience ? `Для вас — «${title}».` : `«${title}».`}${when ? `\n${when}` : ""}\n\n${promise}${argText}${price}\n\n${cta}`;
+  const sms = compactText(`${title}${when ? `, ${when}` : ""}. ${promise} ${cta}`, 220);
+  const adHeadline = compactText(promise || title, 60);
+  const adPrimary = compactText(`${title}${when ? ` • ${when}` : ""}. ${promise}${args[0] ? ` ${args[0]}.` : ""} ${cta}`, 220);
+
+  return { social, emailSubject, emailBody, sms, adHeadline, adPrimary };
+}
+
+async function copyCampaignText(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const text = el.dataset.copy || el.innerText || "";
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
+}
+
+function renderCampaignCopyCard(title, body, id, subject=""){
+  const copyValue = subject ? `${subject}\n\n${body}` : body;
+  return `
+    <div class="copy-card">
+      <h3>${esc(title)}</h3>
+      ${subject ? `<div class="copy-subject"><b>Тема:</b> ${esc(subject)}</div>` : ""}
+      <div class="copy-text" id="${id}" data-copy="${escAttr(copyValue)}">${esc(body)}</div>
+      <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="copyCampaignText('${id}')">Копіювати</button></div>
+    </div>`;
+}
+
 function renderCampaignsSection(){
   const s = getMarketingSnapshot();
   const brief = buildMarketingBrief(s);
@@ -1692,6 +1779,7 @@ function renderCampaignsSection(){
   const days = focusSeance ? daysToSeance(focusSeance) : null;
   const passport = focusSeance ? marketingContextStatus(focusSeance.id) : null;
   const ctx = passport?.ctx || emptyMarketingContext();
+  const copies = buildCampaignCopies(focusSeance, ctx, selected);
 
   document.getElementById("activeSectionPanel").innerHTML = `
     <div class="section-caption">
@@ -1755,12 +1843,29 @@ function renderCampaignsSection(){
           <div class="context-preview"><b>Головна теза</b><br>${esc(ctx.corePromise || "Поки не зафіксована.")}<br><br><b>CTA</b><br>${esc(ctx.cta || "—")}</div>
         </div>
         ${ctx.doNotUse ? `<div class="notice"><b>Не використовувати:</b> ${esc(ctx.doNotUse)}</div>` : ""}
-        <div class="toolbar"><button class="btn secondary" onclick="openMarketingSection(7)">${passport.completeness ? "Редагувати паспорт" : "Заповнити паспорт"}</button></div>
+        <div class="toolbar"><button class="btn secondary" onclick="openMarketingSection(7)">${passport.quickReady ? "Редагувати паспорт" : "Заповнити 4 поля"}</button></div>
       ` : `<div class="muted">Для змістової основи оберіть один сеанс.</div>`}
     </div>
 
     <div class="box" style="margin-top:14px">
-      <div class="eyebrow">6 • Закрити цикл</div>
+      <div class="eyebrow">6 • Чернетки повідомлень</div>
+      <h3>Один контекст → чотири робочі формати</h3>
+      ${copies ? `
+        <div class="muted">Це не зовнішній AI. V2.3 збирає структуровані чернетки з паспорта, даних сеансу та вибраного сегмента. Маркетолог редагує перед публікацією.</div>
+        <div class="copy-grid">
+          ${renderCampaignCopyCard("Соцмережі", copies.social, "copySocial")}
+          ${renderCampaignCopyCard("Email", copies.emailBody, "copyEmail", copies.emailSubject)}
+          ${renderCampaignCopyCard("SMS / месенджер", copies.sms, "copySms")}
+          ${renderCampaignCopyCard("Рекламне оголошення", copies.adPrimary, "copyAd", copies.adHeadline)}
+        </div>
+      ` : `
+        <div class="notice"><b>Потрібен швидкий паспорт.</b> Заповніть 4 поля: кому продаємо, чому йти, як говоримо і CTA. Після цього чернетки з'являться тут автоматично.</div>
+        <div class="toolbar"><button class="btn secondary" onclick="openMarketingSection(7)">До швидкого паспорта</button></div>
+      `}
+    </div>
+
+    <div class="box" style="margin-top:14px">
+      <div class="eyebrow">7 • Закрити цикл</div>
       <h3>Зафіксувати рішення</h3>
       <div class="muted">${esc(CAMPAIGN_DRAFT.comment || "Оберіть сегмент аудиторії — і VA збере контекст кампанії.")}</div>
       <div class="toolbar">
@@ -1771,7 +1876,7 @@ function renderCampaignsSection(){
 
     <div class="notice">
       <b>Що вже замкнуто:</b> стан сеансу → маркетинговий паспорт → релевантна аудиторія → виключення тих, хто вже купив → вибір сегмента → змістова основа кампанії → журнал дії.
-      Наступний шар — генератор конкретних повідомлень під канал: пост, email, SMS, рекламне оголошення.
+      У V2.3 уже зібрано перший генератор чернеток під канал: соцмережі, email, SMS/месенджер і рекламне оголошення. Наступний шар — оцінка та навчання на фактичних результатах кампаній.
     </div>
   `;
 }
