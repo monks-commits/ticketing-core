@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>Клієнтська база V1</title>
+  <title>Клієнтська база VA • Context Bridge</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
 
@@ -338,6 +338,27 @@
 
 
     
+
+/* ===== VA CONTEXT BRIDGE V2 ===== */
+.va-context-card{display:none;border:1px solid rgba(45,140,255,.55);background:linear-gradient(135deg,#10294f,#152744)}
+.va-context-card.show{display:block}
+.va-context-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.va-context-kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8dc2ff;font-weight:700}
+.va-context-title{font-size:25px;font-weight:800;margin:6px 0 4px}
+.va-context-meta{color:#aebbd0;line-height:1.5}
+.va-context-actions{display:flex;gap:8px;flex-wrap:wrap}
+.va-btn{border:0;border-radius:10px;background:#2d8cff;color:#fff;padding:9px 12px;cursor:pointer;font-weight:700}
+.va-btn.secondary{background:#314766}
+.va-btn.ghost{background:#0d1d34;border:1px solid rgba(255,255,255,.14)}
+.va-context-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.va-context-stat{background:#0d1d34;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+.va-context-stat span{display:block;color:#aebbd0;font-size:12px}
+.va-context-stat b{display:block;font-size:22px;margin-top:6px}
+.va-campaign-chip{display:inline-block;margin-top:8px;padding:5px 9px;border-radius:999px;background:#14315f;border:1px solid rgba(45,140,255,.55);font-size:12px}
+.va-filter-note{margin:12px 0 0;padding:11px 13px;border-radius:12px;background:#0d1d34;color:#d7e5ff;line-height:1.5}
+.va-filter-note strong{color:#8dc2ff}
+@media(max-width:800px){.va-context-grid{grid-template-columns:repeat(2,1fr)}.va-context-title{font-size:21px}}
+
   </style>
 </head>
 
@@ -346,7 +367,7 @@
     <div class="card">
       <h1>Клієнтська база</h1>
       <div class="muted">
-        V1: автоматично з orders + tickets + seances. Тільки факти: купив / прийшов / не прийшов / повернувся.
+        V2: єдина клієнтська база VA. Факти з orders + tickets + seances; підтримує наскрізний контекст сеансу та маркетингової кампанії.
       </div>
 
       <div class="stats">
@@ -358,6 +379,34 @@
 
 
       
+    </div>
+
+
+    <div id="vaContextCard" class="card va-context-card">
+      <div class="va-context-head">
+        <div>
+          <div class="va-context-kicker">VA Context Bridge • Клієнтська база</div>
+          <div id="vaContextTitle" class="va-context-title">Контекст маркетингу</div>
+          <div id="vaContextMeta" class="va-context-meta"></div>
+          <div id="vaCampaignChip"></div>
+        </div>
+        <div class="va-context-actions">
+          <button class="va-btn" onclick="openVAWorkspace('marketing')">← Маркетинг</button>
+          <button class="va-btn secondary" onclick="openVAWorkspace('studio')">Studio</button>
+          <button class="va-btn secondary" onclick="openVAWorkspace('director')">Директор</button>
+        </div>
+      </div>
+      <div class="va-context-grid">
+        <div class="va-context-stat"><span>Сегмент кампанії</span><b id="vaSegmentLabel">—</b></div>
+        <div class="va-context-stat"><span>Аудиторія зараз</span><b id="vaAudienceCount">0</b></div>
+        <div class="va-context-stat"><span>Уже купили сеанс</span><b id="vaAlreadyBought">0</b></div>
+        <div class="va-context-stat"><span>Є email / телефон</span><b id="vaReachableCount">0</b></div>
+      </div>
+      <div id="vaFilterNote" class="va-filter-note"></div>
+      <div class="va-context-actions" style="margin-top:12px">
+        <button class="va-btn" onclick="showCampaignAudience()">Аудиторія кампанії</button>
+        <button class="va-btn ghost" onclick="showAllClientsInContext()">Показати всю КБ</button>
+      </div>
     </div>
 
     <div class="card">
@@ -452,6 +501,184 @@ let ACTIVE_SEGMENT = "all";
   let ACTIVE_LOST_DAYS = 0;
 
 let ACTIVE_VIP_SORT = "";
+
+
+// ===== VA Context Bridge V2 =====
+const VA_WORKSPACE_CONTEXT_KEY = "va_workspace_context_v1";
+const VA_CAMPAIGN_STORAGE_KEY = "va_marketing_campaigns_v24";
+const VA_WORKSPACE_ROUTES = {
+  marketing: "https://monks-commits.github.io/ticketing-core/admin/marketing.html",
+  clients: "https://monks-commits.github.io/ticketing-core/admin/viewers.html",
+  studio: "https://monks-commits.github.io/ticketing-core/admin/content_studio.html",
+  director: "https://monks-commits.github.io/ticketing-core/admin/director-dashboard.html"
+};
+
+let VA_CONTEXT = { seance_id:"", campaign_id:"", source:"" };
+let VA_CAMPAIGN = null;
+let VA_CONTEXT_FILTER_ENABLED = true;
+let VA_SEANCES = [];
+
+function loadVAContext(){
+  const params = new URLSearchParams(location.search);
+  let stored = {};
+  try{ stored = JSON.parse(localStorage.getItem(VA_WORKSPACE_CONTEXT_KEY) || "{}"); }catch(e){}
+  VA_CONTEXT = {
+    seance_id: String(params.get("seance_id") || stored.seance_id || ""),
+    campaign_id: String(params.get("campaign_id") || stored.campaign_id || ""),
+    source: String(params.get("va_from") || stored.source || "")
+  };
+  if(VA_CONTEXT.campaign_id){
+    try{
+      const list = JSON.parse(localStorage.getItem(VA_CAMPAIGN_STORAGE_KEY) || "[]");
+      VA_CAMPAIGN = Array.isArray(list) ? list.find(c => String(c.id) === VA_CONTEXT.campaign_id) || null : null;
+      if(!VA_CONTEXT.seance_id && VA_CAMPAIGN?.seance_id) VA_CONTEXT.seance_id = String(VA_CAMPAIGN.seance_id);
+    }catch(e){ VA_CAMPAIGN = null; }
+  }
+  persistVAContext("clients");
+}
+
+function persistVAContext(target="clients"){
+  const ctx = {
+    seance_id: VA_CONTEXT.seance_id || "",
+    campaign_id: VA_CONTEXT.campaign_id || "",
+    target,
+    source: "clients",
+    updated_at: new Date().toISOString()
+  };
+  try{ localStorage.setItem(VA_WORKSPACE_CONTEXT_KEY, JSON.stringify(ctx)); }catch(e){}
+  return ctx;
+}
+
+function openVAWorkspace(key){
+  const route = VA_WORKSPACE_ROUTES[key];
+  if(!route) return;
+  const ctx = persistVAContext(key);
+  const url = new URL(route, location.href);
+  if(ctx.seance_id) url.searchParams.set("seance_id", ctx.seance_id);
+  if(ctx.campaign_id) url.searchParams.set("campaign_id", ctx.campaign_id);
+  url.searchParams.set("va_from", "clients");
+  location.href = url.toString();
+}
+
+function getVASeance(){
+  return VA_SEANCES.find(s => String(s.id) === String(VA_CONTEXT.seance_id)) || null;
+}
+
+function clientBoughtContextSeance(client){
+  if(!VA_CONTEXT.seance_id) return false;
+  return (client.events || []).some(e => String(e.seanceId || "") === String(VA_CONTEXT.seance_id));
+}
+
+function clientLastActivityDays(client){
+  const vals = [client.lastOrder, client.lastVisit]
+    .filter(Boolean)
+    .map(v => new Date(v).getTime())
+    .filter(Number.isFinite);
+  if(!vals.length) return 9999;
+  return Math.floor((Date.now() - Math.max(...vals)) / 86400000);
+}
+
+function clientFavoriteGenreRaw(client){
+  return topValue(client.events || [], "genre");
+}
+
+function matchesCampaignAudience(client){
+  if(!VA_CAMPAIGN?.segmentKey) return true;
+  if(clientBoughtContextSeance(client)) return false;
+
+  const key = String(VA_CAMPAIGN.segmentKey || "");
+  const seance = getVASeance();
+  const genre = seance?.genre || "";
+  const favGenre = clientFavoriteGenreRaw(client);
+
+  if(key === "genre") return !!genre && favGenre === genre;
+  if(key === "regular") return client.ordersCount >= 5 || client.visited >= 5;
+  if(key === "vip") return client.ordersCount >= 10 || client.visited >= 5;
+  if(key === "lost") return clientLastActivityDays(client) >= 90 && (!genre || favGenre === genre);
+  if(key === "repeat") return client.ordersCount >= 2;
+  return true;
+}
+
+function getCampaignAudience(){
+  if(!VA_CAMPAIGN?.segmentKey) return [];
+  return CLIENTS.filter(matchesCampaignAudience);
+}
+
+function getAlreadyBoughtCount(){
+  if(!VA_CONTEXT.seance_id) return 0;
+  return CLIENTS.filter(clientBoughtContextSeance).length;
+}
+
+function getReachableCount(list){
+  return (list || []).filter(c => c.email || c.phone).length;
+}
+
+function renderVAContextBridge(){
+  const card = document.getElementById("vaContextCard");
+  if(!card) return;
+  const hasContext = !!(VA_CONTEXT.seance_id || VA_CONTEXT.campaign_id);
+  card.classList.toggle("show", hasContext);
+  if(!hasContext) return;
+
+  const seance = getVASeance();
+  const audience = getCampaignAudience();
+  const segmentLabel = VA_CAMPAIGN?.segmentLabel || (VA_CAMPAIGN?.segmentKey ? VA_CAMPAIGN.segmentKey : "Контекст без кампанії");
+  const campaignName = VA_CAMPAIGN?.name || "";
+
+  document.getElementById("vaContextTitle").textContent = seance?.show || "Вибраний сеанс";
+  document.getElementById("vaContextMeta").textContent = [
+    seance?.date ? fmtDate(seance.date) : "",
+    seance?.time ? String(seance.time).slice(0,5) : "",
+    seance?.genre || "",
+    VA_CONTEXT.seance_id ? `seance_id: ${VA_CONTEXT.seance_id}` : ""
+  ].filter(Boolean).join(" • ");
+
+  document.getElementById("vaCampaignChip").innerHTML = VA_CONTEXT.campaign_id
+    ? `<span class="va-campaign-chip"><b>${esc(campaignName || "Кампанія")}</b> • ${esc(VA_CONTEXT.campaign_id)}</span>`
+    : `<span class="va-campaign-chip">Кампанію не вибрано</span>`;
+
+  document.getElementById("vaSegmentLabel").textContent = segmentLabel || "—";
+  document.getElementById("vaAudienceCount").textContent = VA_CAMPAIGN?.segmentKey ? audience.length : "—";
+  document.getElementById("vaAlreadyBought").textContent = getAlreadyBoughtCount();
+  document.getElementById("vaReachableCount").textContent = VA_CAMPAIGN?.segmentKey ? getReachableCount(audience) : "—";
+
+  let note = "Контекст сеансу прийнято з Marketing.";
+  if(VA_CAMPAIGN?.segmentKey){
+    note = VA_CONTEXT_FILTER_ENABLED
+      ? `<strong>Фільтр кампанії увімкнено.</strong> У таблиці нижче — саме люди сегмента «${esc(segmentLabel)}», які ще не купили цей сеанс.`
+      : `<strong>Контекст збережено, але фільтр кампанії вимкнено.</strong> Нижче показана вся клієнтська база.`;
+    if(Number(VA_CAMPAIGN.audienceCount || 0) && Number(VA_CAMPAIGN.audienceCount) !== audience.length){
+      note += ` Зафіксовано в Marketing: ${Number(VA_CAMPAIGN.audienceCount)}; перераховано в КБ зараз: ${audience.length}.`;
+    }
+  }
+  document.getElementById("vaFilterNote").innerHTML = note;
+}
+
+function resetManualSegments(){
+  ACTIVE_SEGMENT = "all";
+  ACTIVE_LOST_DAYS = 0;
+  ACTIVE_VIP_SORT = "";
+  document.querySelectorAll(".seg-btn").forEach(x => x.classList.toggle("active", x.dataset.segment === "all"));
+  document.querySelectorAll(".lost-btn,.vip-btn").forEach(x => x.classList.remove("active"));
+  const lost = document.getElementById("lostFilters"); if(lost) lost.style.display = "none";
+  const vip = document.getElementById("vipFilters"); if(vip) vip.style.display = "none";
+}
+
+function showCampaignAudience(){
+  if(!VA_CAMPAIGN?.segmentKey){ alert("У контексті немає збереженого сегмента кампанії."); return; }
+  VA_CONTEXT_FILTER_ENABLED = true;
+  resetManualSegments();
+  renderVAContextBridge();
+  renderList();
+}
+
+function showAllClientsInContext(){
+  VA_CONTEXT_FILTER_ENABLED = false;
+  resetManualSegments();
+  renderVAContextBridge();
+  renderList();
+}
+
   
 function esc(v) {
   return String(v ?? "")
@@ -647,6 +874,7 @@ async function fetchAll(table, select = "*") {
 // tickets.order_id = ORD-... / CASH-...
 
 async function loadViewers() {
+  loadVAContext();
   const body = document.getElementById("clientsBody");
   body.innerHTML = `<tr><td colspan="6" class="muted">Завантаження...</td></tr>`;
 
@@ -659,6 +887,8 @@ async function loadViewers() {
   "id,show,date,time,show_slug,event_type,genre,venue_id"
 )
     ]);
+
+    VA_SEANCES = seances || [];
 
     const seanceByKey = new Map();
 
@@ -792,6 +1022,7 @@ genreFan: "",
         }
 
         client.events.push({
+          seanceId: ticket.seance_id || order.seance_id || null,
           date: getSeanceDate(seance, order),
           title: getSeanceTitle(seance),
           eventType: seance.event_type || "—",
@@ -929,6 +1160,7 @@ else if (client.genreFan === "drama") {
     });
 
     renderStats();
+    renderVAContextBridge();
     renderList();
 
   } catch (err) {
@@ -1005,6 +1237,7 @@ function renderList() {
 
   return !q || hay.includes(q);
 })
+.filter(c => !VA_CONTEXT_FILTER_ENABLED || !VA_CAMPAIGN?.segmentKey || matchesCampaignAudience(c))
 .filter(c => {
 
   if (ACTIVE_SEGMENT === "all") return true;
