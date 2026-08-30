@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V1</title>
+  <title>VA Marketing Control Center V2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -56,30 +56,81 @@ textarea::placeholder{
   color:#7f95b5;
 }
 
+  .hero{
+    background:linear-gradient(135deg,#162b4b 0%,#10223d 55%,#0b1c34 100%);
+    border:1px solid rgba(141,194,255,.2);
+  }
+  .hero-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#8dc2ff;font-weight:700;margin-bottom:8px}
+  .hero-badges{display:flex;gap:8px;flex-wrap:wrap}
+  .badge{padding:6px 10px;border-radius:999px;background:#0d1d34;border:1px solid rgba(255,255,255,.12);font-size:12px;color:#dce8ff}
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:16px}
+  .kpi{background:#0b1b31;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:13px;min-width:0}
+  .kpi span{display:block;color:#aebbd0;font-size:12px;margin-bottom:7px}
+  .kpi strong{display:block;font-size:23px;line-height:1.05;word-break:break-word}
+  .kpi small{display:block;color:#7f95b5;margin-top:6px;line-height:1.3}
+  .progress{height:10px;background:#071426;border-radius:999px;overflow:hidden;margin-top:10px;border:1px solid rgba(255,255,255,.08)}
+  .progress > div{height:100%;background:linear-gradient(90deg,#2d8cff,#62b0ff);border-radius:999px}
+  .two-col{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:14px}
+  .three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+  .signal-list,.action-list{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+  .signal,.action-item{background:#09182c;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 12px;line-height:1.42}
+  .signal strong,.action-item strong{display:inline;font-size:inherit;margin:0}
+  .signal.good-line{border-left:4px solid #39a56d}
+  .signal.warn-line{border-left:4px solid #c4922d}
+  .signal.bad-line{border-left:4px solid #bd5656}
+  .signal.info-line{border-left:4px solid #2d8cff}
+  .section-caption{display:flex;justify-content:space-between;gap:12px;align-items:end;flex-wrap:wrap;margin:22px 0 10px}
+  .section-caption h3{margin:0}
+  .micro{font-size:12px;color:#7f95b5}
+  .metric-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+  .metric-row:last-child{border-bottom:0}
+  .metric-row b{display:inline;font-size:inherit;margin:0}
+  .channel-bar{height:6px;background:#071426;border-radius:99px;overflow:hidden;margin-top:6px}
+  .channel-bar > div{height:100%;background:#2d8cff;border-radius:99px}
+  .notice{padding:12px 14px;border-radius:12px;background:#102a50;border:1px solid rgba(45,140,255,.35);margin:12px 0;line-height:1.45}
+  .focus-name{font-size:27px;margin:0 0 5px}
+  .trend-up{color:#72d49c}
+  .trend-down{color:#ff9696}
+  .trend-flat{color:#d7dce6}
+  .btn.small{padding:6px 9px;font-size:12px}
+  tr.focused-row{background:rgba(45,140,255,.07)}
 
+  @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}.three-col{grid-template-columns:1fr 1fr}}
+  @media(max-width:700px){.kpi-grid,.three-col{grid-template-columns:1fr 1fr}.focus-name{font-size:23px}}
+  @media(max-width:480px){.kpi-grid,.three-col{grid-template-columns:1fr}}
 
-    
   </style>
 </head>
 
 <body>
 <div class="wrap">
 
-  <div class="card">
-    <h1>VA Marketing V1</h1>
-    <div class="muted">
-      Маркетинг = фіксація ситуації + набір дій. Дані беруться напряму з Supabase: orders + tickets + seances.
-      Нічого не дублюємо з КБ і нічого не записуємо.
+  <div class="card hero">
+    <div class="hero-head">
+      <div>
+        <div class="eyebrow">VA • Marketing OS</div>
+        <h1>Marketing Control Center V2</h1>
+        <div class="muted">
+          Робоче місце маркетолога: факт → діагноз → дія → результат.
+          Основна аналітика читає live-дані Supabase; окремо записується тільки журнал маркетингових дій.
+        </div>
+      </div>
+      <div class="hero-badges">
+        <span class="badge">LIVE DATA</span>
+        <span class="badge">Без дублювання КБ</span>
+        <span class="badge">Без зовнішнього AI API</span>
+      </div>
     </div>
   </div>
 
   <div class="card">
     <h2>Замкнутий цикл VA</h2>
     <div class="grid">
-      <div class="box"><span>1. Дані</span><b>КБ / Сеанс / Токен</b></div>
-      <div class="box"><span>2. Аналіз</span><b>Сегменти</b></div>
-      <div class="box"><span>3. Можливість</span><b>Кого запросити</b></div>
-      <div class="box"><span>4. Дія</span><b>Кампанія</b></div>
+      <div class="box"><span>1. Факт</span><b>Продаж / Квиток / Прохід</b></div>
+      <div class="box"><span>2. Аналіз</span><b>Темп / Аудиторія / Канал</b></div>
+      <div class="box"><span>3. Рішення</span><b>Що робити зараз</b></div>
+      <div class="box"><span>4. Пам'ять</span><b>Дія → Результат</b></div>
     </div>
   </div>
 
@@ -124,13 +175,13 @@ let CURRENT_SEANCE_IDS = [];
 let ACTIVE_SECTION = 0;
 
 const TOOLS = [
-  ["📍 Що відбувається зараз", "Сеанси, які потребують уваги", "Сеанси"],
+  ["📍 Control Center", "Стан продажів, сигнали, ризики та дії по сеансах", "Зараз"],
   ["👥 Аудиторії", "Аудиторія вибраних сеансів: жанри, VIP, типи квитків", "Клієнтська база"],
-  ["📣 Канали продажів", "Канали по проданих квитках вибраних сеансів", "Продажі"],
+  ["📣 Канали продажів", "Фактичні продажі та виручка по каналах", "Атрибуція"],
   ["🎯 Кампанії", "Планування маркетингових дій без автоматичної відправки", "Дії"],
   ["🧰 Сценарії та досвід", "Загальні методики без закритої експертизи VA", "База знань"],
-  ["📒 Журнал маркетингу", "Що робили, коли робили і який був результат", "Історія дій"],
-  ["📊 Ефективність", "Фактична аналітика по жанрах, каналах і сеансах", "Статистика"]
+  ["📒 Журнал маркетингу", "Що робили, коли робили і який був результат", "Пам'ять"],
+  ["📊 Ефективність", "Фактична аналітика по жанрах, каналах і сеансах", "Результат"]
 ];
 
 function esc(v){
@@ -502,35 +553,364 @@ function getChannelRows(seanceIds = null){
     }));
 }
 
+function setFocusSeance(id){
+  CURRENT_SEANCE_IDS = [String(id)];
+  refreshActiveSection();
+}
+
+function getScopeCapacity(){
+  return getScopeSeances().reduce((sum,s) => sum + Number(s.capacity || 0), 0);
+}
+
+function getSalesWindowStats(seanceIds){
+  const ids = new Set((seanceIds || []).map(String));
+  const now = new Date();
+  const start24 = new Date(now.getTime() - 24 * 3600000);
+  const start7 = new Date(now.getTime() - 7 * 86400000);
+  const start14 = new Date(now.getTime() - 14 * 86400000);
+
+  const dated = TICKETS.filter(t =>
+    ids.has(String(t.seance_id)) &&
+    t.created_at &&
+    !isNaN(new Date(t.created_at))
+  );
+
+  const last24 = dated.filter(t => new Date(t.created_at) >= start24).length;
+  const last7 = dated.filter(t => new Date(t.created_at) >= start7).length;
+  const prev7 = dated.filter(t => {
+    const d = new Date(t.created_at);
+    return d >= start14 && d < start7;
+  }).length;
+
+  let change = null;
+  if(prev7 > 0) change = Math.round(((last7 - prev7) / prev7) * 100);
+  else if(last7 > 0) change = 100;
+  else change = 0;
+
+  return {
+    last24,
+    last7,
+    prev7,
+    change,
+    daily7: Math.round((last7 / 7) * 10) / 10
+  };
+}
+
+function getScopeAudienceStats(seanceIds){
+  const ids = new Set((seanceIds || []).map(String));
+  const orderByKey = new Map();
+
+  ORDERS.forEach(o => {
+    [o.id, o.order_id].forEach(k => {
+      if(k !== null && k !== undefined && k !== "") orderByKey.set(String(k), o);
+    });
+  });
+
+  const buyerKeys = new Set();
+
+  TICKETS
+    .filter(t => ids.has(String(t.seance_id)))
+    .forEach(t => {
+      const o = orderByKey.get(String(t.order_id || ""));
+      if(o) buyerKeys.add(normKey(o));
+    });
+
+  ORDERS.forEach(o => {
+    const status = String(o.status || "").toLowerCase();
+    if(status && !["paid","success","completed","approved"].includes(status)) return;
+    if(ids.has(String(o.seance_id || ""))) buyerKeys.add(normKey(o));
+  });
+
+  const clientMap = new Map(CLIENTS.map(c => [c.key, c]));
+  const people = Array.from(buyerKeys).map(k => clientMap.get(k)).filter(Boolean);
+
+  return {
+    buyers: people.length,
+    newBuyers: people.filter(c => c.orders <= 1).length,
+    repeatBuyers: people.filter(c => c.orders >= 2).length,
+    regular: people.filter(c => c.isRegular).length,
+    vip: people.filter(c => c.isVip).length,
+    lost: people.filter(c => c.isLost).length
+  };
+}
+
+function getScopeGenreAudience(seanceIds){
+  const ids = new Set((seanceIds || []).map(String));
+  const genres = Array.from(new Set(
+    SEANCES
+      .filter(s => ids.has(String(s.id)))
+      .map(s => s.genre)
+      .filter(g => g && g !== "—")
+  ));
+
+  const keys = new Set();
+  genres.forEach(g => audienceForGenre(g).forEach(c => keys.add(c.key)));
+  return { genres, count: keys.size };
+}
+
+function getMarketingSnapshot(){
+  const seanceIds = getScopeSeanceIds();
+  const seances = getScopeSeances();
+  const tickets = getScopeTickets();
+  const sold = tickets.length;
+  const revenue = tickets.reduce((sum,t) => sum + Number(t.price || 0), 0);
+  const visited = tickets.filter(t => t.checked_in_at).length;
+  const capacity = getScopeCapacity();
+  const fill = capacity > 0 ? Math.round((sold / capacity) * 100) : 0;
+  const sales = getSalesWindowStats(seanceIds);
+  const audience = getScopeAudienceStats(seanceIds);
+  const genreAudience = getScopeGenreAudience(seanceIds);
+  const channels = getChannelRows(seanceIds);
+  const knownTickets = channels
+    .filter(r => String(r.channel).toLowerCase() !== "невідомо")
+    .reduce((sum,r) => sum + r.tickets, 0);
+  const attribution = sold ? Math.round((knownTickets / sold) * 100) : 0;
+
+  let focus = null;
+  if(seances.length === 1){
+    const s = seances[0];
+    const days = daysToSeance(s);
+    const genre = s.genre || "—";
+    const aud = audienceForGenre(genre);
+    const stats = getSeanceStats(s.id);
+    const analysis = evaluateSeance({
+      sold: stats.sold,
+      capacity: Number(s.capacity || 0),
+      daysLeft: days ?? 0,
+      genreAudience: aud.length,
+      vipCount: aud.filter(c => c.isVip).length,
+      lostCount: aud.filter(c => c.isLost).length,
+      last7Sales: sales.last7
+    });
+
+    const projectedSold = days !== null && days > 0
+      ? stats.sold + sales.daily7 * days
+      : stats.sold;
+    const projectedFill = Number(s.capacity || 0) > 0
+      ? Math.min(100, Math.round((projectedSold / Number(s.capacity || 0)) * 100))
+      : 0;
+    const targetSold = Math.ceil(Number(s.capacity || 0) * 0.85);
+    const remainingTo85 = Math.max(0, targetSold - stats.sold);
+    const neededPerDay = days && days > 0
+      ? Math.round((remainingTo85 / days) * 10) / 10
+      : 0;
+
+    focus = { seance:s, days, analysis, projectedFill, neededPerDay, genreAudience:aud.length };
+  }
+
+  return {
+    seanceIds, seances, tickets, sold, revenue, visited, capacity, fill,
+    sales, audience, genreAudience, channels, attribution, focus
+  };
+}
+
+function trendHtml(change){
+  if(change > 0) return `<span class="trend-up">▲ ${change}%</span>`;
+  if(change < 0) return `<span class="trend-down">▼ ${Math.abs(change)}%</span>`;
+  return `<span class="trend-flat">→ 0%</span>`;
+}
+
+function buildMarketingBrief(s){
+  const facts = [];
+  const actions = [];
+
+  if(s.focus){
+    const a = s.focus.analysis;
+    facts.push({type:a.risk === "Високий" ? "bad" : a.risk === "Середній" ? "warn" : "good", text:`Заповнення ${a.fill}% при внутрішньому орієнтирі ${a.plannedFill}%: відхилення ${a.lag > 0 ? "+" : ""}${a.lag}%.`});
+    facts.push({type:s.sales.change < -20 ? "bad" : s.sales.change < 0 ? "warn" : "good", text:`За останні 7 днів продано ${s.sales.last7} квитків; попередні 7 днів — ${s.sales.prev7}. Динаміка ${s.sales.change > 0 ? "+" : ""}${s.sales.change}%.`});
+    facts.push({type:"info", text:`Простий прогноз за поточним 7-денним темпом: близько ${s.focus.projectedFill}% заповнення до дати сеансу.`});
+
+    if(s.focus.analysis.lag < 0){
+      actions.push(`Сеанс нижче внутрішнього орієнтира на ${Math.abs(s.focus.analysis.lag)} п.п. — потрібна окрема маркетингова дія, а не загальне «посилити рекламу».`);
+    } else {
+      actions.push(`Продажі не нижче внутрішнього орієнтира. Не змінювати механіку без причини; контролювати темп.`);
+    }
+
+    if(s.sales.change < -20) actions.push(`Темп 7/7 знизився на ${Math.abs(s.sales.change)}%. Перевірити останні дії в журналі та канали, де впав фактичний продаж.`);
+    else if(s.sales.change > 20) actions.push(`Темп зростає на ${s.sales.change}%. Зафіксувати, які дії передували росту, щоб не втратити робочу зв'язку.`);
+
+    if(s.genreAudience.count > 0) actions.push(`У КБ є ${s.genreAudience.count} клієнтів з історичним інтересом до жанрів цього сеансу — підготувати окрему кампанію для них.`);
+    if(s.audience.lost > 0) actions.push(`Серед покупців/аудиторії є «втрачені 90+». Винести повернення цієї групи в окремий сценарій, не змішувати з усією базою.`);
+    if(s.focus.neededPerDay > 0) actions.push(`Для орієнтира 85% потрібно в середньому ще ≈ ${s.focus.neededPerDay} квитка/день до сеансу.`);
+  } else {
+    const highRisk = s.seances.filter(se => {
+      const stats = getSeanceStats(se.id);
+      const genre = se.genre || "—";
+      const aud = audienceForGenre(genre);
+      return evaluateSeance({
+        sold: stats.sold,
+        capacity: Number(se.capacity || 0),
+        daysLeft: daysToSeance(se) ?? 0,
+        genreAudience: aud.length,
+        vipCount: aud.filter(c => c.isVip).length,
+        lostCount: aud.filter(c => c.isLost).length,
+        last7Sales: getLast7Sales(se.id)
+      }).risk === "Високий";
+    }).length;
+
+    facts.push({type:highRisk ? "warn" : "good", text:`У поточному портфелі ${s.seances.length} сеансів; високий ризик за внутрішнім орієнтиром мають ${highRisk}.`});
+    facts.push({type:s.sales.change < 0 ? "warn" : "good", text:`Сумарно за 7 днів: ${s.sales.last7} квитків проти ${s.sales.prev7} за попередній період.`});
+    actions.push(`Для точного діагнозу виберіть один сеанс кнопкою «Фокус». Портфельний режим потрібен для пошуку проблем, а не для фінального рішення.`);
+    if(highRisk) actions.push(`Спочатку розібрати ${highRisk} сеанс(и) з високим ризиком — вони мають пріоритет над загальними кампаніями.`);
+  }
+
+  const top = s.channels[0];
+  if(top){
+    facts.push({type:"info", text:`Найбільше фактичних продажів у вибраному обсязі дає канал «${top.channel}»: ${top.tickets} квитків (${top.share}%).`});
+  }
+
+  if(s.attribution < 80 && s.sold > 0){
+    facts.push({type:"warn", text:`Канал визначено лише для ${s.attribution}% проданих квитків. Частина маркетингової картини поки сліпа.`});
+    actions.push(`Підняти покриття каналів/UTM/ref: без цього VA бачить продаж, але не завжди бачить, що саме його привело.`);
+  }
+
+  return { facts:facts.slice(0,5), actions:Array.from(new Set(actions)).slice(0,5) };
+}
+
 function currentScopeSummaryHtml(){
-  const scopeTickets = getScopeTickets();
-  const scopeSeances = getScopeSeances();
-  const sum = scopeTickets.reduce((s,t) => s + Number(t.price || 0), 0);
-  const visited = scopeTickets.filter(t => t.checked_in_at).length;
-  const genres = new Set(scopeSeances.map(s => s.genre).filter(Boolean));
+  const s = getMarketingSnapshot();
+  const title = s.focus ? (s.focus.seance.show || "Вибраний сеанс") : scopeTitle();
+  const subtitle = s.focus
+    ? `${fmtDate(s.focus.seance.date)} • ${esc(s.focus.seance.time || "")} • ${esc(s.focus.seance.genre || "жанр не вказаний")}`
+    : `Портфельний режим • ${s.seances.length} найближчих/вибраних сеансів`;
+  const fillText = s.capacity > 0 ? `${s.fill}%` : "—";
 
   return `
-    <div class="grid" style="margin-bottom:16px">
-      <div class="box"><span>Сеансів</span><b>${scopeSeances.length}</b></div>
-      <div class="box"><span>Квитків</span><b>${scopeTickets.length}</b></div>
-      <div class="box"><span>Сума</span><b>${sum.toLocaleString("uk-UA")}</b></div>
-      <div class="box"><span>Відвідали</span><b>${visited}</b></div>
+    <div class="box" style="margin-bottom:14px">
+      <div class="eyebrow">Поточний фокус</div>
+      <div class="hero-head">
+        <div>
+          <h3 class="focus-name">${esc(title)}</h3>
+          <div class="muted">${subtitle}</div>
+        </div>
+        <div class="hero-badges">
+          ${s.focus ? `<span class="badge">До сеансу: ${s.focus.days !== null ? s.focus.days + " дн." : "—"}</span>` : `<span class="badge">Сеансів: ${s.seances.length}</span>`}
+          <span class="badge">Атрибуція: ${s.attribution}%</span>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><span>Продано</span><strong>${s.sold.toLocaleString("uk-UA")}</strong><small>${s.capacity ? `із ${s.capacity.toLocaleString("uk-UA")} місць` : "місткість не задана"}</small></div>
+        <div class="kpi"><span>Заповнення</span><strong>${fillText}</strong><small>${s.focus ? `орієнтир ${s.focus.analysis.plannedFill}%` : "по вибраному обсягу"}</small></div>
+        <div class="kpi"><span>Виручка</span><strong>${s.revenue.toLocaleString("uk-UA")}</strong><small>грн за проданими квитками</small></div>
+        <div class="kpi"><span>Останні 7 днів</span><strong>${s.sales.last7}</strong><small>${trendHtml(s.sales.change)} до попередніх 7 днів</small></div>
+        <div class="kpi"><span>Останні 24 години</span><strong>${s.sales.last24}</strong><small>фактичних квитків</small></div>
+        <div class="kpi"><span>Покупці</span><strong>${s.audience.buyers}</strong><small>нові ${s.audience.newBuyers} • повторні ${s.audience.repeatBuyers}</small></div>
+      </div>
+
+      ${s.capacity > 0 ? `<div class="progress" title="Заповнення ${s.fill}%"><div style="width:${Math.min(100,s.fill)}%"></div></div>` : ""}
     </div>
-    <div class="muted" style="margin-bottom:12px">Жанри: ${genres.size ? Array.from(genres).map(esc).join(", ") : "—"}</div>
+  `;
+}
+
+function renderAudienceMini(s){
+  return `
+    <div class="box">
+      <h3>👥 Аудиторія</h3>
+      <div class="metric-row"><span>Покупців у фокусі</span><b>${s.audience.buyers}</b></div>
+      <div class="metric-row"><span>Нові / повторні</span><b>${s.audience.newBuyers} / ${s.audience.repeatBuyers}</b></div>
+      <div class="metric-row"><span>Постійні / VIP</span><b>${s.audience.regular} / ${s.audience.vip}</b></div>
+      <div class="metric-row"><span>Історична аудиторія жанрів</span><b>${s.genreAudience.count}</b></div>
+      <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openMarketingSection(1)">Відкрити аудиторії</button></div>
+    </div>
+  `;
+}
+
+function renderChannelsMini(s){
+  const top = s.channels.slice(0,4);
+  return `
+    <div class="box">
+      <h3>📣 Канали продажів</h3>
+      ${top.length ? top.map(r => `
+        <div style="margin-bottom:10px">
+          <div class="metric-row" style="padding-bottom:4px"><span>${esc(r.channel)}</span><b>${r.tickets} • ${r.share}%</b></div>
+          <div class="channel-bar"><div style="width:${Math.min(100,r.share)}%"></div></div>
+        </div>
+      `).join("") : `<div class="muted">Поки немає продажів.</div>`}
+      <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openMarketingSection(2)">Відкрити канали</button></div>
+    </div>
+  `;
+}
+
+function renderTicketTypesMini(s){
+  const stats = getTicketTypeStats(s.seanceIds);
+  const rows = Object.entries(stats).sort((a,b) => b[1] - a[1]).slice(0,6);
+  return `
+    <div class="box">
+      <h3>🎟️ Структура квитків</h3>
+      ${rows.length ? rows.map(([k,v]) => `<span class="pill">${esc(ticketTypeLabel(k))}: ${v}</span>`).join(" ") : `<div class="muted">Поки немає квитків.</div>`}
+      <div class="micro" style="margin-top:12px">Це факт по квитках, а не припущення про аудиторію.</div>
+    </div>
+  `;
+}
+
+function renderControlCenterHtml(){
+  const s = getMarketingSnapshot();
+  const brief = buildMarketingBrief(s);
+
+  return `
+    ${CURRENT_SEANCE_IDS.length !== 1 ? `
+      <div class="notice">
+        <b>Портфельний режим.</b> Для повного маркетингового розбору натисніть «Фокус» біля одного сеансу. Мультивибір залишаємо для порівняння та групових дій.
+      </div>
+    ` : ""}
+
+    ${currentScopeSummaryHtml()}
+
+    <div class="two-col">
+      <div class="box">
+        <div class="eyebrow">VA • Факти та діагноз</div>
+        <h3>Що відбувається</h3>
+        <div class="signal-list">
+          ${brief.facts.map(x => `<div class="signal ${x.type}-line">${esc(x.text)}</div>`).join("") || `<div class="signal info-line">Недостатньо даних для діагнозу.</div>`}
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="eyebrow">VA • Наступний крок</div>
+        <h3>Що робити зараз</h3>
+        <div class="action-list">
+          ${brief.actions.map((x,i) => `<div class="action-item"><strong>${i+1}.</strong> ${esc(x)}</div>`).join("") || `<div class="action-item">Спостерігати та накопичувати факт.</div>`}
+        </div>
+        <div class="toolbar" style="margin-bottom:0">
+          <button class="btn" onclick="openMarketingSection(3)">Підготувати кампанію</button>
+          <button class="btn secondary" onclick="openMarketingSection(5)">Записати дію</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="three-col">
+      ${renderAudienceMini(s)}
+      ${renderChannelsMini(s)}
+      ${renderTicketTypesMini(s)}
+    </div>
   `;
 }
 
 function renderCurrentSection(){
   const panel = document.getElementById("activeSectionPanel");
   panel.innerHTML = `
-    <h2>📍 Що відбувається зараз</h2>
-    <div class="muted" style="margin-bottom:12px">Виберіть один або кілька сеансів. Інші розділи будуть рахувати саме вибрані сеанси.</div>
-    ${renderScopeHeader()}
-    <div class="toolbar">
-      <button class="btn secondary" onclick="selectAllVisibleSeances()">Вибрати всі найближчі</button>
-      <button class="btn danger" onclick="clearSeanceSelection()">Скинути вибір</button>
+    <div class="section-caption">
+      <div>
+        <div class="eyebrow">LIVE • CONTROL CENTER</div>
+        <h2>📍 Що відбувається зараз</h2>
+        <div class="muted">Не звіт заради звіту: знайти відхилення, зрозуміти причину, перейти до дії.</div>
+      </div>
+      <div class="toolbar" style="margin:0">
+        <button class="btn secondary" onclick="selectAllVisibleSeances()">Вибрати всі найближчі</button>
+        <button class="btn danger" onclick="clearSeanceSelection()">Скинути вибір</button>
+      </div>
     </div>
-    ${currentScopeSummaryHtml()}
+
+    ${renderControlCenterHtml()}
+
+    <div class="section-caption">
+      <div>
+        <h3>Сеанси під контролем</h3>
+        <div class="muted">«Фокус» відкриває детальний розбір одного сеансу. Checkbox залишає мультивибір.</div>
+      </div>
+    </div>
+
     <div class="table-wrap">
       <table>
         <thead>
@@ -560,41 +940,47 @@ function opportunitiesRowsHtml(){
     const days = daysToSeance(s);
     const vip = aud.filter(c => c.isVip).length;
     const lost = aud.filter(c => c.isLost).length;
+    const sales = getSalesWindowStats([String(s.id)]);
     const analysis = evaluateSeance({
       sold: stats.sold,
       capacity: Number(s.capacity || 0),
-      daysLeft: days || 0,
+      daysLeft: days ?? 0,
       genreAudience: aud.length,
       vipCount: vip,
       lostCount: lost,
-      last7Sales: getLast7Sales(s.id)
+      last7Sales: sales.last7
     });
 
     const riskClass = analysis.risk === "Високий" ? "bad" : analysis.risk === "Середній" ? "warn" : "good";
     const checked = CURRENT_SEANCE_IDS.includes(String(s.id)) ? "checked" : "";
+    const focused = CURRENT_SEANCE_IDS.length === 1 && CURRENT_SEANCE_IDS.includes(String(s.id));
 
     return `
-      <tr>
+      <tr class="${focused ? "focused-row" : ""}">
         <td><input type="checkbox" ${checked} onchange="toggleSeance('${esc(s.id)}')"></td>
-        <td><b>${esc(s.show || "Подія")}</b><br><span class="muted">${esc(s.event_type || "")}</span><br><span class="muted">До сеансу: ${days !== null ? days + " дн." : "—"}</span></td>
+        <td>
+          <b>${esc(s.show || "Подія")}</b><br>
+          <span class="muted">${esc(s.event_type || "")}</span><br>
+          <span class="muted">До сеансу: ${days !== null ? days + " дн." : "—"}</span><br>
+          <button class="btn small secondary" style="margin-top:7px" onclick="setFocusSeance('${esc(s.id)}')">Фокус</button>
+        </td>
         <td>${fmtDate(s.date)}</td>
         <td><span class="pill">${esc(genre)}</span></td>
         <td>
-          Продано: <b>${stats.sold}</b><br>
+          Продано: <b>${stats.sold}</b>${Number(s.capacity || 0) ? ` / ${Number(s.capacity).toLocaleString("uk-UA")}` : ""}<br>
           Сума: ${stats.sum.toLocaleString("uk-UA")} грн<br>
-          Відвідали: ${stats.visited}<br>
+          За 7 днів: ${sales.last7} (${sales.change > 0 ? "+" : ""}${sales.change}%)<br>
           Аудиторія жанру: ${aud.length}<br>
-          VIP: ${vip}<br>
-          Втрачені: ${lost}
+          VIP: ${vip} • Втрачені: ${lost}
         </td>
         <td>
           <span class="pill ${riskClass}">${analysis.status}</span>
           <span class="pill">Ризик: ${analysis.risk}</span><br><br>
           Факт: ${analysis.fill}%<br>
           Орієнтир: ${analysis.plannedFill}%<br>
-          Відхилення: ${analysis.lag}%<br><br>
-          ${analysis.reasons.slice(0,3).map(esc).join("<br>")}<br><br>
-          <b style="color:#8dc2ff">${analysis.actions.slice(0,4).map(esc).join("<br>")}</b>
+          Відхилення: ${analysis.lag > 0 ? "+" : ""}${analysis.lag}%<br><br>
+          ${analysis.reasons.slice(0,2).map(esc).join("<br>")}<br><br>
+          <b style="color:#8dc2ff">${analysis.actions.slice(0,3).map(esc).join("<br>")}</b>
         </td>
       </tr>
     `;
@@ -668,11 +1054,32 @@ function renderChannelsSection(){
 }
 
 function renderCampaignsSection(){
+  const s = getMarketingSnapshot();
+  const brief = buildMarketingBrief(s);
   document.getElementById("activeSectionPanel").innerHTML = `
     <h2>🎯 Кампанії</h2>
     ${renderScopeHeader()}
-    <div class="muted">Поки без автоматичної відправки. Розділ для планування дій по вибраних сеансах.</div>
-    <div class="box" style="margin-top:16px">Буде: назва кампанії, вибрані сеанси, аудиторія, канал, статус, результат.</div>
+    <div class="muted">Поки без автоматичної відправки й без нових таблиць. Тут формується рішення, яке потім фіксується в журналі.</div>
+
+    <div class="two-col">
+      <div class="box">
+        <div class="eyebrow">Чернетка VA</div>
+        <h3>Рекомендований напрямок</h3>
+        <div class="action-list">
+          ${brief.actions.slice(0,4).map((x,i) => `<div class="action-item"><strong>${i+1}.</strong> ${esc(x)}</div>`).join("") || `<div class="action-item">Поки немає окремої рекомендації.</div>`}
+        </div>
+      </div>
+      <div class="box">
+        <h3>Каркас кампанії</h3>
+        <div class="metric-row"><span>Сеанс / обсяг</span><b>${esc(scopeTitle())}</b></div>
+        <div class="metric-row"><span>Історична аудиторія жанрів</span><b>${s.genreAudience.count}</b></div>
+        <div class="metric-row"><span>Нові / повторні покупці</span><b>${s.audience.newBuyers} / ${s.audience.repeatBuyers}</b></div>
+        <div class="metric-row"><span>Канал №1 за продажами</span><b>${esc(s.channels[0]?.channel || "—")}</b></div>
+        <div class="toolbar" style="margin-bottom:0"><button class="btn" onclick="openMarketingSection(5)">Зафіксувати дію в журналі</button></div>
+      </div>
+    </div>
+
+    <div class="notice"><b>Наступний етап V2:</b> маркетинговий паспорт сеансу, тексти, аудиторія, канал, контрольна дата та результат. Для цього вже знадобиться окремий контекст сеансу, але поточну Supabase-схему зараз не змінюємо.</div>
   `;
 }
 
