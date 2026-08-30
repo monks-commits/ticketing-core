@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VA SaaS — Gateway Demo</title>
+<style>
+:root{--bg:#0b1015;--panel:#111922;--panel2:#151f2a;--line:#283646;--text:#e8eef5;--muted:#8fa0b3;--green:#3bd177;--blue:#54a6ff;--red:#ff5e64;--amber:#ffbd45}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}button{font:inherit}.page{max-width:1500px;margin:0 auto;padding:24px}.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:22px}h1{margin:0 0 5px;font-size:30px}.sub{color:var(--muted);line-height:1.45}.badge{display:inline-flex;padding:7px 11px;border:1px solid #31506a;border-radius:999px;color:#b9daf9;background:#111b25;font-size:12px;font-weight:800}.card{border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:16px}.toolbar{display:grid;grid-template-columns:minmax(240px,420px) 1fr;gap:12px;align-items:end;margin-bottom:16px}.field{display:grid;gap:6px}.field label{font-size:12px;color:var(--muted);font-weight:800}.field input{min-height:42px;border:1px solid #334657;border-radius:10px;background:#0e161e;color:var(--text);padding:8px 11px}.status{color:var(--muted);font-size:13px}.status.bad{color:#ff9da1}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.venue{border:1px solid var(--line);background:linear-gradient(180deg,#141e29,#101820);border-radius:16px;padding:16px;display:grid;gap:12px;min-height:205px}.venue h2{margin:0;font-size:21px}.meta{color:var(--muted);font-size:12px;line-height:1.5}.metric-row{display:flex;gap:8px;flex-wrap:wrap}.metric{border:1px solid #2d4052;border-radius:10px;padding:7px 9px;background:#0d151d;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}.btn{border:1px solid var(--line);background:#17212c;color:var(--text);border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer}.btn:hover{background:#1d2a38}.btn.primary{background:#176b3c;border-color:#249d58}.btn.freeze{background:#194f7c;border-color:#2a75ac}.note{margin-top:16px;border:1px solid #403a24;background:#201d12;color:#e9dca9;border-radius:13px;padding:12px 14px;font-size:12px;line-height:1.5}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:680px){.page{padding:12px}.toolbar,.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="top">
+    <div><h1>Universal Gateway • VA SaaS</h1><div class="sub">Службовий вибір майданчика перед демонстрацією. Клієнтський Flight Deck відкривається вже без списку інших майданчиків.</div></div>
+    <div class="badge">VA ADMIN • MULTI-VENUE</div>
+  </header>
+
+  <section class="card">
+    <div class="toolbar">
+      <div class="field"><label for="q">Пошук майданчика</label><input id="q" placeholder="Назва або venue_id"></div>
+      <div id="status" class="status">Завантаження майданчиків…</div>
+    </div>
+    <div id="grid" class="grid"></div>
+    <div class="note">Дніпровська філармонія навмисно веде на окремий заморожений Public Demo V8. Новий SaaS-контур не змінює її робочий стенд.</div>
+  </section>
+</main>
+<script>
+(() => {
+"use strict";
+const SUPABASE_URL="https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_KEY="sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const PH_FROZEN_URL="https://monks-commits.github.io/VA-Philharmonic-Public-Demo/admin/gateway-flight-deck.html";
+const ALIASES={"academy-ruhu":"academy","shevchenko-v2":"shevchenko","opera-test":"opera"};
+const $=id=>document.getElementById(id);
+let venues=[],seances=[];
+const norm=v=>ALIASES[String(v||"").trim()]||String(v||"").trim();
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function rows(path){const r=await fetch(SUPABASE_URL+path,{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY},cache:"no-store"});if(!r.ok)throw new Error(await r.text());const d=await r.json();return Array.isArray(d)?d:[];}
+async function load(){
+  [venues,seances]=await Promise.all([
+    rows('/rest/v1/venues?select=id,name,slug,default_hall&order=name.asc'),
+    rows('/rest/v1/seances?select=id,show,date,time,venue_id,status,active,archived&archived=eq.false&order=date.asc,time.asc')
+  ]);
+  venues=venues.map(v=>({...v,id:norm(v.id)}));
+  render();
+}
+function venueSeances(id){return seances.filter(s=>norm(s.venue_id)===id);}
+function render(){
+  const q=$('q').value.trim().toLowerCase();
+  const list=venues.filter(v=>!q||[v.name,v.id,v.slug].join(' ').toLowerCase().includes(q));
+  $('status').textContent=`Майданчиків: ${list.length} • сеансів у VA: ${seances.length}`;
+  $('grid').innerHTML=list.map(v=>{
+    const ss=venueSeances(v.id),active=ss.filter(s=>s.active!==false&&String(s.status||'').toLowerCase()!=='archived').length;
+    const isPh=v.id==='filarmoniya';
+    return `<article class="venue">
+      <div><h2>${esc(v.name||v.id)}</h2><div class="meta">venue_id: ${esc(v.id)}${v.default_hall?` • default hall: ${esc(v.default_hall)}`:''}</div></div>
+      <div class="metric-row"><div class="metric">Сеансів: <b>${ss.length}</b></div><div class="metric">Активних: <b>${active}</b></div></div>
+      <div class="meta">${isPh?'Окремий стабільний стенд Філармонії зберігається без змін.':'Новий ізольований SaaS Flight Deck для демонстрації цієї площадки.'}</div>
+      <div class="actions">
+        <button class="btn ${isPh?'freeze':'primary'}" data-open="${esc(v.id)}">${isPh?'Відкрити frozen V8':'Підготувати показ'}</button>
+      </div>
+    </article>`;
+  }).join('')||'<div class="status">Нічого не знайдено.</div>';
+}
+$('q').addEventListener('input',render);
+$('grid').addEventListener('click',e=>{
+  const b=e.target.closest('[data-open]');if(!b)return;
+  const id=b.dataset.open;
+  sessionStorage.setItem('va-gateway-demo-venue',id);
+  if(id==='filarmoniya'){window.open(PH_FROZEN_URL,'_blank','noopener');return;}
+  location.href=`./gateway-flight-deck-saas.html?venue=${encodeURIComponent(id)}`;
+});
+load().catch(e=>{$('status').textContent='Помилка: '+e.message;$('status').className='status bad';});
+})();
+</script>
+</body>
+</html>
