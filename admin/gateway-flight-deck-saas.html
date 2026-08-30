@@ -3,54 +3,150 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gateway Flight Deck SaaS</title>
+<title>Gateway Flight Deck SaaS V2</title>
 <style>
 :root{--bg:#0b1015;--panel:#111922;--line:#283646;--text:#e8eef5;--muted:#8fa0b3;--green:#3bd177;--amber:#ffbd45;--red:#ff5e64;--blue:#54a6ff;--off:#3a4653}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}button,select{font:inherit}body{padding:18px}.deck{max-width:1680px;margin:0 auto}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px}h1{font-size:28px;margin:0 0 4px}.subtitle{color:var(--muted)}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#17212c;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}.btn:hover{background:#1d2a38}.btn:disabled{opacity:.42;cursor:not-allowed}.btn.green{background:#176b3c;border-color:#249d58}.btn.big{min-height:48px;padding:12px 18px;font-size:16px}.instrument{background:linear-gradient(180deg,#111922,#0e151d);border:1px solid #273545;border-radius:18px;padding:14px;box-shadow:inset 0 0 0 1px #0a0f14;margin-bottom:14px}.lamps{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:10px}.lampbox{border:1px solid #293846;background:#0c1218;border-radius:12px;padding:10px;text-align:center}.lamp{width:22px;height:22px;border-radius:50%;margin:0 auto 7px;background:var(--off);box-shadow:inset 0 0 0 3px #1b252f,0 0 0 1px #465565}.lamp.on{background:var(--green);box-shadow:inset 0 0 0 3px #1d4a2d,0 0 14px rgba(59,209,119,.72)}.lamp.warn{background:var(--amber);box-shadow:inset 0 0 0 3px #5c4319,0 0 14px rgba(255,189,69,.6)}.lamp-title{font-size:12px;letter-spacing:.07em;font-weight:850}.lamp-value{color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pathbar{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin-top:12px;border-top:1px solid #23303c;padding-top:12px}.node{border:1px solid var(--line);border-radius:11px;background:#121b24;padding:9px 11px;text-align:center}.node strong{display:block}.node span{font-size:12px;color:var(--muted)}.arrow{color:var(--blue);font-weight:900}.preflight{display:grid;grid-template-columns:1.25fr .8fr .8fr .9fr;gap:12px;margin-bottom:14px}.card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px}.step{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.stepno{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#263544;color:#c9d7e6;font-weight:900}.card h2{font-size:17px;margin:0}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}.controls{margin-top:12px;display:grid;gap:8px}.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field select{width:100%;min-height:42px;border:1px solid #334657;border-radius:9px;background:#0e161e;color:var(--text);padding:8px 10px}.statusline{min-height:18px;color:var(--muted);font-size:12px;line-height:1.4}.statusline.ok{color:var(--green)}.statusline.warn{color:var(--amber)}.statusline.bad{color:var(--red)}.workspace{border:1px solid #314257;background:#0d141c;border-radius:18px;overflow:hidden}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #293846;background:#111a24}.workspace-head h2{margin:0;font-size:20px}.ready-badge{border:1px solid #3b4b5b;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;color:var(--muted)}.panes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}.pane{border:1px solid #273747;border-radius:13px;background:#111922;overflow:hidden;min-width:0}.pane-head{padding:10px 12px;border-bottom:1px solid #273747;display:flex;justify-content:space-between;align-items:center;gap:8px}.pane-head b{font-size:15px}.pane-meta{font-size:11px;color:var(--muted);text-align:right}.frame-wrap{position:relative;height:650px;background:#0a0f14}.frame-wrap iframe{width:100%;height:100%;border:0;background:#fff}.frame-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:var(--muted);background:#0d141c}.frame-placeholder.hidden{display:none}.notice{margin-top:14px;border:1px solid #594b23;background:#211c0e;color:#f0d783;border-radius:14px;padding:13px 15px;font-size:12px;line-height:1.55}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}button,select{font:inherit}body{padding:18px}.deck{max-width:1680px;margin:0 auto}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px}h1{font-size:28px;margin:0 0 4px}.subtitle{color:var(--muted)}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#17212c;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}.btn:hover{background:#1d2a38}.btn:disabled{opacity:.42;cursor:not-allowed}.btn.green{background:#176b3c;border-color:#249d58}.btn.big{min-height:48px;padding:12px 18px;font-size:16px}.instrument{background:linear-gradient(180deg,#111922,#0e151d);border:1px solid #273545;border-radius:18px;padding:14px;box-shadow:inset 0 0 0 1px #0a0f14;margin-bottom:14px}.lamps{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:10px}.lampbox{border:1px solid #293846;background:#0c1218;border-radius:12px;padding:10px;text-align:center}.lamp{width:22px;height:22px;border-radius:50%;margin:0 auto 7px;background:var(--off);box-shadow:inset 0 0 0 3px #1b252f,0 0 0 1px #465565}.lamp.on{background:var(--green);box-shadow:inset 0 0 0 3px #1d4a2d,0 0 14px rgba(59,209,119,.72)}.lamp.warn{background:var(--amber);box-shadow:inset 0 0 0 3px #5c4319,0 0 14px rgba(255,189,69,.6)}.lamp-title{font-size:12px;letter-spacing:.07em;font-weight:850}.lamp-value{color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pathbar{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin-top:12px;border-top:1px solid #23303c;padding-top:12px}.node{border:1px solid var(--line);border-radius:11px;background:#121b24;padding:9px 11px;text-align:center}.node strong{display:block}.node span{font-size:12px;color:var(--muted)}.arrow{color:var(--blue);font-weight:900}.preflight{display:grid;grid-template-columns:1.25fr .8fr .8fr .9fr;gap:12px;margin-bottom:14px}.card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px}.step{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.stepno{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#263544;color:#c9d7e6;font-weight:900}.card h2{font-size:17px;margin:0}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}.controls{margin-top:12px;display:grid;gap:8px}.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field select{width:100%;min-height:42px;border:1px solid #334657;border-radius:9px;background:#0e161e;color:var(--text);padding:8px 10px}.statusline{min-height:18px;color:var(--muted);font-size:12px;line-height:1.4}.statusline.ok{color:var(--green)}.statusline.warn{color:var(--amber)}.statusline.bad{color:var(--red)}.workspace{border:1px solid #314257;background:#0d141c;border-radius:18px;overflow:hidden}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #293846;background:#111a24}.workspace-head h2{margin:0;font-size:20px}.ready-badge{border:1px solid #3b4b5b;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;color:var(--muted)}.panes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}.pane{border:1px solid #273747;border-radius:13px;background:#111922;overflow:hidden;min-width:0}.pane-head{padding:10px 12px;border-bottom:1px solid #273747;display:flex;justify-content:space-between;align-items:center;gap:8px}.pane-head b{font-size:15px}.pane-meta{font-size:11px;color:var(--muted);text-align:right}.frame-wrap{position:relative;height:650px;background:#0a0f14}.frame-wrap iframe{width:100%;height:100%;border:0;background:#fff}.frame-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:var(--muted);background:#0d141c}.frame-placeholder.hidden{display:none}.notice{margin-top:14px;border:1px solid #244f35;background:#102219;color:#9ee7b9;border-radius:14px;padding:13px 15px;font-size:12px;line-height:1.55}
 @media(max-width:1250px){.lamps{grid-template-columns:repeat(4,1fr)}.preflight{grid-template-columns:repeat(2,1fr)}.panes{grid-template-columns:1fr}.frame-wrap{height:620px}}@media(max-width:700px){body{padding:8px}.lamps{grid-template-columns:repeat(2,1fr)}.preflight{grid-template-columns:1fr}.pathbar{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}.frame-wrap{height:70vh}.top-actions{width:100%}.top-actions .btn{flex:1}}
 </style>
 </head>
 <body>
 <div class="deck">
-<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V1</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
+<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2 · READ</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
 <section class="instrument"><div class="lamps">
 <div class="lampbox"><div id="lampVenue" class="lamp"></div><div id="venueLampTitle" class="lamp-title">МАЙДАНЧИК</div><div id="valVenue" class="lamp-value">OFF</div></div>
-<div class="lampbox"><div class="lamp"></div><div class="lamp-title">GATEWAY</div><div class="lamp-value">НЕ ПІДКЛЮЧЕНО</div></div>
-<div class="lampbox"><div class="lamp"></div><div class="lamp-title">VA</div><div class="lamp-value">ОЧІКУЄ</div></div>
-<div class="lampbox"><div class="lamp"></div><div class="lamp-title">READ</div><div class="lamp-value">очікує</div></div>
-<div class="lampbox"><div class="lamp"></div><div class="lamp-title">HOLD</div><div class="lamp-value">очікує</div></div>
-<div class="lampbox"><div class="lamp"></div><div class="lamp-title">ПОКУПКА</div><div class="lamp-value">очікує</div></div>
-<div class="lampbox"><div class="lamp"></div><div class="lamp-title">ГОТОВО</div><div class="lamp-value">очікування</div></div>
-</div><div class="pathbar"><div class="node"><strong id="venueNode">Майданчик</strong><span>демонстраційний прямий контур</span></div><div class="arrow">→</div><div class="node"><strong>Universal Gateway</strong><span>контур буде підключено окремо</span></div><div class="arrow">→</div><div class="node"><strong>Ваш Адмін</strong><span>VA SaaS</span></div></div></section>
+<div class="lampbox"><div id="lampGateway" class="lamp"></div><div class="lamp-title">GATEWAY</div><div id="valGateway" class="lamp-value">OFF</div></div>
+<div class="lampbox"><div id="lampVa" class="lamp"></div><div class="lamp-title">VA</div><div id="valVa" class="lamp-value">ОЧІКУЄ</div></div>
+<div class="lampbox"><div id="lampRead" class="lamp"></div><div class="lamp-title">READ</div><div id="valRead" class="lamp-value">очікує</div></div>
+<div class="lampbox"><div id="lampHold" class="lamp"></div><div class="lamp-title">HOLD</div><div id="valHold" class="lamp-value">наступний етап</div></div>
+<div class="lampbox"><div id="lampSale" class="lamp"></div><div class="lamp-title">ПОКУПКА</div><div id="valSale" class="lamp-value">наступний етап</div></div>
+<div class="lampbox"><div id="lampReady" class="lamp"></div><div class="lamp-title">ГОТОВО</div><div id="valReady" class="lamp-value">очікування</div></div>
+</div><div class="pathbar"><div class="node"><strong id="venueNode">Майданчик</strong><span>демонстраційний прямий контур</span></div><div class="arrow">→</div><div class="node"><strong>Universal Gateway</strong><span>ізольований READ-контур</span></div><div class="arrow">→</div><div class="node"><strong>Ваш Адмін</strong><span>VA SaaS як зовнішній клієнт</span></div></div></section>
 <section class="preflight">
 <article class="card"><div class="step"><div><h2 id="venueStepTitle">Майданчик</h2><div class="hint">Вибір уже обмежений одним майданчиком. Інші клієнти тут не відображаються.</div></div><div class="stepno">1</div></div><div class="controls"><div class="field"><label for="hallSelect">Зал</label><select id="hallSelect"><option>Завантаження…</option></select></div><div class="field"><label for="seanceSelect">Сеанс</label><select id="seanceSelect"><option>Оберіть сеанс…</option></select></div><div id="venueStatus" class="statusline">Завантаження…</div></div></article>
-<article class="card"><div class="step"><div><h2>Gateway</h2><div class="hint">Для цього майданчика буде окремий ізольований Gateway contour.</div></div><div class="stepno">2</div></div><div class="controls"><button class="btn green big" disabled>GATEWAY ON</button><div class="statusline warn">Backend-контур ще не підключений. Це наступний етап.</div></div></article>
-<article class="card"><div class="step"><div><h2>Ваш Адмін</h2><div class="hint">Після Gateway READ тут відкриється VA як зовнішній оператор.</div></div><div class="stepno">3</div></div><div class="controls"><button class="btn green big" disabled>ПІДКЛЮЧИТИ VA</button><div class="statusline">Очікуємо Gateway.</div></div></article>
-<article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">Зараз перевіряємо лише правильну ізоляцію майданчика, залу та сеансу.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
+<article class="card"><div class="step"><div><h2>Gateway</h2><div class="hint">Вмикаємо окремий READ-only backend і перевіряємо, що він бачить тільки цей майданчик.</div></div><div class="stepno">2</div></div><div class="controls"><button id="gatewayBtn" class="btn green big" disabled>GATEWAY ON</button><div id="gatewayStatus" class="statusline">Спочатку оберіть сеанс.</div></div></article>
+<article class="card"><div class="step"><div><h2>Ваш Адмін</h2><div class="hint">Після Gateway ONLINE виконуємо реальний READ вибраного сеансу через backend.</div></div><div class="stepno">3</div></div><div class="controls"><button id="vaBtn" class="btn green big" disabled>ПІДКЛЮЧИТИ VA</button><div id="vaStatus" class="statusline">Очікуємо Gateway.</div></div></article>
+<article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">На V2 закриваємо тільки GATEWAY + READ. HOLD і SALE навмисно ще вимкнені.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
 </section>
-<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">На цьому етапі справа показується реальна схема обраного сеансу VA. Ліва Gateway-сторона буде підключена наступним кроком.</div></div><div class="ready-badge">SaaS V1</div></div><div class="panes">
-<section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><span class="pane-meta">ще не підключено</span></div><div class="frame-wrap"><div class="frame-placeholder">Gateway backend для цього майданчика ще не підключений. Тут не використовується чужий контур Філармонії.</div><iframe title="VA Gateway"></iframe></div></section>
+<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — реальна схема вибраного сеансу VA. Зліва — фактичний READ snapshot, отриманий через новий Gateway SaaS backend.</div></div><div id="readyBadge" class="ready-badge">SaaS V2 · READ</div></div><div class="panes">
+<section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span></div><div class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Після GATEWAY ON → ПІДКЛЮЧИТИ VA тут з'явиться READ snapshot саме цього venue/seance.</div><iframe id="gatewayFrame" title="VA Gateway READ"></iframe></div></section>
 <section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • демонстраційний прямий контур</b><span id="directMeta" class="pane-meta">оберіть сеанс</span></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
 </div></section>
-<div class="notice">Цей V1 навмисно не імітує реальний Gateway. Він вирішує перший архітектурний крок: VA Admin бачить усі площадки, а Flight Deck конкретного клієнта — тільки одну. Після перевірки цього шару підключаємо універсальний backend contour.</div>
+<div class="notice">V2 чесно залишається READ-only. Gateway уже є окремим серверним маршрутом з перевіркою <b>venue_id ↔ seance_id</b>. Якщо підставити сеанс іншого майданчика, backend повертає <b>venue_seance_mismatch</b>. HOLD/SALE не імітуються — це наступний окремий крок.</div>
 </div>
 <script>
 (() => {
 "use strict";
 const SUPABASE_URL="https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_KEY="sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+const GATEWAY_URL=`${SUPABASE_URL}/functions/v1/gateway-saas-demo`;
 const ALIASES={"academy-ruhu":"academy","shevchenko-v2":"shevchenko","opera-test":"opera"};
 const HALL_ALIASES={academy:"academy-ruhu",shevchenko:"shevchenko-v2",opera:"opera-test"};
-const $=id=>document.getElementById(id);const norm=v=>ALIASES[String(v||"").trim()]||String(v||"").trim();
-const qs=new URLSearchParams(location.search);const VENUE_ID=norm(qs.get('venue')||sessionStorage.getItem('va-gateway-demo-venue')||'');
-let venue=null,seances=[],pricing=[],selected='';
-async function rows(path){const r=await fetch(SUPABASE_URL+path,{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY},cache:"no-store"});if(!r.ok)throw new Error(await r.text());const d=await r.json();return Array.isArray(d)?d:[];}
-function hallsForVenue(){const ids=new Set(seances.map(s=>s.id));const hs=[...new Set(pricing.filter(p=>ids.has(p.seance_id)).map(p=>String(p.hall||'').trim()).filter(Boolean))];if(!hs.length&&venue?.default_hall)hs.push(venue.default_hall);if(!hs.length&&HALL_ALIASES[VENUE_ID])hs.push(HALL_ALIASES[VENUE_ID]);return hs;}
-function hallOfSeance(id){return String(pricing.find(p=>p.seance_id===id)?.hall||venue?.default_hall||HALL_ALIASES[VENUE_ID]||'').trim();}
-function renderSeances(){const hall=$('hallSelect').value;const list=seances.filter(s=>!hall||hallOfSeance(s.id)===hall);$('seanceSelect').innerHTML='<option value="">Оберіть сеанс…</option>'+list.map(s=>`<option value="${s.id}">${s.date||''} ${String(s.time||'').slice(0,5)} • ${s.show||s.id}</option>`).join('');if(selected&&list.some(s=>s.id===selected))$('seanceSelect').value=selected;}
-function openDirect(){if(!selected){$('directFrame').removeAttribute('src');$('directPlaceholder').classList.remove('hidden');$('directMeta').textContent='оберіть сеанс';$('lampVenue').className='lamp';$('valVenue').textContent='OFF';$('readyStatus').textContent='Оберіть сеанс.';return;}const u=new URL('../site-project/pages/hall.html',location.href);u.searchParams.set('seance',selected);$('directFrame').src=u.toString();$('directPlaceholder').classList.add('hidden');const s=seances.find(x=>x.id===selected);$('directMeta').textContent=s?`${s.show||s.id} • ${s.date||''} ${String(s.time||'').slice(0,5)}`:selected;$('lampVenue').className='lamp on';$('valVenue').textContent='ГОТОВИЙ';$('readyStatus').textContent='Прямий контур готовий. Gateway — наступний етап.';$('readyStatus').className='statusline ok';}
-async function load(){if(!VENUE_ID)throw new Error('venue_required');const allVenues=await rows('/rest/v1/venues?select=id,name,slug,default_hall&order=name.asc');venue=allVenues.find(v=>norm(v.id)===VENUE_ID);if(!venue)throw new Error('venue_not_found');const [allS,allP]=await Promise.all([rows('/rest/v1/seances?select=id,show,date,time,venue_id,status,active,archived&archived=eq.false&order=date.asc,time.asc'),rows('/rest/v1/seances_pricing?select=seance_id,hall,venue_id')]);seances=allS.filter(s=>norm(s.venue_id)===VENUE_ID);pricing=allP;const name=venue.name||VENUE_ID;document.title=`Gateway Flight Deck — ${name}`;$('subtitle').textContent=`${name} • ізольований демонстраційний контур • Universal Gateway`;$('venueLampTitle').textContent=name.toUpperCase().slice(0,18);$('venueNode').textContent=name;$('venueStepTitle').textContent=name;$('directTitle').textContent=`${name} • демонстраційний прямий контур`;const halls=hallsForVenue();$('hallSelect').innerHTML='<option value="">Усі зали</option>'+halls.map(h=>`<option value="${h}">${h}</option>`).join('');renderSeances();$('venueStatus').textContent=`Завантажено: ${seances.length} сеанс(ів). Інші майданчики приховані.`;$('venueStatus').className='statusline ok';}
-$('hallSelect').addEventListener('change',()=>{selected='';renderSeances();openDirect();});$('seanceSelect').addEventListener('change',()=>{selected=$('seanceSelect').value;openDirect();});$('refreshBtn').addEventListener('click',()=>load().catch(fail));function fail(e){$('venueStatus').textContent='Помилка: '+e.message;$('venueStatus').className='statusline bad';}
+const $=id=>document.getElementById(id);
+const norm=v=>ALIASES[String(v||"").trim()]||String(v||"").trim();
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const qs=new URLSearchParams(location.search);
+const VENUE_ID=norm(qs.get("venue")||sessionStorage.getItem("va-gateway-demo-venue")||"");
+let venue=null,seances=[],pricing=[],selected="",gatewayOnline=false,vaConnected=false,readOk=false,remoteSeances=[];
+
+if(!VENUE_ID){ location.replace("./gateway-saas-venues.html"); return; }
+
+async function rows(path){
+  const r=await fetch(SUPABASE_URL+path,{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY},cache:"no-store"});
+  if(!r.ok)throw new Error(await r.text());
+  const d=await r.json();return Array.isArray(d)?d:[];
+}
+
+async function gatewayRequest(action,extra={}){
+  const t0=performance.now();
+  const r=await fetch(GATEWAY_URL,{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY},body:JSON.stringify({action,venue_id:VENUE_ID,...extra}),cache:"no-store"});
+  const body=await r.json().catch(()=>({}));
+  const browserMs=performance.now()-t0;
+  if(!r.ok||body?.ok===false){const e=new Error(body?.error||`gateway_http_${r.status}`);e.data=body;e.browserMs=browserMs;throw e;}
+  return {...body,browser_ms:Number(browserMs.toFixed(1))};
+}
+
+function setLamp(id,on,kind="on"){$(id).className=`lamp${on?` ${kind}`:""}`;}
+function setStatus(id,text,kind=""){$(id).textContent=text;$(id).className=`statusline${kind?` ${kind}`:""}`;}
+
+function hallsForVenue(){const ids=new Set(seances.map(s=>s.id));const hs=[...new Set(pricing.filter(p=>ids.has(p.seance_id)).map(p=>String(p.hall||"").trim()).filter(Boolean))];if(!hs.length&&venue?.default_hall)hs.push(venue.default_hall);if(!hs.length&&HALL_ALIASES[VENUE_ID])hs.push(HALL_ALIASES[VENUE_ID]);return hs;}
+function hallOfSeance(id){return String(pricing.find(p=>p.seance_id===id)?.hall||venue?.default_hall||HALL_ALIASES[VENUE_ID]||"").trim();}
+function renderSeances(){const hall=$("hallSelect").value;const list=seances.filter(s=>!hall||hallOfSeance(s.id)===hall);$("seanceSelect").innerHTML='<option value="">Оберіть сеанс…</option>'+list.map(s=>`<option value="${esc(s.id)}">${esc(s.date||"")} ${esc(String(s.time||"").slice(0,5))} • ${esc(s.show||s.id)}</option>`).join("");if(selected&&list.some(s=>s.id===selected))$("seanceSelect").value=selected;}
+
+function resetGatewayStage(){
+  gatewayOnline=false;vaConnected=false;readOk=false;remoteSeances=[];
+  setLamp("lampGateway",false);setLamp("lampVa",false);setLamp("lampRead",false);setLamp("lampReady",false);
+  $("valGateway").textContent="OFF";$("valVa").textContent="ОЧІКУЄ";$("valRead").textContent="очікує";$("valReady").textContent="очікування";
+  $("gatewayBtn").textContent="GATEWAY ON";$("vaBtn").textContent="ПІДКЛЮЧИТИ VA";
+  $("gatewayBtn").disabled=!selected;$("vaBtn").disabled=true;
+  setStatus("gatewayStatus",selected?"Майданчик готовий. Натисніть GATEWAY ON.":"Спочатку оберіть сеанс.");
+  setStatus("vaStatus","Очікуємо Gateway.");
+  $("gatewayFrame").removeAttribute("srcdoc");$("gatewayFrame").src="about:blank";$("gatewayPlaceholder").classList.remove("hidden");$("gatewayPaneMeta").textContent="ще не підключено";
+  updateReady();
+}
+
+function updateReady(){
+  $("gatewayBtn").disabled=!selected;
+  $("vaBtn").disabled=!gatewayOnline;
+  if(readOk){
+    setLamp("lampReady",true,"warn");
+    $("valReady").textContent="READ ГОТОВО";
+    setStatus("readyStatus","READ підтверджено. Ізоляція працює. HOLD/SALE — наступний етап.","ok");
+    $("readyBadge").textContent="READ ГОТОВО";
+  }else if(selected){
+    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Очікуємо Gateway і READ.");$("readyBadge").textContent="SaaS V2 · READ";
+  }else{
+    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Оберіть сеанс.");$("readyBadge").textContent="SaaS V2 · READ";
+  }
+}
+
+function openDirect(){
+  if(!selected){$("directFrame").removeAttribute("src");$("directPlaceholder").classList.remove("hidden");$("directMeta").textContent="оберіть сеанс";setLamp("lampVenue",false);$("valVenue").textContent="OFF";resetGatewayStage();return;}
+  const u=new URL("../site-project/pages/hall.html",location.href);u.searchParams.set("seance",selected);$("directFrame").src=u.toString();$("directPlaceholder").classList.add("hidden");const s=seances.find(x=>x.id===selected);$("directMeta").textContent=s?`${s.show||s.id} • ${s.date||""} ${String(s.time||"").slice(0,5)}`:selected;setLamp("lampVenue",true);$("valVenue").textContent="ГОТОВИЙ";resetGatewayStage();
+}
+
+function snapshotHtml(data){
+  const s=data?.seance||{},v=data?.venue||{},m=data?.summary||{};
+  const metric=(label,value)=>`<div class="m"><span>${esc(label)}</span><b>${esc(value??"—")}</b></div>`;
+  return `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#0e151d;color:#e8eef5}.p{padding:22px}.ok{display:inline-block;padding:7px 10px;border-radius:999px;background:#173d28;color:#7ceaa5;font-weight:900;font-size:12px}.h{font-size:26px;font-weight:900;margin:14px 0 4px}.sub{color:#8fa0b3;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.m{border:1px solid #2b3a49;border-radius:13px;background:#111922;padding:13px}.m span{display:block;color:#8fa0b3;font-size:11px;margin-bottom:5px}.m b{font-size:20px}.meta{margin-top:16px;border-top:1px solid #273545;padding-top:14px;color:#9eb0c1;font-size:12px;line-height:1.6}.mono{font-family:ui-monospace,Consolas,monospace}@media(max-width:700px){.grid{grid-template-columns:1fr 1fr}}</style></head><body><div class="p"><span class="ok">● READ ПІДТВЕРДЖЕНО</span><div class="h">${esc(s.show||s.id||"Сеанс")}</div><div class="sub">${esc(v.name||v.id||"")} • ${esc(s.date||"")} ${esc(String(s.time||"").slice(0,5))} • ${esc(s.hall||"зал")}</div><div class="grid">${metric("Випуск VA",m.issued_va)}${metric("Продано",m.sold)}${metric("HOLD",m.hold)}${metric("Бронь",m.reserved)}${metric("Зайнято унікально",m.occupied_unique)}${metric("Залишок VA",m.remaining_va)}</div><div class="meta">Gateway: <b>${esc(data.service||"va-gateway-saas-demo")}</b> • ${esc(data.version||"")}<br>response_code: <span class="mono">${esc(data.response_code||"")}</span><br>server: ${esc(data.duration_ms??"—")} ms • browser route: ${esc(data.browser_ms??"—")} ms<br>request_id: <span class="mono">${esc(data.request_id||"")}</span></div></div></body></html>`;
+}
+
+async function gatewayOn(){
+  if(!selected)return;
+  setStatus("gatewayStatus","Перевіряємо окремий SaaS Gateway contour…");
+  try{
+    const r=await gatewayRequest("seances");
+    remoteSeances=Array.isArray(r.seances)?r.seances:[];
+    if(!remoteSeances.some(s=>String(s.id)===String(selected)))throw new Error("selected_seance_not_exposed_by_gateway");
+    gatewayOnline=true;setLamp("lampGateway",true);$("valGateway").textContent=`ONLINE ${Number(r.browser_ms||0).toFixed(0)} ms`;$("gatewayBtn").textContent="GATEWAY ONLINE";setStatus("gatewayStatus",`Gateway відповів • тільки ${venue.name||VENUE_ID} • ${remoteSeances.length} сеанс(ів) • ${Number(r.browser_ms||0).toFixed(1)} ms`,"ok");
+  }catch(e){gatewayOnline=false;setLamp("lampGateway",false);$("valGateway").textContent="ПОМИЛКА";setStatus("gatewayStatus",String(e.message||e),"bad");}
+  updateReady();
+}
+
+async function connectVa(){
+  if(!gatewayOnline||!selected)return;
+  setStatus("vaStatus","VA виконує READ вибраного сеансу через Gateway…");
+  try{
+    const r=await gatewayRequest("state",{seance_id:selected});
+    if(String(r.result||"")!=="succeeded")throw new Error(r.response_code||"gateway_state_rejected");
+    vaConnected=true;readOk=true;setLamp("lampVa",true);setLamp("lampRead",true);$("valVa").textContent="CONNECTED";$("valRead").textContent=`${Number(r.browser_ms||0).toFixed(0)} ms`;$("vaBtn").textContent="VA ПІДКЛЮЧЕНО";setStatus("vaStatus",`READ ${r.response_code||"state_returned"} • server ${Number(r.duration_ms||0).toFixed(1)} ms • route ${Number(r.browser_ms||0).toFixed(1)} ms`,"ok");$("gatewayFrame").srcdoc=snapshotHtml(r);$("gatewayPlaceholder").classList.add("hidden");$("gatewayPaneMeta").textContent=`READ • ${Number(r.browser_ms||0).toFixed(1)} ms`;
+  }catch(e){vaConnected=false;readOk=false;setLamp("lampVa",false);setLamp("lampRead",false);$("valVa").textContent="ПОМИЛКА";$("valRead").textContent="відмова";setStatus("vaStatus",String(e.message||e),"bad");}
+  updateReady();
+}
+
+async function load(){
+  const allVenues=await rows("/rest/v1/venues?select=id,name,slug,default_hall&order=name.asc");venue=allVenues.find(v=>norm(v.id)===VENUE_ID);if(!venue)throw new Error("venue_not_found");
+  const [allS,allP]=await Promise.all([rows("/rest/v1/seances?select=id,show,date,time,venue_id,status,active,archived&archived=eq.false&order=date.asc,time.asc"),rows("/rest/v1/seances_pricing?select=seance_id,hall,venue_id")]);seances=allS.filter(s=>norm(s.venue_id)===VENUE_ID);pricing=allP;
+  const name=venue.name||VENUE_ID;document.title=`Gateway Flight Deck — ${name}`;$("subtitle").textContent=`${name} • ізольований демонстраційний READ-контур • Universal Gateway`;$("venueLampTitle").textContent=name.toUpperCase().slice(0,18);$("venueNode").textContent=name;$("venueStepTitle").textContent=name;$("directTitle").textContent=`${name} • демонстраційний прямий контур`;
+  const halls=hallsForVenue();$("hallSelect").innerHTML='<option value="">Усі зали</option>'+halls.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join("");renderSeances();setStatus("venueStatus",`Завантажено: ${seances.length} сеанс(ів). Інші майданчики приховані.`,"ok");resetGatewayStage();
+}
+
+$("hallSelect").addEventListener("change",()=>{selected="";renderSeances();openDirect();});
+$("seanceSelect").addEventListener("change",()=>{selected=$("seanceSelect").value;openDirect();});
+$("gatewayBtn").addEventListener("click",gatewayOn);
+$("vaBtn").addEventListener("click",connectVa);
+$("refreshBtn").addEventListener("click",()=>load().catch(fail));
+function fail(e){setStatus("venueStatus","Помилка: "+e.message,"bad");}
 load().catch(fail);
 })();
 </script>
