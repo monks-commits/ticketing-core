@@ -949,12 +949,22 @@ async function restoreCancelledSeanceDemo(idOverride=""){
         .sort((a,b) => String(b.occurred_at || "").localeCompare(String(a.occurred_at || "")))[0] || null;
     }
 
+    function hasCurrentPostponement(s){
+      if(!s?.postponed_at) return false;
+      const incident = latestIncident(String(s.id || ""), "postponed");
+      // Legacy rows without an incident remain in "Перенесені".
+      // Once the incident is completed, the transfer becomes history and must
+      // no longer remove an active/published seance from current sales.
+      if(!incident) return true;
+      return String(incident.operational_status || "open").toLowerCase() !== "completed";
+    }
+
     function statusRows(kind){
       const now = Date.now();
       return SEANCES.filter(s => {
         const archived = s.archived === true;
         const cancelled = String(s.status || "").toLowerCase() === "cancelled" || !!s.cancelled_at;
-        const postponed = !!s.postponed_at;
+        const postponed = hasCurrentPostponement(s);
         const active = s.active === true;
         const start = seanceStartMs(s);
         const past = Number.isFinite(start) && start < now;
