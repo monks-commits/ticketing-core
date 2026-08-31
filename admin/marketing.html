@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.8</title>
+  <title>VA Marketing Control Center V2.8.1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -185,7 +185,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.8</h1>
+        <h1>Marketing Control Center V2.8.1</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           Основна аналітика читає live-дані Supabase; V2.8 додає життєвий цикл кампанії зі стартовим та фінальним знімками фактичних показників.
@@ -266,6 +266,10 @@ let CAMPAIGN_DRAFT = {
 const CAMPAIGN_STORAGE_KEY = "va_marketing_campaigns_v24";
 let CAMPAIGNS = [];
 let ACTIVE_CAMPAIGN_ID = "";
+let CAMPAIGN_LIVE_TIMER = null;
+let CAMPAIGN_LIVE_BUSY = false;
+let CAMPAIGN_LIVE_UPDATED_AT = "";
+const CAMPAIGN_LIVE_INTERVAL_MS = 8000;
 
 // Реальні робочі маршрути VA. Контекст передається через seance_id + campaign_id.
 const VA_WORKSPACE_ROUTES = {
@@ -386,6 +390,19 @@ function updateUrlContext(){
   }catch(e){}
 }
 
+function syncCampaignDraftFromEntity(c){
+  if(!c) return;
+  CAMPAIGN_DRAFT = {
+    segmentKey:c.segmentKey || "",
+    segmentLabel:c.segmentLabel || "",
+    audienceCount:Number(c.audienceCount || 0),
+    reachableCount:Number(c.reachableCount || 0),
+    channel:c.channel || "",
+    objective:c.goal || "",
+    comment:c.comment || ""
+  };
+}
+
 function restoreContextFromUrl(){
   try{
     const params = new URLSearchParams(location.search);
@@ -396,8 +413,24 @@ function restoreContextFromUrl(){
       const campaign = CAMPAIGNS.find(c => String(c.id) === String(cid));
       ACTIVE_CAMPAIGN_ID = String(cid);
       if(campaign?.seance_id && SEANCES.some(s => String(s.id) === String(campaign.seance_id))) CURRENT_SEANCE_IDS = [String(campaign.seance_id)];
+      syncCampaignDraftFromEntity(campaign);
     }
-  }catch(e){}
+
+    // V2.8.1: якщо URL містить лише seance_id, не губимо вже запущену кампанію.
+    // Спочатку відновлюємо активну кампанію цього сеансу; якщо вона одна — можна відновити і чернетку/завершену.
+    if(!ACTIVE_CAMPAIGN_ID && CURRENT_SEANCE_IDS.length === 1){
+      const currentSid = String(CURRENT_SEANCE_IDS[0]);
+      const candidates = CAMPAIGNS
+        .filter(c => String(c.seance_id) === currentSid)
+        .sort((a,b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+      const active = candidates.find(c => (c.status || "draft") === "active");
+      const chosen = active || (candidates.length === 1 ? candidates[0] : null);
+      if(chosen){
+        ACTIVE_CAMPAIGN_ID = String(chosen.id);
+        syncCampaignDraftFromEntity(chosen);
+      }
+    }
+  }catch(e){ console.warn("VA campaign context restore", e); }
 }
 
 function renderContextBridge(){
@@ -502,13 +535,11 @@ function openCampaignEntity(id){
   if(!c) return;
   ACTIVE_CAMPAIGN_ID = String(c.id);
   if(c.seance_id) CURRENT_SEANCE_IDS = [String(c.seance_id)];
-  CAMPAIGN_DRAFT = {
-    segmentKey:c.segmentKey || "", segmentLabel:c.segmentLabel || "", audienceCount:Number(c.audienceCount || 0),
-    reachableCount:Number(c.reachableCount || 0), channel:c.channel || "", objective:c.goal || "", comment:c.comment || ""
-  };
+  syncCampaignDraftFromEntity(c);
   updateUrlContext();
   renderContextBridge();
   openMarketingSection(3);
+  scheduleCampaignLiveRefresh();
 }
 
 function newCampaignEntity(){
@@ -577,13 +608,92 @@ function deltaClass(value){
   return n > 0 ? "delta-positive" : n < 0 ? "delta-negative" : "delta-neutral";
 }
 
-function startCampaign(){
+function replaceSeanceRows(source, freshRows, seanceId){
+  const sid = String(seanceId || "");
+  return source.filter(r => String(r.seance_id || "") !== sid).concat(freshRows || []);
+}
+
+async function refreshActiveCampaignData({rerender=true, silent=true} = {}){
+  const c = getActiveCampaign();
+  if(!c?.seance_id || CAMPAIGN_LIVE_BUSY) return false;
+  const sid = String(c.seance_id);
+  CAMPAIGN_LIVE_BUSY = true;
+  try{
+    const [ordersRes, ticketsRes, seanceRes, journalRes] = await Promise.all([
+      sb.from("orders")
+        .select("id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,status")
+        .eq("seance_id", sid),
+      sb.from("tickets")
+        .select("id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at")
+        .eq("seance_id", sid),
+      sb.from("seances")
+        .select("id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity")
+        .eq("id", sid)
+        .limit(1),
+      sb.from("marketing_journal")
+        .select("id,created_at,seance_id,action_date,action_type,channel,budget,comment,result,conclusion,author")
+        .eq("seance_id", sid)
+    ]);
+
+    for(const res of [ordersRes,ticketsRes,seanceRes,journalRes]){
+      if(res.error) throw res.error;
+    }
+
+    ORDERS = replaceSeanceRows(ORDERS, ordersRes.data || [], sid);
+    TICKETS = replaceSeanceRows(TICKETS, ticketsRes.data || [], sid);
+    JOURNAL = replaceSeanceRows(JOURNAL, journalRes.data || [], sid);
+    const freshSeance = (seanceRes.data || [])[0];
+    if(freshSeance){
+      SEANCES = SEANCES.filter(x => String(x.id) !== sid).concat([freshSeance]);
+    }
+
+    buildClients(ORDERS, TICKETS, SEANCES);
+    CAMPAIGN_LIVE_UPDATED_AT = new Date().toISOString();
+
+    if(rerender){
+      renderContextBridge();
+      if(ACTIVE_SECTION === 3){
+        const y = window.scrollY;
+        renderCampaignsSection();
+        requestAnimationFrame(() => window.scrollTo(0, y));
+      }
+    }
+    return true;
+  }catch(e){
+    if(!silent) alert("Не вдалося оновити live-дані кампанії:\n" + (e.message || e));
+    else console.warn("VA campaign live refresh", e);
+    return false;
+  }finally{
+    CAMPAIGN_LIVE_BUSY = false;
+  }
+}
+
+function scheduleCampaignLiveRefresh(){
+  if(CAMPAIGN_LIVE_TIMER){
+    clearInterval(CAMPAIGN_LIVE_TIMER);
+    CAMPAIGN_LIVE_TIMER = null;
+  }
+  const c = getActiveCampaign();
+  if(!c || (c.status || "draft") !== "active") return;
+  CAMPAIGN_LIVE_TIMER = setInterval(() => {
+    if(document.visibilityState === "visible") refreshActiveCampaignData({rerender:true, silent:true});
+  }, CAMPAIGN_LIVE_INTERVAL_MS);
+}
+
+window.addEventListener("focus", () => {
+  const c = getActiveCampaign();
+  if(c && (c.status || "draft") === "active") refreshActiveCampaignData({rerender:true, silent:true});
+});
+
+async function startCampaign(){
   const c = getActiveCampaign();
   if(!c) return alert("Спочатку збережіть кампанію.");
   if(c.status === "done") return alert("Завершену кампанію не можна запустити повторно. Створіть нову кампанію.");
-  if(c.status === "active" && c.start_snapshot) return;
-  if(!confirm("Запустити кампанію?\n\nVA зафіксує поточні показники як стартову точку. Після цього зміни продажів можна буде порівнювати з цим знімком.")) return;
+  if(c.status === "active" && c.start_snapshot){ scheduleCampaignLiveRefresh(); return; }
+  if(!confirm("Запустити кампанію?\n\nVA спочатку перечитає актуальні продажі з Supabase, а потім зафіксує їх як стартову точку.")) return;
 
+  const refreshed = await refreshActiveCampaignData({rerender:false, silent:false});
+  if(!refreshed) return;
   c.start_snapshot = campaignMetricSnapshot(c);
   c.started_at = c.start_snapshot?.captured_at || new Date().toISOString();
   c.status = "active";
@@ -594,14 +704,17 @@ function startCampaign(){
   updateUrlContext();
   renderContextBridge();
   renderCampaignsSection();
+  scheduleCampaignLiveRefresh();
 }
 
-function completeCampaign(){
+async function completeCampaign(){
   const c = getActiveCampaign();
   if(!c) return alert("Кампанію не вибрано.");
   if(c.status !== "active" || !c.start_snapshot) return alert("Спочатку запустіть кампанію та зафіксуйте стартову точку.");
-  if(!confirm("Завершити кампанію?\n\nVA зафіксує фінальний знімок. Цей результат залишиться в картці кампанії для подальшого порівняння.")) return;
+  if(!confirm("Завершити кампанію?\n\nVA ще раз перечитає актуальні продажі з Supabase і лише після цього зафіксує фінальний знімок.")) return;
 
+  const refreshed = await refreshActiveCampaignData({rerender:false, silent:false});
+  if(!refreshed) return;
   c.end_snapshot = campaignMetricSnapshot(c);
   c.completed_at = c.end_snapshot?.captured_at || new Date().toISOString();
   c.status = "done";
@@ -618,6 +731,7 @@ function completeCampaign(){
   updateUrlContext();
   renderContextBridge();
   renderCampaignsSection();
+  scheduleCampaignLiveRefresh();
 }
 
 // Backward compatibility: old V2.4–V2.7 calls become real lifecycle transitions.
@@ -676,8 +790,8 @@ function renderCampaignLifecycle(campaign){
         <div class="snapshot-cell"><span>Бюджет кампанії</span><b>${Number(compare.budget||0).toLocaleString("uk-UA")} грн</b></div>
         <div class="snapshot-cell"><span>Дій у журналі</span><b>${Number(compare.journalActions||0)}</b></div>
       </div>
-      <div class="lifecycle-note">${status === "active" ? "Права колонка — живий зріз на цю секунду; він ще не зафіксований як фінал." : "Фінальний знімок зафіксовано. Приріст після старту є часовим результатом кампанії, але без UTM/ref не вважається прямою атрибуцією саме цієї кампанії."}</div>
-      ${status === "active" ? `<div class="toolbar"><button class="btn" onclick="completeCampaign()">■ Завершити кампанію</button></div>` : ""}`;
+      <div class="lifecycle-note">${status === "active" ? `Правий показник — live-зріз із Supabase. Автооновлення кожні ${Math.round(CAMPAIGN_LIVE_INTERVAL_MS/1000)} с${CAMPAIGN_LIVE_UPDATED_AT ? ` • останнє: ${new Date(CAMPAIGN_LIVE_UPDATED_AT).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}` : ""}.` : "Фінальний знімок зафіксовано. Приріст після старту є часовим результатом кампанії, але без UTM/ref не вважається прямою атрибуцією саме цієї кампанії."}</div>
+      ${status === "active" ? `<div class="toolbar"><button class="btn secondary" onclick="refreshActiveCampaignData({rerender:true,silent:false})">↻ Оновити зараз</button><button class="btn" onclick="completeCampaign()">■ Завершити кампанію</button></div>` : ""}`;
   }else if(status === "active"){
     body = `<div class="notice"><b>Кампанія позначена як запущена у старій версії, але стартового знімка немає.</b> Для коректного вимірювання зафіксуйте старт зараз.</div><div class="toolbar"><button class="btn" onclick="startCampaign()">Зафіксувати старт зараз</button></div>`;
   }else{
@@ -2310,7 +2424,7 @@ function renderCampaignsSection(){
     ${renderExternalAudienceContext()}
 
     <div class="box campaign-card" style="margin-bottom:14px">
-      <div class="eyebrow">VA Campaign Object • V2.8</div>
+      <div class="eyebrow">VA Campaign Object • V2.8.1</div>
       ${activeCampaign ? `
         <div class="context-bridge-row">
           <div>
@@ -2734,6 +2848,12 @@ async function boot(){
     updateUrlContext();
     renderContextBridge();
     openMarketingSection(0);
+    scheduleCampaignLiveRefresh();
+    const restoredCampaign = getActiveCampaign();
+    if(restoredCampaign && (restoredCampaign.status || "draft") === "active"){
+      // Одразу після перезавантаження підтягнути продажі, які відбулися поки сторінка була закрита.
+      refreshActiveCampaignData({rerender:false, silent:true});
+    }
 
   }catch(e){
     console.error(e);
