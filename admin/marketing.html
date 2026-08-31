@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.8.1</title>
+  <title>VA Marketing Control Center V2.9</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -172,6 +172,11 @@ textarea::placeholder{
   .snapshot-cell b{font-size:18px}
   .delta-positive{color:#55d98a}.delta-negative{color:#ff7b7b}.delta-neutral{color:#9fb3cf}
   .lifecycle-note{margin-top:9px;color:var(--muted);font-size:12px;line-height:1.45}
+  .attribution-box{margin-top:12px;border:1px solid rgba(85,217,138,.35);background:#0a241e;border-radius:12px;padding:12px}
+  .attribution-link-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .attribution-link{flex:1;min-width:280px;background:#07172b;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;color:#dce8ff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
+  .attribution-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  @media(max-width:900px){.attribution-stats{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:1000px){.snapshot-grid{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:800px){.campaign-row{grid-template-columns:1fr}.context-bridge{position:relative;top:auto}.lifecycle-steps,.snapshot-grid{grid-template-columns:1fr}}
 
@@ -621,7 +626,7 @@ async function refreshActiveCampaignData({rerender=true, silent=true} = {}){
   try{
     const [ordersRes, ticketsRes, seanceRes, journalRes] = await Promise.all([
       sb.from("orders")
-        .select("id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,status")
+        .select("*")
         .eq("seance_id", sid),
       sb.from("tickets")
         .select("id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at")
@@ -748,6 +753,86 @@ function setCampaignStatus(status){
   renderCampaignsSection();
 }
 
+function normalizeCampaignMedium(channel){
+  const v = String(channel || "").toLowerCase();
+  if(v.includes("email")) return "email";
+  if(v.includes("sms") || v.includes("viber") || v.includes("telegram") || v.includes("месен")) return "messenger";
+  if(v.includes("facebook") || v.includes("instagram") || v.includes("social") || v.includes("соц")) return "social";
+  if(v.includes("реклам") || v.includes("ads")) return "paid_media";
+  return "campaign";
+}
+
+function campaignAttributionUrl(campaign){
+  if(!campaign?.id || !campaign?.seance_id) return "";
+  try{
+    const url = new URL("../site-project/pages/campaign-entry.html", location.href);
+    url.searchParams.set("campaign_id", String(campaign.id));
+    url.searchParams.set("seance_id", String(campaign.seance_id));
+    url.searchParams.set("utm_source", "va");
+    url.searchParams.set("utm_medium", normalizeCampaignMedium(campaign.channel));
+    url.searchParams.set("utm_campaign", String(campaign.id));
+    return url.toString();
+  }catch(e){ return ""; }
+}
+
+async function copyCampaignAttributionLink(id){
+  const c = CAMPAIGNS.find(x => String(x.id) === String(id));
+  const url = campaignAttributionUrl(c);
+  if(!url) return;
+  try{
+    await navigator.clipboard.writeText(url);
+    alert("Посилання кампанії скопійовано.");
+  }catch(e){
+    window.prompt("Скопіюйте посилання кампанії:", url);
+  }
+}
+
+function campaignAttributionMetrics(campaign){
+  if(!campaign?.id) return {orders:0,buyers:0,tickets:0,revenue:0};
+  const paidStatuses = new Set(["paid","success","completed","approved"]);
+  const startedAt = campaign.started_at ? new Date(campaign.started_at).getTime() : null;
+  const completedAt = campaign.completed_at ? new Date(campaign.completed_at).getTime() : null;
+  const rows = ORDERS.filter(o => {
+    if(String(o.marketing_campaign_id || "") !== String(campaign.id)) return false;
+    if(o.status && !paidStatuses.has(String(o.status).toLowerCase())) return false;
+    if(!startedAt) return false;
+    const stamp = new Date(o.marketing_attributed_at || o.created_at || 0).getTime();
+    if(!Number.isFinite(stamp) || stamp < startedAt) return false;
+    if(completedAt && stamp > completedAt) return false;
+    return true;
+  });
+  const orderIds = new Set(rows.map(o => String(o.order_id || o.id || "")).filter(Boolean));
+  const buyerKeys = new Set(rows.map(o => normKey(o)).filter(Boolean));
+  const attributedTickets = TICKETS.filter(t => orderIds.has(String(t.order_id || "")));
+  return {
+    orders: rows.length,
+    buyers: buyerKeys.size,
+    tickets: attributedTickets.length,
+    revenue: rows.reduce((sum,o) => sum + Number(o.amount || 0), 0)
+  };
+}
+
+function renderCampaignAttribution(campaign){
+  const url = campaignAttributionUrl(campaign);
+  const a = campaignAttributionMetrics(campaign);
+  return `
+    <div class="attribution-box">
+      <div class="eyebrow">CAMPAIGN ATTRIBUTION V1</div>
+      <h3 style="margin:4px 0 6px">Пряма атрибуція за campaign_id</h3>
+      <div class="muted">Це посилання записує campaign_id у сам order. Тому VA відрізняє загальний приріст після старту від покупок, що реально пройшли через цю кампанію.</div>
+      <div class="attribution-link-row">
+        <input class="attribution-link" readonly value="${escAttr(url)}" onclick="this.select()" />
+        <button class="btn small" onclick="copyCampaignAttributionLink('${escAttr(campaign.id)}')">Копіювати посилання</button>
+      </div>
+      <div class="attribution-stats">
+        <div class="snapshot-cell"><span>Атрибутовані покупці</span><b>${a.buyers}</b></div>
+        <div class="snapshot-cell"><span>Замовлення</span><b>${a.orders}</b></div>
+        <div class="snapshot-cell"><span>Квитки</span><b>${a.tickets}</b></div>
+        <div class="snapshot-cell"><span>Виручка</span><b>${Number(a.revenue||0).toLocaleString("uk-UA")} грн</b></div>
+      </div>
+    </div>`;
+}
+
 function renderCampaignLifecycle(campaign){
   if(!campaign) return "";
   const status = campaign.status || "draft";
@@ -790,7 +875,7 @@ function renderCampaignLifecycle(campaign){
         <div class="snapshot-cell"><span>Бюджет кампанії</span><b>${Number(compare.budget||0).toLocaleString("uk-UA")} грн</b></div>
         <div class="snapshot-cell"><span>Дій у журналі</span><b>${Number(compare.journalActions||0)}</b></div>
       </div>
-      <div class="lifecycle-note">${status === "active" ? `Правий показник — live-зріз із Supabase. Автооновлення кожні ${Math.round(CAMPAIGN_LIVE_INTERVAL_MS/1000)} с${CAMPAIGN_LIVE_UPDATED_AT ? ` • останнє: ${new Date(CAMPAIGN_LIVE_UPDATED_AT).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}` : ""}.` : "Фінальний знімок зафіксовано. Приріст після старту є часовим результатом кампанії, але без UTM/ref не вважається прямою атрибуцією саме цієї кампанії."}</div>
+      <div class="lifecycle-note">${status === "active" ? `Правий показник — live-зріз із Supabase. Автооновлення кожні ${Math.round(CAMPAIGN_LIVE_INTERVAL_MS/1000)} с${CAMPAIGN_LIVE_UPDATED_AT ? ` • останнє: ${new Date(CAMPAIGN_LIVE_UPDATED_AT).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}` : ""}.` : "Фінальний знімок зафіксовано. Загальний приріст після старту залишається часовим результатом; окремий блок Attribution V1 нижче показує лише замовлення з campaign_id цієї кампанії."}</div>
       ${status === "active" ? `<div class="toolbar"><button class="btn secondary" onclick="refreshActiveCampaignData({rerender:true,silent:false})">↻ Оновити зараз</button><button class="btn" onclick="completeCampaign()">■ Завершити кампанію</button></div>` : ""}`;
   }else if(status === "active"){
     body = `<div class="notice"><b>Кампанія позначена як запущена у старій версії, але стартового знімка немає.</b> Для коректного вимірювання зафіксуйте старт зараз.</div><div class="toolbar"><button class="btn" onclick="startCampaign()">Зафіксувати старт зараз</button></div>`;
@@ -807,6 +892,7 @@ function renderCampaignLifecycle(campaign){
         <div class="lifecycle-step ${stageClass("done")}"><b>3. Завершена</b><div class="micro">Фініш: ${esc(completed)}</div></div>
       </div>
       ${body}
+      ${renderCampaignAttribution(campaign)}
     </div>`;
 }
 
@@ -2567,7 +2653,7 @@ function renderCampaignsSection(){
 
     <div class="notice">
       <b>Що вже замкнуто:</b> стан сеансу → маркетинговий паспорт → релевантна аудиторія → виключення тих, хто вже купив → вибір сегмента → змістова основа кампанії → журнал дії.
-      У V2.8 кампанія має lifecycle: Чернетка → Запущена → Завершена. На старті й фініші VA фіксує фактичні показники сеансу та показує «до / після». Без UTM/ref цей приріст чесно вважається часовим результатом, а не прямою атрибуцією кампанії.
+      У V2.9 lifecycle збережено, а Attribution V1 додає унікальне посилання кампанії. campaign_id проходить у сам order; тому VA окремо показує часовий приріст і прямо атрибутовані покупки.
     </div>
   `;
 }
@@ -2818,7 +2904,7 @@ async function boot(){
     const [orders, tickets, seances, journal] = await Promise.all([
       fetchAll(
         "orders",
-        "id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,ticket_type,status"
+        "*"
       ),
 
       fetchAll(
