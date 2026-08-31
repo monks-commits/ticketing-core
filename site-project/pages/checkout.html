@@ -463,11 +463,41 @@ const refCode =
   sessionStorage.getItem("va_ref_code") ||
   "";
 
+
+const MARKETING_ATTRIBUTION_STORAGE_KEY = "va_marketing_attribution_v1";
+
+function readMarketingAttribution(){
+  const fromUrlCampaign = String(qs.get("campaign_id") || "").trim();
+  const fromUrlSeance = String(qs.get("seance") || "").trim();
+  if(fromUrlCampaign && fromUrlCampaign.startsWith("VAC-")){
+    return {
+      campaign_id: fromUrlCampaign,
+      seance_id: fromUrlSeance,
+      utm_source: String(qs.get("utm_source") || "va").trim(),
+      utm_medium: String(qs.get("utm_medium") || "campaign").trim(),
+      utm_campaign: String(qs.get("utm_campaign") || fromUrlCampaign).trim()
+    };
+  }
+  try{
+    const raw = sessionStorage.getItem(MARKETING_ATTRIBUTION_STORAGE_KEY);
+    const x = raw ? JSON.parse(raw) : null;
+    if(!x || typeof x !== "object") return null;
+    if(!String(x.campaign_id || "").startsWith("VAC-")) return null;
+    return x;
+  }catch(e){ return null; }
+}
+
     const seatsRaw = p.get("seats") || "";
     const amount = Number(p.get("amount") || 0);
     const seance = p.get("seance") || "";
     const title = p.get("title") || "Вистава";
     const show = p.get("show") || "demo";
+
+    const marketingAttributionRaw = readMarketingAttribution();
+    const marketingAttribution = marketingAttributionRaw &&
+      (!marketingAttributionRaw.seance_id || String(marketingAttributionRaw.seance_id) === String(seance))
+      ? marketingAttributionRaw
+      : null;
 
     const GATEWAY_MODE = p.get("source") === "gateway";
     const GATEWAY_VENUE_CODE = (p.get("venue") || "filarmoniya").trim();
@@ -502,27 +532,17 @@ const refCode =
       return "idem_" + crypto.randomUUID();
     }
 
-    function submitToLiqPay(data, signature, paymentWindow = null) {
-      const targetDocument =
-        paymentWindow && !paymentWindow.closed
-          ? paymentWindow.document
-          : document;
-
-      const form = targetDocument.createElement("form");
+    function submitToLiqPay(data, signature) {
+      const form = document.createElement("form");
       form.method = "POST";
       form.action = "https://www.liqpay.ua/api/3/checkout";
 
-      if (!paymentWindow && window.self !== window.top) {
-        // LiqPay must not remain inside Flight Deck iframe.
-        form.target = "_top";
-      }
-
-      const i1 = targetDocument.createElement("input");
+      const i1 = document.createElement("input");
       i1.type = "hidden";
       i1.name = "data";
       i1.value = data;
 
-      const i2 = targetDocument.createElement("input");
+      const i2 = document.createElement("input");
       i2.type = "hidden";
       i2.name = "signature";
       i2.value = signature;
@@ -530,7 +550,7 @@ const refCode =
       form.appendChild(i1);
       form.appendChild(i2);
 
-      targetDocument.body.appendChild(form);
+      document.body.appendChild(form);
       form.submit();
     }
 
@@ -573,6 +593,12 @@ const refCode =
       params.set("prices", JSON.stringify(prices));
       params.set("amount", String(amount));
       if (refCode) params.set("ref", refCode);
+      if (marketingAttribution?.campaign_id) {
+        params.set("campaign_id", marketingAttribution.campaign_id);
+        if(marketingAttribution.utm_source) params.set("utm_source", marketingAttribution.utm_source);
+        if(marketingAttribution.utm_medium) params.set("utm_medium", marketingAttribution.utm_medium);
+        if(marketingAttribution.utm_campaign) params.set("utm_campaign", marketingAttribution.utm_campaign);
+      }
       if (GATEWAY_MODE) {
         params.set("source", "gateway");
         params.set("venue", GATEWAY_VENUE_CODE);
@@ -604,33 +630,15 @@ const refCode =
         return;
       }
 
-      let paymentWindow = null;
-
-      if (window.self !== window.top) {
-        try {
-          paymentWindow = window.open("", "va_liqpay_payment");
-
-          if (paymentWindow) {
-            paymentWindow.document.title = "LiqPay";
-            paymentWindow.document.body.innerHTML =
-              '<div style="font-family:Arial,sans-serif;padding:24px">Підготовка захищеної сторінки LiqPay…</div>';
-          }
-        } catch (_) {
-          paymentWindow = null;
-        }
-      }
-
       let gateway = null;
 
       if (GATEWAY_MODE) {
         if (!window.VA_GATEWAY) {
-          try { paymentWindow?.close(); } catch (_) {}
           showCheckoutError("Gateway-клієнт не завантажено.");
           return;
         }
 
         if (!GATEWAY_HOLD_REF) {
-          try { paymentWindow?.close(); } catch (_) {}
           showCheckoutError(
             "Сесію утримання місць втрачено. Поверніться до схеми залу та оберіть місця повторно."
           );
@@ -670,7 +678,6 @@ const refCode =
           };
         } catch (e) {
           console.error("Gateway checkout preflight failed", e);
-          try { paymentWindow?.close(); } catch (_) {}
           showCheckoutError(
             "Не вдалося підтвердити утримання місць у майданчика. Поверніться до схеми залу."
           );
@@ -689,6 +696,10 @@ const refCode =
         buyer_email,
         buyer_phone,
         ref_code: refCode || null,
+        marketing_campaign_id: marketingAttribution?.campaign_id || null,
+        utm_source: marketingAttribution?.utm_source || null,
+        utm_medium: marketingAttribution?.utm_medium || null,
+        utm_campaign: marketingAttribution?.utm_campaign || null,
         gateway
       };
 
@@ -709,7 +720,6 @@ const refCode =
           ).trim();
 
           if (errorCode === "online_sales_disabled") {
-            try { paymentWindow?.close(); } catch (_) {}
             showCheckoutError(
               "Наразі придбати квитки можна лише в касі.",
               "sales-disabled"
@@ -717,19 +727,16 @@ const refCode =
             return;
           }
 
-          try { paymentWindow?.close(); } catch (_) {}
           showCheckoutError(
             j?.message ||
-            j?.error ||
             "Не вдалося перейти до оплати. Спробуйте ще раз."
           );
           return;
         }
 
-        submitToLiqPay(j.data, j.signature, paymentWindow);
+        submitToLiqPay(j.data, j.signature);
 
       } catch (e) {
-        try { paymentWindow?.close(); } catch (_) {}
         showCheckoutError(
           "Не вдалося з’єднатися із сервісом оплати. Перевірте інтернет-з’єднання."
         );
