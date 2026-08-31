@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.6</title>
+  <title>VA Marketing Control Center V2.7</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -173,7 +173,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.6</h1>
+        <h1>Marketing Control Center V2.7</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           Основна аналітика читає live-дані Supabase; V2.6 додає окремий контур зовнішніх аудиторій та передачу такої аудиторії в кампанію VA.
@@ -979,20 +979,51 @@ function reachableCount(clients){
   return (clients || []).filter(c => c.hasEmail || c.hasPhone).length;
 }
 
+function isTechnicalMarketingClient(c){
+  const name = String(c?.name || "").trim().toLowerCase();
+  const technicalNames = new Set(["каса", "касса", "kasa", "cash", "cashier"]);
+  return !c?.hasEmail && !c?.hasPhone && technicalNames.has(name);
+}
+
 function getAudienceIntelligence(seanceIds){
   const ids = (seanceIds || []).map(String);
   const alreadyBought = buyerKeysForSeances(ids);
   const scopeSeances = SEANCES.filter(s => ids.includes(String(s.id)));
   const genres = Array.from(new Set(scopeSeances.map(s => s.genre).filter(g => g && g !== "—")));
+  const marketingClients = CLIENTS.filter(c => !isTechnicalMarketingClient(c));
+  const alreadyBoughtClients = marketingClients.filter(c => alreadyBought.has(c.key));
 
-  const notBought = CLIENTS.filter(c => !alreadyBought.has(c.key));
+  const notBought = marketingClients.filter(c => !alreadyBought.has(c.key));
+  const allProspects = notBought;
+  const newProspects = notBought.filter(c => Number(c.orders || 0) === 1);
+  const returnedProspects = notBought.filter(c => Number(c.orders || 0) >= 2);
   const genreProspects = notBought.filter(c => genres.includes(c.favGenre));
   const regularProspects = notBought.filter(c => c.isRegular);
   const vipProspects = notBought.filter(c => c.isVip);
   const lostProspects = notBought.filter(c => c.isLost && (genres.length === 0 || genres.includes(c.favGenre)));
-  const repeatProspects = notBought.filter(c => c.orders >= 2);
 
   const segments = [
+    {
+      key:"all",
+      label:"Вся КБ",
+      description:"Усі ідентифіковані клієнти VA, крім тих, хто вже купив цей сеанс",
+      clients: allProspects,
+      priority: allProspects.length ? 10 : 0
+    },
+    {
+      key:"new",
+      label:"Нові",
+      description:"Мають одну покупку в історії VA і ще не купили цей сеанс",
+      clients: newProspects,
+      priority: newProspects.length ? 35 : 0
+    },
+    {
+      key:"returned",
+      label:"Повернулися",
+      description:"Мають дві або більше покупок у VA і ще не купили цей сеанс",
+      clients: returnedProspects,
+      priority: returnedProspects.length ? 50 : 0
+    },
     {
       key:"genre",
       label:"Любителі жанру",
@@ -1002,7 +1033,7 @@ function getAudienceIntelligence(seanceIds){
     },
     {
       key:"regular",
-      label:"Постійні глядачі",
+      label:"Постійні",
       description:"Мають 5+ покупок або 5+ фактичних відвідувань",
       clients: regularProspects,
       priority: regularProspects.length ? 80 : 0
@@ -1016,17 +1047,10 @@ function getAudienceIntelligence(seanceIds){
     },
     {
       key:"lost",
-      label:"Повернути 90+",
-      description:"Релевантні глядачі, які давно не відвідували події",
+      label:"Втрачені 90+",
+      description:"Глядачі, які давно не проявляли активності та ще не купили цей сеанс",
       clients: lostProspects,
       priority: lostProspects.length ? 60 : 0
-    },
-    {
-      key:"repeat",
-      label:"Повторні покупці",
-      description:"Купували щонайменше двічі, але ще не купили цей сеанс",
-      clients: repeatProspects,
-      priority: repeatProspects.length ? 50 : 0
     }
   ].map(s => ({
     ...s,
@@ -1041,23 +1065,24 @@ function getAudienceIntelligence(seanceIds){
     .sort((a,b) => (b.priority - a.priority) || (b.reachable - a.reachable) || (b.count - a.count))[0] || null;
 
   return {
-    alreadyBought: alreadyBought.size,
-    baseSize: CLIENTS.length,
+    alreadyBought: alreadyBoughtClients.length,
+    baseSize: marketingClients.length,
     genres,
     segments,
     recommended,
-    relevantNotBought: new Set([
-      ...genreProspects.map(c => c.key),
-      ...regularProspects.map(c => c.key),
-      ...vipProspects.map(c => c.key),
-      ...lostProspects.map(c => c.key)
-    ]).size
+    relevantNotBought: notBought.length,
+    selectableNotBought: notBought.length
   };
 }
 
 function getAudienceSegment(key){
   const intel = getAudienceIntelligence(getScopeSeanceIds());
-  return intel.segments.find(s => s.key === key) || null;
+  const normalized = key === "repeat" ? "returned" : key;
+  const found = intel.segments.find(s => s.key === normalized) || null;
+  if(!found) return null;
+  // Backward compatibility for campaigns saved in V2.4–V2.6.
+  if(key === "repeat") return { ...found, key:"repeat", label:"Повторні покупці" };
+  return found;
 }
 
 function chooseCampaignChannel(segment){
@@ -1922,13 +1947,13 @@ function renderAudienceSection(){
       <div class="flow-arrow">→</div>
       <div class="flow-step">Уже купили: <b>${intel.alreadyBought}</b></div>
       <div class="flow-arrow">→</div>
-      <div class="flow-step">Релевантні, але не купили: <b>${intel.relevantNotBought}</b></div>
+      <div class="flow-step">Можна запросити, ще не купили: <b>${intel.relevantNotBought}</b></div>
       <div class="flow-arrow">→</div>
       <div class="flow-step">Обрати сегмент і дію</div>
     </div>
 
     <div class="audience-grid">
-      ${intel.segments.slice(0,4).map(seg => `
+      ${intel.segments.map(seg => `
         <div class="aud-card ${seg.key === recommendedKey ? "recommended" : ""}">
           ${seg.key === recommendedKey ? `<div class="aud-label">Рекомендований старт</div>` : ""}
           <h3>${esc(seg.label)}</h3>
@@ -1943,18 +1968,6 @@ function renderAudienceSection(){
           </button>
         </div>
       `).join("")}
-    </div>
-
-    <div class="box" style="margin-top:16px">
-      <h3>Ще один корисний сегмент</h3>
-      ${(() => {
-        const seg = intel.segments.find(x => x.key === "repeat");
-        return `
-          <div class="metric-row"><span>${esc(seg.label)}</span><b>${seg.count}</b></div>
-          <div class="muted">${esc(seg.description)} Контактів: ${seg.reachable}.</div>
-          <button class="btn small secondary" style="margin-top:10px" onclick="prepareCampaignForSegment('repeat')" ${seg.count ? "" : "disabled"}>Підготувати кампанію</button>
-        `;
-      })()}
     </div>
 
     <div class="three-col">
@@ -2090,22 +2103,8 @@ function renderCampaignsSection(){
         description:`Окремий імпорт ${externalCtx.operator || "оператора"}; виключено тих, хто вже купив поточний сеанс.`
       }
     : (CAMPAIGN_DRAFT.segmentKey
-        ? intel.segments.find(x => x.key === CAMPAIGN_DRAFT.segmentKey)
-        : intel.recommended);
-
-  if(selected && !CAMPAIGN_DRAFT.segmentKey){
-    CAMPAIGN_DRAFT = {
-      segmentKey:selected.key,
-      segmentLabel:selected.label,
-      audienceCount:selected.count,
-      reachableCount:selected.reachable,
-      channel:chooseCampaignChannel(selected),
-      objective:s.focus && s.focus.analysis.lag < 0
-        ? `Прискорити темп продажів для «${scopeTitle()}»`
-        : `Запросити релевантну аудиторію на «${scopeTitle()}»`,
-      comment:`Автоматично рекомендований сегмент VA: ${selected.label}. Потенційна аудиторія: ${selected.count}; доступні контакти: ${selected.reachable}.`
-    };
-  }
+        ? getAudienceSegment(CAMPAIGN_DRAFT.segmentKey)
+        : null);
 
   const focusSeance = s.seances.length === 1 ? s.seances[0] : null;
   const days = focusSeance ? daysToSeance(focusSeance) : null;
@@ -2127,7 +2126,7 @@ function renderCampaignsSection(){
     ${renderExternalAudienceContext()}
 
     <div class="box campaign-card" style="margin-bottom:14px">
-      <div class="eyebrow">VA Campaign Object • V2.6</div>
+      <div class="eyebrow">VA Campaign Object • V2.7</div>
       ${activeCampaign ? `
         <div class="context-bridge-row">
           <div>
@@ -2148,6 +2147,29 @@ function renderCampaignsSection(){
     </div>
 
     ${renderScopeHeader()}
+
+    <div class="box" style="margin-bottom:14px">
+      <div class="eyebrow">ОБЕРІТЬ АУДИТОРІЮ КАМПАНІЇ</div>
+      <h3 style="margin-bottom:6px">Кому показуємо саме цей сеанс</h3>
+      <div class="muted" style="margin-bottom:12px">Ті, хто вже купив поточний сеанс (${intel.alreadyBought}), автоматично виключені з усіх сегментів. Сегменти можуть перетинатися.</div>
+      <div class="toolbar" style="margin-bottom:8px">
+        ${intel.segments.map(seg => `
+          <button class="btn small ${CAMPAIGN_DRAFT.segmentKey === seg.key ? "" : "secondary"}"
+                  onclick="prepareCampaignForSegment('${seg.key}')"
+                  ${seg.count ? "" : "disabled"}>
+            ${esc(seg.label)} · ${seg.count}${seg.key === intel.recommended?.key ? " ★" : ""}
+          </button>
+        `).join("")}
+        ${externalCtx ? `
+          <button class="btn small ${CAMPAIGN_DRAFT.segmentKey === "external" ? "" : "secondary"}"
+                  onclick="prepareExternalCampaign()"
+                  ${Number(externalCtx.available||0) ? "" : "disabled"}>
+            Зовнішня база · ${Number(externalCtx.available||0)}
+          </button>
+        ` : ""}
+      </div>
+      <div class="micro">★ — рекомендація VA за наявними даними. «Вся КБ» означає всю ідентифіковану клієнтську базу, крім тих, хто вже купив цей сеанс.</div>
+    </div>
 
     <div class="campaign-brief">
       <div class="box">
