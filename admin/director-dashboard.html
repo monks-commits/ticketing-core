@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VA Director Dashboard</title>
+  <title>VA Director Dashboard V1.3</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -154,6 +154,34 @@
       color:#a8b8cb;
     }
 
+    .campaign-result{
+      margin-top:14px;
+      padding:14px;
+      border-radius:14px;
+      background:linear-gradient(180deg,rgba(242,182,50,.12),rgba(242,182,50,.035));
+      border:1px solid rgba(242,182,50,.45);
+      display:none;
+    }
+
+    .campaign-result-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    .campaign-result-title{font-size:20px;font-weight:900}
+    .campaign-result-period{color:#9fb3ca;font-size:12px;margin-top:4px}
+    .result-status{display:inline-flex;padding:6px 9px;border-radius:999px;background:#17613e;font-size:11px;font-weight:900}
+    .result-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+    .result-card{background:#0b1a30;border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:11px;min-height:80px}
+    .result-card span{display:block;color:#8fa8c6;font-size:11px;margin-bottom:6px}
+    .result-card b{display:block;font-size:18px;line-height:1.25}
+    .result-card small{display:block;color:#9fb3ca;margin-top:5px;line-height:1.35}
+    .result-proof{margin-top:10px;padding:10px 11px;border-radius:11px;background:#132943;color:#d8e7f7;line-height:1.45;font-size:13px}
+
     .director-actions{
       width:min(520px, 100%);
       margin:0 auto;
@@ -229,7 +257,7 @@
         margin-bottom:24px;
       }
 
-      .context-grid{
+      .context-grid, .result-grid{
         grid-template-columns:repeat(2, minmax(0,1fr));
       }
 
@@ -240,7 +268,7 @@
     }
 
     @media(max-width:460px){
-      .context-grid{
+      .context-grid, .result-grid{
         grid-template-columns:1fr;
       }
     }
@@ -295,6 +323,24 @@
       <div class="context-note empty" id="contextNote">
         Наскрізний контекст VA поки не активний.
       </div>
+
+      <div class="campaign-result" id="campaignResult">
+        <div class="campaign-result-head">
+          <div>
+            <div class="context-kicker">CAMPAIGN RESULT V1 · DIRECTOR BRIDGE</div>
+            <div class="campaign-result-title">Результат кампанії</div>
+            <div class="campaign-result-period" id="resultPeriod">—</div>
+          </div>
+          <span class="result-status">Завершена</span>
+        </div>
+        <div class="result-grid">
+          <div class="result-card"><span>Загальний приріст</span><b id="resultGrowth">—</b><small id="resultGrowthMoney">—</small></div>
+          <div class="result-card"><span>Пряма атрибуція</span><b id="resultAttribution">—</b><small id="resultAttributionMoney">—</small></div>
+          <div class="result-card"><span>Email / виконання</span><b id="resultDelivery">—</b><small id="resultDeliveryMeta">—</small></div>
+          <div class="result-card"><span>Бюджет / прямий ROAS</span><b id="resultBudget">—</b><small id="resultRoas">—</small></div>
+        </div>
+        <div class="result-proof" id="resultProof">—</div>
+      </div>
     </section>
 
     <div class="director-actions">
@@ -318,7 +364,7 @@
     </div>
 
     <div class="version">
-      VA Director V1.2 · Context Bridge
+      VA Director V1.3 · Campaign Result Bridge
     </div>
   </main>
 
@@ -457,6 +503,56 @@
       return n ? `${Math.round(n).toLocaleString("uk-UA")} грн` : "0 грн";
     }
 
+    function signed(v, suffix=""){
+      const n = Number(v || 0);
+      return `${n > 0 ? "+" : ""}${Math.round(n).toLocaleString("uk-UA")}${suffix}`;
+    }
+
+    function fmtDateTime(v){
+      if(!v) return "—";
+      const d = new Date(v);
+      if(Number.isNaN(d.getTime())) return "—";
+      return `${d.toLocaleDateString("uk-UA")} ${d.toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}`;
+    }
+
+    function legacyCampaignResult(c){
+      if(!c?.result) return null;
+      return {
+        version:0,
+        started_at:c.started_at || null,
+        completed_at:c.completed_at || null,
+        growth:{tickets:Number(c.result.sold_delta||0),revenue:Number(c.result.revenue_delta||0),buyers:Number(c.result.buyers_delta||0),fill_pp:Number(c.result.fill_delta||0)},
+        attribution:{buyers:0,orders:0,tickets:0,revenue:0,ticket_share_pct:null,revenue_share_pct:null},
+        unattributed:{tickets:Math.max(0,Number(c.result.sold_delta||0)),revenue:Math.max(0,Number(c.result.revenue_delta||0))},
+        delivery:{messages:0,recipients:0,sent:0,failed:0,pending:0,testSends:0},
+        budget:Number(c.result.budget||c.budget||0),
+        economics:{cost_per_buyer:null,cost_per_ticket:null,direct_roas:null}
+      };
+    }
+
+    function renderCampaignResult(){
+      const box = document.getElementById("campaignResult");
+      if(!box) return;
+      const result = VA_CAMPAIGN?.result_v1 || legacyCampaignResult(VA_CAMPAIGN);
+      if(!VA_CAMPAIGN || !result || !["done","completed"].includes(String(VA_CAMPAIGN.status||"").toLowerCase())){
+        box.style.display = "none";
+        return;
+      }
+      const g=result.growth||{}, a=result.attribution||{}, d=result.delivery||{}, u=result.unattributed||{}, e=result.economics||{};
+      box.style.display = "block";
+      document.getElementById("resultPeriod").textContent = `${fmtDateTime(result.started_at)} → ${fmtDateTime(result.completed_at)}`;
+      document.getElementById("resultGrowth").textContent = `${signed(g.tickets)} квит.`;
+      document.getElementById("resultGrowthMoney").textContent = `${signed(g.revenue," грн")} · покупці ${signed(g.buyers)}`;
+      const share = a.ticket_share_pct == null ? "—" : `${Math.round(Number(a.ticket_share_pct))}%`;
+      document.getElementById("resultAttribution").textContent = `${Number(a.tickets||0)} квит. · ${share}`;
+      document.getElementById("resultAttributionMoney").textContent = `${Number(a.orders||0)} замовл. · ${formatMoney(a.revenue)}`;
+      document.getElementById("resultDelivery").textContent = d.recipients ? `${Number(d.sent||0)} / ${Number(d.recipients||0)}` : "—";
+      document.getElementById("resultDeliveryMeta").textContent = d.recipients ? `надіслано / одержувачів · помилки ${Number(d.failed||0)}` : "Email-виконання не зафіксовано";
+      document.getElementById("resultBudget").textContent = formatMoney(result.budget);
+      document.getElementById("resultRoas").textContent = e.direct_roas == null ? "прямий ROAS —" : `прямий ROAS ${Number(e.direct_roas).toFixed(2)}×`;
+      document.getElementById("resultProof").textContent = `За час кампанії: ${signed(g.tickets)} квит. / ${signed(g.revenue," грн")}. Прямо за campaign_id: ${Number(a.orders||0)} замовл., ${Number(a.tickets||0)} квит., ${formatMoney(a.revenue)}. Без прямої атрибуції: ${Number(u.tickets||0)} квит.`;
+    }
+
     function renderContext(){
       const bridge = document.getElementById("contextBridge");
 
@@ -515,6 +611,8 @@
         note.classList.add("empty");
         note.textContent = "Наскрізний контекст VA поки не активний.";
       }
+
+      renderCampaignResult();
     }
 
     function contextUrl(route, hash = "", target = ""){
