@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VA Campaign</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#081a2f;color:#fff;display:grid;place-items:center;min-height:100vh;margin:0}
+    .box{max-width:560px;padding:28px;border:1px solid rgba(255,255,255,.15);border-radius:20px;background:#10243f;text-align:center}
+    .muted{color:#9fb3cf;line-height:1.5}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Ваш Адмін</h1>
+    <div id="msg" class="muted">Відкриваємо продаж…</div>
+  </div>
+<script>
+(() => {
+  "use strict";
+  const STORAGE_KEY = "va_marketing_attribution_v1";
+  const qs = new URLSearchParams(location.search);
+  const campaignId = String(qs.get("campaign_id") || "").trim();
+  const seanceId = String(qs.get("seance_id") || qs.get("seance") || "").trim();
+  const utmSource = String(qs.get("utm_source") || "va").trim().slice(0,120);
+  const utmMedium = String(qs.get("utm_medium") || "campaign").trim().slice(0,120);
+  const utmCampaign = String(qs.get("utm_campaign") || campaignId).trim().slice(0,160);
+
+  if(!campaignId || !campaignId.startsWith("VAC-") || !seanceId){
+    document.getElementById("msg").textContent = "Посилання кампанії неповне.";
+    return;
+  }
+
+  const ctx = {
+    campaign_id: campaignId.slice(0,160),
+    seance_id: seanceId.slice(0,200),
+    utm_source: utmSource,
+    utm_medium: utmMedium,
+    utm_campaign: utmCampaign,
+    captured_at: new Date().toISOString()
+  };
+
+  try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ctx)); }catch(e){}
+
+  const hall = new URL("./hall.html", location.href);
+  hall.searchParams.set("seance", seanceId);
+  const ref = String(qs.get("ref") || "").trim();
+  if(ref) hall.searchParams.set("ref", ref);
+  location.replace(hall.toString());
+})();
+</script>
+</body>
+</html>
