@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.9</title>
+  <title>VA Marketing Control Center V2.10</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -176,9 +176,17 @@ textarea::placeholder{
   .attribution-link-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
   .attribution-link{flex:1;min-width:280px;background:#07172b;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;color:#dce8ff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
   .attribution-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-  @media(max-width:900px){.attribution-stats{grid-template-columns:repeat(2,1fr)}}
+  .campaign-result{margin-top:14px;border:1px solid rgba(242,182,50,.42);background:linear-gradient(180deg,rgba(242,182,50,.10),rgba(242,182,50,.035));border-radius:14px;padding:14px}
+  .campaign-result-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px}
+  .campaign-result-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:10px}
+  .campaign-result-cell{background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:11px}
+  .campaign-result-cell span{display:block;color:#aebbd0;font-size:11px;margin-bottom:5px}
+  .campaign-result-cell b{font-size:19px;line-height:1.2}
+  .result-proof{margin-top:10px;padding:11px 12px;border-radius:11px;background:#10243f;border:1px solid rgba(98,176,255,.22);line-height:1.45}
+  .result-proof strong{display:inline;font-size:inherit;margin:0}
+  @media(max-width:900px){.attribution-stats,.campaign-result-grid{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:1000px){.snapshot-grid{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:800px){.campaign-row{grid-template-columns:1fr}.context-bridge{position:relative;top:auto}.lifecycle-steps,.snapshot-grid{grid-template-columns:1fr}}
+  @media(max-width:800px){.campaign-row{grid-template-columns:1fr}.context-bridge{position:relative;top:auto}.lifecycle-steps,.snapshot-grid,.campaign-result-grid{grid-template-columns:1fr}}
 
   </style>
 </head>
@@ -190,10 +198,10 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.8.1</h1>
+        <h1>Marketing Control Center V2.10</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          Основна аналітика читає live-дані Supabase; V2.8 додає життєвий цикл кампанії зі стартовим та фінальним знімками фактичних показників.
+          Основна аналітика читає live-дані Supabase; V2.10 зводить життєвий цикл, доставку, пряму атрибуцію та фінальний результат кампанії в один доказовий контур.
         </div>
       </div>
       <div class="hero-badges">
@@ -252,7 +260,10 @@ let CLIENTS = [];
 let SEANCES = [];
 let ORDERS = [];
 let TICKETS = [];
-let JOURNAL = [];  
+let JOURNAL = [];
+let SERVICE_MESSAGES = [];
+let SERVICE_RECIPIENTS = [];
+let SERVICE_DELIVERIES = [];
 let CURRENT_SEANCE_IDS = [];
 let MARKETING_CONTEXTS = {};
 let MARKETING_CONTEXT_SOURCE = {};
@@ -721,6 +732,7 @@ async function completeCampaign(){
 
   const refreshed = await refreshActiveCampaignData({rerender:false, silent:false});
   if(!refreshed) return;
+  await refreshServiceCommunicationData();
   c.end_snapshot = campaignMetricSnapshot(c);
   c.completed_at = c.end_snapshot?.captured_at || new Date().toISOString();
   c.status = "done";
@@ -733,6 +745,7 @@ async function completeCampaign(){
     segment_remaining_delta: metricDelta(c.start_snapshot, c.end_snapshot, "segmentRemaining"),
     budget: Number(c.end_snapshot?.budget || c.budget || 0)
   };
+  freezeCampaignResultV1(c);
   saveLocalCampaigns();
   updateUrlContext();
   renderContextBridge();
@@ -811,6 +824,106 @@ function campaignAttributionMetrics(campaign){
     tickets: attributedTickets.length,
     revenue: rows.reduce((sum,o) => sum + Number(o.amount || 0), 0)
   };
+}
+
+function campaignDeliveryMetrics(campaign){
+  if(!campaign?.id) return {messages:0,recipients:0,sent:0,failed:0,pending:0,testSends:0};
+  const cid = String(campaign.id);
+  const messages = SERVICE_MESSAGES.filter(m => String(m?.event_snapshot?.marketing_campaign_id || "") === cid);
+  const ids = new Set(messages.map(m => String(m.id || "")).filter(Boolean));
+  const recipients = SERVICE_RECIPIENTS.filter(r => ids.has(String(r.service_message_id || "")));
+  const sent = recipients.filter(r => ["sent","delivered"].includes(String(r.delivery_status || "").toLowerCase())).length;
+  const failed = recipients.filter(r => String(r.delivery_status || "").toLowerCase() === "failed").length;
+  const pending = Math.max(0, recipients.length - sent - failed);
+  const testSends = SERVICE_DELIVERIES.filter(d => ids.has(String(d.service_message_id || "")) && String(d.action || "") === "test_send" && String(d.status || "").toLowerCase() === "sent").length;
+  return {messages:messages.length,recipients:recipients.length,sent,failed,pending,testSends};
+}
+
+function campaignResultV1(campaign){
+  if(!campaign?.start_snapshot) return null;
+  const finish = campaign.end_snapshot || ((campaign.status || "draft") === "active" ? campaignMetricSnapshot(campaign) : null);
+  if(!finish) return null;
+  const growth = {
+    tickets: metricDelta(campaign.start_snapshot, finish, "sold"),
+    revenue: metricDelta(campaign.start_snapshot, finish, "revenue"),
+    buyers: metricDelta(campaign.start_snapshot, finish, "buyers"),
+    fill_pp: metricDelta(campaign.start_snapshot, finish, "fill")
+  };
+  const attribution = campaignAttributionMetrics(campaign);
+  const delivery = campaignDeliveryMetrics(campaign);
+  const ticketShare = growth.tickets > 0 ? Math.min(100, Math.round((Number(attribution.tickets||0) / growth.tickets) * 100)) : null;
+  const revenueShare = growth.revenue > 0 ? Math.min(100, Math.round((Number(attribution.revenue||0) / growth.revenue) * 100)) : null;
+  const budget = Number(finish.budget || campaign.budget || 0);
+  return {
+    version:1,
+    calculated_at:new Date().toISOString(),
+    status:campaign.status || "draft",
+    started_at:campaign.started_at || campaign.start_snapshot?.captured_at || null,
+    completed_at:campaign.completed_at || campaign.end_snapshot?.captured_at || null,
+    growth,
+    attribution:{...attribution,ticket_share_pct:ticketShare,revenue_share_pct:revenueShare},
+    unattributed:{
+      tickets:Math.max(0, Number(growth.tickets||0)-Number(attribution.tickets||0)),
+      revenue:Math.max(0, Number(growth.revenue||0)-Number(attribution.revenue||0))
+    },
+    delivery,
+    budget,
+    economics:{
+      cost_per_buyer:budget > 0 && attribution.buyers > 0 ? budget / attribution.buyers : null,
+      cost_per_ticket:budget > 0 && attribution.tickets > 0 ? budget / attribution.tickets : null,
+      direct_roas:budget > 0 ? Number(attribution.revenue||0) / budget : null
+    }
+  };
+}
+
+function freezeCampaignResultV1(campaign){
+  const r = campaignResultV1(campaign);
+  if(!r) return null;
+  campaign.result_v1 = JSON.parse(JSON.stringify(r));
+  return campaign.result_v1;
+}
+
+function backfillCampaignResultsV1(){
+  let changed = false;
+  for(const c of CAMPAIGNS){
+    if((c.status || "draft") === "done" && c.start_snapshot && c.end_snapshot && !c.result_v1){
+      freezeCampaignResultV1(c);
+      changed = true;
+    }
+  }
+  if(changed) saveLocalCampaigns();
+}
+
+function resultPercent(v){
+  return v == null || !Number.isFinite(Number(v)) ? "—" : `${Math.round(Number(v))}%`;
+}
+
+function renderCampaignResultCard(campaign, compact=false){
+  if(!campaign) return "";
+  const result = campaign.result_v1 || campaignResultV1(campaign);
+  if(!result) return "";
+  const g=result.growth||{}, a=result.attribution||{}, u=result.unattributed||{}, d=result.delivery||{}, e=result.economics||{};
+  const finished=(campaign.status||"draft") === "done";
+  const periodStart=result.started_at ? `${fmtDate(result.started_at)} ${new Date(result.started_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "—";
+  const periodEnd=result.completed_at ? `${fmtDate(result.completed_at)} ${new Date(result.completed_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "зараз";
+  const attributionText = a.ticket_share_pct == null ? "—" : `${a.tickets} з ${Math.max(0,Number(g.tickets||0))} · ${resultPercent(a.ticket_share_pct)}`;
+  const deliveryText = d.recipients ? `${d.sent}/${d.recipients}` : "—";
+  const proof = `За період кампанії: ${signedNumber(g.tickets)} квит. / ${signedNumber(g.revenue," грн")}. Прямо за campaign_id: ${Number(a.orders||0)} замовл., ${Number(a.tickets||0)} квит., ${Number(a.revenue||0).toLocaleString("uk-UA")} грн. Без прямої атрибуції: ${Number(u.tickets||0)} квит.`;
+  return `
+    <div class="campaign-result ${compact ? "compact-result" : ""}">
+      <div class="campaign-result-head">
+        <div><div class="eyebrow">CAMPAIGN RESULT V1</div><h3 style="margin:3px 0 5px">${esc(campaign.name || "Кампанія")}</h3><div class="micro">${esc(periodStart)} → ${esc(periodEnd)} · ${finished ? "фінал зафіксовано" : "поточний зріз"}</div></div>
+        <span class="pill status-${esc(campaign.status||"draft")}">${esc(campaignStatusLabel(campaign.status||"draft"))}</span>
+      </div>
+      <div class="campaign-result-grid">
+        <div class="campaign-result-cell"><span>Загальний приріст</span><b>${signedNumber(g.tickets)} квит.</b><div class="micro">${signedNumber(g.revenue," грн")} · покупці ${signedNumber(g.buyers)}</div></div>
+        <div class="campaign-result-cell"><span>Пряма атрибуція</span><b>${esc(attributionText)}</b><div class="micro">${Number(a.orders||0)} замовл. · ${Number(a.revenue||0).toLocaleString("uk-UA")} грн</div></div>
+        <div class="campaign-result-cell"><span>Email / доставка</span><b>${esc(deliveryText)}</b><div class="micro">надіслано / одержувачів · помилки ${Number(d.failed||0)}${d.testSends?` · тестів ${Number(d.testSends)}`:""}</div></div>
+        <div class="campaign-result-cell"><span>Бюджет / ROAS</span><b>${Number(result.budget||0).toLocaleString("uk-UA")} грн</b><div class="micro">${e.direct_roas == null ? "ROAS —" : `прямий ROAS ${Number(e.direct_roas).toFixed(2)}×`}</div></div>
+      </div>
+      <div class="result-proof"><strong>Доказовий підсумок:</strong> ${esc(proof)}</div>
+      ${finished ? `<div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openVAWorkspace('director')">Директору →</button></div>` : ""}
+    </div>`;
 }
 
 function renderCampaignAttribution(campaign){
@@ -894,6 +1007,7 @@ function renderCampaignLifecycle(campaign){
       </div>
       ${body}
       ${renderCampaignAttribution(campaign)}
+      ${(campaign.status || "draft") === "done" ? renderCampaignResultCard(campaign, true) : ""}
     </div>`;
 }
 
@@ -961,6 +1075,23 @@ async function fetchAll(table, select="*"){
     from += size;
   }
   return all;
+}
+
+async function fetchAllOptional(table, select="*"){
+  try{ return await fetchAll(table, select); }
+  catch(e){ console.warn(`Optional table ${table}`, e); return []; }
+}
+
+async function refreshServiceCommunicationData(){
+  const [messages, recipients, deliveries] = await Promise.all([
+    fetchAllOptional("service_messages", "id,seance_id,status,recipient_count,sent_at,event_snapshot"),
+    fetchAllOptional("service_message_recipients", "id,service_message_id,email,phone,delivery_status,provider_message_id,error_text,metadata"),
+    fetchAllOptional("service_delivery_log", "id,service_message_id,recipient_id,action,status,provider,attempted_at,response_text")
+  ]);
+  SERVICE_MESSAGES = messages || [];
+  SERVICE_RECIPIENTS = recipients || [];
+  SERVICE_DELIVERIES = deliveries || [];
+  return true;
 }
 
 function normKey(order){
@@ -2727,7 +2858,7 @@ function renderCampaignsSection(){
 
     <div class="notice">
       <b>Що вже замкнуто:</b> стан сеансу → маркетинговий паспорт → релевантна аудиторія → виключення тих, хто вже купив → вибір сегмента → змістова основа кампанії → журнал дії.
-      У V2.9 lifecycle і Attribution V1 збережені. Додано міст у «Службові комунікації»: Marketing фіксує аудиторію та зміст, а комунікаційний модуль отримує конкретних одержувачів, Email і campaign-link для реального надсилання.
+      У V2.10 lifecycle, Attribution V1 і міст у «Службові комунікації» збережені. Додано Campaign Result V1: часовий приріст, пряма атрибуція, Email-виконання, бюджет і доказовий підсумок, який передається директору.
     </div>
   `;
 }
@@ -2879,42 +3010,27 @@ async function saveJournalEntry(){
   
 function renderEfficiencySection(){
   const panel = document.getElementById("activeSectionPanel");
-
   const seanceIds = getActiveSeanceIds();
-
-  const tickets = TICKETS.filter(t =>
-    seanceIds.includes(String(t.seance_id))
-  );
-
+  const tickets = TICKETS.filter(t => seanceIds.includes(String(t.seance_id)));
   const sold = tickets.length;
-
-  const revenue = tickets.reduce(
-    (sum, t) => sum + Number(t.price || 0),
-    0
-  );
-
-  const visited = tickets.filter(t =>
-    t.checked_in_at
-  ).length;
-
-  const avg = sold
-    ? Math.round(revenue / sold)
-    : 0;
-
-  const attendance = sold
-    ? Math.round((visited / sold) * 100)
-    : 0;
-
+  const revenue = tickets.reduce((sum, t) => sum + Number(t.price || 0), 0);
+  const visited = tickets.filter(t => t.checked_in_at).length;
+  const avg = sold ? Math.round(revenue / sold) : 0;
+  const attendance = sold ? Math.round((visited / sold) * 100) : 0;
   const ticketTypes = getTicketTypeStats(seanceIds);
   const channels = getChannelRows(seanceIds);
+  const campaignRows = CAMPAIGNS
+    .filter(c => seanceIds.includes(String(c.seance_id || "")))
+    .sort((a,b) => new Date(b.completed_at || b.updated_at || b.created_at || 0) - new Date(a.completed_at || a.updated_at || a.created_at || 0));
+  const completed = campaignRows.filter(c => (c.status || "draft") === "done" && c.start_snapshot && c.end_snapshot);
 
   panel.innerHTML = `
     <h2>📊 Ефективність</h2>
+    <div class="muted" style="margin-bottom:12px">Факти по вибраних сеансах. Campaign Result V1 окремо показує часовий приріст, пряму атрибуцію та виконану Email-комунікацію.</div>
 
-    <div class="muted" style="margin-bottom:12px">
-      Факти по вибраних сеансах. Без прогнозів.
-    </div>
+    ${completed.length ? `<div class="section-caption"><div><div class="eyebrow">CAMPAIGN RESULT V1</div><h3>Завершені кампанії</h3></div><div class="micro">${completed.length} кампан.</div></div>${completed.map(c => renderCampaignResultCard(c)).join("")}` : `<div class="notice"><b>Завершених кампаній у вибраному контексті ще немає.</b> Після завершення тут з’явиться доказовий підсумок.</div>`}
 
+    <div class="section-caption"><div><div class="eyebrow">СЕАНС • ФАКТИ</div><h3>Загальний результат продажів</h3></div></div>
     <div class="grid">
       <div class="box"><span>Квитків</span><b>${sold}</b></div>
       <div class="box"><span>Виручка</span><b>${revenue.toLocaleString("uk-UA")} грн</b></div>
@@ -2924,48 +3040,15 @@ function renderEfficiencySection(){
 
     <div class="box" style="margin-top:16px">
       <h3>Типи квитків</h3>
-      ${
-        Object.keys(ticketTypes).length
-          ? Object.entries(ticketTypes)
-              .map(([k,v]) =>
-                `<span class="pill">${esc(ticketTypeLabel(k))}: ${v}</span>`
-              )
-              .join(" ")
-          : `<span class="muted">Немає квитків.</span>`
-      }
+      ${Object.keys(ticketTypes).length ? Object.entries(ticketTypes).map(([k,v]) => `<span class="pill">${esc(ticketTypeLabel(k))}: ${v}</span>`).join(" ") : `<span class="muted">Немає квитків.</span>`}
     </div>
 
     <div class="box" style="margin-top:16px">
       <h3>Канали продажів</h3>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Канал</th>
-            <th>Квитків</th>
-            <th>Сума</th>
-            <th>Середній чек</th>
-            <th>Частка</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${
-            channels.length
-              ? channels.map(r => `
-                <tr>
-                  <td><b>${esc(r.channel)}</b></td>
-                  <td>${r.tickets}</td>
-                  <td>${r.sum.toLocaleString("uk-UA")} грн</td>
-                  <td>${r.avg.toLocaleString("uk-UA")} грн</td>
-                  <td>${r.share}%</td>
-                </tr>
-              `).join("")
-              : `<tr><td colspan="5" class="muted">Немає продажів</td></tr>`
-          }
-        </tbody>
-      </table>
-    </div>
-  `;
+      <table><thead><tr><th>Канал</th><th>Квитків</th><th>Сума</th><th>Середній чек</th><th>Частка</th></tr></thead><tbody>
+        ${channels.length ? channels.map(r => `<tr><td><b>${esc(r.channel)}</b></td><td>${r.tickets}</td><td>${r.sum.toLocaleString("uk-UA")} грн</td><td>${r.avg.toLocaleString("uk-UA")} грн</td><td>${r.share}%</td></tr>`).join("") : `<tr><td colspan="5" class="muted">Немає продажів</td></tr>`}
+      </tbody></table>
+    </div>`;
 }
 
 async function boot(){
@@ -2975,34 +3058,26 @@ async function boot(){
   loadLocalCampaigns();
 
   try{
-    const [orders, tickets, seances, journal] = await Promise.all([
-      fetchAll(
-        "orders",
-        "*"
-      ),
-
-      fetchAll(
-        "tickets",
-        "id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"
-      ),
-
-      fetchAll(
-        "seances",
-        "id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity"
-      ),
-
-      fetchAll(
-        "marketing_journal",
-        "id,created_at,seance_id,action_date,action_type,channel,budget,comment,result,conclusion,author"
-      )
+    const [orders, tickets, seances, journal, serviceMessages, serviceRecipients, serviceDeliveries] = await Promise.all([
+      fetchAll("orders", "*"),
+      fetchAll("tickets", "id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"),
+      fetchAll("seances", "id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity"),
+      fetchAll("marketing_journal", "id,created_at,seance_id,action_date,action_type,channel,budget,comment,result,conclusion,author"),
+      fetchAllOptional("service_messages", "id,seance_id,status,recipient_count,sent_at,event_snapshot"),
+      fetchAllOptional("service_message_recipients", "id,service_message_id,email,phone,delivery_status,provider_message_id,error_text,metadata"),
+      fetchAllOptional("service_delivery_log", "id,service_message_id,recipient_id,action,status,provider,attempted_at,response_text")
     ]);
 
     ORDERS = orders || [];
     TICKETS = tickets || [];
     SEANCES = seances || [];
     JOURNAL = journal || [];
+    SERVICE_MESSAGES = serviceMessages || [];
+    SERVICE_RECIPIENTS = serviceRecipients || [];
+    SERVICE_DELIVERIES = serviceDeliveries || [];
 
     buildClients(ORDERS, TICKETS, SEANCES);
+    backfillCampaignResultsV1();
     await loadRemoteMarketingContextsOptional();
     restoreContextFromUrl();
     updateUrlContext();
