@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.5</title>
+  <title>VA Marketing Control Center V2.6</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -173,10 +173,10 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.4</h1>
+        <h1>Marketing Control Center V2.6</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          Основна аналітика читає live-дані Supabase; V2.4 додає наскрізний контекст сеансу та постійний об’єкт кампанії.
+          Основна аналітика читає live-дані Supabase; V2.6 додає окремий контур зовнішніх аудиторій та передачу такої аудиторії в кампанію VA.
         </div>
       </div>
       <div class="hero-badges">
@@ -200,6 +200,7 @@ textarea::placeholder{
         <button class="workspace-btn pending" onclick="openVAWorkspace('clients')">КБ</button>
         <button class="workspace-btn pending" onclick="openVAWorkspace('studio')">Studio</button>
         <button class="workspace-btn pending" onclick="openVAWorkspace('director')">Директор</button>
+        <button class="workspace-btn pending" onclick="openVAWorkspace('external')">Зовнішні бази</button>
       </div>
     </div>
   </div>
@@ -259,9 +260,74 @@ const VA_WORKSPACE_ROUTES = {
   marketing: "marketing.html",
   clients: "https://monks-commits.github.io/ticketing-core/admin/viewers.html",
   studio: "https://monks-commits.github.io/ticketing-core/admin/content_studio.html",
-  director: "https://monks-commits.github.io/ticketing-core/admin/director-dashboard.html"
+  director: "https://monks-commits.github.io/ticketing-core/admin/director-dashboard.html",
+  external: "external-audiences.html"
 };
 const VA_WORKSPACE_CONTEXT_KEY = "va_workspace_context_v1";
+const EXTERNAL_CONTEXT_KEY = "va_external_marketing_context_v1";
+
+function getExternalMarketingContext(){
+  try{
+    const raw = localStorage.getItem(EXTERNAL_CONTEXT_KEY);
+    const x = raw ? JSON.parse(raw) : null;
+    return x && typeof x === "object" ? x : null;
+  }catch(e){ return null; }
+}
+
+function externalContextForFocus(){
+  const x = getExternalMarketingContext();
+  if(!x) return null;
+  const sid = CURRENT_SEANCE_IDS.length === 1 ? String(CURRENT_SEANCE_IDS[0]) : "";
+  if(sid && x.seance_id && String(x.seance_id) !== sid) return null;
+  return x;
+}
+
+function clearExternalMarketingContext(){
+  try{ localStorage.removeItem(EXTERNAL_CONTEXT_KEY); }catch(e){}
+  try{ const url=new URL(location.href); url.searchParams.delete("external_batch_id"); history.replaceState(null,"",url.toString()); }catch(e){}
+  if(ACTIVE_SECTION===1) renderAudienceSection();
+  else if(ACTIVE_SECTION===3) renderCampaignsSection();
+  renderContextBridge();
+}
+
+function prepareExternalCampaign(){
+  const x = externalContextForFocus();
+  if(!x || !Number(x.available||0)) return;
+  CAMPAIGN_DRAFT = {
+    segmentKey:"external",
+    segmentLabel:`${x.operator || "Зовнішня база"}${x.source_event ? " • " + x.source_event : ""}`,
+    audienceCount:Number(x.available||0),
+    reachableCount:Number(x.available||0),
+    channel:Number(x.email||0) >= Number(x.phone||0) ? "Email" : "Телефон / месенджер",
+    objective:`Запросити зовнішню аудиторію на «${scopeTitle()}»`,
+    comment:`Зовнішня аудиторія ${x.operator || "оператора"}. Партія ${x.batch_id || "—"}. Доступно для кампанії: ${x.available || 0}; вже є у КБ VA: ${x.known_in_va || 0}; вже купили цільовий сеанс: ${x.already_bought_target || 0}.`
+  };
+  openMarketingSection(3);
+}
+
+function renderExternalAudienceContext(){
+  const x = externalContextForFocus();
+  if(!x) return "";
+  return `
+    <div class="box campaign-card" style="margin:14px 0">
+      <div class="eyebrow">ЗОВНІШНЯ АУДИТОРІЯ • ОКРЕМИЙ КОНТУР</div>
+      <div class="context-bridge-row">
+        <div>
+          <h3>${esc(x.operator || "Зовнішня база")}${x.source_event ? " • " + esc(x.source_event) : ""}</h3>
+          <div class="muted">Партія: ${esc(x.batch_id || "—")} • всього покупців: ${Number(x.total_buyers||0)} • вже у КБ VA: ${Number(x.known_in_va||0)}</div>
+        </div>
+        <div class="big-value">${Number(x.available||0)}</div>
+      </div>
+      <div class="metric-row"><span>Вже купили цей сеанс у VA</span><b>${Number(x.already_bought_target||0)}</b></div>
+      <div class="metric-row"><span>Доступні для кампанії</span><b>${Number(x.available||0)}</b></div>
+      <div class="metric-row"><span>Email / телефон</span><b>${Number(x.email||0)} / ${Number(x.phone||0)}</b></div>
+      <div class="toolbar">
+        <button class="btn small" onclick="prepareExternalCampaign()" ${Number(x.available||0) ? "" : "disabled"}>До кампанії</button>
+        <button class="btn small secondary" onclick="openVAWorkspace('external')">Відкрити зовнішню базу</button>
+        <button class="btn small secondary" onclick="clearExternalMarketingContext()">Прибрати з контексту</button>
+      </div>
+    </div>`;
+}
 
 
 
@@ -343,6 +409,10 @@ function renderContextBridge(){
     <span class="campaign-chip"><span class="campaign-id">${esc(c.id)}</span></span>
     <span class="pill status-${esc(c.status || "draft")}">${esc(c.status === "active" ? "Активна" : c.status === "done" ? "Завершена" : "Чернетка")}</span>
   ` : `<span class="micro">Активної кампанії немає. Її можна створити у розділі «Кампанії».</span>`;
+  const ext = externalContextForFocus();
+  if(ext){
+    strip.insertAdjacentHTML("beforeend", `<span class="campaign-chip"><b>Зовнішня база:</b> ${esc(ext.operator || "імпорт")} • доступно ${Number(ext.available||0)}</span>`);
+  }
 }
 
 function persistWorkspaceContext(target = "marketing"){
@@ -1845,6 +1915,8 @@ function renderAudienceSection(){
 
     ${renderScopeHeader()}
 
+    ${renderExternalAudienceContext()}
+
     <div class="flow">
       <div class="flow-step">Клієнтська база: <b>${intel.baseSize}</b></div>
       <div class="flow-arrow">→</div>
@@ -2006,9 +2078,20 @@ function renderCampaignsSection(){
   const s = getMarketingSnapshot();
   const brief = buildMarketingBrief(s);
   const intel = getAudienceIntelligence(getScopeSeanceIds());
-  const selected = CAMPAIGN_DRAFT.segmentKey
-    ? intel.segments.find(x => x.key === CAMPAIGN_DRAFT.segmentKey)
-    : intel.recommended;
+  const externalCtx = externalContextForFocus();
+  const selected = CAMPAIGN_DRAFT.segmentKey === "external" && externalCtx
+    ? {
+        key:"external",
+        label:CAMPAIGN_DRAFT.segmentLabel || `${externalCtx.operator || "Зовнішня база"}`,
+        count:Number(externalCtx.available||0),
+        reachable:Number(externalCtx.available||0),
+        email:Number(externalCtx.email||0),
+        phone:Number(externalCtx.phone||0),
+        description:`Окремий імпорт ${externalCtx.operator || "оператора"}; виключено тих, хто вже купив поточний сеанс.`
+      }
+    : (CAMPAIGN_DRAFT.segmentKey
+        ? intel.segments.find(x => x.key === CAMPAIGN_DRAFT.segmentKey)
+        : intel.recommended);
 
   if(selected && !CAMPAIGN_DRAFT.segmentKey){
     CAMPAIGN_DRAFT = {
@@ -2041,8 +2124,10 @@ function renderCampaignsSection(){
       </div>
     </div>
 
+    ${renderExternalAudienceContext()}
+
     <div class="box campaign-card" style="margin-bottom:14px">
-      <div class="eyebrow">VA Campaign Object • V2.4</div>
+      <div class="eyebrow">VA Campaign Object • V2.6</div>
       ${activeCampaign ? `
         <div class="context-bridge-row">
           <div>
@@ -2165,7 +2250,7 @@ function renderCampaignsSection(){
 
     <div class="notice">
       <b>Що вже замкнуто:</b> стан сеансу → маркетинговий паспорт → релевантна аудиторія → виключення тих, хто вже купив → вибір сегмента → змістова основа кампанії → журнал дії.
-      У V2.5 кампанія вже має власний campaign_id і може передаватися між кабінетами через URL. Збережено перший генератор чернеток під канал: соцмережі, email, SMS/месенджер і рекламне оголошення. Наступний шар — оцінка та навчання на фактичних результатах кампаній.
+      У V2.6 кампанія вже має власний campaign_id і може передаватися між кабінетами через URL. Збережено перший генератор чернеток під канал: соцмережі, email, SMS/месенджер і рекламне оголошення. Наступний шар — оцінка та навчання на фактичних результатах кампаній.
     </div>
   `;
 }
