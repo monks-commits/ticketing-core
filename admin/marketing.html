@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.7</title>
+  <title>VA Marketing Control Center V2.8</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -161,7 +161,19 @@ textarea::placeholder{
   .campaign-row{display:grid;grid-template-columns:minmax(180px,1.4fr) minmax(120px,.7fr) minmax(120px,.7fr) auto;gap:10px;align-items:center;background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:11px}
   .campaign-row.active{border-color:#2d8cff;background:#0d2548}
   .status-draft{background:#6f5720}.status-active{background:#1f6f45}.status-done{background:#314766}
-  @media(max-width:800px){.campaign-row{grid-template-columns:1fr}.context-bridge{position:relative;top:auto}}
+  .lifecycle{margin-top:14px;border:1px solid rgba(98,176,255,.30);background:#07172b;border-radius:14px;padding:14px}
+  .lifecycle-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 14px}
+  .lifecycle-step{border:1px solid rgba(255,255,255,.10);background:#0b1d35;border-radius:12px;padding:10px;text-align:center}
+  .lifecycle-step.active{border-color:#2d8cff;background:#0e2a4f}
+  .lifecycle-step.done{border-color:rgba(46,204,113,.55);background:#0d2a22}
+  .snapshot-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+  .snapshot-cell{background:#09182c;border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px}
+  .snapshot-cell span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+  .snapshot-cell b{font-size:18px}
+  .delta-positive{color:#55d98a}.delta-negative{color:#ff7b7b}.delta-neutral{color:#9fb3cf}
+  .lifecycle-note{margin-top:9px;color:var(--muted);font-size:12px;line-height:1.45}
+  @media(max-width:1000px){.snapshot-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:800px){.campaign-row{grid-template-columns:1fr}.context-bridge{position:relative;top:auto}.lifecycle-steps,.snapshot-grid{grid-template-columns:1fr}}
 
   </style>
 </head>
@@ -173,10 +185,10 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.7</h1>
+        <h1>Marketing Control Center V2.8</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          Основна аналітика читає live-дані Supabase; V2.6 додає окремий контур зовнішніх аудиторій та передачу такої аудиторії в кампанію VA.
+          Основна аналітика читає live-дані Supabase; V2.8 додає життєвий цикл кампанії зі стартовим та фінальним знімками фактичних показників.
         </div>
       </div>
       <div class="hero-badges">
@@ -407,7 +419,7 @@ function renderContextBridge(){
   strip.innerHTML = c ? `
     <span class="campaign-chip"><b>Кампанія:</b> ${esc(c.name || "Без назви")}</span>
     <span class="campaign-chip"><span class="campaign-id">${esc(c.id)}</span></span>
-    <span class="pill status-${esc(c.status || "draft")}">${esc(c.status === "active" ? "Активна" : c.status === "done" ? "Завершена" : "Чернетка")}</span>
+    <span class="pill status-${esc(c.status || "draft")}">${esc(campaignStatusLabel(c.status || "draft"))}</span>
   ` : `<span class="micro">Активної кампанії немає. Її можна створити у розділі «Кампанії».</span>`;
   const ext = externalContextForFocus();
   if(ext){
@@ -468,8 +480,13 @@ function saveCampaignEntity(){
   if(!snap){ alert("Оберіть один сеанс і сегмент аудиторії."); return; }
   const now = new Date().toISOString();
   let campaign = getActiveCampaign();
-  if(campaign && String(campaign.seance_id) === String(snap.seance_id)) Object.assign(campaign, snap, {updated_at: now});
-  else{
+  if(campaign && String(campaign.seance_id) === String(snap.seance_id)){
+    if(campaign.status === "active" || campaign.status === "done"){
+      alert("Після запуску базові параметри кампанії зафіксовані. Для іншої аудиторії/тези створіть нову кампанію.");
+      return;
+    }
+    Object.assign(campaign, snap, {updated_at: now});
+  }else{
     campaign = {id:makeCampaignId(), ...snap, status:"draft", budget:0, journalIds:[], created_at:now, updated_at:now};
     CAMPAIGNS.unshift(campaign);
     ACTIVE_CAMPAIGN_ID = campaign.id;
@@ -502,14 +519,181 @@ function newCampaignEntity(){
   openMarketingSection(1);
 }
 
+function campaignStatusLabel(status){
+  return status === "active" ? "Запущена" : status === "done" ? "Завершена" : "Чернетка";
+}
+
+function campaignMetricSnapshot(campaign){
+  if(!campaign?.seance_id) return null;
+  const sid = String(campaign.seance_id);
+  const seance = SEANCES.find(s => String(s.id) === sid) || null;
+  const stats = getSeanceStats(sid);
+  const capacity = Number(seance?.capacity || 0);
+  const fill = capacity > 0 ? Math.round((stats.sold / capacity) * 100) : 0;
+  const sales = getSalesWindowStats([sid]);
+  const audience = getScopeAudienceStats([sid]);
+  const intel = getAudienceIntelligence([sid]);
+  const normalizedKey = campaign.segmentKey === "repeat" ? "returned" : campaign.segmentKey;
+  const liveSegment = normalizedKey === "external"
+    ? null
+    : (intel.segments.find(x => x.key === normalizedKey) || null);
+
+  return {
+    captured_at: new Date().toISOString(),
+    seance_id: sid,
+    sold: Number(stats.sold || 0),
+    revenue: Number(stats.sum || 0),
+    visited: Number(stats.visited || 0),
+    capacity,
+    fill,
+    buyers: Number(audience.buyers || 0),
+    newBuyers: Number(audience.newBuyers || 0),
+    repeatBuyers: Number(audience.repeatBuyers || 0),
+    last24: Number(sales.last24 || 0),
+    last7: Number(sales.last7 || 0),
+    prev7: Number(sales.prev7 || 0),
+    daily7: Number(sales.daily7 || 0),
+    alreadyBought: Number(intel.alreadyBought || 0),
+    segmentRemaining: liveSegment ? Number(liveSegment.count || 0) : Number(campaign.audienceCount || 0),
+    segmentReachable: liveSegment ? Number(liveSegment.reachable || 0) : Number(campaign.reachableCount || 0),
+    campaignAudience: Number(campaign.audienceCount || 0),
+    campaignReachable: Number(campaign.reachableCount || 0),
+    budget: Number(campaign.budget || 0),
+    journalActions: Array.isArray(campaign.journalIds) ? campaign.journalIds.length : 0
+  };
+}
+
+function metricDelta(start, end, key){
+  return Number(end?.[key] || 0) - Number(start?.[key] || 0);
+}
+
+function signedNumber(value, suffix=""){
+  const n = Number(value || 0);
+  return `${n > 0 ? "+" : ""}${n.toLocaleString("uk-UA")}${suffix}`;
+}
+
+function deltaClass(value){
+  const n = Number(value || 0);
+  return n > 0 ? "delta-positive" : n < 0 ? "delta-negative" : "delta-neutral";
+}
+
+function startCampaign(){
+  const c = getActiveCampaign();
+  if(!c) return alert("Спочатку збережіть кампанію.");
+  if(c.status === "done") return alert("Завершену кампанію не можна запустити повторно. Створіть нову кампанію.");
+  if(c.status === "active" && c.start_snapshot) return;
+  if(!confirm("Запустити кампанію?\n\nVA зафіксує поточні показники як стартову точку. Після цього зміни продажів можна буде порівнювати з цим знімком.")) return;
+
+  c.start_snapshot = campaignMetricSnapshot(c);
+  c.started_at = c.start_snapshot?.captured_at || new Date().toISOString();
+  c.status = "active";
+  c.updated_at = new Date().toISOString();
+  delete c.end_snapshot;
+  delete c.completed_at;
+  saveLocalCampaigns();
+  updateUrlContext();
+  renderContextBridge();
+  renderCampaignsSection();
+}
+
+function completeCampaign(){
+  const c = getActiveCampaign();
+  if(!c) return alert("Кампанію не вибрано.");
+  if(c.status !== "active" || !c.start_snapshot) return alert("Спочатку запустіть кампанію та зафіксуйте стартову точку.");
+  if(!confirm("Завершити кампанію?\n\nVA зафіксує фінальний знімок. Цей результат залишиться в картці кампанії для подальшого порівняння.")) return;
+
+  c.end_snapshot = campaignMetricSnapshot(c);
+  c.completed_at = c.end_snapshot?.captured_at || new Date().toISOString();
+  c.status = "done";
+  c.updated_at = new Date().toISOString();
+  c.result = {
+    sold_delta: metricDelta(c.start_snapshot, c.end_snapshot, "sold"),
+    revenue_delta: metricDelta(c.start_snapshot, c.end_snapshot, "revenue"),
+    buyers_delta: metricDelta(c.start_snapshot, c.end_snapshot, "buyers"),
+    fill_delta: metricDelta(c.start_snapshot, c.end_snapshot, "fill"),
+    segment_remaining_delta: metricDelta(c.start_snapshot, c.end_snapshot, "segmentRemaining"),
+    budget: Number(c.end_snapshot?.budget || c.budget || 0)
+  };
+  saveLocalCampaigns();
+  updateUrlContext();
+  renderContextBridge();
+  renderCampaignsSection();
+}
+
+// Backward compatibility: old V2.4–V2.7 calls become real lifecycle transitions.
 function setCampaignStatus(status){
+  if(status === "active") return startCampaign();
+  if(status === "done") return completeCampaign();
   const c = getActiveCampaign();
   if(!c) return;
-  c.status = status;
+  if(c.status === "active" || c.status === "done") return alert("Після запуску статус назад у чернетку не переводимо. Для нового циклу створіть нову кампанію.");
+  c.status = "draft";
   c.updated_at = new Date().toISOString();
   saveLocalCampaigns();
   renderContextBridge();
   renderCampaignsSection();
+}
+
+function renderCampaignLifecycle(campaign){
+  if(!campaign) return "";
+  const status = campaign.status || "draft";
+  const start = campaign.start_snapshot || null;
+  const current = status === "active" && start ? campaignMetricSnapshot(campaign) : null;
+  const end = campaign.end_snapshot || null;
+  const compare = end || current;
+
+  const stageClass = stage => {
+    if(stage === "draft") return status === "draft" ? "active" : "done";
+    if(stage === "active") return status === "active" ? "active" : status === "done" ? "done" : "";
+    return status === "done" ? "active done" : "";
+  };
+
+  const started = campaign.started_at ? `${fmtDate(campaign.started_at)} ${new Date(campaign.started_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "—";
+  const completed = campaign.completed_at ? `${fmtDate(campaign.completed_at)} ${new Date(campaign.completed_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "—";
+
+  let body = "";
+  if(status === "draft") body = `
+    <div class="notice"><b>Старт ще не зафіксовано.</b> Натисніть «Запустити кампанію» безпосередньо перед реальною маркетинговою дією. VA збере контрольний знімок продажів у цей момент.</div>
+    <div class="toolbar"><button class="btn" onclick="startCampaign()">▶ Запустити кампанію</button></div>`;
+  else if(start && compare){
+    const dsold = metricDelta(start, compare, "sold");
+    const drevenue = metricDelta(start, compare, "revenue");
+    const dbuyers = metricDelta(start, compare, "buyers");
+    const dfill = metricDelta(start, compare, "fill");
+    const dsegment = metricDelta(start, compare, "segmentRemaining");
+    body = `
+      <div class="snapshot-grid">
+        <div class="snapshot-cell"><span>Квитки</span><b>${start.sold} → ${compare.sold}</b><div class="${deltaClass(dsold)}">${signedNumber(dsold)}</div></div>
+        <div class="snapshot-cell"><span>Виручка</span><b>${Number(start.revenue||0).toLocaleString("uk-UA")} → ${Number(compare.revenue||0).toLocaleString("uk-UA")}</b><div class="${deltaClass(drevenue)}">${signedNumber(drevenue," грн")}</div></div>
+        <div class="snapshot-cell"><span>Покупці</span><b>${start.buyers} → ${compare.buyers}</b><div class="${deltaClass(dbuyers)}">${signedNumber(dbuyers)}</div></div>
+        <div class="snapshot-cell"><span>Заповнення</span><b>${start.fill}% → ${compare.fill}%</b><div class="${deltaClass(dfill)}">${signedNumber(dfill," п.п.")}</div></div>
+        <div class="snapshot-cell"><span>Залишок сегмента</span><b>${start.segmentRemaining} → ${compare.segmentRemaining}</b><div class="${dsegment < 0 ? "delta-positive" : deltaClass(-dsegment)}">${signedNumber(dsegment)}</div></div>
+      </div>
+      <div class="snapshot-grid">
+        <div class="snapshot-cell"><span>Темп 24 год.</span><b>${start.last24} → ${compare.last24}</b></div>
+        <div class="snapshot-cell"><span>Темп 7 днів</span><b>${start.last7} → ${compare.last7}</b></div>
+        <div class="snapshot-cell"><span>Доступні контакти сегмента</span><b>${start.segmentReachable} → ${compare.segmentReachable}</b></div>
+        <div class="snapshot-cell"><span>Бюджет кампанії</span><b>${Number(compare.budget||0).toLocaleString("uk-UA")} грн</b></div>
+        <div class="snapshot-cell"><span>Дій у журналі</span><b>${Number(compare.journalActions||0)}</b></div>
+      </div>
+      <div class="lifecycle-note">${status === "active" ? "Права колонка — живий зріз на цю секунду; він ще не зафіксований як фінал." : "Фінальний знімок зафіксовано. Приріст після старту є часовим результатом кампанії, але без UTM/ref не вважається прямою атрибуцією саме цієї кампанії."}</div>
+      ${status === "active" ? `<div class="toolbar"><button class="btn" onclick="completeCampaign()">■ Завершити кампанію</button></div>` : ""}`;
+  }else if(status === "active"){
+    body = `<div class="notice"><b>Кампанія позначена як запущена у старій версії, але стартового знімка немає.</b> Для коректного вимірювання зафіксуйте старт зараз.</div><div class="toolbar"><button class="btn" onclick="startCampaign()">Зафіксувати старт зараз</button></div>`;
+  }else{
+    body = `<div class="notice">Завершена кампанія зі старої версії не має знімків. Її статус збережено, але фактичне «до / після» відновити заднім числом неможливо.</div>`;
+  }
+
+  return `
+    <div class="lifecycle">
+      <div class="eyebrow">CAMPAIGN LIFECYCLE V1</div>
+      <div class="lifecycle-steps">
+        <div class="lifecycle-step ${stageClass("draft")}"><b>1. Чернетка</b><div class="micro">План і аудиторія</div></div>
+        <div class="lifecycle-step ${stageClass("active")}"><b>2. Запущена</b><div class="micro">Старт: ${esc(started)}</div></div>
+        <div class="lifecycle-step ${stageClass("done")}"><b>3. Завершена</b><div class="micro">Фініш: ${esc(completed)}</div></div>
+      </div>
+      ${body}
+    </div>`;
 }
 
 function selectedSeanceCampaigns(){
@@ -1228,7 +1412,7 @@ function getScopeAudienceStats(seanceIds){
     if(ids.has(String(o.seance_id || ""))) buyerKeys.add(normKey(o));
   });
 
-  const clientMap = new Map(CLIENTS.map(c => [c.key, c]));
+  const clientMap = new Map(CLIENTS.filter(c => !isTechnicalMarketingClient(c)).map(c => [c.key, c]));
   const people = Array.from(buyerKeys).map(k => clientMap.get(k)).filter(Boolean);
 
   return {
@@ -2126,24 +2310,21 @@ function renderCampaignsSection(){
     ${renderExternalAudienceContext()}
 
     <div class="box campaign-card" style="margin-bottom:14px">
-      <div class="eyebrow">VA Campaign Object • V2.7</div>
+      <div class="eyebrow">VA Campaign Object • V2.8</div>
       ${activeCampaign ? `
         <div class="context-bridge-row">
           <div>
             <h3>${esc(activeCampaign.name || "Кампанія")}</h3>
             <div class="micro"><span class="campaign-id">${esc(activeCampaign.id)}</span> • створено ${fmtDate(activeCampaign.created_at)}</div>
           </div>
-          <div class="toolbar" style="margin:0">
-            <button class="btn secondary small" onclick="setCampaignStatus('draft')">Чернетка</button>
-            <button class="btn small" onclick="setCampaignStatus('active')">Активна</button>
-            <button class="btn secondary small" onclick="setCampaignStatus('done')">Завершена</button>
-          </div>
+          <div><span class="pill status-${esc(activeCampaign.status || "draft")}">${esc(campaignStatusLabel(activeCampaign.status || "draft"))}</span></div>
         </div>
       ` : `<div class="muted">Поки це робоча чернетка. Після вибору сегмента натисніть «Зберегти як кампанію» — VA створить постійний campaign_id.</div>`}
       <div class="toolbar">
-        <button class="btn" onclick="saveCampaignEntity()" ${CAMPAIGN_DRAFT.segmentKey ? "" : "disabled"}>${activeCampaign ? "Оновити кампанію" : "Зберегти як кампанію"}</button>
+        <button class="btn" onclick="saveCampaignEntity()" ${(CAMPAIGN_DRAFT.segmentKey && (!activeCampaign || (activeCampaign.status || "draft") === "draft")) ? "" : "disabled"}>${activeCampaign && (activeCampaign.status || "draft") !== "draft" ? "Параметри зафіксовані" : activeCampaign ? "Оновити кампанію" : "Зберегти як кампанію"}</button>
         <button class="btn secondary" onclick="newCampaignEntity()">Нова кампанія</button>
       </div>
+      ${activeCampaign ? renderCampaignLifecycle(activeCampaign) : ""}
     </div>
 
     ${renderScopeHeader()}
@@ -2261,7 +2442,7 @@ function renderCampaignsSection(){
           ${campaignRows.slice(0,8).map(c => `
             <div class="campaign-row ${String(c.id) === String(ACTIVE_CAMPAIGN_ID) ? "active" : ""}">
               <div><b>${esc(c.name || "Кампанія")}</b><div class="micro campaign-id">${esc(c.id)}</div></div>
-              <div><span class="pill status-${esc(c.status || "draft")}">${esc(c.status === "active" ? "Активна" : c.status === "done" ? "Завершена" : "Чернетка")}</span></div>
+              <div><span class="pill status-${esc(c.status || "draft")}">${esc(campaignStatusLabel(c.status || "draft"))}</span></div>
               <div class="micro">${esc(c.segmentLabel || "—")} • ${Number(c.audienceCount || 0)} ос.</div>
               <div><button class="btn secondary small" onclick="openCampaignEntity('${escAttr(c.id)}')">Відкрити</button></div>
             </div>
@@ -2272,7 +2453,7 @@ function renderCampaignsSection(){
 
     <div class="notice">
       <b>Що вже замкнуто:</b> стан сеансу → маркетинговий паспорт → релевантна аудиторія → виключення тих, хто вже купив → вибір сегмента → змістова основа кампанії → журнал дії.
-      У V2.6 кампанія вже має власний campaign_id і може передаватися між кабінетами через URL. Збережено перший генератор чернеток під канал: соцмережі, email, SMS/месенджер і рекламне оголошення. Наступний шар — оцінка та навчання на фактичних результатах кампаній.
+      У V2.8 кампанія має lifecycle: Чернетка → Запущена → Завершена. На старті й фініші VA фіксує фактичні показники сеансу та показує «до / після». Без UTM/ref цей приріст чесно вважається часовим результатом, а не прямою атрибуцією кампанії.
     </div>
   `;
 }
