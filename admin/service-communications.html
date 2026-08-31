@@ -84,7 +84,7 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
         <article class="card"><h3>🧩 Шаблони</h3><p class="meta">Перенесення, скасування, нагадування, запрошення, повідомлення партнерам та внутрішні звернення.</p><div class="actions"><button class="btn violet" data-open-view="templates">Відкрити шаблони</button></div></article>
         <article class="card"><h3>📚 Контроль виконання</h3><p class="meta">Статуси, підготовлені одержувачі та журнал ручного або майбутнього автоматичного відправлення.</p><div class="actions"><button class="btn" data-open-view="journal">Відкрити журнал</button></div></article>
       </div>
-      <div class="notice warn" style="margin-top:16px">Автоматичні провайдери Email, SMS, Viber або Telegram поки не підключені. Модуль повністю готує повідомлення, одержувачів, CSV та журналює ручне виконання.</div>
+      <div class="notice warn" style="margin-top:16px"><b>Email:</b> автоматичне надсилання через Resend доступне після розгортання Edge Function <code>send-service-email</code>. SMS, Viber і Telegram поки залишаються ручними / експортними каналами.</div>
     </section>
 
     <section class="view" id="view-messages">
@@ -130,13 +130,13 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
             <div class="field"><label>Відповідальний / примітка</label><input id="ownerNote" /></div>
           </div>
           <div class="grid-2">
-            <div class="field"><label>Кому</label><select id="audience"><option value="manual">Власний список</option><option value="seance_buyers">Покупці цього сеансу</option><option value="project_buyers">Покупці проєкту</option><option value="press">ЗМІ / партнери</option><option value="guests">Запрошені</option><option value="staff">Працівники</option><option value="other">Інше</option></select></div>
+            <div class="field"><label>Кому</label><select id="audience"><option value="manual">Власний список</option><option value="marketing_campaign">Аудиторія Marketing кампанії</option><option value="seance_buyers">Покупці цього сеансу</option><option value="project_buyers">Покупці проєкту</option><option value="press">ЗМІ / партнери</option><option value="guests">Запрошені</option><option value="staff">Працівники</option><option value="other">Інше</option></select></div>
             <div class="field"><label>Одержувачі / примітка до списку</label><textarea id="recipientsText" placeholder="Ім’я | email | телефон — один одержувач у рядку"></textarea></div>
           </div>
 
           <div class="compact" style="margin-bottom:13px">
             <div class="toolbar"><h3 class="no-margin grow">Одержувачі</h3><span class="mini" id="recipientSummary">Список не підготовлено</span></div>
-            <div class="notice">Для покупців система бере контакти з <b>orders</b> конкретного сеансу або всіх сеансів проєкту. Ручні списки можна вставити рядками та експортувати в CSV.</div>
+            <div class="notice">Для Marketing-кампанії список приходить уже відібраним із Marketing OS і фіксується тут як конкретні одержувачі. Для службових повідомлень система також уміє брати контакти з <b>orders</b> сеансу / проєкту або з ручного списку.</div>
             <div class="actions"><button class="btn blue" id="prepareRecipientsBtn">Підготувати</button><button class="btn" id="copyRecipientsBtn">Скопіювати</button><button class="btn" id="exportRecipientsBtn">Експорт CSV</button><button class="btn red" id="clearRecipientsBtn">Очистити</button></div>
             <div class="table-wrap" style="margin-top:11px;max-height:290px"><table><thead><tr><th>Ім’я</th><th>Email</th><th>Телефон</th><th>Канал</th><th>Стан</th></tr></thead><tbody id="recipientRows"></tbody></table></div>
           </div>
@@ -150,7 +150,19 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
             <div class="field"><label>Посилання на результат</label><input id="publishedUrl" placeholder="URL публікації або журналу" /></div>
             <div class="field"><label>Результат / службова примітка</label><input id="resultNote" placeholder="Надіслано 120, доставлено 114…" /></div>
           </div>
-          <div class="actions"><button class="btn" id="saveDraftBtn">Зберегти чернетку</button><button class="btn green" id="approveBtn">Затвердити</button><button class="btn violet" id="copyMessageBtn">Скопіювати</button><button class="btn blue" id="openChannelBtn">Відкрити канал</button><button class="btn gold" id="markSentBtn">Позначити надісланим</button><button class="btn red" id="deleteMessageBtn">Видалити</button></div>
+          <div class="compact" style="margin-top:12px">
+            <div class="toolbar"><h3 class="no-margin grow">📨 Email provider · Resend</h3><span class="mini" id="providerState">готовий до перевірки</span></div>
+            <div class="grid-2">
+              <div class="field"><label>SERVICE_SEND_SECRET</label><input id="serviceSendSecret" type="password" autocomplete="off" placeholder="Секрет відправника — зберігається лише до закриття вкладки" /></div>
+              <div class="field"><label>Тестовий email</label><input id="testEmail" type="email" placeholder="Ваш email для безпечної перевірки" /></div>
+            </div>
+            <div class="actions">
+              <button class="btn violet" id="sendTestEmailBtn">Надіслати тест</button>
+              <button class="btn green" id="sendProviderBtn">Надіслати Email одержувачам</button>
+            </div>
+            <div class="meta" style="margin-top:10px">Реальна розсилка дозволена тільки для затвердженого повідомлення. Тестове письмо не змінює статуси одержувачів.</div>
+          </div>
+          <div class="actions"><button class="btn" id="saveDraftBtn">Зберегти чернетку</button><button class="btn green" id="approveBtn">Затвердити</button><button class="btn violet" id="copyMessageBtn">Скопіювати</button><button class="btn blue" id="openChannelBtn">Відкрити канал</button><button class="btn gold" id="markSentBtn">Позначити надісланим вручну</button><button class="btn red" id="deleteMessageBtn">Видалити</button></div>
         </section>
       </div>
     </section>
@@ -187,8 +199,10 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
 const SUPABASE_URL=window.SUPABASE_URL||"https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY=window.SUPABASE_ANON_KEY||"sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 const $=id=>document.getElementById(id);
-const state={venues:[],projects:[],seances:[],templates:[],messages:[],recipients:[],deliveries:[],prepared:[],currentMessage:null,currentTemplate:null,source:"direct",schemaReady:false,recipientSchemaReady:false};
-const SERVICE_TYPES={postponement:"Перенесення події",cancellation:"Скасування події",premiere_invitation:"Запрошення на прем’єру",reminder:"Нагадування",schedule_change:"Зміна часу / залу",refund:"Повернення / обмін квитків",partner:"Повідомлення партнерам / ЗМІ",internal:"Внутрішнє повідомлення",other:"Інше"};
+const state={venues:[],projects:[],seances:[],templates:[],messages:[],recipients:[],deliveries:[],prepared:[],currentMessage:null,currentTemplate:null,source:"direct",schemaReady:false,recipientSchemaReady:false,marketingBridge:null,campaignId:""};
+const MARKETING_BRIDGE_STORAGE_KEY="va_marketing_service_bridge_v1";
+const SERVICE_SEND_SECRET_SESSION_KEY="va_service_send_secret_v1";
+const SERVICE_TYPES={marketing_invitation:"Маркетингове запрошення",postponement:"Перенесення події",cancellation:"Скасування події",premiere_invitation:"Запрошення на прем’єру",reminder:"Нагадування",schedule_change:"Зміна часу / залу",refund:"Повернення / обмін квитків",partner:"Повідомлення партнерам / ЗМІ",internal:"Внутрішнє повідомлення",other:"Інше"};
 const SERVICE_CHANNELS={all:"Усі / універсальний",site:"Сайт",facebook:"Facebook",instagram:"Instagram",tiktok:"TikTok",youtube:"YouTube",telegram:"Telegram",viber:"Viber",email:"Email",sms:"SMS",other:"Інше"};
 const CHANNEL_URLS={site:"https://monks-commits.github.io/ticketing-core/site-project/pages/index.html",facebook:"https://www.facebook.com/",instagram:"https://www.instagram.com/",tiktok:"https://www.tiktok.com/upload",youtube:"https://studio.youtube.com/",telegram:"https://web.telegram.org/",viber:"https://www.viber.com/"};
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -220,7 +234,63 @@ function populateSeanceContext(keep=''){fillSelect('seanceSelect',seancesFor($('
 function populateMessageProject(projectKeep='',seanceKeep='',replacementKeep=''){fillSelect('messageProject',projectsForVenue($('venueSelect').value),projectKeep,'Без прив’язки до проєкту',p=>p.title||p.id);populateMessageSeances(seanceKeep,replacementKeep)}
 function populateMessageSeances(keep='',replacement=''){const rows=seancesFor($('venueSelect').value,$('messageProject').value);fillSelect('messageSeance',rows,keep,'Без прив’язки до сеансу',seanceLabel);fillSelect('replacementSeance',rows,replacement,'Новий сеанс не вибрано',seanceLabel)}
 function updateBackLink(){const p=new URLSearchParams();const c=context();Object.entries(c).forEach(([k,v])=>{if(v)p.set(k.replace('_id',''),v)});$('backAdvertising').href='./advertising-office.html'+(p.toString()?`?${p}`:'')}
-function parseParams(){const q=new URLSearchParams(location.search);state.source=q.get('source')||'direct';$('sourceBadge').textContent=state.source==='advertising'?'Вхід із рекламного відділу':state.source==='secretary'?'Секретарський контур':'Самостійний вхід';return{venue_id:q.get('venue')||'',project_id:q.get('project')||'',seance_id:q.get('seance')||'',service_type:q.get('service_type')||''}}
+function readMarketingBridge(campaignId=""){
+  try{
+    const raw=localStorage.getItem(MARKETING_BRIDGE_STORAGE_KEY);
+    const bridge=raw?JSON.parse(raw):null;
+    if(!bridge||typeof bridge!=="object")return null;
+    if(campaignId&&String(bridge.campaign_id||"")!==String(campaignId))return null;
+    return bridge;
+  }catch(e){console.warn("marketing bridge",e);return null}
+}
+function parseParams(){
+  const q=new URLSearchParams(location.search);
+  state.source=q.get('source')||'direct';
+  state.campaignId=q.get('campaign_id')||'';
+  $('sourceBadge').textContent=state.source==='marketing'?'Вхід із Marketing OS':state.source==='advertising'?'Вхід із рекламного відділу':state.source==='secretary'?'Секретарський контур':'Самостійний вхід';
+  return{venue_id:q.get('venue')||'',project_id:q.get('project')||'',seance_id:q.get('seance')||q.get('seance_id')||'',service_type:q.get('service_type')||'',campaign_id:state.campaignId}
+}
+function applyMarketingBridge(params={}){
+  const bridge=readMarketingBridge(params.campaign_id||state.campaignId);
+  if(!bridge)return false;
+  state.marketingBridge=bridge;
+  state.campaignId=String(bridge.campaign_id||params.campaign_id||"");
+  showView('messages');
+  clearMessage();
+  if(bridge.project_id&&[...$('messageProject').options].some(o=>o.value===String(bridge.project_id))){
+    $('messageProject').value=String(bridge.project_id);
+    populateMessageSeances(bridge.seance_id||params.seance_id||'','');
+  }
+  const sid=String(bridge.seance_id||params.seance_id||'');
+  if(sid&&[...$('messageSeance').options].some(o=>o.value===sid))$('messageSeance').value=sid;
+  $('messageType').value='marketing_invitation';
+  $('messageChannel').value='email';
+  $('deliveryMode').value='provider';
+  $('audience').value='marketing_campaign';
+  $('messageTitle').value=bridge.title||`Кампанія ${bridge.campaign_name||bridge.campaign_id||''}`;
+  $('messageReason').value=`Marketing campaign ${bridge.campaign_id||''} · ${bridge.segment_label||''}`;
+  $('messageSubject').value=bridge.subject||'';
+  $('messageBody').value=bridge.body||'';
+  $('messageCta').value=bridge.cta_text||'Обрати квиток';
+  $('messageTargetUrl').value=bridge.target_url||'';
+  $('ownerNote').value=`Marketing OS · ${bridge.campaign_id||''} · ${bridge.segment_label||''}`;
+  $('recipientsText').value=`Marketing OS: ${bridge.segment_label||'аудиторія'} · ${Number((bridge.recipients||[]).length)} одержувачів`;
+  state.prepared=dedupeRecipients((bridge.recipients||[]).map(r=>({
+    name:r.name||'',
+    email:normalizeEmail(r.email||''),
+    phone:normalizePhone(r.phone||''),
+    source:'marketing_campaign',
+    source_order_id:null,
+    source_seance_id:bridge.seance_id||null,
+    metadata:{marketing_campaign_id:bridge.campaign_id||'',segment_key:bridge.segment_key||'',segment_label:bridge.segment_label||''}
+  })));
+  populateMessageTemplates('');
+  renderRecipients();
+  renderPreview();
+  renderMessages();
+  notify(`Контекст Marketing прийнято: ${bridge.campaign_name||bridge.campaign_id}. Одержувачів: ${state.prepared.length}. Перевірте лист і список перед затвердженням.`,'warn');
+  return true;
+}
 function serviceContext(){const p=state.projects.find(x=>String(x.id)===String($('messageProject').value)),s=seanceById($('messageSeance').value),r=seanceById($('replacementSeance').value),vid=$('venueSelect').value||venueId(p)||venueId(s);return{project:p?.title||'',event:s?.show||s?.title||p?.title||'',date:s?.date||'',time:s?.time||'',new_date:r?.date||'',new_time:r?.time||'',venue:venueName(vid),hall:r?.hall||s?.hall||'',ticket_url:storefrontUrl(r)||storefrontUrl(s)||'',reason:$('messageReason').value||'',phone:venuePhone(vid)}}
 function renderVars(text,ctx=serviceContext()){let out=String(text||'');Object.entries(ctx).forEach(([k,v])=>out=out.split(`{{${k}}}`).join(String(v||'')));return out}
 function templateRows(){const type=$('messageType').value,channel=$('messageChannel').value,vid=$('venueSelect').value;return state.templates.filter(t=>(!t.venue_id||String(t.venue_id)===String(vid))&&(!type||t.service_type===type)&&(!channel||t.channel==='all'||t.channel===channel)&&t.is_active!==false).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.name||'').localeCompare(String(b.name||''),'uk'))}
@@ -235,13 +305,56 @@ function normalizeEmail(v){return String(v||'').trim().toLowerCase()}function no
 function recipientChannelState(r){const ch=$('messageChannel').value||'all';if(ch==='email')return r.email?['email','ready']:['email','missing'];if(ch==='sms'||ch==='viber')return r.phone?[ch,'ready']:[ch,'missing'];if(ch==='telegram')return(r.phone||r.email)?['telegram','manual']:['telegram','missing'];if(ch==='all')return r.email?['email','ready']:r.phone?['phone','ready']:['—','missing'];return[ch,(r.email||r.phone)?'manual':'missing']}
 function parseManual(text){return String(text||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map((line,i)=>{const email=(line.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)||[])[0]||'',phone=(line.match(/\+?[0-9][0-9()\-\s]{7,}[0-9]/)||[])[0]||'',name=line.replace(email,'').replace(phone,'').replace(/[|;,]+/g,' ').trim();return{name:name||`Одержувач ${i+1}`,email:normalizeEmail(email),phone:normalizePhone(phone),source:'manual'}})}
 function orderRecipient(o){return{name:o.buyer_name||o.customer_name||o.name||o.owner_name||'',email:normalizeEmail(o.buyer_email||o.customer_email||o.email||''),phone:normalizePhone(o.buyer_phone||o.customer_phone||o.phone||''),source:'customer_base',source_order_id:o.id||null,source_seance_id:o.seance_id||null}}
-async function resolveRecipients(){const aud=$('audience').value;if(aud==='manual'||['press','guests','staff','other'].includes(aud))return parseManual($('recipientsText').value);let ids=[];if(aud==='seance_buyers'){const sid=$('messageSeance').value;if(!sid)throw new Error('Оберіть сеанс.');ids=[sid]}else{const pid=$('messageProject').value;if(!pid)throw new Error('Оберіть проєкт.');ids=seancesFor($('venueSelect').value,pid).map(x=>x.id);if(!ids.length)throw new Error('У проєкту немає сеансів.')}const batches=await Promise.all(ids.map(id=>rest(`orders?select=*&seance_id=eq.${encodeURIComponent(id)}`)));return batches.flat().filter(o=>!o.status||['paid','success','completed','approved'].includes(String(o.status).toLowerCase())).map(orderRecipient)}
+async function resolveRecipients(){const aud=$('audience').value;if(aud==='marketing_campaign'){const bridge=state.marketingBridge||readMarketingBridge(state.campaignId);if(!bridge)throw new Error('Контекст Marketing кампанії не знайдено. Поверніться в Marketing OS і передайте кампанію повторно.');return (bridge.recipients||[]).map(r=>({name:r.name||'',email:normalizeEmail(r.email||''),phone:normalizePhone(r.phone||''),source:'marketing_campaign',source_order_id:null,source_seance_id:bridge.seance_id||null,metadata:{marketing_campaign_id:bridge.campaign_id||'',segment_key:bridge.segment_key||'',segment_label:bridge.segment_label||''}}));}if(aud==='manual'||['press','guests','staff','other'].includes(aud))return parseManual($('recipientsText').value);let ids=[];if(aud==='seance_buyers'){const sid=$('messageSeance').value;if(!sid)throw new Error('Оберіть сеанс.');ids=[sid]}else{const pid=$('messageProject').value;if(!pid)throw new Error('Оберіть проєкт.');ids=seancesFor($('venueSelect').value,pid).map(x=>x.id);if(!ids.length)throw new Error('У проєкту немає сеансів.')}const batches=await Promise.all(ids.map(id=>rest(`orders?select=*&seance_id=eq.${encodeURIComponent(id)}`)));return batches.flat().filter(o=>!o.status||['paid','success','completed','approved'].includes(String(o.status).toLowerCase())).map(orderRecipient)}
 function dedupeRecipients(rows){const map=new Map();rows.forEach(r=>{const k=normalizeEmail(r.email)||normalizePhone(r.phone)||String(r.name||'').trim().toLowerCase();if(!k)return;const old=map.get(k)||{};map.set(k,{...old,...r,email:r.email||old.email||'',phone:r.phone||old.phone||'',name:r.name||old.name||''})});return[...map.values()].map(r=>{const[delivery_channel,validation_status]=recipientChannelState(r);return{...r,delivery_channel,validation_status}})}
-function renderRecipients(){const rows=state.prepared,ready=rows.filter(r=>r.validation_status!=='missing').length,missing=rows.length-ready;$('recipientSummary').textContent=rows.length?`${rows.length} контактів · готові ${ready}${missing?` · без контакту ${missing}`:''}`:'Список не підготовлено';$('recipientRows').innerHTML=rows.length?rows.map(r=>`<tr><td>${esc(r.name||'—')}</td><td>${esc(r.email||'—')}</td><td>${esc(r.phone||'—')}</td><td>${esc(r.delivery_channel||'—')}</td><td><span class="mini ${r.validation_status==='ready'?'ok':r.validation_status==='manual'?'warn':'bad'}">${esc(r.validation_status||'—')}</span></td></tr>`).join(''):'<tr><td colspan="5" class="meta">Одержувачі ще не підготовлені.</td></tr>'}
-async function saveRecipients(messageId){if(!messageId||!state.recipientSchemaReady)return;await rest(`service_message_recipients?service_message_id=eq.${encodeURIComponent(messageId)}`,{method:'DELETE'});const rows=state.prepared.map(r=>({service_message_id:messageId,name:r.name||null,email:r.email||null,phone:r.phone||null,source:r.source||'manual',source_order_id:r.source_order_id||null,source_seance_id:r.source_seance_id||null,delivery_channel:r.delivery_channel||null,validation_status:r.validation_status||'ready',delivery_status:r.delivery_status||'prepared',metadata:{}}));if(rows.length)await rest('service_message_recipients',{method:'POST',body:JSON.stringify(rows)})}
+function renderRecipients(){const rows=state.prepared,ready=rows.filter(r=>r.validation_status!=='missing').length,missing=rows.length-ready,sent=rows.filter(r=>['sent','delivered'].includes(r.delivery_status)).length,failed=rows.filter(r=>r.delivery_status==='failed').length;$('recipientSummary').textContent=rows.length?`${rows.length} контактів · готові ${ready}${missing?` · без контакту ${missing}`:''}${sent?` · надіслано ${sent}`:''}${failed?` · помилка ${failed}`:''}`:'Список не підготовлено';$('recipientRows').innerHTML=rows.length?rows.map(r=>{const st=r.delivery_status&&r.delivery_status!=='prepared'?r.delivery_status:r.validation_status;const cls=['sent','delivered','ready'].includes(st)?'ok':st==='failed'||st==='missing'?'bad':'warn';return `<tr><td>${esc(r.name||'—')}</td><td>${esc(r.email||'—')}</td><td>${esc(r.phone||'—')}</td><td>${esc(r.delivery_channel||'—')}</td><td><span class="mini ${cls}">${esc(st||'—')}</span></td></tr>`}).join(''):'<tr><td colspan="5" class="meta">Одержувачі ще не підготовлені.</td></tr>'}
+async function saveRecipients(messageId){if(!messageId||!state.recipientSchemaReady)return;await rest(`service_message_recipients?service_message_id=eq.${encodeURIComponent(messageId)}`,{method:'DELETE'});const rows=state.prepared.map(r=>({service_message_id:messageId,name:r.name||null,email:r.email||null,phone:r.phone||null,source:r.source||'manual',source_order_id:r.source_order_id||null,source_seance_id:r.source_seance_id||null,delivery_channel:r.delivery_channel||null,validation_status:r.validation_status||'ready',delivery_status:r.delivery_status||'prepared',provider_message_id:r.provider_message_id||null,error_text:r.error_text||null,metadata:{...(r.metadata||{}),marketing_campaign_id:state.marketingBridge?.campaign_id||r.metadata?.marketing_campaign_id||null,segment_key:state.marketingBridge?.segment_key||r.metadata?.segment_key||null,segment_label:state.marketingBridge?.segment_label||r.metadata?.segment_label||null}}));if(rows.length)await rest('service_message_recipients',{method:'POST',body:JSON.stringify(rows)})}
 async function prepareRecipients(){const raw=await resolveRecipients();state.prepared=dedupeRecipients(raw);renderRecipients();const id=await saveMessage('draft',false);await saveRecipients(id);await loadData(false);const saved=state.messages.find(x=>String(x.id)===String(id));if(saved)fillMessage(saved);notify(`Підготовлено ${state.prepared.length} унікальних одержувачів.`)}
-async function saveMessage(statusOverride=null,showNotice=true){if(!$('venueSelect').value)throw new Error('Оберіть майданчик.');const status=statusOverride||$('messageStatus').value||'draft',id=$('messageId').value||null,payload={venue_id:$('venueSelect').value,project_id:$('messageProject').value||null,seance_id:$('messageSeance').value||null,replacement_seance_id:$('replacementSeance').value||null,template_id:$('messageTemplate').value||null,service_type:$('messageType').value,channel:$('messageChannel').value,title:$('messageTitle').value.trim()||`${typeLabel($('messageType').value)} — ${serviceContext().event||venueName($('venueSelect').value)}`,subject:$('messageSubject').value,body:$('messageBody').value,cta_text:$('messageCta').value,target_url:$('messageTargetUrl').value,audience_segment:$('audience').value,recipients_text:$('recipientsText').value,recipient_count:state.prepared.length,delivery_mode:$('deliveryMode').value,scheduled_at:isoOrNull($('scheduledAt').value),owner_note:$('ownerNote').value||null,reason:$('messageReason').value,status,event_snapshot:{venue_id:$('venueSelect').value,project_id:$('messageProject').value||null,seance_id:$('messageSeance').value||null,replacement_seance_id:$('replacementSeance').value||null,context:serviceContext(),created_at:new Date().toISOString()},published_url:$('publishedUrl').value||null,result_note:$('resultNote').value||null,updated_at:new Date().toISOString(),approved_at:['approved','ready','sent'].includes(status)?new Date().toISOString():null,sent_at:status==='sent'?new Date().toISOString():null};const savedId=await saveRow('service_messages',id,payload);if(state.prepared.length)await saveRecipients(savedId);if(status==='sent'){await rest(`service_message_recipients?service_message_id=eq.${encodeURIComponent(savedId)}&delivery_status=neq.failed`,{method:'PATCH',body:JSON.stringify({delivery_status:'sent',updated_at:new Date().toISOString()})});await rest('service_delivery_log',{method:'POST',body:JSON.stringify({service_message_id:savedId,recipient_id:null,channel:payload.channel,action:'manual_mark_sent',status:'sent',provider:'manual',response_text:payload.result_note||'Позначено надісланим вручну',attempted_at:new Date().toISOString()})})}await optionalLog(status==='sent'?'service_sent':status==='approved'?'service_approved':'service_saved',savedId,payload);await loadData(false);const saved=state.messages.find(x=>String(x.id)===String(savedId));if(saved)fillMessage(saved);if(showNotice)notify(status==='sent'?'Повідомлення позначено надісланим.':'Повідомлення збережено.');return savedId}
+async function saveMessage(statusOverride=null,showNotice=true){if(!$('venueSelect').value)throw new Error('Оберіть майданчик.');const status=statusOverride||$('messageStatus').value||'draft',id=$('messageId').value||null,payload={venue_id:$('venueSelect').value,project_id:$('messageProject').value||null,seance_id:$('messageSeance').value||null,replacement_seance_id:$('replacementSeance').value||null,template_id:$('messageTemplate').value||null,service_type:$('messageType').value,channel:$('messageChannel').value,title:$('messageTitle').value.trim()||`${typeLabel($('messageType').value)} — ${serviceContext().event||venueName($('venueSelect').value)}`,subject:$('messageSubject').value,body:$('messageBody').value,cta_text:$('messageCta').value,target_url:$('messageTargetUrl').value,audience_segment:$('audience').value,recipients_text:$('recipientsText').value,recipient_count:state.prepared.length,delivery_mode:$('deliveryMode').value,scheduled_at:isoOrNull($('scheduledAt').value),owner_note:$('ownerNote').value||null,reason:$('messageReason').value,status,event_snapshot:{venue_id:$('venueSelect').value,project_id:$('messageProject').value||null,seance_id:$('messageSeance').value||null,replacement_seance_id:$('replacementSeance').value||null,context:serviceContext(),marketing_campaign_id:state.marketingBridge?.campaign_id||state.campaignId||null,marketing_segment_key:state.marketingBridge?.segment_key||null,marketing_segment_label:state.marketingBridge?.segment_label||null,marketing_campaign_name:state.marketingBridge?.campaign_name||null,created_at:new Date().toISOString()},published_url:$('publishedUrl').value||null,result_note:$('resultNote').value||null,updated_at:new Date().toISOString(),approved_at:['approved','ready','sent'].includes(status)?new Date().toISOString():null,sent_at:status==='sent'?new Date().toISOString():null};const savedId=await saveRow('service_messages',id,payload);if(state.prepared.length&&status!=='sent')await saveRecipients(savedId);if(status==='sent'){await rest(`service_message_recipients?service_message_id=eq.${encodeURIComponent(savedId)}&delivery_status=neq.failed`,{method:'PATCH',body:JSON.stringify({delivery_status:'sent',updated_at:new Date().toISOString()})});await rest('service_delivery_log',{method:'POST',body:JSON.stringify({service_message_id:savedId,recipient_id:null,channel:payload.channel,action:'manual_mark_sent',status:'sent',provider:'manual',response_text:payload.result_note||'Позначено надісланим вручну',attempted_at:new Date().toISOString()})})}await optionalLog(status==='sent'?'service_sent':status==='approved'?'service_approved':'service_saved',savedId,payload);await loadData(false);const saved=state.messages.find(x=>String(x.id)===String(savedId));if(saved)fillMessage(saved);if(showNotice)notify(status==='sent'?'Повідомлення позначено надісланим.':'Повідомлення збережено.');return savedId}
 async function optionalLog(action,id,payload){try{await rest('content_activity_log',{method:'POST',body:JSON.stringify({area:'service',project_id:payload.project_id||null,entity_type:'service_message',entity_id:String(id),action,actor_type:'human',actor_id:'admin',details:{venue_id:payload.venue_id,seance_id:payload.seance_id,channel:payload.channel,status:payload.status}})})}catch(e){console.warn('content_activity_log',e)}}
+
+function providerHeaders(secret){
+  return {
+    apikey:SUPABASE_ANON_KEY,
+    Authorization:`Bearer ${SUPABASE_ANON_KEY}`,
+    "Content-Type":"application/json",
+    "x-service-send-secret":secret
+  };
+}
+async function sendServiceEmail(testOnly=false){
+  let id=$('messageId').value||null;
+  if(!id)id=await saveMessage(testOnly?'draft':'approved',false);
+  const secret=String($('serviceSendSecret').value||'').trim();
+  if(!secret)throw new Error('Введіть SERVICE_SEND_SECRET.');
+  try{sessionStorage.setItem(SERVICE_SEND_SECRET_SESSION_KEY,secret)}catch(e){}
+  const testEmail=String($('testEmail').value||'').trim();
+  if(testOnly&&!testEmail)throw new Error('Вкажіть тестовий email.');
+  const current=state.messages.find(x=>String(x.id)===String(id))||state.currentMessage;
+  if(!testOnly&&!['approved','ready'].includes(String(current?.status||$('messageStatus').value))){
+    throw new Error('Перед реальною розсилкою натисніть «Затвердити».');
+  }
+  const count=state.prepared.filter(r=>r.email&&r.validation_status!=='missing'&&!['sent','delivered'].includes(r.delivery_status)).length;
+  if(!testOnly){
+    if($('messageChannel').value!=='email')throw new Error('Автоматичний провайдер V1 підключено тільки для Email.');
+    if(!count)throw new Error('Немає підготовлених email-одержувачів для відправлення.');
+    if(!confirm(`Надіслати ${count} реальних Email через Resend?`))return;
+  }
+  $('providerState').textContent=testOnly?'надсилаємо тест…':`надсилаємо ${count}…`;
+  const r=await fetch(`${SUPABASE_URL}/functions/v1/send-service-email`,{
+    method:'POST',
+    headers:providerHeaders(secret),
+    body:JSON.stringify({service_message_id:id,test_email:testOnly?testEmail:null})
+  });
+  const raw=await r.text();
+  let data={};
+  try{data=raw?JSON.parse(raw):{}}catch{data={message:raw}}
+  if(!r.ok)throw new Error(data.message||data.error||`send-service-email HTTP ${r.status}`);
+  $('providerState').textContent=testOnly?'тест надіслано':`надіслано ${Number(data.sent||0)} · помилки ${Number(data.failed||0)}`;
+  await loadData(false);
+  const saved=state.messages.find(x=>String(x.id)===String(id));
+  if(saved)fillMessage(saved);
+  notify(testOnly?`Тестове письмо надіслано: ${testEmail}.`:`Resend завершив відправлення: надіслано ${Number(data.sent||0)}, помилки ${Number(data.failed||0)}.`,'ok');
+}
 async function deleteMessage(){const id=$('messageId').value;if(!id){clearMessage();return}if(!confirm('Видалити це службове повідомлення?'))return;await deleteRow('service_messages',id);clearMessage();await loadData(false);notify('Повідомлення видалено.')}
 async function copyMessage(){const text=[$('messageSubject').value,$('messageBody').value,$('messageCta').value,$('messageTargetUrl').value].filter(Boolean).join('\n\n');await navigator.clipboard.writeText(text);notify('Повідомлення скопійовано.')}
 function openChannel(){const u=CHANNEL_URLS[$('messageChannel').value];if(u)window.open(u,'_blank','noopener');else notify('Скопіюйте текст і відкрийте робочий сервіс каналу вручну.','warn')}
@@ -253,7 +366,7 @@ async function deleteTemplate(){const id=$('templateId').value;if(!id){clearTemp
 function renderDashboard(){const rows=scopedMessages();$('kpiMessages').textContent=rows.length;$('kpiReady').textContent=rows.filter(x=>['approved','ready'].includes(x.status)).length;$('kpiSent').textContent=rows.filter(x=>x.status==='sent').length;const ids=new Set(rows.map(x=>String(x.id)));$('kpiRecipients').textContent=state.recipients.filter(x=>ids.has(String(x.service_message_id))).length}
 function renderJournal(){const q=$('journalSearch').value.trim().toLowerCase(),messages=scopedMessages(),ids=new Set(messages.map(x=>String(x.id))),byId=new Map(messages.map(x=>[String(x.id),x])),recipientCounts={};state.recipients.forEach(r=>{const id=String(r.service_message_id);recipientCounts[id]=(recipientCounts[id]||0)+1});const rows=[];messages.forEach(m=>rows.push({date:m.sent_at||m.updated_at||m.created_at,message:m,channel:m.channel,status:m.status,count:recipientCounts[String(m.id)]||m.recipient_count||0,result:m.result_note||m.published_url||''}));state.deliveries.filter(d=>ids.has(String(d.service_message_id))).forEach(d=>rows.push({date:d.attempted_at||d.created_at,message:byId.get(String(d.service_message_id)),channel:d.channel,status:d.status,count:'—',result:[d.action,d.provider,d.response_text].filter(Boolean).join(' · ')}));const filtered=rows.filter(r=>!q||`${r.message?.title||''} ${r.channel||''} ${r.status||''} ${r.result||''}`.toLowerCase().includes(q)).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));$('journalRows').innerHTML=filtered.length?filtered.map(r=>`<tr><td>${esc(fmt(r.date))}</td><td><b>${esc(r.message?.title||'Повідомлення')}</b><br><span class="meta">${esc(typeLabel(r.message?.service_type))}</span></td><td>${esc(channelLabel(r.channel))}</td><td><span class="mini ${r.status==='sent'||r.status==='delivered'?'ok':r.status==='failed'?'bad':'warn'}">${esc(r.status||'—')}</span></td><td>${esc(r.count)}</td><td>${esc(r.result||'—')}</td></tr>`).join(''):'<tr><td colspan="6" class="meta">Записів немає.</td></tr>'}
 function renderAll(){renderDashboard();renderMessages();renderTemplates();renderJournal();renderPreview()}
-async function loadData(first=false){try{notify(first?'Завантаження…':'Оновлення…','warn');const [venues,projects,seances,templates,messages,recipients,deliveries]=await Promise.all([optional('venues?select=*&order=name.asc'),optional('projects?select=*&order=created_at.desc'),optional('seances?select=*&order=date.asc'),rest('service_message_templates?select=*&order=sort_order.asc,name.asc'),rest('service_messages?select=*&order=updated_at.desc'),optional('service_message_recipients?select=*&order=created_at.asc'),optional('service_delivery_log?select=*&order=created_at.desc')]);state.venues=venues;state.projects=projects;state.seances=seances;state.templates=templates;state.messages=messages;state.recipients=recipients;state.deliveries=deliveries;state.schemaReady=true;state.recipientSchemaReady=true;const params=first?parseParams():context();populateContext(params);if(first&&params.service_type&&SERVICE_TYPES[params.service_type])$('messageType').value=params.service_type;renderAll();notify('')}catch(e){state.schemaReady=false;notify(`Службова схема недоступна: ${e.message}`,'bad')}}
+async function loadData(first=false){try{notify(first?'Завантаження…':'Оновлення…','warn');const [venues,projects,seances,templates,messages,recipients,deliveries]=await Promise.all([optional('venues?select=*&order=name.asc'),optional('projects?select=*&order=created_at.desc'),optional('seances?select=*&order=date.asc'),rest('service_message_templates?select=*&order=sort_order.asc,name.asc'),rest('service_messages?select=*&order=updated_at.desc'),optional('service_message_recipients?select=*&order=created_at.asc'),optional('service_delivery_log?select=*&order=created_at.desc')]);state.venues=venues;state.projects=projects;state.seances=seances;state.templates=templates;state.messages=messages;state.recipients=recipients;state.deliveries=deliveries;state.schemaReady=true;state.recipientSchemaReady=true;const params=first?parseParams():context();populateContext(params);if(first&&params.service_type&&SERVICE_TYPES[params.service_type])$('messageType').value=params.service_type;renderAll();if(first&&params.campaign_id){applyMarketingBridge(params)}else notify('')}catch(e){state.schemaReady=false;notify(`Службова схема недоступна: ${e.message}`,'bad')}}
 
 // Навігація
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));document.querySelectorAll('[data-open-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.openView)));
@@ -265,10 +378,10 @@ $('messageType').addEventListener('change',()=>{populateMessageTemplates('');ren
 ['messageReason','messageSubject','messageBody','messageCta','messageTargetUrl','messageStatus','audience','recipientsText','publishedUrl','resultNote'].forEach(id=>$(id).addEventListener(id==='messageBody'||id==='recipientsText'?'input':'change',()=>{renderPreview();renderMessages()}));
 $('applyTemplateBtn').addEventListener('click',()=>{try{applyTemplate()}catch(e){notify(e.message,'bad')}});$('refreshVariablesBtn').addEventListener('click',refreshVariables);
 $('prepareRecipientsBtn').addEventListener('click',()=>prepareRecipients().catch(e=>notify(e.message,'bad')));$('clearRecipientsBtn').addEventListener('click',()=>{state.prepared=[];renderRecipients()});$('copyRecipientsBtn').addEventListener('click',async()=>{const text=state.prepared.map(r=>[r.name,r.email,r.phone].filter(Boolean).join(' | ')).join('\n');if(!text)return notify('Список порожній.','warn');await navigator.clipboard.writeText(text);notify('Список скопійовано.')});$('exportRecipientsBtn').addEventListener('click',()=>{if(!state.prepared.length)return notify('Список порожній.','warn');const q=v=>`"${String(v||'').replace(/"/g,'""')}"`,csv='\ufeff'+[['Ім’я','Email','Телефон','Канал','Стан'],...state.prepared.map(r=>[r.name,r.email,r.phone,r.delivery_channel,r.validation_status])].map(a=>a.map(q).join(';')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`service-recipients-${Date.now()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
-$('saveDraftBtn').addEventListener('click',()=>saveMessage('draft').catch(e=>notify(e.message,'bad')));$('approveBtn').addEventListener('click',()=>saveMessage('approved').catch(e=>notify(e.message,'bad')));$('markSentBtn').addEventListener('click',()=>saveMessage('sent').catch(e=>notify(e.message,'bad')));$('deleteMessageBtn').addEventListener('click',()=>deleteMessage().catch(e=>notify(e.message,'bad')));$('copyMessageBtn').addEventListener('click',()=>copyMessage().catch(e=>notify(e.message,'bad')));$('openChannelBtn').addEventListener('click',openChannel);
+$('saveDraftBtn').addEventListener('click',()=>saveMessage('draft').catch(e=>notify(e.message,'bad')));$('approveBtn').addEventListener('click',()=>saveMessage('approved').catch(e=>notify(e.message,'bad')));$('sendTestEmailBtn').addEventListener('click',()=>sendServiceEmail(true).catch(e=>{ $('providerState').textContent='помилка'; notify(e.message,'bad')}));$('sendProviderBtn').addEventListener('click',()=>sendServiceEmail(false).catch(e=>{ $('providerState').textContent='помилка'; notify(e.message,'bad')}));$('markSentBtn').addEventListener('click',()=>saveMessage('sent').catch(e=>notify(e.message,'bad')));$('deleteMessageBtn').addEventListener('click',()=>deleteMessage().catch(e=>notify(e.message,'bad')));$('copyMessageBtn').addEventListener('click',()=>copyMessage().catch(e=>notify(e.message,'bad')));$('openChannelBtn').addEventListener('click',openChannel);
 $('saveTemplateBtn').addEventListener('click',()=>saveTemplate().catch(e=>notify(e.message,'bad')));$('deleteTemplateBtn').addEventListener('click',()=>deleteTemplate().catch(e=>notify(e.message,'bad')));
 $('messageSearch').addEventListener('input',renderMessages);$('messageStatusFilter').addEventListener('change',renderMessages);$('journalSearch').addEventListener('input',renderJournal);
-document.addEventListener('DOMContentLoaded',()=>{populateTypes();clearTemplate();loadData(true)});
+document.addEventListener('DOMContentLoaded',()=>{populateTypes();clearTemplate();try{$('serviceSendSecret').value=sessionStorage.getItem(SERVICE_SEND_SECRET_SESSION_KEY)||''}catch(e){};$('serviceSendSecret').addEventListener('change',()=>{try{sessionStorage.setItem(SERVICE_SEND_SECRET_SESSION_KEY,$('serviceSendSecret').value||'')}catch(e){}});loadData(true)});
 </script>
 </body>
 </html>
