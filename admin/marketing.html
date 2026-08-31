@@ -286,6 +286,7 @@ const VA_WORKSPACE_ROUTES = {
 };
 const VA_WORKSPACE_CONTEXT_KEY = "va_workspace_context_v1";
 const EXTERNAL_CONTEXT_KEY = "va_external_marketing_context_v1";
+const SERVICE_BRIDGE_STORAGE_KEY = "va_marketing_service_bridge_v1";
 
 function getExternalMarketingContext(){
   try{
@@ -2471,6 +2472,78 @@ function renderCampaignCopyCard(title, body, id, subject=""){
     </div>`;
 }
 
+
+function campaignAudienceRecipients(campaign){
+  if(!campaign || campaign.segmentKey === "external") return [];
+  const normalized = campaign.segmentKey === "repeat" ? "returned" : campaign.segmentKey;
+  const seg = getAudienceSegment(normalized);
+  const clients = Array.isArray(seg?.clients) ? seg.clients : [];
+  return clients
+    .filter(c => c && (c.email || c.phone))
+    .map(c => ({
+      key:c.key||"",
+      name:c.name||"",
+      email:String(c.email||"").trim(),
+      phone:String(c.phone||"").trim()
+    }));
+}
+
+function sendCampaignToServiceCommunications(){
+  const campaign = getActiveCampaign();
+  if(!campaign) return alert("Спочатку відкрийте або збережіть кампанію.");
+  if(String(campaign.status||"draft") !== "active") return alert("Перед відправленням запустіть кампанію. Так стартовий зріз буде зафіксовано до першого листа.");
+  if(!campaign.seance_id) return alert("У кампанії немає seance_id.");
+  if(campaign.segmentKey === "external") return alert("Зовнішню базу поки не передаємо в автоматичну розсилку. Спочатку потрібен окремий імпорт з явною згодою на контакт.");
+
+  const seance = SEANCES.find(s => String(s.id) === String(campaign.seance_id));
+  if(!seance) return alert("Сеанс кампанії не знайдено.");
+  const normalized = campaign.segmentKey === "repeat" ? "returned" : campaign.segmentKey;
+  const seg = getAudienceSegment(normalized);
+  if(!seg) return alert("Сегмент кампанії зараз недоступний.");
+
+  const passport = marketingContextStatus(seance.id);
+  const ctx = passport?.ctx || emptyMarketingContext();
+  const copies = buildCampaignCopies(seance, ctx, seg);
+  const recipients = campaignAudienceRecipients(campaign);
+  const targetUrl = campaignAttributionUrl(campaign);
+
+  if(!targetUrl) return alert("Не вдалося створити campaign-link.");
+  if(!recipients.length) return alert("У поточному сегменті немає доступних контактів.");
+
+  const payload = {
+    version:1,
+    created_at:new Date().toISOString(),
+    campaign_id:String(campaign.id),
+    campaign_name:campaign.name||`${seance.show||"Подія"} • ${campaign.segmentLabel||"Кампанія"}`,
+    campaign_status:campaign.status||"active",
+    segment_key:normalized,
+    segment_label:campaign.segmentLabel||seg.label||"",
+    seance_id:String(campaign.seance_id),
+    project_id:String(seance.project_id||""),
+    venue_id:String(seance.venue_id||seance.venue||""),
+    channel:"email",
+    subject:copies?.emailSubject||`${seance.show||"Подія"} — запрошення`,
+    body:copies?.emailBody||`${ctx.corePromise||""}\n\n${ctx.cta||"Обрати квиток"}`.trim(),
+    cta_text:ctx.cta||"Обрати квиток",
+    target_url:targetUrl,
+    recipients
+  };
+
+  try{
+    localStorage.setItem(SERVICE_BRIDGE_STORAGE_KEY, JSON.stringify(payload));
+  }catch(e){
+    console.error(e);
+    return alert("Не вдалося передати контекст у Службові комунікації.");
+  }
+
+  const url = new URL("service-communications.html", location.href);
+  url.searchParams.set("source","marketing");
+  url.searchParams.set("campaign_id",String(campaign.id));
+  url.searchParams.set("seance",String(campaign.seance_id));
+  if(payload.project_id) url.searchParams.set("project",payload.project_id);
+  if(payload.venue_id) url.searchParams.set("venue",payload.venue_id);
+  window.location.href = url.toString();
+}
 function renderCampaignsSection(){
   const s = getMarketingSnapshot();
   const brief = buildMarketingBrief(s);
@@ -2630,6 +2703,7 @@ function renderCampaignsSection(){
       <div class="muted">${esc(CAMPAIGN_DRAFT.comment || "Оберіть сегмент аудиторії — і VA збере контекст кампанії.")}</div>
       <div class="toolbar">
         <button class="btn" onclick="sendCampaignDraftToJournal()" ${CAMPAIGN_DRAFT.segmentKey ? "" : "disabled"}>Передати в журнал маркетингу</button>
+        <button class="btn" onclick="sendCampaignToServiceCommunications()" ${activeCampaign && String(activeCampaign.status||"draft")==="active" ? "" : "disabled"}>✉ Передати в комунікації</button>
         <button class="btn secondary" onclick="openMarketingSection(0)">Назад у Control Center</button>
       </div>
     </div>
@@ -2653,7 +2727,7 @@ function renderCampaignsSection(){
 
     <div class="notice">
       <b>Що вже замкнуто:</b> стан сеансу → маркетинговий паспорт → релевантна аудиторія → виключення тих, хто вже купив → вибір сегмента → змістова основа кампанії → журнал дії.
-      У V2.9 lifecycle збережено, а Attribution V1 додає унікальне посилання кампанії. campaign_id проходить у сам order; тому VA окремо показує часовий приріст і прямо атрибутовані покупки.
+      У V2.9 lifecycle і Attribution V1 збережені. Додано міст у «Службові комунікації»: Marketing фіксує аудиторію та зміст, а комунікаційний модуль отримує конкретних одержувачів, Email і campaign-link для реального надсилання.
     </div>
   `;
 }
