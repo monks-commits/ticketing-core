@@ -318,7 +318,7 @@
     </div>
 
     <div class="version">
-      VA Director V1.1 · Context Bridge
+      VA Director V1.2 · Context Bridge
     </div>
   </main>
 
@@ -343,6 +343,7 @@
 
     let VA_CAMPAIGN = null;
     let VA_SEANCE = null;
+    let VA_CONTEXT_ACTIVE = false;
 
     function esc(v){
       return String(v ?? "").replace(/[&<>"']/g, s => ({
@@ -365,16 +366,27 @@
 
     function resolveContext(){
       const params = new URLSearchParams(location.search);
-      const saved = readJson(VA_WORKSPACE_CONTEXT_KEY, {}) || {};
+
+      // V1.2: Context Bridge is activated only by an explicit URL context.
+      // A normal/direct opening of director-dashboard.html must NOT resurrect
+      // the last seance from localStorage.
+      VA_CONTEXT_ACTIVE = params.has("seance_id") || params.has("campaign_id");
+
+      if(!VA_CONTEXT_ACTIVE){
+        VA_CONTEXT = { seance_id: "", campaign_id: "", source: "" };
+        VA_CAMPAIGN = null;
+        VA_SEANCE = null;
+        return;
+      }
 
       VA_CONTEXT = {
-        seance_id: String(params.get("seance_id") || saved.seance_id || ""),
-        campaign_id: String(params.get("campaign_id") || saved.campaign_id || ""),
-        source: String(params.get("va_from") || saved.source || "")
+        seance_id: String(params.get("seance_id") || ""),
+        campaign_id: String(params.get("campaign_id") || ""),
+        source: String(params.get("va_from") || "")
       };
 
       const campaigns = readJson(VA_CAMPAIGN_STORAGE_KEY, []);
-      VA_CAMPAIGN = Array.isArray(campaigns)
+      VA_CAMPAIGN = Array.isArray(campaigns) && VA_CONTEXT.campaign_id
         ? campaigns.find(c => String(c.id) === String(VA_CONTEXT.campaign_id)) || null
         : null;
 
@@ -446,6 +458,14 @@
     }
 
     function renderContext(){
+      const bridge = document.getElementById("contextBridge");
+
+      if(!VA_CONTEXT_ACTIVE){
+        if(bridge) bridge.style.display = "none";
+        return;
+      }
+
+      if(bridge) bridge.style.display = "block";
       const hasContext = !!(VA_CONTEXT.seance_id || VA_CONTEXT.campaign_id);
 
       document.getElementById("contextTitle").textContent = seanceTitle();
@@ -498,12 +518,14 @@
     }
 
     function contextUrl(route, hash = "", target = ""){
-      const payload = persistContext(target || route);
       const url = new URL(route, location.href);
 
-      if(payload.seance_id) url.searchParams.set("seance_id", payload.seance_id);
-      if(payload.campaign_id) url.searchParams.set("campaign_id", payload.campaign_id);
-      url.searchParams.set("va_from", "director-dashboard");
+      if(VA_CONTEXT_ACTIVE){
+        const payload = persistContext(target || route);
+        if(payload.seance_id) url.searchParams.set("seance_id", payload.seance_id);
+        if(payload.campaign_id) url.searchParams.set("campaign_id", payload.campaign_id);
+        url.searchParams.set("va_from", "director-dashboard");
+      }
 
       if(hash) url.hash = hash;
       return url.toString();
