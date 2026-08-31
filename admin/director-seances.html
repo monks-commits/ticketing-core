@@ -147,6 +147,28 @@
       white-space: nowrap;
     }
 
+    .row-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .restore-sale-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #22c55e;
+      color: #07111f;
+      font-weight: 900;
+      cursor: pointer;
+      line-height: 1.15;
+    }
+
+    .restore-sale-btn:hover { filter: brightness(1.08); }
+    .restore-sale-btn:disabled { opacity: .55; cursor: wait; }
+
     .empty, .error {
       background: #121d32;
       border-radius: 18px;
@@ -429,7 +451,16 @@ async function loadPostponedTicketStats() {
           <div class="small">${getHall(s)}</div>
 ${postponedInfo}
         </div>
-        <div class="badge">${s.code || id}</div>
+        <div class="row-actions">
+          <div class="badge">${s.code || id}</div>
+          ${activeStatus === "cancelled" ? `
+            <button
+              class="restore-sale-btn"
+              type="button"
+              onclick="event.stopPropagation(); restoreCancelledSeance('${id}', this)"
+            >↩ Повернути у продаж</button>
+          ` : ""}
+        </div>
       </div>
     `;
   }).join("");
@@ -524,6 +555,82 @@ function renderRecoveryList() {
       </div>
     `;
   }).join("");
+}
+
+async function restoreCancelledSeance(id, button) {
+  const s = allSeances.find(x => String(x.id) === String(id));
+
+  if (!s) {
+    alert("Сеанс не знайдено:\n" + id);
+    return;
+  }
+
+  const title = getTitle(s);
+  const when = formatDate(getStartAt(s));
+
+  const ok = confirm(
+    `Повернути у продаж?\n\n${title}\n${when}\n\n` +
+    "Скасування буде знято. Сеанс знову стане активним і доступним у продажу.\n\n" +
+    "Ця кнопка призначена для навчальної / демонстраційної системи."
+  );
+
+  if (!ok) return;
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Повертаємо…";
+  }
+
+  const { data, error } = await vaDb
+    .from("seances")
+    .update({
+      status: "published",
+      active: true,
+      archived: false,
+      cancelled_at: null
+    })
+    .eq("id", id)
+    .select("id,status,active,archived,cancelled_at");
+
+  if (error) {
+    console.error("restore cancelled seance error:", error);
+    alert(
+      "Не вдалося повернути сеанс у продаж.\n\n" +
+      error.message +
+      "\n\nЯкщо Supabase забороняє UPDATE для цієї сторінки, перенесемо операцію в захищений серверний контур."
+    );
+    if (button) {
+      button.disabled = false;
+      button.textContent = "↩ Повернути у продаж";
+    }
+    return;
+  }
+
+  if (!data || !data.length) {
+    alert("Supabase не повернув оновлений рядок. Перевірте RLS/права на UPDATE таблиці seances.");
+    if (button) {
+      button.disabled = false;
+      button.textContent = "↩ Повернути у продаж";
+    }
+    return;
+  }
+
+  await loadSeances();
+
+  const restored = allSeances.find(x => String(x.id) === String(id));
+  activeStatus = restored?.director_status || "sale";
+
+  document.querySelectorAll(".status-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.status === activeStatus);
+  });
+
+  renderList();
+
+  alert(
+    activeStatus === "sale"
+      ? `Сеанс «${title}» повернуто у продаж.`
+      : `Скасування знято. Поточний розділ сеансу: «${titles[activeStatus] || activeStatus}».`
+  );
 }
 
 function openRecoveryEvent(id) {
