@@ -387,6 +387,11 @@
             <button class="status-link main" type="button" data-seance-status="sale" onclick="showSeanceStatus('sale')">
               <span>В продажі</span><span class="status-count" id="statusCountSale">0</span>
             </button>
+
+            <button class="status-link" type="button" data-seance-status="inactive" onclick="showSeanceStatus('inactive')">
+              <span>Неактивні</span><span class="status-count" id="statusCountInactive">0</span>
+            </button>
+
             <button class="status-link" type="button" data-seance-status="past" onclick="showSeanceStatus('past')">
               <span>Відбулися</span><span class="status-count" id="statusCountPast">0</span>
             </button>
@@ -440,16 +445,17 @@
               <div class="note" id="selectedSeanceState" style="margin:10px 0 12px;">Сеанс не обрано.</div>
 
               <div class="action-grid">
-                <button id="seanceActionOnlineHall" class="btn ghost" onclick="openOnlineHall()">Онлайн-зал</button>
-                <button id="seanceActionCash" class="btn orange" onclick="openCash()">Каса</button>
-                <button id="seanceActionEditor" class="btn" onclick="openEditor()">Редагувати</button>
-                <button id="seanceActionTurnover" class="btn dark" onclick="openTurnover()">Оборот</button>
-                <button id="seanceActionAudit" class="btn ghost" onclick="openAudit()">Audit</button>
-                <button id="seanceActionPostpone" class="btn accent" onclick="postponeSeance()">Перенести</button>
-                <button id="seanceActionRecovery" class="btn orange" onclick="openRecoveryActions()">Recovery</button>
-                <button id="seanceActionCancel" class="btn red" onclick="cancelSeance()">Скасувати</button>
-                <button id="seanceActionCancelControl" class="btn red hidden" onclick="openSelectedCancellationControl()">Повернення / контроль</button>
-                <button id="seanceActionArchive" class="btn red" onclick="archiveSeance()">Архівувати</button>
+                <button class="btn ghost" onclick="openOnlineHall()">Онлайн-зал</button>
+                <button class="btn orange" onclick="openCash()">Каса</button>
+                <button class="btn" onclick="openEditor()">Редагувати</button>
+                <button class="btn dark" onclick="openTurnover()">Оборот</button>
+                <button class="btn ghost" onclick="openAudit()">Audit</button>
+                <button class="btn green" id="seanceActiveBtn" onclick="toggleSelectedSeanceActive()">Активувати</button>
+                <button class="btn accent" onclick="postponeSeance()">Перенести</button>
+                <button class="btn orange" onclick="openRecoveryActions()">Recovery</button>
+                <button class="btn red" onclick="cancelSeance()">Скасувати</button>
+                <button class="btn green hidden" id="restoreCancelledBtn" onclick="restoreCancelledSeanceDemo()">↩ Повернути у продаж</button>
+                <button class="btn red" onclick="archiveSeance()">Архівувати</button>
               </div>
             </div>
           </div>
@@ -718,51 +724,120 @@ function selectedSeanceRow(){
   return SEANCES.find(s => String(s.id) === String(id)) || null;
 }
 
-function setSeanceActionVisible(id, visible){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.classList.toggle("hidden", !visible);
-}
-
 function renderSelectedSeanceState(){
   const box = document.getElementById("selectedSeanceState");
-  if(!box) return;
+  const btn = document.getElementById("seanceActiveBtn");
+  const restoreBtn = document.getElementById("restoreCancelledBtn");
+  if(!box || !btn) return;
   const s = selectedSeanceRow();
-
-  const normalActions = [
-    "seanceActionOnlineHall","seanceActionCash","seanceActionEditor",
-    "seanceActionTurnover","seanceActionAudit","seanceActionPostpone",
-    "seanceActionRecovery","seanceActionCancel","seanceActionArchive"
-  ];
-
   if(!s){
     box.innerHTML = "Сеанс не обрано.";
-    normalActions.forEach(id => setSeanceActionVisible(id, true));
-    setSeanceActionVisible("seanceActionCancelControl", false);
+    btn.textContent = "Активувати";
+    btn.disabled = true;
+    if(restoreBtn) restoreBtn.classList.add("hidden");
     return;
   }
-
   const archived = s.archived === true;
   const cancelled = String(s.status || "").toLowerCase() === "cancelled" || !!s.cancelled_at;
+  const active = s.active === true;
   const status = String(s.status || "—");
-  box.innerHTML = `<strong>Статус сеансу:</strong> ${escapeHtml(status)}${archived ? " · архів" : ""}${cancelled ? " · скасовано" : ""}`;
-
-  if(cancelled){
-    // Після скасування залишаємо тільки облік і завершення життєвого циклу сеансу.
-    ["seanceActionOnlineHall","seanceActionCash","seanceActionEditor","seanceActionPostpone","seanceActionRecovery","seanceActionCancel"]
-      .forEach(id => setSeanceActionVisible(id, false));
-    ["seanceActionTurnover","seanceActionAudit","seanceActionArchive","seanceActionCancelControl"]
-      .forEach(id => setSeanceActionVisible(id, true));
-  } else {
-    normalActions.forEach(id => setSeanceActionVisible(id, true));
-    setSeanceActionVisible("seanceActionCancelControl", false);
-  }
+  box.innerHTML = `<strong>Стан сеансу:</strong> ${active ? "АКТИВНИЙ" : "НЕАКТИВНИЙ"} · статус: ${escapeHtml(status)}${archived ? " · архів" : ""}${cancelled ? " · скасовано" : ""}${cancelled && !archived ? " · доступне DEMO-відновлення" : ""}`;
+  btn.disabled = archived || cancelled;
+  btn.textContent = active ? "Деактивувати" : "Активувати";
+  btn.className = active ? "btn red" : "btn green";
+  if(restoreBtn) restoreBtn.classList.toggle("hidden", !(cancelled && !archived));
 }
 
-function openSelectedCancellationControl(){
-  const id = requireSeance();
-  if(!id) return;
-  openIncidentProcessing(id,"cancelled");
+async function setSelectedSeanceActive(enabled){
+  const s = selectedSeanceRow();
+  if(!s) return alert("Оберіть сеанс.");
+  const status = String(s.status || "").toLowerCase();
+  if(s.archived === true) return alert("Архівний сеанс спочатку потрібно відновити з архіву.");
+  if(status === "cancelled" || s.cancelled_at) return alert("Скасований сеанс не можна активувати. Для нього працює контур повернення / контролю.");
+  if(enabled && status === "draft") return alert("Чернетку спочатку опублікуйте в Редакторі сеансу. Активація не замінює публікацію.");
+  if(!confirm(enabled ? "Активувати обраний сеанс?" : "Деактивувати обраний сеанс? Він зникне з публічного продажу, але залишиться у Квитковому відділі.")) return;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(s.id)}`,{
+      method:"PATCH",
+      headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Content-Type":"application/json",Prefer:"return=representation"},
+      body:JSON.stringify({active:!!enabled})
+    });
+    if(!res.ok) throw new Error(await res.text());
+    await loadSeances();
+    if(Array.from(seanceSelect.options).some(o=>o.value===String(s.id))){
+      seanceSelect.value=String(s.id);
+      loadTurnover(seanceSelect.value);
+    }
+    renderSelectedSeanceState();
+  }catch(e){ alert("Не вдалося змінити активність сеансу:\n"+String(e.message||e)); }
+}
+
+function toggleSelectedSeanceActive(){
+  const s = selectedSeanceRow();
+  if(!s) return alert("Оберіть сеанс.");
+  setSelectedSeanceActive(!(s.active === true));
+}
+
+async function restoreCancelledSeanceDemo(idOverride=""){
+  const id = String(idOverride || selectedSeanceId() || "").trim();
+  if(!id) return alert("Оберіть скасований сеанс.");
+  const s = SEANCES.find(x => String(x.id) === id);
+  const cancelled = String(s?.status || "").toLowerCase() === "cancelled" || String(s?.status || "").toLowerCase() === "canceled" || !!s?.cancelled_at;
+  if(!s || !cancelled) return alert("Обраний сеанс не має стану «Скасовано».");
+  if(s.archived === true) return alert("Спочатку поверніть сеанс з архіву. Після цього він з’явиться у «Скасовані», де його можна повернути у продаж.");
+
+  const actorDefault = localStorage.getItem("va_incident_actor_v1") || "Квитковий відділ";
+  const actor = prompt("Відповідальний за DEMO-відновлення:", actorDefault);
+  if(actor === null) return;
+  if(actor.trim()) localStorage.setItem("va_incident_actor_v1", actor.trim());
+
+  if(!confirm(
+    "ПОВЕРНУТИ СЕАНС У ПРОДАЖ?\n\n" +
+    "Це DEMO/навчальна операція. VA відновить стан сеансу та квитків, які були автоматично скасовані разом із сеансом.\n" +
+    "Оформлені повернення коштів / вже оброблені заявки відновлюватися НЕ будуть.\n" +
+    "Тимчасові HOLD і старі броні не відновлюються.\n\n" +
+    "Продовжити?"
+  )) return;
+
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/va_demo_restore_cancelled_seance`, {
+      method:"POST",
+      headers:{
+        apikey:SUPABASE_ANON_KEY,
+        Authorization:`Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        p_seance_id:id,
+        p_actor:(actor || "Квитковий відділ").trim() || "Квитковий відділ",
+        p_note:"DEMO restore from Ticket Office"
+      })
+    });
+    const text = await res.text();
+    let data = {};
+    try{ data = text ? JSON.parse(text) : {}; }catch{ data = {error:text}; }
+    if(!res.ok || data?.ok === false) throw new Error(data?.message || data?.error || text || `HTTP ${res.status}`);
+
+    await loadSeances();
+    const exists = Array.from(seanceSelect.options).some(o => o.value === id);
+    if(exists){
+      seanceSelect.value = id;
+      seanceSelect.dispatchEvent(new Event("change"));
+    }
+    showSeanceStatus("sale");
+    alert(`Сеанс повернуто у продаж.\nВідновлено квитків: ${Number(data?.tickets_restored || 0)}.`);
+  }catch(e){
+    const msg = String(e?.message || e);
+    if(msg.includes("demo_restore_blocked_processed")){
+      alert("DEMO-відновлення заблоковано: по скасуванню вже почалася фактична обробка повернення/рішення. Такий сеанс не можна безпечно повернути однією кнопкою.");
+      return;
+    }
+    if(msg.includes("cancel_incident_not_found")){
+      alert("Не знайдено реєстр скасування. Для цього старого сеансу автоматичне DEMO-відновлення квитків неможливе.");
+      return;
+    }
+    alert("Не вдалося повернути сеанс у продаж:\n" + msg);
+  }
 }
 
     function postponeSeance(){
@@ -883,17 +958,12 @@ function openSelectedCancellationControl(){
         const active = s.active === true;
         const start = seanceStartMs(s);
         const past = Number.isFinite(start) && start < now;
-
-        // Архів і скасування — окремі стани.
         if(kind === "archive") return archived;
         if(kind === "cancelled") return cancelled && !archived;
-
-        // Перенесення — додатковий реєстр, а не заміна поточного стану сеансу.
         if(kind === "postponed") return postponed && !cancelled && !archived;
-
-        // Перенесений майбутній активний сеанс залишається у «В продажі».
-        if(kind === "past") return past && !cancelled && !archived;
-        return active && !past && !cancelled && !archived;
+        if(kind === "inactive") return !active && !past && !postponed && !cancelled && !archived;
+        if(kind === "past") return past && !postponed && !cancelled && !archived;
+        return active && !past && !postponed && !cancelled && !archived;
       }).sort((a,b) => (seanceStartMs(a)||0) - (seanceStartMs(b)||0));
     }
 
@@ -904,7 +974,7 @@ function openSelectedCancellationControl(){
     }
 
     function renderStatusCounts(){
-      const ids={sale:"statusCountSale",past:"statusCountPast",postponed:"statusCountPostponed",cancelled:"statusCountCancelled",archive:"statusCountArchive"};
+      const ids={sale:"statusCountSale",inactive:"statusCountInactive",past:"statusCountPast",postponed:"statusCountPostponed",cancelled:"statusCountCancelled",archive:"statusCountArchive"};
       Object.entries(ids).forEach(([kind,id])=>{const el=document.getElementById(id);if(el)el.textContent=String(statusRows(kind).length);});
     }
 
@@ -923,16 +993,11 @@ function openSelectedCancellationControl(){
 
     async function restoreSeanceFromArchive(id){
       const s = SEANCES.find(x=>String(x.id)===String(id));
-      if(!s) return alert("Сеанс не знайдено.");
-      const cancelled = String(s.status || "").toLowerCase() === "cancelled" || !!s.cancelled_at;
-      if(!confirm(`Відновити з архіву: ${s.show || s.id}?`)) return;
+      const cancelled = String(s?.status || "").toLowerCase() === "cancelled" || !!s?.cancelled_at;
       const res=await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({archived:false,active:cancelled?false:true})});
       if(!res.ok){alert("Помилка відновлення сеансу.");return;}
       await loadSeances();
       showSeanceStatus("archive",false);
-      alert(cancelled
-        ? "Скасований сеанс повернуто з архіву до розділу «Скасовані»."
-        : "Сеанс повернуто з архіву. Його робочий розділ визначається датою сеансу.");
     }
 
     function renderStatusSeances(kind){
@@ -950,15 +1015,16 @@ function openSelectedCancellationControl(){
           note=`Причина: ${escapeHtml(incident.reason||"—")} · Обробка: ${escapeHtml(incident.operational_status||"open")}`;
         }
         let actions=`<button class="btn ghost" onclick="chooseSeanceFromStatus('${escapeHtml(id)}')">Обрати</button>`;
+        if(kind === "inactive") actions += `<button class="btn green" onclick="chooseSeanceFromStatus('${escapeHtml(id)}');setTimeout(()=>setSelectedSeanceActive(true),0)">Активувати</button>`;
         if(kind === "postponed") actions += `<button class="btn orange" onclick="openIncidentProcessing('${escapeHtml(id)}','postponed')">Обробка перенесення</button>`;
-        if(kind === "cancelled") actions += `<button class="btn red" onclick="openIncidentProcessing('${escapeHtml(id)}','cancelled')">Повернення / контроль</button>`;
+        if(kind === "cancelled") actions += `<button class="btn red" onclick="openIncidentProcessing('${escapeHtml(id)}','cancelled')">Повернення / контроль</button><button class="btn green" onclick="restoreCancelledSeanceDemo('${escapeHtml(id)}')">↩ Повернути у продаж</button>`;
         if(kind === "archive") actions = `<button class="btn green" onclick="restoreSeanceFromArchive('${escapeHtml(id)}')">Відновити</button>`;
         return `<div class="status-card"><div><div class="status-card-title">${escapeHtml(s.show||s.id||"Без назви")}</div><div class="status-card-meta">${escapeHtml(formatShortDate(s.date))} · ${escapeHtml(String(s.time||"").slice(0,5))} · ${escapeHtml(s.venue_id||"")}<br>Seance ID: ${escapeHtml(id)}</div>${note?`<div class="status-card-note">${note}</div>`:""}</div><div class="status-card-actions">${actions}</div></div>`;
       }).join("");
     }
 
     function showSeanceStatus(kind,updateHash=true){
-      const allowed=["sale","past","postponed","cancelled","archive"];
+      const allowed=["sale","inactive","past","postponed","cancelled","archive"];
       CURRENT_STATUS_FILTER=allowed.includes(kind)?kind:"sale";
       document.querySelectorAll("[data-seance-status]").forEach(el=>el.classList.toggle("active",el.dataset.seanceStatus===CURRENT_STATUS_FILTER));
       renderStatusCounts();
@@ -1016,7 +1082,7 @@ function openSelectedCancellationControl(){
 loadTurnover(seanceSelect.value);
         renderSelectedSeanceState();
         const requestedStatus = String(location.hash || "").replace("#","");
-        showSeanceStatus(["sale","past","postponed","cancelled","archive"].includes(requestedStatus) ? requestedStatus : CURRENT_STATUS_FILTER, false);
+        showSeanceStatus(["sale","inactive","past","postponed","cancelled","archive"].includes(requestedStatus) ? requestedStatus : CURRENT_STATUS_FILTER, false);
         
       }catch(e){
         console.error(e);
