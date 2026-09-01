@@ -441,14 +441,8 @@ Seance ID — технічний ключ.
   </select>
 </label>     
   <select id="eventType">
-  <option value="">Оберіть тип</option>
-  <option value="Концерт">Концерт</option>
-  <option value="Вистава">Вистава</option>
-  <option value="Кінопоказ">Кінопоказ</option>
-  <option value="Лекція">Лекція</option>
-  <option value="Фестиваль">Фестиваль</option>
-  <option value="Інше">Інше</option>
-</select>
+    <option value="">Оберіть тип</option>
+  </select>
 </div>
 
           
@@ -736,6 +730,7 @@ Seance ID — технічний ключ.
 </div>
 <script src="../shared/config.js"></script>
 <script src="../shared/config-helper.js"></script>
+<script src="../shared/event-taxonomy.js"></script>
   
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
@@ -746,72 +741,6 @@ const SUPABASE_FUNCTION_URL =
 const data = {
   pricing: {},
   seat_overrides: {}
-};
-
-  const GENRES_BY_TYPE = {
-  "Концерт": [
-    ["symphonic", "Симфонічна музика"],
-    ["chamber", "Камерна музика"],
-    ["jazz", "Джаз"],
-    ["pop_ua", "Естрада українська"],
-    ["pop_world", "Естрада зарубіжна"],
-    ["rock", "Рок"],
-    ["folk", "Фолк"],
-    ["choir", "Хорова музика"],
-    ["organ", "Органна музика"],
-    ["other", "Інше"]
-  ],
-
-  "Вистава": [
-    ["drama", "Драма"],
-    ["comedy", "Комедія"],
-    ["tragedy", "Трагедія"],
-    ["fairytale", "Казка"],
-    ["children", "Дитяча вистава"],
-    ["musical", "Мюзикл"],
-    ["opera", "Опера"],
-    ["ballet", "Балет"],
-    ["operetta", "Оперета"],
-    ["mono", "Моно вистава"],
-    ["other", "Інше"]
-  ],
-
-  "Кінопоказ": [
-    ["fiction", "Художній фільм"],
-    ["documentary", "Документальний фільм"],
-    ["children", "Дитячий фільм"],
-    ["arthouse", "Артхаус"],
-    ["retro", "Ретроспектива"],
-    ["other", "Інше"]
-  ],
-
-  "Лекція": [
-    ["art", "Мистецтво"],
-    ["history", "Історія"],
-    ["music", "Музика"],
-    ["literature", "Література"],
-    ["education", "Освіта"],
-    ["meeting", "Зустріч"],
-    ["other", "Інше"]
-  ],
-
-  "Фестиваль": [
-    ["music", "Музичний"],
-    ["theatre", "Театральний"],
-    ["cinema", "Кіно"],
-    ["children", "Дитячий"],
-    ["city", "Міський"],
-    ["other", "Інше"]
-  ],
-
-  "Інше": [
-    ["excursion", "Екскурсія"],
-    ["presentation", "Презентація"],
-    ["contest", "Конкурс"],
-    ["charity", "Благодійна подія"],
-    ["rental", "Орендна подія"],
-    ["other", "Інше"]
-  ]
 };
 
 const showStatus = document.getElementById("showStatus");
@@ -1053,24 +982,32 @@ function setVenueByHallName(hallName){
   }
 }
 
-function updateGenreSelect(selectedGenre = "") {
-  if (!eventType || !genre) return;
-
-  const type = eventType.value;
-  const list = GENRES_BY_TYPE[type] || [];
-
-  genre.innerHTML =
-    `<option value="">Оберіть жанр</option>` +
-    list
-      .map(([value, label]) =>
-        `<option value="${value}">${label}</option>`
-      )
-      .join("");
-
-  if (selectedGenre) {
-    genre.value = selectedGenre;
+function initEventTaxonomy(selectedType = "", selectedGenre = "") {
+  if (!eventType || !genre) return false;
+  if (!window.VAEventTaxonomy) {
+    console.error("VAEventTaxonomy is not loaded: ../shared/event-taxonomy.js");
+    eventType.innerHTML = '<option value="">Довідник типів недоступний</option>';
+    genre.innerHTML = '<option value="">Довідник жанрів недоступний</option>';
+    eventType.disabled = true;
+    genre.disabled = true;
+    return false;
   }
+  const audit = VAEventTaxonomy.audit();
+  if (!audit.ok) {
+    console.error("VAEventTaxonomy audit failed", audit.errors);
+    return false;
+  }
+  VAEventTaxonomy.fillTypeSelect(eventType, selectedType || eventType.value, "Оберіть тип");
+  updateGenreSelect(selectedGenre);
+  return true;
 }
+
+function updateGenreSelect(selectedGenre = "") {
+  if (!eventType || !genre || !window.VAEventTaxonomy) return;
+  VAEventTaxonomy.fillGenreSelect(genre, eventType.value, selectedGenre, "Оберіть жанр");
+}
+
+initEventTaxonomy();
 
 eventType?.addEventListener("change", () => {
   updateGenreSelect();
@@ -2387,6 +2324,8 @@ function createNewSeance(){
 
   data.pricing = {};
   data.seat_overrides = {};
+  if (eventType) eventType.value = "";
+  updateGenreSelect("");
 
   // Новий сеанс одразу доступний внутрішнім модулям після збереження,
   // але до окремої публікації не показується на сайті.
