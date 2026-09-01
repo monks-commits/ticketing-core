@@ -1,3498 +1,1829 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-  <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.11</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
-  <script src="../shared/marketing-knowledge-base-v2.js?v=2.0.1-20260901"></script>
-
-  <style>
-    body{margin:0;font-family:Arial,sans-serif;background:#071a35;color:#fff}
-    .wrap{max-width:1280px;margin:0 auto;padding:28px}
-    h1{margin:0 0 8px;font-size:34px}
-    h2{margin:0 0 14px}
-    h3{margin:0 0 10px}
-    .muted{color:#aebbd0}
-    .card{background:#152744;border-radius:18px;padding:20px;margin-bottom:18px}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-    .tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-    .box{background:#0d1d34;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px}
-    .box b{display:block;font-size:24px;margin-top:6px}
-    .tool{cursor:pointer;min-height:96px}
-    .tool.active{border-color:#2d8cff;background:#14315f}
-    .tool h3{margin:0 0 8px}
-    .tag{display:inline-block;margin-top:10px;padding:4px 9px;border-radius:999px;background:#27476f;color:#dce8ff;font-size:12px}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:11px 9px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left;vertical-align:top}
-    th{color:#aebbd0;font-size:13px}
-    .pill{display:inline-block;padding:4px 9px;border-radius:999px;background:#314766;margin:2px;font-size:12px}
-    .good{background:#1f6f45}
-    .warn{background:#7a5a1a}
-    .bad{background:#7d3434}
-    .btn{border:0;border-radius:10px;background:#2d8cff;color:white;padding:9px 12px;cursor:pointer}
-    .btn.secondary{background:#314766}
-    .btn.danger{background:#7d3434}
-    .section-workspace{min-height:320px}
-    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
-    .table-wrap{overflow:auto;border-radius:14px}
-    input[type="checkbox"]{transform:scale(1.15);cursor:pointer}
-    @media(max-width:900px){.grid,.tool-grid{grid-template-columns:1fr}.wrap{padding:16px} table{font-size:13px}}
-  
-  
-  select,
-select option{
-  color:#fff !important;
-  background:#071a36 !important;
-}
-
-input,
-textarea,
-select{
-  color:#fff;
-}
-
-input::placeholder,
-textarea::placeholder{
-  color:#7f95b5;
-}
-
-  .hero{
-    background:linear-gradient(135deg,#162b4b 0%,#10223d 55%,#0b1c34 100%);
-    border:1px solid rgba(141,194,255,.2);
-  }
-  .hero-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
-  .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#8dc2ff;font-weight:700;margin-bottom:8px}
-  .hero-badges{display:flex;gap:8px;flex-wrap:wrap}
-  .badge{padding:6px 10px;border-radius:999px;background:#0d1d34;border:1px solid rgba(255,255,255,.12);font-size:12px;color:#dce8ff}
-  .kpi-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:16px}
-  .kpi{background:#0b1b31;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:13px;min-width:0}
-  .kpi span{display:block;color:#aebbd0;font-size:12px;margin-bottom:7px}
-  .kpi strong{display:block;font-size:23px;line-height:1.05;word-break:break-word}
-  .kpi small{display:block;color:#7f95b5;margin-top:6px;line-height:1.3}
-  .progress{height:10px;background:#071426;border-radius:999px;overflow:hidden;margin-top:10px;border:1px solid rgba(255,255,255,.08)}
-  .progress > div{height:100%;background:linear-gradient(90deg,#2d8cff,#62b0ff);border-radius:999px}
-  .two-col{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:14px}
-  .three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
-  .signal-list,.action-list{display:flex;flex-direction:column;gap:9px;margin-top:10px}
-  .signal,.action-item{background:#09182c;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 12px;line-height:1.42}
-  .signal strong,.action-item strong{display:inline;font-size:inherit;margin:0}
-  .signal.good-line{border-left:4px solid #39a56d}
-  .signal.warn-line{border-left:4px solid #c4922d}
-  .signal.bad-line{border-left:4px solid #bd5656}
-  .signal.info-line{border-left:4px solid #2d8cff}
-  .section-caption{display:flex;justify-content:space-between;gap:12px;align-items:end;flex-wrap:wrap;margin:22px 0 10px}
-  .section-caption h3{margin:0}
-  .micro{font-size:12px;color:#7f95b5}
-  .metric-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)}
-  .metric-row:last-child{border-bottom:0}
-  .metric-row b{display:inline;font-size:inherit;margin:0}
-  .channel-bar{height:6px;background:#071426;border-radius:99px;overflow:hidden;margin-top:6px}
-  .channel-bar > div{height:100%;background:#2d8cff;border-radius:99px}
-  .notice{padding:12px 14px;border-radius:12px;background:#102a50;border:1px solid rgba(45,140,255,.35);margin:12px 0;line-height:1.45}
-  .focus-name{font-size:27px;margin:0 0 5px}
-  .trend-up{color:#72d49c}
-  .trend-down{color:#ff9696}
-  .trend-flat{color:#d7dce6}
-  .btn.small{padding:6px 9px;font-size:12px}
-  tr.focused-row{background:rgba(45,140,255,.07)}
-
-  @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}.three-col{grid-template-columns:1fr 1fr}}
-  @media(max-width:700px){.kpi-grid,.three-col{grid-template-columns:1fr 1fr}.focus-name{font-size:23px}}
-  @media(max-width:480px){.kpi-grid,.three-col{grid-template-columns:1fr}}
-
-  .audience-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
-  .aud-card{position:relative;background:#0b1b31;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;min-height:150px}
-  .aud-card.recommended{border-color:rgba(114,212,156,.7);box-shadow:inset 0 0 0 1px rgba(114,212,156,.16)}
-  .aud-card h3{font-size:16px;margin-bottom:8px}
-  .aud-number{font-size:30px;font-weight:700;line-height:1;margin:8px 0}
-  .aud-meta{font-size:12px;color:#aebbd0;line-height:1.45}
-  .aud-label{display:inline-block;padding:4px 8px;border-radius:999px;background:#1f6f45;color:#e8fff2;font-size:11px;margin-bottom:8px}
-  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
-  .flow-step{padding:8px 10px;border-radius:10px;background:#0b1b31;border:1px solid rgba(255,255,255,.1);font-size:12px}
-  .flow-arrow{color:#7f95b5}
-  .campaign-brief{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .big-value{font-size:28px;font-weight:700;margin-top:5px}
-  .privacy-note{font-size:12px;color:#7f95b5;margin-top:10px;line-height:1.4}
-  @media(max-width:1000px){.audience-grid{grid-template-columns:1fr 1fr}.campaign-brief{grid-template-columns:1fr}}
-  @media(max-width:560px){.audience-grid{grid-template-columns:1fr}}
-
-  .four-col{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:14px}
-  .passport-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .field{display:flex;flex-direction:column;gap:7px}
-  .field label{font-size:12px;color:#aebbd0;font-weight:700}
-  .field input,.field textarea,.field select{box-sizing:border-box;width:100%;background:#09182c;border:1px solid rgba(255,255,255,.13);border-radius:11px;padding:11px 12px;font:inherit;outline:none}
-  .field input:focus,.field textarea:focus,.field select:focus{border-color:#2d8cff;box-shadow:0 0 0 2px rgba(45,140,255,.12)}
-  .field textarea{min-height:92px;resize:vertical}
-  .passport-score{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .score-circle{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#0b1b31;border:5px solid #2d8cff;font-weight:700;font-size:17px}
-  .context-preview{white-space:pre-wrap;line-height:1.5}
-  .quick-passport{border:1px solid rgba(45,140,255,.45);background:linear-gradient(180deg,rgba(45,140,255,.08),rgba(45,140,255,.02))}
-  .quick-passport h3{margin-bottom:6px}
-  details.advanced-passport{background:#0b1b31;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:0 14px;margin-bottom:16px}
-  details.advanced-passport summary{cursor:pointer;padding:15px 0;font-weight:700;list-style:none}
-  details.advanced-passport summary::-webkit-details-marker{display:none}
-  .copy-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
-  .copy-card{background:#09182c;border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:14px}
-  .copy-card h3{font-size:16px;margin-bottom:8px}
-  .copy-text{white-space:pre-wrap;line-height:1.48;color:#e7effc;min-height:88px}
-  .copy-subject{font-size:12px;color:#8dc2ff;margin-bottom:8px;line-height:1.4}
-  .quick-ready{display:inline-block;padding:5px 9px;border-radius:999px;background:#1f6f45;color:#eafff2;font-size:12px;font-weight:700}
-  @media(max-width:800px){.copy-grid{grid-template-columns:1fr}}
-  @media(max-width:1100px){.four-col{grid-template-columns:1fr 1fr}}
-  @media(max-width:800px){.passport-grid{grid-template-columns:1fr}}
-  @media(max-width:560px){.four-col{grid-template-columns:1fr}}
-
-
-  /* ===== V2.5 • VA Context Bridge + real workspace routes ===== */
-  .context-bridge{position:sticky;top:0;z-index:20;background:rgba(7,26,53,.96);backdrop-filter:blur(10px);border:1px solid rgba(141,194,255,.2)}
-  .context-bridge-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
-  .context-main{min-width:260px;flex:1}
-  .context-title{font-size:20px;font-weight:700;margin:2px 0 4px}
-  .context-meta{font-size:12px;color:#8fa8ca;line-height:1.45}
-  .workspace-nav{display:flex;gap:8px;flex-wrap:wrap}
-  .workspace-btn{border:1px solid rgba(255,255,255,.13);background:#0d1d34;color:#dce8ff;border-radius:10px;padding:9px 11px;cursor:pointer;font-weight:700}
-  .workspace-btn.active{background:#2d8cff;border-color:#2d8cff;color:#fff}
-  .workspace-btn.pending{opacity:.6}
-  .campaign-strip{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-  .campaign-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border-radius:999px;background:#102a50;border:1px solid rgba(45,140,255,.32);font-size:12px}
-  .campaign-id{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#8dc2ff}
-  .campaign-card{border:1px solid rgba(98,176,255,.28);background:linear-gradient(180deg,rgba(45,140,255,.08),rgba(45,140,255,.025))}
-  .campaign-list{display:flex;flex-direction:column;gap:9px;margin-top:12px}
-  .campaign-row{display:grid;grid-template-columns:minmax(180px,1.4fr) minmax(120px,.7fr) minmax(120px,.7fr) auto;gap:10px;align-items:center;background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:11px}
-  .campaign-row.active{border-color:#2d8cff;background:#0d2548}
-  .status-draft{background:#6f5720}.status-active{background:#1f6f45}.status-done{background:#314766}
-  .lifecycle{margin-top:14px;border:1px solid rgba(98,176,255,.30);background:#07172b;border-radius:14px;padding:14px}
-  .lifecycle-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 14px}
-  .lifecycle-step{border:1px solid rgba(255,255,255,.10);background:#0b1d35;border-radius:12px;padding:10px;text-align:center}
-  .lifecycle-step.active{border-color:#2d8cff;background:#0e2a4f}
-  .lifecycle-step.done{border-color:rgba(46,204,113,.55);background:#0d2a22}
-  .snapshot-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
-  .snapshot-cell{background:#09182c;border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px}
-  .snapshot-cell span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
-  .snapshot-cell b{font-size:18px}
-  .delta-positive{color:#55d98a}.delta-negative{color:#ff7b7b}.delta-neutral{color:#9fb3cf}
-  .lifecycle-note{margin-top:9px;color:var(--muted);font-size:12px;line-height:1.45}
-  .attribution-box{margin-top:12px;border:1px solid rgba(85,217,138,.35);background:#0a241e;border-radius:12px;padding:12px}
-  .attribution-link-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-  .attribution-link{flex:1;min-width:280px;background:#07172b;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;color:#dce8ff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
-  .attribution-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-  .campaign-result{margin-top:14px;border:1px solid rgba(242,182,50,.42);background:linear-gradient(180deg,rgba(242,182,50,.10),rgba(242,182,50,.035));border-radius:14px;padding:14px}
-  .campaign-result-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px}
-  .campaign-result-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:10px}
-  .campaign-result-cell{background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:11px}
-  .campaign-result-cell span{display:block;color:#aebbd0;font-size:11px;margin-bottom:5px}
-  .campaign-result-cell b{font-size:19px;line-height:1.2}
-  .result-proof{margin-top:10px;padding:11px 12px;border-radius:11px;background:#10243f;border:1px solid rgba(98,176,255,.22);line-height:1.45}
-  .result-proof strong{display:inline;font-size:inherit;margin:0}
-  @media(max-width:900px){.attribution-stats,.campaign-result-grid{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:1000px){.snapshot-grid{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:800px){.campaign-row{grid-template-columns:1fr}.context-bridge{position:relative;top:auto}.lifecycle-steps,.snapshot-grid,.campaign-result-grid{grid-template-columns:1fr}}
-
-  .playbook-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
-  .playbook-tab{border:1px solid rgba(255,255,255,.12);background:#0a1d34;color:#dce8f8;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer}
-  .playbook-tab.active{background:#2788ff;color:#fff;border-color:#2788ff}
-  .playbook-filters{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:12px 0 16px}
-  .playbook-filters label{display:block;font-size:11px;color:#aebbd0;margin-bottom:5px;font-weight:800}
-  .playbook-filters select{width:100%;background:#09182c;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px}
-  .idea-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-  .idea-list{display:grid;gap:8px;margin-top:10px}
-  .idea-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:10px}
-  .idea-item .idea-text{line-height:1.4}
-  .idea-target{font-size:10px;color:#8eb9ef;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-  .knowledge-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 14px}
-  .template-card,.experience-card{background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:13px;margin-top:10px}
-  .template-preview{white-space:pre-wrap;background:#061426;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px;line-height:1.45;margin-top:9px}
-  .experience-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
-  .experience-metric{background:#061426;border-radius:10px;padding:9px;border:1px solid rgba(255,255,255,.07)}
-  .experience-metric span{display:block;font-size:10px;color:#aebbd0}.experience-metric b{font-size:17px}
-  @media(max-width:1000px){.playbook-filters{grid-template-columns:repeat(2,1fr)}.idea-columns{grid-template-columns:1fr}.experience-grid{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:650px){.playbook-filters,.experience-grid{grid-template-columns:1fr}}
-
-
-  .custom-bank{margin:12px 0 16px;border:1px solid rgba(117,88,214,.45);background:linear-gradient(180deg,rgba(117,88,214,.10),rgba(117,88,214,.025));border-radius:14px;padding:14px}
-  .custom-bank summary{cursor:pointer;font-weight:900}
-  .custom-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
-  .custom-form-grid .wide{grid-column:1/-1}
-  .custom-form-grid label{display:block;font-size:11px;color:#aebbd0;font-weight:800;margin-bottom:5px}
-  .custom-form-grid input,.custom-form-grid select,.custom-form-grid textarea{width:100%;box-sizing:border-box;background:#07182b;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px}
-  .custom-form-grid textarea{min-height:90px;resize:vertical}
-  .custom-chip{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:#4a3b86;color:#fff;font-size:10px;font-weight:900;margin-left:6px}
-  .scenario-card{background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:14px;margin-top:10px}
-  .scenario-steps{margin:10px 0 0;padding-left:20px;color:#dbe7f5;line-height:1.5}
-  .scenario-theme{margin-top:9px;padding:9px 11px;border-radius:10px;background:#10243f;border:1px solid rgba(98,176,255,.20)}
-  .idea-item.mine{border-color:rgba(117,88,214,.55);background:rgba(117,88,214,.07)}
-  .idea-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-  @media(max-width:900px){.custom-form-grid{grid-template-columns:1fr}.custom-form-grid .wide{grid-column:auto}}
-
-  </style>
-</head>
-
-<body>
-<div class="wrap">
-
-  <div class="card hero">
-    <div class="hero-head">
-      <div>
-        <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.12</h1>
-        <div class="muted">
-          Робоче місце маркетолога: факт → діагноз → дія → результат.
-          Основна аналітика читає live-дані Supabase; V2.12 розгортає Банк ідей у повноцінну маркетингову бібліотеку: теми, гачки, мотиви, механіки, сценарії, шаблони та власні формулювання майданчика.
-        </div>
-      </div>
-      <div class="hero-badges">
-        <span class="badge">LIVE DATA</span>
-        <span class="badge">Без дублювання КБ</span>
-        <span class="badge">Без зовнішнього AI API</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="card context-bridge" id="vaContextBridge">
-    <div class="context-bridge-row">
-      <div class="context-main">
-        <div class="eyebrow">VA Context Bridge</div>
-        <div class="context-title" id="bridgeSeanceTitle">Контекст не вибрано</div>
-        <div class="context-meta" id="bridgeSeanceMeta">Оберіть сеанс кнопкою «Фокус». Контекст буде збережено в URL.</div>
-        <div class="campaign-strip" id="bridgeCampaignStrip"></div>
-      </div>
-      <div class="workspace-nav">
-        <button class="workspace-btn active" onclick="openVAWorkspace('marketing')">Маркетинг</button>
-        <button class="workspace-btn pending" onclick="openVAWorkspace('clients')">КБ</button>
-        <button class="workspace-btn pending" onclick="openVAWorkspace('studio')">Studio</button>
-        <button class="workspace-btn pending" onclick="openVAWorkspace('director')">Директор</button>
-        <button class="workspace-btn pending" onclick="openVAWorkspace('external')">Зовнішні бази</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Замкнутий цикл VA</h2>
-    <div class="grid">
-      <div class="box"><span>1. Факт</span><b>Продаж / Квиток / Прохід</b></div>
-      <div class="box"><span>2. Аналіз</span><b>Темп / Аудиторія / Канал</b></div>
-      <div class="box"><span>3. Рішення</span><b>Що робити зараз</b></div>
-      <div class="box"><span>4. Пам'ять</span><b>Дія → Результат</b></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Розділи Marketing OS</h2>
-    <div class="tool-grid" id="toolsGrid"></div>
-  </div>
-
-  <div id="activeSectionPanel" class="card section-workspace">
-    <h2>Завантаження...</h2>
-  </div>
-
-</div>
-
-<script>
-const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let CLIENTS = [];
-let SEANCES = [];
-let ORDERS = [];
-let TICKETS = [];
-let JOURNAL = [];
-let SERVICE_MESSAGES = [];
-let SERVICE_RECIPIENTS = [];
-let SERVICE_DELIVERIES = [];
-let CURRENT_SEANCE_IDS = [];
-let MARKETING_CONTEXTS = {};
-let MARKETING_CONTEXT_SOURCE = {};
-let PASSPORT_NOTICE = "";
-let PLAYBOOK_TAB = "ideas";
-let PLAYBOOK_FILTER_SEANCE_ID = "";
-let PLAYBOOK_FILTERS = {eventType:"",genre:"",objective:"launch",audience:"all",channel:"all"};
-let CUSTOM_KNOWLEDGE_ITEMS = [];
-let CUSTOM_KNOWLEDGE_SCHEMA_READY = true;
-let CUSTOM_IDEA_EDIT_ID = "";
-let CUSTOM_TEMPLATE_EDIT_ID = "";
-const KNOWLEDGE_EDIT_SECRET_SESSION_KEY = "va_marketing_knowledge_edit_secret_v1";
-
-const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
-let CAMPAIGN_DRAFT = {
-  segmentKey: "",
-  segmentLabel: "",
-  audienceCount: 0,
-  reachableCount: 0,
-  channel: "",
-  objective: "",
-  comment: ""
-};
-
-const CAMPAIGN_STORAGE_KEY = "va_marketing_campaigns_v24";
-let CAMPAIGNS = [];
-let ACTIVE_CAMPAIGN_ID = "";
-let CAMPAIGN_LIVE_TIMER = null;
-let CAMPAIGN_LIVE_BUSY = false;
-let CAMPAIGN_LIVE_UPDATED_AT = "";
-const CAMPAIGN_LIVE_INTERVAL_MS = 8000;
-
-// Реальні робочі маршрути VA. Контекст передається через seance_id + campaign_id.
-const VA_WORKSPACE_ROUTES = {
-  marketing: "marketing.html",
-  clients: "https://monks-commits.github.io/ticketing-core/admin/viewers.html",
-  studio: "https://monks-commits.github.io/ticketing-core/admin/content_studio.html",
-  director: "https://monks-commits.github.io/ticketing-core/admin/director-dashboard.html",
-  external: "external-audiences.html"
-};
-const VA_WORKSPACE_CONTEXT_KEY = "va_workspace_context_v1";
-const EXTERNAL_CONTEXT_KEY = "va_external_marketing_context_v1";
-const SERVICE_BRIDGE_STORAGE_KEY = "va_marketing_service_bridge_v1";
-
-function getExternalMarketingContext(){
-  try{
-    const raw = localStorage.getItem(EXTERNAL_CONTEXT_KEY);
-    const x = raw ? JSON.parse(raw) : null;
-    return x && typeof x === "object" ? x : null;
-  }catch(e){ return null; }
-}
-
-function externalContextForFocus(){
-  const x = getExternalMarketingContext();
-  if(!x) return null;
-  const sid = CURRENT_SEANCE_IDS.length === 1 ? String(CURRENT_SEANCE_IDS[0]) : "";
-  if(sid && x.seance_id && String(x.seance_id) !== sid) return null;
-  return x;
-}
-
-function clearExternalMarketingContext(){
-  try{ localStorage.removeItem(EXTERNAL_CONTEXT_KEY); }catch(e){}
-  try{ const url=new URL(location.href); url.searchParams.delete("external_batch_id"); history.replaceState(null,"",url.toString()); }catch(e){}
-  if(ACTIVE_SECTION===1) renderAudienceSection();
-  else if(ACTIVE_SECTION===3) renderCampaignsSection();
-  renderContextBridge();
-}
-
-function prepareExternalCampaign(){
-  const x = externalContextForFocus();
-  if(!x || !Number(x.available||0)) return;
-  CAMPAIGN_DRAFT = {
-    segmentKey:"external",
-    segmentLabel:`${x.operator || "Зовнішня база"}${x.source_event ? " • " + x.source_event : ""}`,
-    audienceCount:Number(x.available||0),
-    reachableCount:Number(x.available||0),
-    channel:Number(x.email||0) >= Number(x.phone||0) ? "Email" : "Телефон / месенджер",
-    objective:`Запросити зовнішню аудиторію на «${scopeTitle()}»`,
-    comment:`Зовнішня аудиторія ${x.operator || "оператора"}. Партія ${x.batch_id || "—"}. Доступно для кампанії: ${x.available || 0}; вже є у КБ VA: ${x.known_in_va || 0}; вже купили цільовий сеанс: ${x.already_bought_target || 0}.`
-  };
-  openMarketingSection(3);
-}
-
-function renderExternalAudienceContext(){
-  const x = externalContextForFocus();
-  if(!x) return "";
-  return `
-    <div class="box campaign-card" style="margin:14px 0">
-      <div class="eyebrow">ЗОВНІШНЯ АУДИТОРІЯ • ОКРЕМИЙ КОНТУР</div>
-      <div class="context-bridge-row">
-        <div>
-          <h3>${esc(x.operator || "Зовнішня база")}${x.source_event ? " • " + esc(x.source_event) : ""}</h3>
-          <div class="muted">Партія: ${esc(x.batch_id || "—")} • всього покупців: ${Number(x.total_buyers||0)} • вже у КБ VA: ${Number(x.known_in_va||0)}</div>
-        </div>
-        <div class="big-value">${Number(x.available||0)}</div>
-      </div>
-      <div class="metric-row"><span>Вже купили цей сеанс у VA</span><b>${Number(x.already_bought_target||0)}</b></div>
-      <div class="metric-row"><span>Доступні для кампанії</span><b>${Number(x.available||0)}</b></div>
-      <div class="metric-row"><span>Email / телефон</span><b>${Number(x.email||0)} / ${Number(x.phone||0)}</b></div>
-      <div class="toolbar">
-        <button class="btn small" onclick="prepareExternalCampaign()" ${Number(x.available||0) ? "" : "disabled"}>До кампанії</button>
-        <button class="btn small secondary" onclick="openVAWorkspace('external')">Відкрити зовнішню базу</button>
-        <button class="btn small secondary" onclick="clearExternalMarketingContext()">Прибрати з контексту</button>
-      </div>
-    </div>`;
-}
-
-
-
-function loadLocalCampaigns(){
-  try{
-    const raw = localStorage.getItem(CAMPAIGN_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    CAMPAIGNS = Array.isArray(parsed) ? parsed : [];
-  }catch(e){
-    console.warn("VA campaigns local load", e);
-    CAMPAIGNS = [];
-  }
-}
-
-function saveLocalCampaigns(){
-  try{ localStorage.setItem(CAMPAIGN_STORAGE_KEY, JSON.stringify(CAMPAIGNS)); }
-  catch(e){ console.warn("VA campaigns local save", e); }
-}
-
-function makeCampaignId(){
-  const stamp = Date.now().toString(36).toUpperCase();
-  const rnd = Math.random().toString(36).slice(2,6).toUpperCase();
-  return `VAC-${stamp}-${rnd}`;
-}
-
-function getActiveCampaign(){
-  return CAMPAIGNS.find(c => String(c.id) === String(ACTIVE_CAMPAIGN_ID)) || null;
-}
-
-function campaignForJournalId(journalId){
-  const jid = String(journalId || "");
-  if(!jid) return null;
-  return CAMPAIGNS.find(c => Array.isArray(c.journalIds) && c.journalIds.map(String).includes(jid)) || null;
-}
-
-function updateUrlContext(){
-  try{
-    const url = new URL(location.href);
-    if(CURRENT_SEANCE_IDS.length === 1) url.searchParams.set("seance_id", CURRENT_SEANCE_IDS[0]);
-    else url.searchParams.delete("seance_id");
-    if(ACTIVE_CAMPAIGN_ID) url.searchParams.set("campaign_id", ACTIVE_CAMPAIGN_ID);
-    else url.searchParams.delete("campaign_id");
-    history.replaceState(null, "", url.toString());
-  }catch(e){}
-}
-
-function syncCampaignDraftFromEntity(c){
-  if(!c) return;
-  CAMPAIGN_DRAFT = {
-    segmentKey:c.segmentKey || "",
-    segmentLabel:c.segmentLabel || "",
-    audienceCount:Number(c.audienceCount || 0),
-    reachableCount:Number(c.reachableCount || 0),
-    channel:c.channel || "",
-    objective:c.goal || "",
-    comment:c.comment || ""
-  };
-}
-
-function restoreContextFromUrl(){
-  try{
-    const params = new URLSearchParams(location.search);
-    const sid = params.get("seance_id");
-    const cid = params.get("campaign_id");
-    if(sid && SEANCES.some(s => String(s.id) === String(sid))) CURRENT_SEANCE_IDS = [String(sid)];
-    if(cid && CAMPAIGNS.some(c => String(c.id) === String(cid))){
-      const campaign = CAMPAIGNS.find(c => String(c.id) === String(cid));
-      ACTIVE_CAMPAIGN_ID = String(cid);
-      if(campaign?.seance_id && SEANCES.some(s => String(s.id) === String(campaign.seance_id))) CURRENT_SEANCE_IDS = [String(campaign.seance_id)];
-      syncCampaignDraftFromEntity(campaign);
-    }
-
-    // V2.8.1: якщо URL містить лише seance_id, не губимо вже запущену кампанію.
-    // Спочатку відновлюємо активну кампанію цього сеансу; якщо вона одна — можна відновити і чернетку/завершену.
-    if(!ACTIVE_CAMPAIGN_ID && CURRENT_SEANCE_IDS.length === 1){
-      const currentSid = String(CURRENT_SEANCE_IDS[0]);
-      const candidates = CAMPAIGNS
-        .filter(c => String(c.seance_id) === currentSid)
-        .sort((a,b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
-      const active = candidates.find(c => (c.status || "draft") === "active");
-      const chosen = active || (candidates.length === 1 ? candidates[0] : null);
-      if(chosen){
-        ACTIVE_CAMPAIGN_ID = String(chosen.id);
-        syncCampaignDraftFromEntity(chosen);
-      }
-    }
-  }catch(e){ console.warn("VA campaign context restore", e); }
-}
-
-function renderContextBridge(){
-  const title = document.getElementById("bridgeSeanceTitle");
-  const meta = document.getElementById("bridgeSeanceMeta");
-  const strip = document.getElementById("bridgeCampaignStrip");
-  if(!title || !meta || !strip) return;
-
-  const s = getFocusSeance();
-  const c = getActiveCampaign();
-  if(s){
-    title.textContent = s.show || "Вибраний сеанс";
-    meta.textContent = [fmtDate(s.date), s.time ? String(s.time).slice(0,5) : "", s.genre || "", `seance_id: ${s.id}`].filter(Boolean).join(" • ");
-  }else{
-    title.textContent = CURRENT_SEANCE_IDS.length > 1 ? `Вибрано сеансів: ${CURRENT_SEANCE_IDS.length}` : "Контекст не вибрано";
-    meta.textContent = CURRENT_SEANCE_IDS.length > 1 ? "Для наскрізного переходу між кабінетами потрібен один сеанс." : "Оберіть сеанс кнопкою «Фокус». Контекст буде збережено в URL.";
-  }
-
-  strip.innerHTML = c ? `
-    <span class="campaign-chip"><b>Кампанія:</b> ${esc(c.name || "Без назви")}</span>
-    <span class="campaign-chip"><span class="campaign-id">${esc(c.id)}</span></span>
-    <span class="pill status-${esc(c.status || "draft")}">${esc(campaignStatusLabel(c.status || "draft"))}</span>
-  ` : `<span class="micro">Активної кампанії немає. Її можна створити у розділі «Кампанії».</span>`;
-  const ext = externalContextForFocus();
-  if(ext){
-    strip.insertAdjacentHTML("beforeend", `<span class="campaign-chip"><b>Зовнішня база:</b> ${esc(ext.operator || "імпорт")} • доступно ${Number(ext.available||0)}</span>`);
-  }
-}
-
-function persistWorkspaceContext(target = "marketing"){
-  const ctx = {
-    seance_id: CURRENT_SEANCE_IDS.length === 1 ? String(CURRENT_SEANCE_IDS[0]) : "",
-    campaign_id: ACTIVE_CAMPAIGN_ID ? String(ACTIVE_CAMPAIGN_ID) : "",
-    target,
-    source: "marketing",
-    updated_at: new Date().toISOString()
-  };
-  try{ localStorage.setItem(VA_WORKSPACE_CONTEXT_KEY, JSON.stringify(ctx)); }catch(e){}
-  return ctx;
-}
-
-function openVAWorkspace(key){
-  if(key === "marketing") return openMarketingSection(ACTIVE_SECTION);
-  const route = VA_WORKSPACE_ROUTES[key];
-  if(!route) return;
-
-  const ctx = persistWorkspaceContext(key);
-  const url = new URL(route, location.href);
-  if(ctx.seance_id) url.searchParams.set("seance_id", ctx.seance_id);
-  if(ctx.campaign_id) url.searchParams.set("campaign_id", ctx.campaign_id);
-  url.searchParams.set("va_from", "marketing");
-  location.href = url.toString();
-}
-
-function campaignSnapshotFromDraft(){
-  const seance = getFocusSeance();
-  if(!seance || !CAMPAIGN_DRAFT.segmentKey) return null;
-  const passport = marketingContextStatus(seance.id);
-  return {
-    seance_id: String(seance.id),
-    name: `${seance.show || "Подія"} • ${CAMPAIGN_DRAFT.segmentLabel || "Кампанія"}`,
-    goal: CAMPAIGN_DRAFT.objective || "",
-    segmentKey: CAMPAIGN_DRAFT.segmentKey,
-    segmentLabel: CAMPAIGN_DRAFT.segmentLabel,
-    audienceCount: Number(CAMPAIGN_DRAFT.audienceCount || 0),
-    reachableCount: Number(CAMPAIGN_DRAFT.reachableCount || 0),
-    channel: CAMPAIGN_DRAFT.channel || "",
-    comment: CAMPAIGN_DRAFT.comment || "",
-    passport: {
-      primaryAudience: passport.ctx.primaryAudience || "",
-      campaignTheme: passport.ctx.campaignTheme || "",
-      corePromise: passport.ctx.corePromise || "",
-      keyArguments: passport.ctx.keyArguments || "",
-      tone: passport.ctx.tone || "",
-      cta: passport.ctx.cta || ""
-    }
-  };
-}
-
-function saveCampaignEntity(){
-  const snap = campaignSnapshotFromDraft();
-  if(!snap){ alert("Оберіть один сеанс і сегмент аудиторії."); return; }
-  const now = new Date().toISOString();
-  let campaign = getActiveCampaign();
-  if(campaign && String(campaign.seance_id) === String(snap.seance_id)){
-    if(campaign.status === "active" || campaign.status === "done"){
-      alert("Після запуску базові параметри кампанії зафіксовані. Для іншої аудиторії/тези створіть нову кампанію.");
-      return;
-    }
-    Object.assign(campaign, snap, {updated_at: now});
-  }else{
-    campaign = {id:makeCampaignId(), ...snap, status:"draft", budget:0, journalIds:[], created_at:now, updated_at:now};
-    CAMPAIGNS.unshift(campaign);
-    ACTIVE_CAMPAIGN_ID = campaign.id;
-  }
-  saveLocalCampaigns();
-  updateUrlContext();
-  renderContextBridge();
-  renderCampaignsSection();
-}
-
-function openCampaignEntity(id){
-  const c = CAMPAIGNS.find(x => String(x.id) === String(id));
-  if(!c) return;
-  ACTIVE_CAMPAIGN_ID = String(c.id);
-  if(c.seance_id) CURRENT_SEANCE_IDS = [String(c.seance_id)];
-  syncCampaignDraftFromEntity(c);
-  updateUrlContext();
-  renderContextBridge();
-  openMarketingSection(3);
-  scheduleCampaignLiveRefresh();
-}
-
-function newCampaignEntity(){
-  ACTIVE_CAMPAIGN_ID = "";
-  resetCampaignDraft();
-  updateUrlContext();
-  renderContextBridge();
-  openMarketingSection(1);
-}
-
-function campaignStatusLabel(status){
-  return status === "active" ? "Запущена" : status === "done" ? "Завершена" : "Чернетка";
-}
-
-function campaignMetricSnapshot(campaign){
-  if(!campaign?.seance_id) return null;
-  const sid = String(campaign.seance_id);
-  const seance = SEANCES.find(s => String(s.id) === sid) || null;
-  const stats = getSeanceStats(sid);
-  const capacity = Number(seance?.capacity || 0);
-  const fill = capacity > 0 ? Math.round((stats.sold / capacity) * 100) : 0;
-  const sales = getSalesWindowStats([sid]);
-  const audience = getScopeAudienceStats([sid]);
-  const intel = getAudienceIntelligence([sid]);
-  const normalizedKey = campaign.segmentKey === "repeat" ? "returned" : campaign.segmentKey;
-  const liveSegment = normalizedKey === "external"
-    ? null
-    : (intel.segments.find(x => x.key === normalizedKey) || null);
-
-  return {
-    captured_at: new Date().toISOString(),
-    seance_id: sid,
-    sold: Number(stats.sold || 0),
-    revenue: Number(stats.sum || 0),
-    visited: Number(stats.visited || 0),
-    capacity,
-    fill,
-    buyers: Number(audience.buyers || 0),
-    newBuyers: Number(audience.newBuyers || 0),
-    repeatBuyers: Number(audience.repeatBuyers || 0),
-    last24: Number(sales.last24 || 0),
-    last7: Number(sales.last7 || 0),
-    prev7: Number(sales.prev7 || 0),
-    daily7: Number(sales.daily7 || 0),
-    alreadyBought: Number(intel.alreadyBought || 0),
-    segmentRemaining: liveSegment ? Number(liveSegment.count || 0) : Number(campaign.audienceCount || 0),
-    segmentReachable: liveSegment ? Number(liveSegment.reachable || 0) : Number(campaign.reachableCount || 0),
-    campaignAudience: Number(campaign.audienceCount || 0),
-    campaignReachable: Number(campaign.reachableCount || 0),
-    budget: Number(campaign.budget || 0),
-    journalActions: Array.isArray(campaign.journalIds) ? campaign.journalIds.length : 0
-  };
-}
-
-function metricDelta(start, end, key){
-  return Number(end?.[key] || 0) - Number(start?.[key] || 0);
-}
-
-function signedNumber(value, suffix=""){
-  const n = Number(value || 0);
-  return `${n > 0 ? "+" : ""}${n.toLocaleString("uk-UA")}${suffix}`;
-}
-
-function deltaClass(value){
-  const n = Number(value || 0);
-  return n > 0 ? "delta-positive" : n < 0 ? "delta-negative" : "delta-neutral";
-}
-
-function replaceSeanceRows(source, freshRows, seanceId){
-  const sid = String(seanceId || "");
-  return source.filter(r => String(r.seance_id || "") !== sid).concat(freshRows || []);
-}
-
-async function refreshActiveCampaignData({rerender=true, silent=true} = {}){
-  const c = getActiveCampaign();
-  if(!c?.seance_id || CAMPAIGN_LIVE_BUSY) return false;
-  const sid = String(c.seance_id);
-  CAMPAIGN_LIVE_BUSY = true;
-  try{
-    const [ordersRes, ticketsRes, seanceRes, journalRes] = await Promise.all([
-      sb.from("orders")
-        .select("*")
-        .eq("seance_id", sid),
-      sb.from("tickets")
-        .select("id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at")
-        .eq("seance_id", sid),
-      sb.from("seances")
-        .select("id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity")
-        .eq("id", sid)
-        .limit(1),
-      sb.from("marketing_journal")
-        .select("id,created_at,seance_id,action_date,action_type,channel,budget,comment,result,conclusion,author")
-        .eq("seance_id", sid)
-    ]);
-
-    for(const res of [ordersRes,ticketsRes,seanceRes,journalRes]){
-      if(res.error) throw res.error;
-    }
-
-    ORDERS = replaceSeanceRows(ORDERS, ordersRes.data || [], sid);
-    TICKETS = replaceSeanceRows(TICKETS, ticketsRes.data || [], sid);
-    JOURNAL = replaceSeanceRows(JOURNAL, journalRes.data || [], sid);
-    const freshSeance = (seanceRes.data || [])[0];
-    if(freshSeance){
-      SEANCES = SEANCES.filter(x => String(x.id) !== sid).concat([freshSeance]);
-    }
-
-    buildClients(ORDERS, TICKETS, SEANCES);
-    CAMPAIGN_LIVE_UPDATED_AT = new Date().toISOString();
-
-    if(rerender){
-      renderContextBridge();
-      if(ACTIVE_SECTION === 3){
-        const y = window.scrollY;
-        renderCampaignsSection();
-        requestAnimationFrame(() => window.scrollTo(0, y));
-      }
-    }
-    return true;
-  }catch(e){
-    if(!silent) alert("Не вдалося оновити live-дані кампанії:\n" + (e.message || e));
-    else console.warn("VA campaign live refresh", e);
-    return false;
-  }finally{
-    CAMPAIGN_LIVE_BUSY = false;
-  }
-}
-
-function scheduleCampaignLiveRefresh(){
-  if(CAMPAIGN_LIVE_TIMER){
-    clearInterval(CAMPAIGN_LIVE_TIMER);
-    CAMPAIGN_LIVE_TIMER = null;
-  }
-  const c = getActiveCampaign();
-  if(!c || (c.status || "draft") !== "active") return;
-  CAMPAIGN_LIVE_TIMER = setInterval(() => {
-    if(document.visibilityState === "visible") refreshActiveCampaignData({rerender:true, silent:true});
-  }, CAMPAIGN_LIVE_INTERVAL_MS);
-}
-
-window.addEventListener("focus", () => {
-  const c = getActiveCampaign();
-  if(c && (c.status || "draft") === "active") refreshActiveCampaignData({rerender:true, silent:true});
-});
-
-async function startCampaign(){
-  const c = getActiveCampaign();
-  if(!c) return alert("Спочатку збережіть кампанію.");
-  if(c.status === "done") return alert("Завершену кампанію не можна запустити повторно. Створіть нову кампанію.");
-  if(c.status === "active" && c.start_snapshot){ scheduleCampaignLiveRefresh(); return; }
-  if(!confirm("Запустити кампанію?\n\nVA спочатку перечитає актуальні продажі з Supabase, а потім зафіксує їх як стартову точку.")) return;
-
-  const refreshed = await refreshActiveCampaignData({rerender:false, silent:false});
-  if(!refreshed) return;
-  c.start_snapshot = campaignMetricSnapshot(c);
-  c.started_at = c.start_snapshot?.captured_at || new Date().toISOString();
-  c.status = "active";
-  c.updated_at = new Date().toISOString();
-  delete c.end_snapshot;
-  delete c.completed_at;
-  saveLocalCampaigns();
-  updateUrlContext();
-  renderContextBridge();
-  renderCampaignsSection();
-  scheduleCampaignLiveRefresh();
-}
-
-async function completeCampaign(){
-  const c = getActiveCampaign();
-  if(!c) return alert("Кампанію не вибрано.");
-  if(c.status !== "active" || !c.start_snapshot) return alert("Спочатку запустіть кампанію та зафіксуйте стартову точку.");
-  if(!confirm("Завершити кампанію?\n\nVA ще раз перечитає актуальні продажі з Supabase і лише після цього зафіксує фінальний знімок.")) return;
-
-  const refreshed = await refreshActiveCampaignData({rerender:false, silent:false});
-  if(!refreshed) return;
-  await refreshServiceCommunicationData();
-  c.end_snapshot = campaignMetricSnapshot(c);
-  c.completed_at = c.end_snapshot?.captured_at || new Date().toISOString();
-  c.status = "done";
-  c.updated_at = new Date().toISOString();
-  c.result = {
-    sold_delta: metricDelta(c.start_snapshot, c.end_snapshot, "sold"),
-    revenue_delta: metricDelta(c.start_snapshot, c.end_snapshot, "revenue"),
-    buyers_delta: metricDelta(c.start_snapshot, c.end_snapshot, "buyers"),
-    fill_delta: metricDelta(c.start_snapshot, c.end_snapshot, "fill"),
-    segment_remaining_delta: metricDelta(c.start_snapshot, c.end_snapshot, "segmentRemaining"),
-    budget: Number(c.end_snapshot?.budget || c.budget || 0)
-  };
-  freezeCampaignResultV1(c);
-  saveLocalCampaigns();
-  updateUrlContext();
-  renderContextBridge();
-  renderCampaignsSection();
-  scheduleCampaignLiveRefresh();
-}
-
-// Backward compatibility: old V2.4–V2.7 calls become real lifecycle transitions.
-function setCampaignStatus(status){
-  if(status === "active") return startCampaign();
-  if(status === "done") return completeCampaign();
-  const c = getActiveCampaign();
-  if(!c) return;
-  if(c.status === "active" || c.status === "done") return alert("Після запуску статус назад у чернетку не переводимо. Для нового циклу створіть нову кампанію.");
-  c.status = "draft";
-  c.updated_at = new Date().toISOString();
-  saveLocalCampaigns();
-  renderContextBridge();
-  renderCampaignsSection();
-}
-
-function normalizeCampaignMedium(channel){
-  const v = String(channel || "").toLowerCase();
-  if(v.includes("email")) return "email";
-  if(v.includes("sms") || v.includes("viber") || v.includes("telegram") || v.includes("месен")) return "messenger";
-  if(v.includes("facebook") || v.includes("instagram") || v.includes("social") || v.includes("соц")) return "social";
-  if(v.includes("реклам") || v.includes("ads")) return "paid_media";
-  return "campaign";
-}
-
-function campaignAttributionUrl(campaign){
-  if(!campaign?.id || !campaign?.seance_id) return "";
-  try{
-    const url = new URL("../site-project/pages/campaign-entry.html", location.href);
-    url.searchParams.set("campaign_id", String(campaign.id));
-    url.searchParams.set("seance_id", String(campaign.seance_id));
-    url.searchParams.set("utm_source", "va");
-    url.searchParams.set("utm_medium", normalizeCampaignMedium(campaign.channel));
-    url.searchParams.set("utm_campaign", String(campaign.id));
-    return url.toString();
-  }catch(e){ return ""; }
-}
-
-async function copyCampaignAttributionLink(id){
-  const c = CAMPAIGNS.find(x => String(x.id) === String(id));
-  const url = campaignAttributionUrl(c);
-  if(!url) return;
-  try{
-    await navigator.clipboard.writeText(url);
-    alert("Посилання кампанії скопійовано.");
-  }catch(e){
-    window.prompt("Скопіюйте посилання кампанії:", url);
-  }
-}
-
-function campaignAttributionMetrics(campaign){
-  if(!campaign?.id) return {orders:0,buyers:0,tickets:0,revenue:0};
-  const paidStatuses = new Set(["paid","success","completed","approved"]);
-  const startedAt = campaign.started_at ? new Date(campaign.started_at).getTime() : null;
-  const completedAt = campaign.completed_at ? new Date(campaign.completed_at).getTime() : null;
-  const rows = ORDERS.filter(o => {
-    if(String(o.marketing_campaign_id || "") !== String(campaign.id)) return false;
-    if(o.status && !paidStatuses.has(String(o.status).toLowerCase())) return false;
-    if(!startedAt) return false;
-    const stamp = new Date(o.marketing_attributed_at || o.created_at || 0).getTime();
-    if(!Number.isFinite(stamp) || stamp < startedAt) return false;
-    if(completedAt && stamp > completedAt) return false;
-    return true;
-  });
-  const orderIds = new Set(rows.map(o => String(o.order_id || o.id || "")).filter(Boolean));
-  const buyerKeys = new Set(rows.map(o => normKey(o)).filter(Boolean));
-  const attributedTickets = TICKETS.filter(t => orderIds.has(String(t.order_id || "")));
-  return {
-    orders: rows.length,
-    buyers: buyerKeys.size,
-    tickets: attributedTickets.length,
-    revenue: rows.reduce((sum,o) => sum + Number(o.amount || 0), 0)
-  };
-}
-
-function campaignDeliveryMetrics(campaign){
-  if(!campaign?.id) return {messages:0,recipients:0,sent:0,failed:0,pending:0,testSends:0};
-  const cid = String(campaign.id);
-  const messages = SERVICE_MESSAGES.filter(m => String(m?.event_snapshot?.marketing_campaign_id || "") === cid);
-  const ids = new Set(messages.map(m => String(m.id || "")).filter(Boolean));
-  const recipients = SERVICE_RECIPIENTS.filter(r => ids.has(String(r.service_message_id || "")));
-  const sent = recipients.filter(r => ["sent","delivered"].includes(String(r.delivery_status || "").toLowerCase())).length;
-  const failed = recipients.filter(r => String(r.delivery_status || "").toLowerCase() === "failed").length;
-  const pending = Math.max(0, recipients.length - sent - failed);
-  const testSends = SERVICE_DELIVERIES.filter(d => ids.has(String(d.service_message_id || "")) && String(d.action || "") === "test_send" && String(d.status || "").toLowerCase() === "sent").length;
-  return {messages:messages.length,recipients:recipients.length,sent,failed,pending,testSends};
-}
-
-function campaignResultV1(campaign){
-  if(!campaign?.start_snapshot) return null;
-  const finish = campaign.end_snapshot || ((campaign.status || "draft") === "active" ? campaignMetricSnapshot(campaign) : null);
-  if(!finish) return null;
-  const growth = {
-    tickets: metricDelta(campaign.start_snapshot, finish, "sold"),
-    revenue: metricDelta(campaign.start_snapshot, finish, "revenue"),
-    buyers: metricDelta(campaign.start_snapshot, finish, "buyers"),
-    fill_pp: metricDelta(campaign.start_snapshot, finish, "fill")
-  };
-  const attribution = campaignAttributionMetrics(campaign);
-  const delivery = campaignDeliveryMetrics(campaign);
-  const ticketShare = growth.tickets > 0 ? Math.min(100, Math.round((Number(attribution.tickets||0) / growth.tickets) * 100)) : null;
-  const revenueShare = growth.revenue > 0 ? Math.min(100, Math.round((Number(attribution.revenue||0) / growth.revenue) * 100)) : null;
-  const budget = Number(finish.budget || campaign.budget || 0);
-  return {
-    version:1,
-    calculated_at:new Date().toISOString(),
-    status:campaign.status || "draft",
-    started_at:campaign.started_at || campaign.start_snapshot?.captured_at || null,
-    completed_at:campaign.completed_at || campaign.end_snapshot?.captured_at || null,
-    growth,
-    attribution:{...attribution,ticket_share_pct:ticketShare,revenue_share_pct:revenueShare},
-    unattributed:{
-      tickets:Math.max(0, Number(growth.tickets||0)-Number(attribution.tickets||0)),
-      revenue:Math.max(0, Number(growth.revenue||0)-Number(attribution.revenue||0))
+(function(global){
+  "use strict";
+  const DATA = {
+  "typeBank": {
+    "Концерт": {
+      "corePromises": [
+        "Жива музика, яку варто почути наживо",
+        "Вечір, де головне — звук, сцена і присутність",
+        "Музична подія, що створює власну атмосферу"
+      ],
+      "arguments": [
+        "живе виконання",
+        "атмосфера концертної зали",
+        "програма, яку краще пережити наживо",
+        "можливість присвятити вечір музиці"
+      ],
+      "tones": [
+        "Емоційно",
+        "Преміально",
+        "Сучасно і просто"
+      ],
+      "ctas": [
+        "Обрати місце",
+        "Обрати квиток",
+        "Запланувати музичний вечір"
+      ]
     },
-    delivery,
-    budget,
-    economics:{
-      cost_per_buyer:budget > 0 && attribution.buyers > 0 ? budget / attribution.buyers : null,
-      cost_per_ticket:budget > 0 && attribution.tickets > 0 ? budget / attribution.tickets : null,
-      direct_roas:budget > 0 ? Number(attribution.revenue||0) / budget : null
+    "Вистава": {
+      "corePromises": [
+        "Історія, що оживає на сцені",
+        "Вечір у театрі з живими емоціями",
+        "Сценічна зустріч, заради якої варто залишити вечір вільним"
+      ],
+      "arguments": [
+        "живі актори й безпосередня сценічна емоція",
+        "театральна атмосфера",
+        "можливість побачити історію не на екрані, а наживо",
+        "вечір поза щоденною рутиною"
+      ],
+      "tones": [
+        "Стримано та інтелігентно",
+        "Емоційно",
+        "Дотепно"
+      ],
+      "ctas": [
+        "Обрати місце в залі",
+        "Обрати квиток",
+        "Запланувати вечір у театрі"
+      ]
+    },
+    "Кінопоказ": {
+      "corePromises": [
+        "Фільм, який варто побачити разом із залом",
+        "Кіноподія замість звичайного домашнього перегляду",
+        "Привід подивитися кіно уважно — на великому екрані"
+      ],
+      "arguments": [
+        "великий екран",
+        "спільний перегляд і атмосфера залу",
+        "окремий привід повернутися до кіно",
+        "можливість побачити стрічку в подієвому форматі"
+      ],
+      "tones": [
+        "Сучасно і просто",
+        "Стримано та інтелігентно",
+        "Емоційно"
+      ],
+      "ctas": [
+        "Обрати місце на показ",
+        "Придбати квиток",
+        "Запланувати кіновечір"
+      ]
+    },
+    "Лекція": {
+      "corePromises": [
+        "Змістовна зустріч для тих, кому цікаво розуміти більше",
+        "Жива розмова замість ще одного матеріалу в стрічці",
+        "Тема, яку можна почути, обговорити й осмислити наживо"
+      ],
+      "arguments": [
+        "живий контакт зі спікером",
+        "структурована подача теми",
+        "можливість поставити запитання",
+        "спільнота людей зі схожим інтересом"
+      ],
+      "tones": [
+        "Стримано та інтелігентно",
+        "Сучасно і просто",
+        "Експериментально"
+      ],
+      "ctas": [
+        "Зареєструватися / обрати місце",
+        "Придбати квиток",
+        "Долучитися до зустрічі"
+      ]
+    },
+    "Фестиваль": {
+      "corePromises": [
+        "Кілька подій і вражень в одному фестивальному дні",
+        "Простір, де можна відкривати нове й повертатися до улюбленого",
+        "Подія з власним ритмом, програмою і спільнотою"
+      ],
+      "arguments": [
+        "насичена програма",
+        "можливість обирати між різними форматами",
+        "атмосфера спільної події",
+        "привід провести більше часу на майданчику"
+      ],
+      "tones": [
+        "Емоційно",
+        "Сучасно і просто",
+        "Експериментально"
+      ],
+      "ctas": [
+        "Обрати події фестивалю",
+        "Придбати квиток",
+        "Спланувати фестивальний день"
+      ]
+    },
+    "Інше": {
+      "corePromises": [
+        "Окрема подія з чітким приводом прийти саме зараз",
+        "Формат, який краще пережити наживо",
+        "Зустріч, що виходить за межі звичайного вечора"
+      ],
+      "arguments": [
+        "живий формат",
+        "чітка тема або привід",
+        "безпосередня участь",
+        "обмежений час проведення"
+      ],
+      "tones": [
+        "Сучасно і просто",
+        "Стримано та інтелігентно",
+        "Емоційно"
+      ],
+      "ctas": [
+        "Обрати квиток",
+        "Долучитися",
+        "Забронювати місце"
+      ]
     }
-  };
-}
-
-function freezeCampaignResultV1(campaign){
-  const r = campaignResultV1(campaign);
-  if(!r) return null;
-  campaign.result_v1 = JSON.parse(JSON.stringify(r));
-  return campaign.result_v1;
-}
-
-function backfillCampaignResultsV1(){
-  let changed = false;
-  for(const c of CAMPAIGNS){
-    if((c.status || "draft") === "done" && c.start_snapshot && c.end_snapshot && !c.result_v1){
-      freezeCampaignResultV1(c);
-      changed = true;
+  },
+  "genreBank": {
+    "Концерт::symphonic": {
+      "corePromises": [
+        "Велика музика у живому симфонічному звучанні",
+        "Вечір, у якому оркестр створює масштаб, недоступний запису"
+      ],
+      "arguments": [
+        "повний оркестровий склад",
+        "живе акустичне звучання",
+        "знайомство з великим симфонічним репертуаром"
+      ]
+    },
+    "Концерт::chamber": {
+      "corePromises": [
+        "Камерна музика на відстані живої розмови",
+        "Тонкий музичний вечір без зайвого масштабу"
+      ],
+      "arguments": [
+        "близький контакт із виконавцями",
+        "увага до деталей і тембрів",
+        "інтимна атмосфера залу"
+      ]
+    },
+    "Концерт::jazz": {
+      "corePromises": [
+        "Джазовий вечір, у якому музика народжується тут і зараз",
+        "Ритм, імпровізація і жива взаємодія музикантів"
+      ],
+      "arguments": [
+        "імпровізація",
+        "живий ансамбль",
+        "неповторність кожного виконання"
+      ]
+    },
+    "Концерт::pop_ua": {
+      "corePromises": [
+        "Українські пісні наживо — знайомі й нові",
+        "Вечір сучасної української сцени"
+      ],
+      "arguments": [
+        "український репертуар",
+        "живий вокал",
+        "емоційний контакт із залом"
+      ]
+    },
+    "Концерт::pop_world": {
+      "corePromises": [
+        "Світові хіти у живому концертному звучанні",
+        "Музичний вечір зі знайомими мелодіями"
+      ],
+      "arguments": [
+        "впізнаваний репертуар",
+        "живий вокал та інструменти",
+        "формат для широкої аудиторії"
+      ]
+    },
+    "Концерт::rock": {
+      "corePromises": [
+        "Рок, який має сенс слухати тільки наживо",
+        "Гучний вечір із живою енергією сцени"
+      ],
+      "arguments": [
+        "живі гітари й ритм-секція",
+        "концертна енергія",
+        "прямий контакт із публікою"
+      ]
+    },
+    "Концерт::folk": {
+      "corePromises": [
+        "Традиція, що звучить сучасно й наживо",
+        "Музика з корінням і живою енергією"
+      ],
+      "arguments": [
+        "народні мотиви",
+        "автентичні або стилізовані інструменти",
+        "зв’язок традиції із сучасною сценою"
+      ]
+    },
+    "Концерт::choir": {
+      "corePromises": [
+        "Сила людських голосів без посередників",
+        "Хорове звучання, яке фізично відчувається в залі"
+      ],
+      "arguments": [
+        "багатоголосся",
+        "жива акустика",
+        "великий діапазон від камерності до монументальності"
+      ]
+    },
+    "Концерт::organ": {
+      "corePromises": [
+        "Орган наживо — звук, який неможливо відтворити навушниками",
+        "Вечір великого органного звучання"
+      ],
+      "arguments": [
+        "унікальний тембр органа",
+        "акустика простору",
+        "репертуар, створений для живого звучання"
+      ]
+    },
+    "Концерт::other": {
+      "corePromises": [
+        "Концертний формат, який варто відкрити наживо",
+        "Нова музична зустріч на сцені"
+      ],
+      "arguments": [
+        "живе виконання",
+        "авторська програма",
+        "безпосередній контакт із музикантами"
+      ]
+    },
+    "Вистава::drama": {
+      "corePromises": [
+        "Історія про людей і вибір, що продовжує звучати після фіналу",
+        "Драма, яка говорить із глядачем без посередників"
+      ],
+      "arguments": [
+        "сильна акторська робота",
+        "психологічна напруга",
+        "тема для післясмаку й розмови"
+      ]
+    },
+    "Вистава::comedy": {
+      "corePromises": [
+        "Вечір, після якого хочеться вийти з театру з усмішкою",
+        "Жива комедія без екрану між актором і глядачем"
+      ],
+      "arguments": [
+        "гумор у живій реакції залу",
+        "динамічна сценічна гра",
+        "легкий формат для вечора удвох або компанією"
+      ]
+    },
+    "Вистава::tragedy": {
+      "corePromises": [
+        "Сильна історія про межі людського вибору",
+        "Театр, який не розважає поверхово, а залишає слід"
+      ],
+      "arguments": [
+        "висока емоційна напруга",
+        "класична або сучасна драматургія",
+        "серйозна акторська робота"
+      ]
+    },
+    "Вистава::fairytale": {
+      "corePromises": [
+        "Казка, у яку дитина входить разом із залом",
+        "Перша або ще одна справжня зустріч дитини з театром"
+      ],
+      "arguments": [
+        "живі герої на сцені",
+        "яскравий візуальний світ",
+        "сімейний формат"
+      ]
+    },
+    "Вистава::children": {
+      "corePromises": [
+        "Театральна подія, створена з урахуванням дитячої уваги",
+        "Спільний сімейний вихід, де дитині справді цікаво"
+      ],
+      "arguments": [
+        "зрозуміла дитині історія",
+        "живі актори",
+        "сімейне дозвілля без екранів"
+      ]
+    },
+    "Вистава::musical": {
+      "corePromises": [
+        "Історія, музика і сцена в одному великому видовищі",
+        "Мюзикл, де сюжет рухається разом із музикою"
+      ],
+      "arguments": [
+        "вокал і хореографія",
+        "сценічна видовищність",
+        "поєднання театру та концертної енергії"
+      ]
+    },
+    "Вистава::opera": {
+      "corePromises": [
+        "Опера наживо — голос, оркестр і сцена в одному просторі",
+        "Велика музична історія без екрану між сценою і глядачем"
+      ],
+      "arguments": [
+        "живі оперні голоси",
+        "оркестрове звучання",
+        "класичний сценічний масштаб"
+      ]
+    },
+    "Вистава::ballet": {
+      "corePromises": [
+        "Історія, яку розповідають рухом і музикою",
+        "Балет наживо — точність, пластика і сценічний масштаб"
+      ],
+      "arguments": [
+        "хореографія",
+        "музика й пластика",
+        "візуальна виразність без словесного бар’єру"
+      ]
+    },
+    "Вистава::operetta": {
+      "corePromises": [
+        "Класика, яка не старіє",
+        "Вечір блискучої музики, гумору й театральної гри",
+        "Легендарна оперета у живому сценічному виконанні"
+      ],
+      "arguments": [
+        "відомі мелодії",
+        "легкість жанру та живий гумор",
+        "вокал, оркестр і театральна дія",
+        "святкова атмосфера"
+      ]
+    },
+    "Вистава::mono": {
+      "corePromises": [
+        "Один актор — і цілий світ на сцені",
+        "Театр максимальної концентрації: глядач, актор і текст"
+      ],
+      "arguments": [
+        "сильна персональна акторська робота",
+        "камерність",
+        "безпосередній контакт із глядачем"
+      ]
+    },
+    "Вистава::other": {
+      "corePromises": [
+        "Сценічний формат, який не вкладається в одну жанрову рамку",
+        "Незвична театральна зустріч"
+      ],
+      "arguments": [
+        "авторський формат",
+        "живе виконання",
+        "можливість відкрити нову театральну мову"
+      ]
+    },
+    "Кінопоказ::fiction": {
+      "corePromises": [
+        "Художня історія на великому екрані й у спільному перегляді",
+        "Кіно, для якого варто відкласти телефон і сісти в зал"
+      ],
+      "arguments": [
+        "великий екран",
+        "цілісний перегляд без побутових відволікань",
+        "спільна реакція залу"
+      ]
+    },
+    "Кінопоказ::documentary": {
+      "corePromises": [
+        "Реальна історія, яку варто побачити уважно",
+        "Документальне кіно як привід дізнатися більше й обговорити"
+      ],
+      "arguments": [
+        "реальні герої та факти",
+        "суспільно важлива тема",
+        "можливість дискусії після перегляду"
+      ]
+    },
+    "Кінопоказ::children": {
+      "corePromises": [
+        "Кіно на великому екрані як сімейна подія",
+        "Дитячий кіновечір поза домашнім екраном"
+      ],
+      "arguments": [
+        "сімейний формат",
+        "великий екран",
+        "зрозумілий дітям сюжет"
+      ]
+    },
+    "Кінопоказ::arthouse": {
+      "corePromises": [
+        "Кіно не для фону, а для уважного перегляду",
+        "Авторський фільм, після якого є про що говорити"
+      ],
+      "arguments": [
+        "авторська мова",
+        "нестандартна тема або форма",
+        "аудиторія, готова до дискусії"
+      ]
+    },
+    "Кінопоказ::retro": {
+      "corePromises": [
+        "Повернутися до великого кіно на великому екрані",
+        "Фільм, який варто побачити так, як його задумували"
+      ],
+      "arguments": [
+        "класика кіно",
+        "ефект повторного відкриття",
+        "спільний перегляд знайомої стрічки"
+      ]
+    },
+    "Кінопоказ::other": {
+      "corePromises": [
+        "Спеціальний кінопоказ як окрема подія",
+        "Фільм, який отримує інший масштаб у залі"
+      ],
+      "arguments": [
+        "подієвий формат",
+        "великий екран",
+        "спільна аудиторія"
+      ]
+    },
+    "Лекція::art": {
+      "corePromises": [
+        "Мистецтво без музейної дистанції — зрозуміло й наживо",
+        "Погляд на мистецтво, після якого хочеться дивитися уважніше"
+      ],
+      "arguments": [
+        "професійний контекст",
+        "візуальні приклади",
+        "можливість запитань"
+      ]
+    },
+    "Лекція::history": {
+      "corePromises": [
+        "Історія як жива причинно-наслідкова розмова",
+        "Події минулого, що допомагають краще бачити сучасність"
+      ],
+      "arguments": [
+        "структурована розповідь",
+        "контекст і джерела",
+        "можливість дискусії"
+      ]
+    },
+    "Лекція::music": {
+      "corePromises": [
+        "Почути музику і зрозуміти, як вона влаштована",
+        "Розмова про музику для тих, хто хоче слухати уважніше"
+      ],
+      "arguments": [
+        "музичні приклади",
+        "контекст творів і композиторів",
+        "живе пояснення"
+      ]
+    },
+    "Лекція::literature": {
+      "corePromises": [
+        "Література як жива розмова, а не шкільний конспект",
+        "Тексти, автори й контекст, які відкриваються по-новому"
+      ],
+      "arguments": [
+        "аналіз текстів",
+        "історичний і культурний контекст",
+        "можливість дискусії"
+      ]
+    },
+    "Лекція::education": {
+      "corePromises": [
+        "Практична зустріч, після якої залишається не лише враження, а й знання",
+        "Складне — зрозуміло, структуровано й наживо"
+      ],
+      "arguments": [
+        "практична користь",
+        "структурований матеріал",
+        "можливість поставити запитання"
+      ]
+    },
+    "Лекція::meeting": {
+      "corePromises": [
+        "Жива зустріч із людиною, яку цікаво не лише читати чи дивитися онлайн",
+        "Розмова, де головне — безпосередній контакт"
+      ],
+      "arguments": [
+        "живе спілкування",
+        "питання з залу",
+        "неповторність конкретної зустрічі"
+      ]
+    },
+    "Лекція::other": {
+      "corePromises": [
+        "Змістовна зустріч навколо конкретної теми",
+        "Час, інвестований у новий погляд і розуміння"
+      ],
+      "arguments": [
+        "жива подача",
+        "структура",
+        "можливість обговорення"
+      ]
+    },
+    "Фестиваль::music": {
+      "corePromises": [
+        "Більше музики, більше сцен, більше відкриттів за одну подію",
+        "Фестиваль як можливість почути різних виконавців в одному контексті"
+      ],
+      "arguments": [
+        "кілька виконавців або програм",
+        "тривала фестивальна атмосфера",
+        "можливість відкривати нові імена"
+      ]
+    },
+    "Фестиваль::theatre": {
+      "corePromises": [
+        "Кілька театральних мов в одному фестивальному просторі",
+        "Фестиваль для тих, хто хоче бачити театр різним"
+      ],
+      "arguments": [
+        "різні колективи й формати",
+        "концентрована театральна програма",
+        "обговорення та зустрічі"
+      ]
+    },
+    "Фестиваль::cinema": {
+      "corePromises": [
+        "Кінофестиваль як маршрут через різні історії та авторські погляди",
+        "Більше, ніж один фільм: програма, контекст і спільнота"
+      ],
+      "arguments": [
+        "добірка стрічок",
+        "тематичні блоки",
+        "обговорення й спеціальні покази"
+      ]
+    },
+    "Фестиваль::children": {
+      "corePromises": [
+        "Цілий день подій, у яких дитині є що обирати",
+        "Сімейний фестиваль як пригода, а не один короткий номер"
+      ],
+      "arguments": [
+        "різні дитячі активності",
+        "сімейний формат",
+        "можливість провести кілька годин разом"
+      ]
+    },
+    "Фестиваль::city": {
+      "corePromises": [
+        "Міська подія, де місто збирається в одному просторі",
+        "Фестиваль як привід зустрітися, побачити й відкрити своє місто"
+      ],
+      "arguments": [
+        "локальні учасники",
+        "відкрита міська атмосфера",
+        "різні формати в одній програмі"
+      ]
+    },
+    "Фестиваль::other": {
+      "corePromises": [
+        "Фестиваль із власною темою й спільнотою",
+        "Кілька форматів навколо однієї ідеї"
+      ],
+      "arguments": [
+        "насичена програма",
+        "тематична цілісність",
+        "можливість обирати власний маршрут"
+      ]
+    },
+    "Інше::excursion": {
+      "corePromises": [
+        "Побачити знайоме місце з іншого боку",
+        "Жива екскурсія, де простір стає історією"
+      ],
+      "arguments": [
+        "безпосередній маршрут",
+        "розповідь гіда",
+        "деталі, які легко пропустити самостійно"
+      ]
+    },
+    "Інше::presentation": {
+      "corePromises": [
+        "Побачити нове першими й почути пояснення безпосередньо від авторів",
+        "Презентація як жива зустріч, а не просто оголошення"
+      ],
+      "arguments": [
+        "перший показ або представлення",
+        "спілкування з авторами",
+        "можливість запитань"
+      ]
+    },
+    "Інше::contest": {
+      "corePromises": [
+        "Змагання, де результат народжується наживо",
+        "Підтримати учасників і побачити фінал у реальному часі"
+      ],
+      "arguments": [
+        "інтрига результату",
+        "живі учасники",
+        "емоція спільної підтримки"
+      ]
+    },
+    "Інше::charity": {
+      "corePromises": [
+        "Культурна подія, де участь має додатковий сенс",
+        "Вечір, що поєднує враження з реальною підтримкою"
+      ],
+      "arguments": [
+        "прозора благодійна мета",
+        "участь через придбання квитка",
+        "спільнота навколо важливої справи"
+      ]
+    },
+    "Інше::rental": {
+      "corePromises": [
+        "Окрема подія запрошеного організатора на знайомому майданчику",
+        "Гостьова програма у вашому місті"
+      ],
+      "arguments": [
+        "конкретний організатор або колектив",
+        "обмежена дата",
+        "окремий гастрольний або орендний формат"
+      ]
+    },
+    "Інше::other": {
+      "corePromises": [
+        "Подія, яку складно віднести до стандартного жанру — і саме тому цікаво відкрити",
+        "Нестандартний формат для живої участі"
+      ],
+      "arguments": [
+        "унікальний формат",
+        "обмежений час",
+        "безпосередня участь"
+      ]
     }
-  }
-  if(changed) saveLocalCampaigns();
-}
+  },
+  "objectives": [
+    [
+      "launch",
+      "Запуск продажів"
+    ],
+    [
+      "premiere",
+      "Прем’єра / перший показ"
+    ],
+    [
+      "slow_sales",
+      "Слабкий темп продажів"
+    ],
+    [
+      "reminder",
+      "Нагадування"
+    ],
+    [
+      "last_places",
+      "Останні місця"
+    ],
+    [
+      "return_lost",
+      "Повернення втрачених"
+    ],
+    [
+      "new_audience",
+      "Нова аудиторія"
+    ],
+    [
+      "repeat_audience",
+      "Повторна аудиторія"
+    ]
+  ],
+  "objectiveBank": {
+    "launch": {
+      "arguments": [
+        "чітко назвати подію, дату й головну причину прийти",
+        "дати прямий шлях одразу до вибору місця"
+      ],
+      "ctas": [
+        "Обрати місце зараз",
+        "Переглянути вільні місця"
+      ]
+    },
+    "premiere": {
+      "corePromises": [
+        "Перший показ — можливість побачити подію на самому початку її сценічного життя"
+      ],
+      "arguments": [
+        "ефект першої зустрічі",
+        "обмежена прем’єрна дата"
+      ],
+      "ctas": [
+        "Обрати місце на прем’єру"
+      ]
+    },
+    "slow_sales": {
+      "arguments": [
+        "змінити кут подачі, а не повторювати те саме оголошення",
+        "показати конкретну цінність події для окремого сегмента"
+      ],
+      "ctas": [
+        "Подивитися вільні місця",
+        "Обрати зручну ціну й місце"
+      ]
+    },
+    "reminder": {
+      "corePromises": [
+        "Нагадування про подію, яку легко відкласти — але шкода пропустити"
+      ],
+      "arguments": [
+        "дати коротко й без зайвого повтору",
+        "показати, що квиток можна обрати в один перехід"
+      ],
+      "ctas": [
+        "Повернутися до вибору місця"
+      ]
+    },
+    "last_places": {
+      "corePromises": [
+        "До події залишилося небагато вільних місць"
+      ],
+      "arguments": [
+        "говорити лише про фактичний залишок, без штучного дефіциту"
+      ],
+      "ctas": [
+        "Переглянути останні вільні місця"
+      ]
+    },
+    "return_lost": {
+      "corePromises": [
+        "Давно не бачились — ось привід повернутися до живої події"
+      ],
+      "arguments": [
+        "не починати зі знижки, якщо немає окремої причини",
+        "нагадати про сам досвід відвідування"
+      ],
+      "ctas": [
+        "Подивитися, що зараз у продажу"
+      ]
+    },
+    "new_audience": {
+      "arguments": [
+        "пояснити жанр без професійного жаргону",
+        "дати одну зрозумілу причину спробувати"
+      ],
+      "ctas": [
+        "Обрати перший квиток",
+        "Подивитися місця"
+      ]
+    },
+    "repeat_audience": {
+      "corePromises": [
+        "Якщо минула зустріч сподобалась — ось наступний привід повернутися"
+      ],
+      "arguments": [
+        "спиратися на попередній інтерес, але не приписувати людині те, чого база не знає"
+      ],
+      "ctas": [
+        "Обрати наступну подію"
+      ]
+    }
+  },
+  "audiences": [
+    [
+      "all",
+      "Уся релевантна КБ"
+    ],
+    [
+      "new",
+      "Нові"
+    ],
+    [
+      "returned",
+      "Повернулися"
+    ],
+    [
+      "regular",
+      "Постійні"
+    ],
+    [
+      "vip",
+      "VIP"
+    ],
+    [
+      "lost",
+      "Втрачені 90+"
+    ],
+    [
+      "genre",
+      "Любителі жанру"
+    ]
+  ],
+  "audienceBank": {
+    "all": [
+      "Глядачі, для яких ця подія релевантна за змістом і попередньою поведінкою"
+    ],
+    "new": [
+      "Люди з КБ, які ще не стали повторними покупцями",
+      "Нові покупці, яким потрібна проста й зрозуміла причина повернутися"
+    ],
+    "returned": [
+      "Глядачі, які вже купували повторно й знають майданчик"
+    ],
+    "regular": [
+      "Постійні глядачі, для яких важливі репертуар, дата й новий привід прийти"
+    ],
+    "vip": [
+      "Найцінніші постійні покупці; комунікація без масового тону й без зайвого тиску"
+    ],
+    "lost": [
+      "Глядачі, які давно не купували й потребують нового змістовного приводу повернутися"
+    ],
+    "genre": [
+      "Глядачі з історичним інтересом до цього жанру; факт інтересу беремо лише з історії покупок"
+    ]
+  },
+  "channels": [
+    [
+      "all",
+      "Усі / універсальний"
+    ],
+    [
+      "email",
+      "Email"
+    ],
+    [
+      "social",
+      "Facebook / Instagram"
+    ],
+    [
+      "messenger",
+      "Telegram / Viber"
+    ],
+    [
+      "sms",
+      "SMS"
+    ],
+    [
+      "site",
+      "Сайт / картка події"
+    ]
+  ],
+  "templates": [
+    {
+      "id": "email_invitation",
+      "name": "Email — персональне запрошення",
+      "channel": "email",
+      "objectives": [
+        "launch",
+        "new_audience",
+        "repeat_audience",
+        "return_lost"
+      ],
+      "subject": "{{event}} — {{date}} о {{time}}",
+      "body": "{{corePromise}}\n\n{{argument1}}.\n\n{{cta}}",
+      "notes": "Короткий лист: афіша + зміст + одна кнопка до campaign-link."
+    },
+    {
+      "id": "email_reminder",
+      "name": "Email — нагадування",
+      "channel": "email",
+      "objectives": [
+        "reminder",
+        "last_places"
+      ],
+      "subject": "Нагадуємо: {{event}} — {{date}}",
+      "body": "{{corePromise}}\n\n{{cta}}",
+      "notes": "Без повторення довгої афіші; головне — дата, причина прийти й пряме посилання."
+    },
+    {
+      "id": "social_announcement",
+      "name": "Соцмережі — анонс",
+      "channel": "social",
+      "objectives": [
+        "launch",
+        "premiere",
+        "new_audience"
+      ],
+      "subject": "{{event}} • {{date}} • {{time}}",
+      "body": "{{corePromise}}\n\n{{argument1}}.\n\n🎟 {{cta}}",
+      "notes": "Перший екран має містити подію, дату й головну тезу."
+    },
+    {
+      "id": "social_last_places",
+      "name": "Соцмережі — залишок місць",
+      "channel": "social",
+      "objectives": [
+        "last_places",
+        "slow_sales"
+      ],
+      "subject": "{{event}} — {{date}}",
+      "body": "{{corePromise}}\n\n{{cta}}",
+      "notes": "Не використовувати штучний дефіцит: лише фактичний залишок."
+    },
+    {
+      "id": "messenger_short",
+      "name": "Месенджер — коротке запрошення",
+      "channel": "messenger",
+      "objectives": [
+        "launch",
+        "reminder",
+        "return_lost",
+        "repeat_audience"
+      ],
+      "subject": "{{event}}",
+      "body": "{{event}} — {{date}}, {{time}}. {{corePromise}} {{cta}}\n{{campaign_url}}",
+      "notes": "Один екран, одна дія."
+    },
+    {
+      "id": "sms_short",
+      "name": "SMS — коротке повідомлення",
+      "channel": "sms",
+      "objectives": [
+        "reminder",
+        "last_places"
+      ],
+      "subject": "",
+      "body": "{{event}}, {{date}} {{time}}. {{corePromise}} {{campaign_url}}",
+      "notes": "Залишити тільки фактичну інформацію та короткий URL."
+    },
+    {
+      "id": "site_card",
+      "name": "Сайт — короткий опис картки",
+      "channel": "site",
+      "objectives": [
+        "launch",
+        "premiere"
+      ],
+      "subject": "{{event}}",
+      "body": "{{corePromise}} {{argument1}}.",
+      "notes": "Не дублювати повний синопсис; картка має допомогти перейти до вибору місця."
+    },
+    {
+      "id": "email_story",
+      "name": "Email — через історію / емоцію",
+      "channel": "email",
+      "objectives": [
+        "launch",
+        "new_audience",
+        "slow_sales"
+      ],
+      "subject": "{{event}}: {{corePromise}}",
+      "body": "{{campaignTheme}}\n\n{{corePromise}}\n\n{{argument1}}.\n\n{{cta}}",
+      "notes": "Для кампаній, де важливий не факт події, а причина провести цей вечір саме так."
+    },
+    {
+      "id": "email_genre",
+      "name": "Email — для любителів жанру",
+      "channel": "email",
+      "objectives": [
+        "launch",
+        "repeat_audience"
+      ],
+      "subject": "{{event}} — для тих, хто любить цей жанр",
+      "body": "{{corePromise}}\n\n{{argument1}}.\n\n{{cta}}",
+      "notes": "Не пояснює жанр з нуля; працює лише для фактичного жанрового сегмента."
+    },
+    {
+      "id": "email_return",
+      "name": "Email — повернення після паузи",
+      "channel": "email",
+      "objectives": [
+        "return_lost"
+      ],
+      "subject": "Давно не бачились — {{event}}",
+      "body": "Давно не бачились.\n\n{{corePromise}}\n\n{{argument1}}.\n\n{{cta}}",
+      "notes": "Без автоматичної знижки. Спочатку змістовний привід повернутися."
+    },
+    {
+      "id": "email_premiere",
+      "name": "Email — прем’єра",
+      "channel": "email",
+      "objectives": [
+        "premiere"
+      ],
+      "subject": "Прем’єра: {{event}} — {{date}}",
+      "body": "{{corePromise}}\n\n{{argument1}}.\n\n{{cta}}",
+      "notes": "Використовувати тільки для реальної прем’єри / першого показу."
+    },
+    {
+      "id": "social_three_reasons",
+      "name": "Соцмережі — 3 причини прийти",
+      "channel": "social",
+      "objectives": [
+        "launch",
+        "slow_sales",
+        "new_audience"
+      ],
+      "subject": "3 причини піти на {{event}}",
+      "body": "1. {{corePromise}}\n2. {{argument1}}\n3. Жива подія на конкретну дату — {{date}}, {{time}}.\n\n🎟 {{cta}}",
+      "notes": "Тільки конкретні причини; не заповнювати пунктами «унікально / незабутньо»."
+    },
+    {
+      "id": "social_easy_entry",
+      "name": "Соцмережі — якщо ви ніколи не були",
+      "channel": "social",
+      "objectives": [
+        "new_audience"
+      ],
+      "subject": "Якщо ви ніколи не були на такій події",
+      "body": "Почати можна з «{{event}}».\n\n{{corePromise}}\n{{argument1}}.\n\n🎟 {{cta}}",
+      "notes": "М’який вхід у жанр без зверхнього пояснення."
+    },
+    {
+      "id": "social_rehearsal",
+      "name": "Соцмережі — репетиція / backstage",
+      "channel": "social",
+      "objectives": [
+        "launch",
+        "premiere",
+        "slow_sales"
+      ],
+      "subject": "За лаштунками {{event}}",
+      "body": "Поки зал ще порожній, подія вже збирається на сцені.\n\n{{corePromise}}\n\n{{cta}}",
+      "notes": "Працює тільки якщо є реальний матеріал із підготовки."
+    },
+    {
+      "id": "social_artist",
+      "name": "Соцмережі — фокус на виконавцеві",
+      "channel": "social",
+      "objectives": [
+        "launch",
+        "premiere"
+      ],
+      "subject": "Хто буде на сцені {{date}}",
+      "body": "{{argument1}}.\n\n{{corePromise}}\n\n🎟 {{cta}}",
+      "notes": "Підставити конкретне ім’я/склад вручну; не вигадувати регалії."
+    },
+    {
+      "id": "messenger_personal",
+      "name": "Месенджер — персональне коротке",
+      "channel": "messenger",
+      "objectives": [
+        "launch",
+        "repeat_audience",
+        "return_lost"
+      ],
+      "subject": "{{event}}",
+      "body": "{{event}} — {{date}}, {{time}}.\n{{corePromise}}\n{{cta}}\n{{campaign_url}}",
+      "notes": "Без довгого вступу; один екран."
+    },
+    {
+      "id": "messenger_last",
+      "name": "Месенджер — фактичний залишок",
+      "channel": "messenger",
+      "objectives": [
+        "last_places"
+      ],
+      "subject": "{{event}}",
+      "body": "{{event}} — {{date}}, {{time}}. Якщо планували — перевірте актуальні місця: {{campaign_url}}",
+      "notes": "Не писати «останні місця» без фактичного підтвердження."
+    },
+    {
+      "id": "site_context",
+      "name": "Сайт — короткий контекст для незнайомої події",
+      "channel": "site",
+      "objectives": [
+        "new_audience",
+        "launch"
+      ],
+      "subject": "{{event}}",
+      "body": "{{corePromise}}\n\n{{argument1}}.\n\n{{campaignTheme}}",
+      "notes": "Пояснює, що за досвід отримає глядач, не переказуючи весь синопсис."
+    },
+    {
+      "id": "site_reasons",
+      "name": "Сайт — причини прийти",
+      "channel": "site",
+      "objectives": [
+        "slow_sales",
+        "launch"
+      ],
+      "subject": "Чому варто прийти",
+      "body": "{{corePromise}}\n\n{{argument1}}.\n\n{{cta}}",
+      "notes": "Короткий блок поруч із афішею або схемою."
+    }
+  ],
+  "themes": [
+    {
+      "text": "Живе виконання тут і зараз — те, чого не дає запис або екран",
+      "types": []
+    },
+    {
+      "text": "Вечір у театрі або концертній залі замість ще одного вечора вдома",
+      "types": []
+    },
+    {
+      "text": "Побачити знайому класику наживо",
+      "types": [
+        "Вистава",
+        "Концерт"
+      ]
+    },
+    {
+      "text": "Перше знайомство з жанром без складного входу",
+      "types": []
+    },
+    {
+      "text": "Повернення до улюбленого твору або музики",
+      "types": []
+    },
+    {
+      "text": "Вечір удвох — культурний план на конкретну дату",
+      "types": []
+    },
+    {
+      "text": "Сімейний культурний вихід",
+      "types": [
+        "Вистава",
+        "Кінопоказ",
+        "Фестиваль"
+      ]
+    },
+    {
+      "text": "Квиток як подарунок-враження",
+      "types": []
+    },
+    {
+      "text": "Після роботи — змінити ритм дня живою подією",
+      "types": []
+    },
+    {
+      "text": "Вихідний із культурною подією як головним планом дня",
+      "types": []
+    },
+    {
+      "text": "Гастрольна подія: одна дата або короткий період у місті",
+      "types": []
+    },
+    {
+      "text": "Прем’єра: бути серед перших глядачів",
+      "types": [
+        "Вистава",
+        "Кінопоказ"
+      ]
+    },
+    {
+      "text": "Рідкісний репертуар або програма, яку нечасто можна почути/побачити",
+      "types": []
+    },
+    {
+      "text": "Особистість виконавця, соліста, режисера або колективу як причина прийти",
+      "types": []
+    },
+    {
+      "text": "Знайомі мелодії, сюжети або образи — у живому виконанні",
+      "types": []
+    },
+    {
+      "text": "Історія, яку варто прожити разом із залом",
+      "types": [
+        "Вистава",
+        "Кінопоказ"
+      ]
+    },
+    {
+      "text": "Сильна сценічна атмосфера: світло, костюми, декорації, пластика",
+      "types": [
+        "Вистава",
+        "Концерт",
+        "Фестиваль"
+      ]
+    },
+    {
+      "text": "Великий склад і масштаб живого виконання",
+      "types": [
+        "Концерт",
+        "Вистава"
+      ]
+    },
+    {
+      "text": "Камерний контакт — близькість до виконавця і деталей",
+      "types": [
+        "Концерт",
+        "Вистава",
+        "Лекція"
+      ]
+    },
+    {
+      "text": "Привести друга: подія як привід зустрітися",
+      "types": []
+    },
+    {
+      "text": "Повернутися після паузи: новий привід знову прийти на майданчик",
+      "types": []
+    },
+    {
+      "text": "Відкрити нове без ризику: пояснити, що саме отримає глядач",
+      "types": []
+    },
+    {
+      "text": "Подія для тих, хто цінує майстерність виконання",
+      "types": []
+    },
+    {
+      "text": "Місто збирається в одному залі на спільну подію",
+      "types": [
+        "Концерт",
+        "Фестиваль",
+        "Вистава"
+      ]
+    },
+    {
+      "text": "Зручний вибір ціни та місця — людина сама керує бюджетом",
+      "types": []
+    },
+    {
+      "text": "Квиток як готовий план на конкретний вечір",
+      "types": []
+    },
+    {
+      "text": "Без екрану між глядачем і виконавцем",
+      "types": [
+        "Вистава",
+        "Концерт",
+        "Лекція"
+      ]
+    },
+    {
+      "text": "Сценічна краса і візуальний образ як окреме враження",
+      "types": [
+        "Вистава",
+        "Концерт",
+        "Фестиваль"
+      ]
+    },
+    {
+      "text": "Гумор і легкість — вечір для відпочинку",
+      "types": [
+        "Вистава",
+        "Концерт"
+      ]
+    },
+    {
+      "text": "Сильна емоційна історія — прожити її разом із героями",
+      "types": [
+        "Вистава",
+        "Кінопоказ"
+      ]
+    },
+    {
+      "text": "Перше культурне знайомство для дитини",
+      "types": [
+        "Вистава",
+        "Концерт",
+        "Кінопоказ"
+      ]
+    },
+    {
+      "text": "Змістовний вечір: вийти з події з новою думкою або темою для розмови",
+      "types": [
+        "Лекція",
+        "Кінопоказ",
+        "Вистава"
+      ]
+    },
+    {
+      "text": "Ностальгія без ретро-штампів: повернути знайомі відчуття живим виконанням",
+      "types": [
+        "Концерт",
+        "Вистава",
+        "Кінопоказ"
+      ]
+    },
+    {
+      "text": "Подія, після якої хочеться ще говорити й обговорювати",
+      "types": [
+        "Вистава",
+        "Кінопоказ",
+        "Лекція"
+      ]
+    },
+    {
+      "text": "Сезонний привід: осінній вечір, зимові свята, весняний вихід — лише коли це реально доречно",
+      "types": []
+    }
+  ],
+  "headlineHooks": [
+    "Не просто подія — конкретний план на вечір",
+    "Якщо давно не були в театрі / на концерті — ось хороший привід повернутися",
+    "Те, що на записі звучить знайомо, наживо відчувається зовсім інакше",
+    "Один вечір, одна сцена, одна історія — без зайвого шуму",
+    "Для тих, хто хоче не «контент», а живе враження",
+    "Коли хочеться вийти з дому не просто кудись, а на подію",
+    "Виберіть не «квиток», а свій вечір і своє місце в залі",
+    "Почніть знайомство з жанром із події, яку легко зрозуміти",
+    "Поверніться до знайомого твору — цього разу наживо",
+    "Є речі, які мають сенс тільки в залі",
+    "Подія, яку краще не відкладати на «колись»",
+    "Знайома назва — нове живе переживання",
+    "Не треба знати жанр напам’ять, щоб отримати задоволення від вечора",
+    "Побачити, почути, відчути — за один вечір",
+    "Вечір для себе, для двох або для компанії",
+    "Від першої ноти / репліки до останніх оплесків",
+    "Обрати місце зараз — і питання «що робити цього вечора» вже вирішено",
+    "Жива сцена ближче, ніж здається",
+    "Сильний привід відкласти телефон на кілька годин",
+    "Подія для тих, хто цінує справжню присутність"
+  ],
+  "emotionalMotives": [
+    "емоція спільного переживання з залом",
+    "відчуття живої присутності й неповторності конкретного вечора",
+    "зміна звичного ритму дня",
+    "час для себе без побутових відволікань",
+    "спільний вечір удвох або з друзями",
+    "пізнавальний інтерес і бажання відкрити нове",
+    "повернення до знайомих мелодій, сюжетів або образів",
+    "естетичне задоволення від сцени, світла, костюмів і пластики",
+    "інтерес до майстерності виконавців",
+    "бажання бути серед людей зі схожими інтересами",
+    "сімейний спільний досвід",
+    "подарунок вражень замість речі",
+    "відчуття міської події, до якої хочеться долучитися",
+    "привід знову повернутися на улюблений майданчик",
+    "можливість обрати свій рівень ціни та місця"
+  ],
+  "contentMechanics": [
+    "Афіша + одна сильна теза + одна кнопка до схеми залу",
+    "Коротке відео 6–15 секунд із одним зрозумілим повідомленням",
+    "Фрагмент репетиції: показати живий процес без постановочного пафосу",
+    "Один герой / виконавець: портрет + конкретна причина прийти",
+    "«3 причини піти» — тільки конкретні, без абстрактних суперлативів",
+    "«Що ви почуєте / побачите» — простий список для незнайомого жанру",
+    "Цитата з твору або програми + короткий контекст",
+    "Костюм / декорація / деталь сцени як візуальний гачок",
+    "Місця й ціни: показати реальний вибір без тиску",
+    "FAQ-продаж: коротко відповісти на 3 головні заперечення",
+    "«Для кого цей вечір» — 2–3 реальні сценарії без вигаданих демографічних портретів",
+    "«Якщо ви ніколи не були на…» — м’який вхід для нової аудиторії",
+    "«Якщо ви вже любите…» — звернення до жанрового сегмента",
+    "Персональний Email: афіша + одна теза + прямий campaign-link",
+    "Нагадування без повторної реклами: дата, час, одна причина й кнопка",
+    "Backstage / закулісся: підготовка, монтаж, оркестрова яма, грим — якщо є реальний матеріал",
+    "Програма вечора в 4–6 пунктах",
+    "Одна композиція / сцена / номер як тизер всього заходу",
+    "Порівняння не з конкурентом, а зі сценарієм вечора: «залишитися вдома» vs «живий зал»",
+    "Реальний відгук глядача — тільки з джерелом і без вигаданих цитат",
+    "Короткий ролик «сьогодні / завтра / цього тижня» з фактичними місцями",
+    "Серія з 3 повідомлень: знайомство → аргумент → нагадування",
+    "Пост після покупки: що важливо знати до приходу, без повторного продажу",
+    "Матеріал «5 хвилин контексту» для складного твору, лекції або документального кіно"
+  ],
+  "occasions": [
+    "Початок продажів",
+    "Прем’єра або перший показ",
+    "Гастрольна дата",
+    "Будній вечір",
+    "Вихідний день",
+    "Святковий період",
+    "Канікули / сімейний період",
+    "Слабкий темп продажів",
+    "Залишилося мало місць — тільки якщо це факт",
+    "Повернення втрачених глядачів",
+    "Робота з постійними глядачами",
+    "Робота з любителями конкретного жанру",
+    "Нова аудиторія",
+    "Повторна аудиторія",
+    "Нагадування за кілька днів до події",
+    "Нагадування в день події — лише для доречних каналів"
+  ],
+  "scenarios": [
+    {
+      "id": "launch_core",
+      "name": "Запуск продажів без «крику»",
+      "objectives": [
+        "launch"
+      ],
+      "audiences": [
+        "all",
+        "new",
+        "returned"
+      ],
+      "channels": [
+        "email",
+        "social",
+        "site",
+        "messenger"
+      ],
+      "useWhen": "Новий сеанс щойно відкрито в продажу й аудиторія ще не бачила пропозицію.",
+      "theme": "Що це за подія + чому варто виділити саме цей вечір.",
+      "steps": [
+        "Зафіксувати одну головну тезу.",
+        "Показати афішу й дату.",
+        "Дати 2–3 конкретні аргументи.",
+        "Вести відразу на вибір місця.",
+        "Через 3–7 днів змінити кут, а не повторювати той самий текст."
+      ]
+    },
+    {
+      "id": "premiere_first",
+      "name": "Прем’єра / перша зустріч",
+      "objectives": [
+        "premiere"
+      ],
+      "audiences": [
+        "all",
+        "regular",
+        "vip",
+        "genre"
+      ],
+      "channels": [
+        "email",
+        "social",
+        "site"
+      ],
+      "useWhen": "Є реальна прем’єра, перший показ або перша поява програми на майданчику.",
+      "theme": "Бути серед перших, хто побачить нову сценічну роботу.",
+      "steps": [
+        "Назвати факт прем’єри.",
+        "Пояснити, що саме нове: постановка, склад, програма.",
+        "Дати живий матеріал з підготовки.",
+        "Не маскувати звичайний показ під прем’єру."
+      ]
+    },
+    {
+      "id": "slow_sales_reframe",
+      "name": "Слабкі продажі — змінити кут",
+      "objectives": [
+        "slow_sales"
+      ],
+      "audiences": [
+        "all",
+        "new",
+        "genre",
+        "lost"
+      ],
+      "channels": [
+        "email",
+        "social",
+        "messenger"
+      ],
+      "useWhen": "Продажі нижчі очікуваного, але повторення анонсу не дає ефекту.",
+      "theme": "Знайти іншу причину прийти для конкретного сегмента.",
+      "steps": [
+        "Не повторювати стартовий текст.",
+        "Обрати один бар’єр і відповісти на нього.",
+        "Змінити сегмент або мотив.",
+        "Показати реальний вибір цін/місць.",
+        "Через Attribution перевірити, який кут дав продажі."
+      ]
+    },
+    {
+      "id": "return_lost",
+      "name": "Повернення втрачених 90+",
+      "objectives": [
+        "return_lost"
+      ],
+      "audiences": [
+        "lost"
+      ],
+      "channels": [
+        "email",
+        "messenger"
+      ],
+      "useWhen": "Людина давно не купувала, але є історія реальних покупок у КБ.",
+      "theme": "Давно не бачились — ось змістовний привід повернутися.",
+      "steps": [
+        "Не починати зі знижки.",
+        "Нагадати про майданчик без тиску.",
+        "Запропонувати подію, релевантну історії.",
+        "Дати прямий шлях до місця.",
+        "Відокремити результат цієї кампанії campaign_id."
+      ]
+    },
+    {
+      "id": "genre_fans",
+      "name": "Любителі жанру",
+      "objectives": [
+        "launch",
+        "repeat_audience",
+        "new_audience"
+      ],
+      "audiences": [
+        "genre"
+      ],
+      "channels": [
+        "email",
+        "messenger",
+        "social"
+      ],
+      "useWhen": "КБ має фактичну історію покупок цього жанру.",
+      "theme": "Не пояснювати жанр з нуля — показати конкретну програму, склад або рідкісний привід.",
+      "steps": [
+        "Спиратися тільки на історію покупок.",
+        "Назвати конкретику репертуару.",
+        "Дати деталі, важливі знавцю.",
+        "Не приписувати людині інші інтереси."
+      ]
+    },
+    {
+      "id": "regulars",
+      "name": "Постійні глядачі",
+      "objectives": [
+        "repeat_audience",
+        "launch"
+      ],
+      "audiences": [
+        "regular",
+        "vip"
+      ],
+      "channels": [
+        "email",
+        "messenger"
+      ],
+      "useWhen": "Аудиторія вже добре знає майданчик і купує повторно.",
+      "theme": "Менше пояснення бренду, більше конкретики події.",
+      "steps": [
+        "Коротка персональна подача.",
+        "Програма / склад / дата — на першому екрані.",
+        "Не говорити масовими рекламними штампами.",
+        "Для VIP — окремий тон без псевдоексклюзивності."
+      ]
+    },
+    {
+      "id": "new_audience_easy_entry",
+      "name": "Нова аудиторія — легкий вхід",
+      "objectives": [
+        "new_audience",
+        "launch"
+      ],
+      "audiences": [
+        "new",
+        "all"
+      ],
+      "channels": [
+        "social",
+        "email",
+        "site"
+      ],
+      "useWhen": "Людина ще не знає майданчик або жанр.",
+      "theme": "Пояснити простими словами, що вона отримає за свій вечір і квиток.",
+      "steps": [
+        "Не перевантажувати термінами.",
+        "Одна теза + 2 аргументи.",
+        "Показати зал/афішу/живе виконання.",
+        "Дати зрозумілий CTA «Обрати місце»."
+      ]
+    },
+    {
+      "id": "weekday",
+      "name": "Будній вечір",
+      "objectives": [
+        "slow_sales",
+        "reminder"
+      ],
+      "audiences": [
+        "all",
+        "returned",
+        "regular"
+      ],
+      "channels": [
+        "email",
+        "social",
+        "messenger"
+      ],
+      "useWhen": "Дата припадає на будній день і час може бути бар’єром.",
+      "theme": "Після роботи — готовий культурний план без складної організації.",
+      "steps": [
+        "Чітко вказати час початку.",
+        "Якщо відома тривалість — назвати її.",
+        "Не приховувати будній день.",
+        "Підкреслити простоту: обрати місце → прийти."
+      ]
+    },
+    {
+      "id": "last_places_truth",
+      "name": "Останні місця — тільки за фактом",
+      "objectives": [
+        "last_places"
+      ],
+      "audiences": [
+        "all",
+        "regular",
+        "genre"
+      ],
+      "channels": [
+        "email",
+        "social",
+        "messenger",
+        "sms"
+      ],
+      "useWhen": "Фактичний залишок місць дійсно малий.",
+      "theme": "Конкретний залишок і прямий шлях до схеми.",
+      "steps": [
+        "Брати число з фактичного стану залу.",
+        "Не писати «майже sold out», якщо це не так.",
+        "Показати, які зони ще доступні.",
+        "Завершити прямим CTA."
+      ]
+    },
+    {
+      "id": "price_choice",
+      "name": "Ціна як вибір, а не заперечення",
+      "objectives": [
+        "slow_sales",
+        "launch"
+      ],
+      "audiences": [
+        "all",
+        "new"
+      ],
+      "channels": [
+        "site",
+        "social",
+        "email"
+      ],
+      "useWhen": "Є широкий діапазон цін або відчутний бар’єр вартості.",
+      "theme": "Не «дешево», а можливість обрати комфортну зону й бюджет.",
+      "steps": [
+        "Показати реальний мінімум/діапазон, якщо він доступний.",
+        "Не порівнювати з вигаданою «цінністю».",
+        "Вести на схему, де видно різні зони.",
+        "Не приховувати дорожчі місця."
+      ]
+    },
+    {
+      "id": "unknown_work",
+      "name": "Незнайомий твір / ім’я",
+      "objectives": [
+        "new_audience",
+        "slow_sales"
+      ],
+      "audiences": [
+        "all",
+        "new"
+      ],
+      "channels": [
+        "social",
+        "site",
+        "email"
+      ],
+      "useWhen": "Назва твору або виконавець самі по собі не продають широкій аудиторії.",
+      "theme": "Пояснити досвід через емоцію, формат і 2–3 зрозумілі орієнтири.",
+      "steps": [
+        "Не покладатися на назву.",
+        "Дати короткий контекст без лекції.",
+        "Показати живий фрагмент або образ.",
+        "Сказати, для якого вечора це підходить."
+      ]
+    },
+    {
+      "id": "gift",
+      "name": "Квиток як подарунок-враження",
+      "objectives": [
+        "launch",
+        "new_audience"
+      ],
+      "audiences": [
+        "all",
+        "returned"
+      ],
+      "channels": [
+        "email",
+        "social",
+        "site"
+      ],
+      "useWhen": "Є сезонний або особистий привід дарувати враження, а квиток реально можна передати.",
+      "theme": "Подарувати не річ, а конкретний спільний вечір.",
+      "steps": [
+        "Не робити подарункову механіку, якщо її немає.",
+        "Пояснити, як передається квиток.",
+        "Показати дату й формат.",
+        "Не тиснути святковими штампами поза сезоном."
+      ]
+    }
+  ]
+};
+  const GENERIC = {
+  "barriers": [
+    "Незнайомий твір або виконавець — пояснити простими словами, що саме отримає глядач",
+    "Будній день або незручний час — не приховувати, а дати чітку тривалість і час початку",
+    "Ціна — показати реальний діапазон місць без маніпулятивного «дешево»",
+    "Людина давно не була на майданчику — дати новий змістовний привід, а не просто «поверніться»",
+    "Жанр здається складним — зробити простий вхід через емоцію, сюжет, знайомий матеріал або формат",
+    "Немає з ким піти — показати, що подія підходить і для одного, і для компанії, якщо це доречно",
+    "Невідомо, що буде в залі — показати афішу, сцену, склад, програму або короткий фрагмент",
+    "Сумнів щодо місця — вести прямо на схему з актуальними зонами й цінами",
+    "Перевантаження рекламою — не повторювати те саме повідомлення, змінювати кут"
+  ],
+  "priceAngles": [
+    "Показати діапазон цін і дати людині самій обрати комфортну зону",
+    "Говорити про ціну через вибір місця, а не через абстрактну «вигоду»",
+    "Якщо є доступний вхідний рівень — назвати його фактично, без перебільшень",
+    "Якщо є різні цінові зони — пояснити різницю через розташування, а не через «кращі/гірші люди»",
+    "Преміальні місця продавати через комфорт/огляд/близькість, якщо це реально відповідає залу",
+    "Для сімейної аудиторії показати сумарний бюджет тільки якщо ціни й типи квитків це дозволяють",
+    "Не використовувати знижку як перший аргумент, якщо подію можна продати змістом"
+  ],
+  "doNotUse": [
+    "Не створювати штучний дефіцит або фальшиве «майже sold out»",
+    "Не називати подію «легендарною», «унікальною» чи «найкращою» без змістовної підстави",
+    "Не приписувати аудиторії вік, дохід чи інтереси, яких VA фактично не знає",
+    "Не вигадувати відгуки, цитати, нагороди, аншлаги або регалії",
+    "Не маскувати звичайний показ під прем’єру або «останню можливість»",
+    "Не повторювати однаковий текст у кожному каналі — адаптувати довжину й дію",
+    "Не вести маркетинговий Email на загальну афішу, якщо є прямий campaign-link на сеанс",
+    "Не змішувати часовий приріст продажів із прямою attribution: доказувати тільки те, що має campaign_id"
+  ]
+};
 
-function resultPercent(v){
-  return v == null || !Number.isFinite(Number(v)) ? "—" : `${Math.round(Number(v))}%`;
-}
-
-function renderCampaignResultCard(campaign, compact=false){
-  if(!campaign) return "";
-  const result = campaign.result_v1 || campaignResultV1(campaign);
-  if(!result) return "";
-  const g=result.growth||{}, a=result.attribution||{}, u=result.unattributed||{}, d=result.delivery||{}, e=result.economics||{};
-  const finished=(campaign.status||"draft") === "done";
-  const periodStart=result.started_at ? `${fmtDate(result.started_at)} ${new Date(result.started_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "—";
-  const periodEnd=result.completed_at ? `${fmtDate(result.completed_at)} ${new Date(result.completed_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "зараз";
-  const attributionText = a.ticket_share_pct == null ? "—" : `${a.tickets} з ${Math.max(0,Number(g.tickets||0))} · ${resultPercent(a.ticket_share_pct)}`;
-  const deliveryText = d.recipients ? `${d.sent}/${d.recipients}` : "—";
-  const proof = `За період кампанії: ${signedNumber(g.tickets)} квит. / ${signedNumber(g.revenue," грн")}. Прямо за campaign_id: ${Number(a.orders||0)} замовл., ${Number(a.tickets||0)} квит., ${Number(a.revenue||0).toLocaleString("uk-UA")} грн. Без прямої атрибуції: ${Number(u.tickets||0)} квит.`;
-  return `
-    <div class="campaign-result ${compact ? "compact-result" : ""}">
-      <div class="campaign-result-head">
-        <div><div class="eyebrow">CAMPAIGN RESULT V1</div><h3 style="margin:3px 0 5px">${esc(campaign.name || "Кампанія")}</h3><div class="micro">${esc(periodStart)} → ${esc(periodEnd)} · ${finished ? "фінал зафіксовано" : "поточний зріз"}</div></div>
-        <span class="pill status-${esc(campaign.status||"draft")}">${esc(campaignStatusLabel(campaign.status||"draft"))}</span>
-      </div>
-      <div class="campaign-result-grid">
-        <div class="campaign-result-cell"><span>Загальний приріст</span><b>${signedNumber(g.tickets)} квит.</b><div class="micro">${signedNumber(g.revenue," грн")} · покупці ${signedNumber(g.buyers)}</div></div>
-        <div class="campaign-result-cell"><span>Пряма атрибуція</span><b>${esc(attributionText)}</b><div class="micro">${Number(a.orders||0)} замовл. · ${Number(a.revenue||0).toLocaleString("uk-UA")} грн</div></div>
-        <div class="campaign-result-cell"><span>Email / доставка</span><b>${esc(deliveryText)}</b><div class="micro">надіслано / одержувачів · помилки ${Number(d.failed||0)}${d.testSends?` · тестів ${Number(d.testSends)}`:""}</div></div>
-        <div class="campaign-result-cell"><span>Бюджет / ROAS</span><b>${Number(result.budget||0).toLocaleString("uk-UA")} грн</b><div class="micro">${e.direct_roas == null ? "ROAS —" : `прямий ROAS ${Number(e.direct_roas).toFixed(2)}×`}</div></div>
-      </div>
-      <div class="result-proof"><strong>Доказовий підсумок:</strong> ${esc(proof)}</div>
-      ${finished ? `<div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openVAWorkspace('director')">Директору →</button></div>` : ""}
-    </div>`;
-}
-
-function renderCampaignAttribution(campaign){
-  const url = campaignAttributionUrl(campaign);
-  const a = campaignAttributionMetrics(campaign);
-  return `
-    <div class="attribution-box">
-      <div class="eyebrow">CAMPAIGN ATTRIBUTION V1</div>
-      <h3 style="margin:4px 0 6px">Пряма атрибуція за campaign_id</h3>
-      <div class="muted">Це посилання записує campaign_id у сам order. Тому VA відрізняє загальний приріст після старту від покупок, що реально пройшли через цю кампанію.</div>
-      <div class="attribution-link-row">
-        <input class="attribution-link" readonly value="${escAttr(url)}" onclick="this.select()" />
-        <button class="btn small" onclick="copyCampaignAttributionLink('${escAttr(campaign.id)}')">Копіювати посилання</button>
-      </div>
-      <div class="attribution-stats">
-        <div class="snapshot-cell"><span>Атрибутовані покупці</span><b>${a.buyers}</b></div>
-        <div class="snapshot-cell"><span>Замовлення</span><b>${a.orders}</b></div>
-        <div class="snapshot-cell"><span>Квитки</span><b>${a.tickets}</b></div>
-        <div class="snapshot-cell"><span>Виручка</span><b>${Number(a.revenue||0).toLocaleString("uk-UA")} грн</b></div>
-      </div>
-    </div>`;
-}
-
-function renderCampaignLifecycle(campaign){
-  if(!campaign) return "";
-  const status = campaign.status || "draft";
-  const start = campaign.start_snapshot || null;
-  const current = status === "active" && start ? campaignMetricSnapshot(campaign) : null;
-  const end = campaign.end_snapshot || null;
-  const compare = end || current;
-
-  const stageClass = stage => {
-    if(stage === "draft") return status === "draft" ? "active" : "done";
-    if(stage === "active") return status === "active" ? "active" : status === "done" ? "done" : "";
-    return status === "done" ? "active done" : "";
-  };
-
-  const started = campaign.started_at ? `${fmtDate(campaign.started_at)} ${new Date(campaign.started_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "—";
-  const completed = campaign.completed_at ? `${fmtDate(campaign.completed_at)} ${new Date(campaign.completed_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "—";
-
-  let body = "";
-  if(status === "draft") body = `
-    <div class="notice"><b>Старт ще не зафіксовано.</b> Натисніть «Запустити кампанію» безпосередньо перед реальною маркетинговою дією. VA збере контрольний знімок продажів у цей момент.</div>
-    <div class="toolbar"><button class="btn" onclick="startCampaign()">▶ Запустити кампанію</button></div>`;
-  else if(start && compare){
-    const dsold = metricDelta(start, compare, "sold");
-    const drevenue = metricDelta(start, compare, "revenue");
-    const dbuyers = metricDelta(start, compare, "buyers");
-    const dfill = metricDelta(start, compare, "fill");
-    const dsegment = metricDelta(start, compare, "segmentRemaining");
-    body = `
-      <div class="snapshot-grid">
-        <div class="snapshot-cell"><span>Квитки</span><b>${start.sold} → ${compare.sold}</b><div class="${deltaClass(dsold)}">${signedNumber(dsold)}</div></div>
-        <div class="snapshot-cell"><span>Виручка</span><b>${Number(start.revenue||0).toLocaleString("uk-UA")} → ${Number(compare.revenue||0).toLocaleString("uk-UA")}</b><div class="${deltaClass(drevenue)}">${signedNumber(drevenue," грн")}</div></div>
-        <div class="snapshot-cell"><span>Покупці</span><b>${start.buyers} → ${compare.buyers}</b><div class="${deltaClass(dbuyers)}">${signedNumber(dbuyers)}</div></div>
-        <div class="snapshot-cell"><span>Заповнення</span><b>${start.fill}% → ${compare.fill}%</b><div class="${deltaClass(dfill)}">${signedNumber(dfill," п.п.")}</div></div>
-        <div class="snapshot-cell"><span>Залишок сегмента</span><b>${start.segmentRemaining} → ${compare.segmentRemaining}</b><div class="${dsegment < 0 ? "delta-positive" : deltaClass(-dsegment)}">${signedNumber(dsegment)}</div></div>
-      </div>
-      <div class="snapshot-grid">
-        <div class="snapshot-cell"><span>Темп 24 год.</span><b>${start.last24} → ${compare.last24}</b></div>
-        <div class="snapshot-cell"><span>Темп 7 днів</span><b>${start.last7} → ${compare.last7}</b></div>
-        <div class="snapshot-cell"><span>Доступні контакти сегмента</span><b>${start.segmentReachable} → ${compare.segmentReachable}</b></div>
-        <div class="snapshot-cell"><span>Бюджет кампанії</span><b>${Number(compare.budget||0).toLocaleString("uk-UA")} грн</b></div>
-        <div class="snapshot-cell"><span>Дій у журналі</span><b>${Number(compare.journalActions||0)}</b></div>
-      </div>
-      <div class="lifecycle-note">${status === "active" ? `Правий показник — live-зріз із Supabase. Автооновлення кожні ${Math.round(CAMPAIGN_LIVE_INTERVAL_MS/1000)} с${CAMPAIGN_LIVE_UPDATED_AT ? ` • останнє: ${new Date(CAMPAIGN_LIVE_UPDATED_AT).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}` : ""}.` : "Фінальний знімок зафіксовано. Загальний приріст після старту залишається часовим результатом; окремий блок Attribution V1 нижче показує лише замовлення з campaign_id цієї кампанії."}</div>
-      ${status === "active" ? `<div class="toolbar"><button class="btn secondary" onclick="refreshActiveCampaignData({rerender:true,silent:false})">↻ Оновити зараз</button><button class="btn" onclick="completeCampaign()">■ Завершити кампанію</button></div>` : ""}`;
-  }else if(status === "active"){
-    body = `<div class="notice"><b>Кампанія позначена як запущена у старій версії, але стартового знімка немає.</b> Для коректного вимірювання зафіксуйте старт зараз.</div><div class="toolbar"><button class="btn" onclick="startCampaign()">Зафіксувати старт зараз</button></div>`;
-  }else{
-    body = `<div class="notice">Завершена кампанія зі старої версії не має знімків. Її статус збережено, але фактичне «до / після» відновити заднім числом неможливо.</div>`;
-  }
-
-  return `
-    <div class="lifecycle">
-      <div class="eyebrow">CAMPAIGN LIFECYCLE V1</div>
-      <div class="lifecycle-steps">
-        <div class="lifecycle-step ${stageClass("draft")}"><b>1. Чернетка</b><div class="micro">План і аудиторія</div></div>
-        <div class="lifecycle-step ${stageClass("active")}"><b>2. Запущена</b><div class="micro">Старт: ${esc(started)}</div></div>
-        <div class="lifecycle-step ${stageClass("done")}"><b>3. Завершена</b><div class="micro">Фініш: ${esc(completed)}</div></div>
-      </div>
-      ${body}
-      ${renderCampaignAttribution(campaign)}
-      ${(campaign.status || "draft") === "done" ? renderCampaignResultCard(campaign, true) : ""}
-    </div>`;
-}
-
-function selectedSeanceCampaigns(){
-  const sid = CURRENT_SEANCE_IDS.length === 1 ? String(CURRENT_SEANCE_IDS[0]) : "";
-  return CAMPAIGNS.filter(c => !sid || String(c.seance_id) === sid);
-}
-
- function getActiveSeanceIds(){
-  if (CURRENT_SEANCE_IDS.length) {
-    return CURRENT_SEANCE_IDS.map(String);
-  }
-
-  return SEANCES
-    .filter(s => {
-      const d = new Date(
-        s.event_date || s.date || s.datetime || s.starts_at
-      );
-      return d >= new Date();
-    })
-    .map(s => String(s.id));
-} 
-  
-let ACTIVE_SECTION = 0;
-
-const TOOLS = [
-  ["📍 Control Center", "Стан продажів, сигнали, ризики та дії по сеансах", "Зараз"],
-  ["👥 Аудиторії", "Аудиторія вибраних сеансів: жанри, VIP, типи квитків", "Клієнтська база"],
-  ["📣 Канали продажів", "Фактичні продажі та виручка по каналах", "Атрибуція"],
-  ["🎯 Кампанії", "Планування маркетингових дій без автоматичної відправки", "Дії"],
-  ["🧰 Сценарії та досвід", "Банк ідей, шаблони текстів і доказаний досвід кампаній", "База знань"],
-  ["📒 Журнал маркетингу", "Що робили, коли робили і який був результат", "Пам'ять"],
-  ["📊 Ефективність", "Фактична аналітика по жанрах, каналах і сеансах", "Результат"],
-  ["🧭 Паспорт сеансу", "Кому, що і яким тоном говоримо про конкретну подію", "Контекст"]
-];
-
-function esc(v){
-  return String(v ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;");
-}
-
-function escAttr(v){
-  return esc(v).replaceAll('"','&quot;').replaceAll("'",'&#39;');
-}
-
-function fmtDate(v){
-  if(!v) return "—";
-  const d = new Date(v);
-  if(isNaN(d)) return "—";
-  return d.toLocaleDateString("uk-UA");
-}
-
-async function fetchAll(table, select="*"){
-  let all = [];
-  let from = 0;
-  const size = 1000;
-
-  while(true){
-    const { data, error } = await sb.from(table).select(select).range(from, from + size - 1);
-    if(error) throw error;
-    all = all.concat(data || []);
-    if(!data || data.length < size) break;
-    from += size;
-  }
-  return all;
-}
-
-async function fetchAllOptional(table, select="*"){
-  try{ return await fetchAll(table, select); }
-  catch(e){ console.warn(`Optional table ${table}`, e); return []; }
-}
-
-async function refreshServiceCommunicationData(){
-  const [messages, recipients, deliveries] = await Promise.all([
-    fetchAllOptional("service_messages", "id,seance_id,status,recipient_count,sent_at,event_snapshot"),
-    fetchAllOptional("service_message_recipients", "id,service_message_id,email,phone,delivery_status,provider_message_id,error_text,metadata"),
-    fetchAllOptional("service_delivery_log", "id,service_message_id,recipient_id,action,status,provider,attempted_at,response_text")
-  ]);
-  SERVICE_MESSAGES = messages || [];
-  SERVICE_RECIPIENTS = recipients || [];
-  SERVICE_DELIVERIES = deliveries || [];
-  return true;
-}
-
-function normKey(order){
-  const email = String(order.buyer_email || "").trim().toLowerCase();
-  const phone = String(order.buyer_phone || "").replace(/[^\d+]/g,"");
-  const name = String(order.buyer_name || "").trim().toLowerCase();
-  if(email) return "email:" + email;
-  if(phone) return "phone:" + phone;
-  if(name) return "name:" + name;
-  return "order:" + order.id;
-}
-
-function topValue(arr, field){
-  const map = {};
-  for(const x of arr || []){
-    const v = x[field];
-    if(!v || v === "—") continue;
-    map[v] = (map[v] || 0) + 1;
-  }
-  let best = "—";
-  let count = 0;
-  for(const [k,v] of Object.entries(map)){
-    if(v > count){ best = k; count = v; }
-  }
-  return best;
-}
-
-function buildTools(){
-  document.getElementById("toolsGrid").innerHTML = TOOLS.map((t, i) => `
-    <div class="box tool" data-section="${i}" id="tool-${i}">
-      <h3>${esc(t[0])}</h3>
-      <div class="muted">${esc(t[1])}</div>
-      <span class="tag">${esc(t[2])}</span>
-    </div>
-  `).join("");
-}
-
-function initMarketingSections(){
-  document.querySelectorAll(".tool").forEach(card => {
-    card.addEventListener("click", () => {
-      openMarketingSection(Number(card.dataset.section));
+  const itemIndex = new Map();
+  function uniq(list){
+    const seen=new Set();
+    return (list||[]).filter(x=>{
+      const k=String(x||"").trim();
+      if(!k||seen.has(k))return false;
+      seen.add(k); return true;
     });
-  });
-}
-
-function openMarketingSection(index){
-  ACTIVE_SECTION = index;
-  renderContextBridge();
-  document.querySelectorAll(".tool").forEach(x => x.classList.remove("active"));
-  const tool = document.getElementById(`tool-${index}`);
-  if(tool) tool.classList.add("active");
-
-  if(index === 0) return renderCurrentSection();
-  if(index === 1) return renderAudienceSection();
-  if(index === 2) return renderChannelsSection();
-  if(index === 3) return renderCampaignsSection();
-  if(index === 4) return renderPlaybooksSection();
-  if(index === 5) return renderJournalSection();
-  if(index === 6) return renderEfficiencySection();
-  if(index === 7) return renderMarketingPassportSection();
-}
-
-function buildClients(orders, tickets, seances){
-  const seanceByKey = new Map();
-  for(const s of seances){
-    [s.id, s.show_slug].forEach(k => { if(k) seanceByKey.set(String(k), s); });
   }
-
-  const ticketsByOrder = new Map();
-  for(const t of tickets){
-    const oid = String(t.order_id || "");
-    if(!oid) continue;
-    if(!ticketsByOrder.has(oid)) ticketsByOrder.set(oid, []);
-    ticketsByOrder.get(oid).push(t);
+  function sourceKey(eventType, genre){ return `${eventType||""}::${genre||""}`; }
+  function stableHash(text){
+    let h=2166136261;
+    for(const ch of String(text||"")){ h^=ch.codePointAt(0); h=Math.imul(h,16777619); }
+    return (h>>>0).toString(36);
   }
-
-  const clients = new Map();
-  for(const order of orders){
-    const status = String(order.status || "").toLowerCase();
-    if(status && !["paid","success","completed","approved"].includes(status)) continue;
-
-    const key = normKey(order);
-    if(!clients.has(key)){
-      clients.set(key, {
-        key,
-        name: order.buyer_name || "Без імені",
-        email: String(order.buyer_email || "").trim(),
-        phone: String(order.buyer_phone || "").trim(),
-        total: 0,
-        orders: 0,
-        tickets: 0,
-        visited: 0,
-        firstOrderAt: order.created_at || null,
-        lastOrderAt: order.created_at || null,
-        lastVisit: null,
-        events: []
-      });
-    }
-
-    const c = clients.get(key);
-    c.total += Number(order.amount || 0);
-    c.orders++;
-    if(!c.email && order.buyer_email) c.email = String(order.buyer_email).trim();
-    if(!c.phone && order.buyer_phone) c.phone = String(order.buyer_phone).trim();
-    if(order.created_at){
-      if(!c.firstOrderAt || new Date(order.created_at) < new Date(c.firstOrderAt)) c.firstOrderAt = order.created_at;
-      if(!c.lastOrderAt || new Date(order.created_at) > new Date(c.lastOrderAt)) c.lastOrderAt = order.created_at;
-    }
-
-    const orderTickets = ticketsByOrder.get(String(order.order_id || order.id || "")) || [];
-    for(const ticket of orderTickets){
-      const seance = seanceByKey.get(String(ticket.seance_id || order.seance_id || "")) || {};
-      const checkedAt = ticket.checked_in_at || null;
-      c.tickets++;
-      if(checkedAt){
-        c.visited++;
-        if(!c.lastVisit || new Date(checkedAt) > new Date(c.lastVisit)) c.lastVisit = checkedAt;
-      }
-      c.events.push({
-        seanceId: ticket.seance_id || order.seance_id || null,
-        genre: seance.genre || "—",
-        title: seance.show || "Подія",
-        checkedAt
-      });
-    }
+  function mkItems(target, texts, prefix, meta={}){
+    return uniq(texts).map((text,i)=>{
+      const id=`kb-${target}-${i}-${stableHash(`${prefix}|${target}|${text}`)}`;
+      const item={id,target,text,source:"builtin",...meta};
+      itemIndex.set(id,item);
+      return item;
+    });
   }
-
-  CLIENTS = Array.from(clients.values()).map(c => {
-    const lastActivityAt = c.lastVisit || c.lastOrderAt || null;
-    const days = lastActivityAt ? Math.floor((Date.now() - new Date(lastActivityAt)) / 86400000) : 9999;
-    const favGenre = topValue(c.events, "genre");
-    return {
-      ...c,
-      lastActivityAt,
-      days,
-      favGenre,
-      isVip: c.orders >= 10 || c.visited >= 5,
-      isLost: days >= 90,
-      isRegular: c.orders >= 5 || c.visited >= 5,
-      hasEmail: !!c.email,
-      hasPhone: !!c.phone
+  function applies(row, ctx={}){
+    const check=(key,arr)=>{
+      const v=String(ctx[key]||"");
+      // "all" у фільтрі означає «не звужувати», а не вимагати literal all у кожному записі.
+      return !Array.isArray(arr)||!arr.length||!v||v==="all"||arr.includes(v)||arr.includes("all");
     };
-  });
-}
-
-function audienceForGenre(genre){
-  return CLIENTS.filter(c => c.favGenre === genre);
-}
-
-function upcomingSeances(){
-  return SEANCES
-    .filter(s => s.date && new Date(s.date) >= new Date(Date.now() - 86400000))
-    .sort((a,b) => new Date(a.date) - new Date(b.date));
-}
-
-function getScopeSeanceIds(){
-  if(CURRENT_SEANCE_IDS.length) return CURRENT_SEANCE_IDS.map(String);
-  return upcomingSeances().slice(0, 30).map(s => String(s.id));
-}
-
-function getScopeSeances(){
-  const ids = new Set(getScopeSeanceIds());
-  return SEANCES.filter(s => ids.has(String(s.id)));
-}
-
-function getScopeTickets(){
-  const ids = new Set(getScopeSeanceIds());
-  return TICKETS.filter(t => ids.has(String(t.seance_id)));
-}
-
-function scopeTitle(){
-  if(CURRENT_SEANCE_IDS.length === 0) return "Всі найближчі сеанси";
-  if(CURRENT_SEANCE_IDS.length === 1){
-    const s = SEANCES.find(x => String(x.id) === String(CURRENT_SEANCE_IDS[0]));
-    return s ? (s.show || "Вибраний сеанс") : "Вибраний сеанс";
+    return check("eventType",row.types)&&check("genre",row.genres)&&check("objective",row.objectives)&&check("audience",row.audiences)&&check("channel",row.channels);
   }
-  return `Вибрано сеансів: ${CURRENT_SEANCE_IDS.length}`;
-}
-
-function renderScopeHeader(){
-  return `
-    <div class="box" style="margin-bottom:16px">
-      <div class="muted">Поточний обсяг аналізу</div>
-      <h3>${esc(scopeTitle())}</h3>
-      <div class="muted">Якщо нічого не вибрано — розділи рахують усі найближчі сеанси.</div>
-    </div>
-  `;
-}
-
-function refreshActiveSection(){
-  openMarketingSection(ACTIVE_SECTION);
-}
-
-function toggleSeance(id){
-  id = String(id);
-  if(CURRENT_SEANCE_IDS.includes(id)){
-    CURRENT_SEANCE_IDS = CURRENT_SEANCE_IDS.filter(x => x !== id);
-  } else {
-    CURRENT_SEANCE_IDS.push(id);
+  function textsBy(rows,ctx){ return (rows||[]).filter(r=>typeof r==="string"||applies(r,ctx)).map(r=>typeof r==="string"?r:r.text); }
+  function resolve(ctx={}){
+    const eventType=String(ctx.eventType||"");
+    const genre=String(ctx.genre||"");
+    const objective=String(ctx.objective||"launch");
+    const audience=String(ctx.audience||"all");
+    const channel=String(ctx.channel||"all");
+    const typePack=DATA.typeBank[eventType]||{};
+    const genrePack=DATA.genreBank[sourceKey(eventType,genre)]||{};
+    const objectivePack=DATA.objectiveBank[objective]||{};
+    const primaryAudience=DATA.audienceBank[audience]||DATA.audienceBank.all||[];
+    const filterCtx={eventType,genre,objective,audience,channel};
+    const fields={
+      primaryAudience,
+      campaignTheme:textsBy(DATA.themes,filterCtx),
+      corePromise:uniq([...(genrePack.corePromises||[]),...(typePack.corePromises||[]),...(objectivePack.corePromises||[]),...textsBy(DATA.headlineHooks,filterCtx)]),
+      keyArguments:uniq([...(genrePack.arguments||[]),...(typePack.arguments||[]),...(objectivePack.arguments||[]),...textsBy(DATA.emotionalMotives,filterCtx)]),
+      tone:uniq([...(genrePack.tones||[]),...(typePack.tones||[])]),
+      cta:uniq([...(objectivePack.ctas||[]),...(genrePack.ctas||[]),...(typePack.ctas||[])]),
+      barriers:GENERIC.barriers,
+      priceAngle:GENERIC.priceAngles,
+      contentMechanic:textsBy(DATA.contentMechanics,filterCtx),
+      occasion:textsBy(DATA.occasions,filterCtx),
+      doNotUse:GENERIC.doNotUse
+    };
+    const result={eventType,genre,objective,audience,channel};
+    Object.entries(fields).forEach(([target,texts])=>result[target]=mkItems(target,texts,`${eventType}-${genre}-${objective}-${audience}-${channel}`));
+    return result;
   }
-  resetCampaignDraft();
-  ACTIVE_CAMPAIGN_ID = "";
-  updateUrlContext();
-  renderContextBridge();
-  refreshActiveSection();
-}
-
-function clearSeanceSelection(){
-  CURRENT_SEANCE_IDS = [];
-  ACTIVE_CAMPAIGN_ID = "";
-  resetCampaignDraft();
-  updateUrlContext();
-  renderContextBridge();
-  refreshActiveSection();
-}
-
-function selectAllVisibleSeances(){
-  CURRENT_SEANCE_IDS = upcomingSeances().slice(0, 30).map(s => String(s.id));
-  ACTIVE_CAMPAIGN_ID = "";
-  resetCampaignDraft();
-  updateUrlContext();
-  renderContextBridge();
-  refreshActiveSection();
-}
-
-function getTicketTypeStats(seanceIds){
-  const ids = new Set((Array.isArray(seanceIds) ? seanceIds : [seanceIds]).map(String));
-  const map = {};
-  TICKETS
-    .filter(t => ids.has(String(t.seance_id)))
-    .forEach(t => {
-      const type = t.ticket_type || "Звичайний";
-      map[type] = (map[type] || 0) + 1;
-    });
-  return map;
-}
-
-function ticketTypeLabel(type){
-  const map = {
-    full: "Звичайний",
-    discount: "Пільговий",
-    invite: "Запрошення",
-    promo: "Акційний",
-    vip: "VIP",
-    child: "Дитячий",
-    service: "Службовий",
-    compensation: "Компенсаційний",
-    rent: "Оренда",
-    free: "Безкоштовний"
-  };
-
-  return map[type] || type;
-}
-  
-function getSeanceStats(seanceId){
-  const tickets = TICKETS.filter(t => String(t.seance_id) === String(seanceId));
-  return {
-    sold: tickets.length,
-    visited: tickets.filter(t => t.checked_in_at).length,
-    sum: tickets.reduce((s,t) => s + Number(t.price || 0), 0)
-  };
-}
-
-function daysToSeance(seance){
-  if(!seance.date) return null;
-  const d = new Date(seance.date);
-  return Math.ceil((d - new Date()) / 86400000);
-}
-
-function getPlannedFill(daysLeft){
-  if(daysLeft <= 0) return 85;
-  if(daysLeft <= 3) return 70;
-  if(daysLeft <= 7) return 50;
-  if(daysLeft <= 14) return 30;
-  if(daysLeft <= 30) return 15;
-  return 10;
-}
-
-function getLast7Sales(seanceId){
-  const border = new Date();
-  border.setDate(border.getDate() - 7);
-  return TICKETS.filter(t =>
-    String(t.seance_id) === String(seanceId) &&
-    t.created_at &&
-    new Date(t.created_at) >= border
-  ).length;
-}
-
-function evaluateSeance({ sold, capacity, daysLeft, genreAudience, vipCount, lostCount, last7Sales }){
-  const fill = capacity > 0 ? Math.round((sold / capacity) * 100) : 0;
-  const plannedFill = getPlannedFill(daysLeft);
-  const lag = fill - plannedFill;
-  const reasons = [];
-  const actions = [];
-
-  let status = "Добрий";
-  let risk = "Низький";
-
-  if(lag < -20){
-    status = "Потрібна дія";
-    risk = "Високий";
-    reasons.push(`Відставання від планового орієнтира ${lag}%`);
-    actions.push("Посилити продажі");
-  } else if(lag < 0){
-    status = "Спостерігати";
-    risk = "Середній";
-    reasons.push(`Відставання від планового орієнтира ${lag}%`);
-  } else {
-    reasons.push("Продажі не нижче планового орієнтира");
+  function getItem(id){ return itemIndex.get(String(id||""))||null; }
+  function options(name){ return (DATA[name]||[]).map(([value,label])=>({value,label})); }
+  function getTemplates(ctx={}){
+    const channel=String(ctx.channel||"all");
+    const objective=String(ctx.objective||"launch");
+    return DATA.templates.filter(t=>(channel==="all"||t.channel===channel)&&(!t.objectives?.length||t.objectives.includes(objective)));
   }
-
-  if(last7Sales < 3){
-    reasons.push("Продажі за останні 7 днів слабкі");
-    actions.push("Активізувати аудиторію");
-  }
-
-  if(genreAudience > 0) actions.push("Запросити любителів жанру");
-  if(vipCount > 0) actions.push(`Запросити VIP: ${vipCount}`);
-  if(lostCount > 0) actions.push(`Повернути втрачених: ${lostCount}`);
-  if(actions.length === 0) actions.push("Спостерігати");
-
-  return { status, risk, fill, plannedFill, lag, reasons, actions };
-}
-
-function normalizeSalesChannel(t){
-  const raw = String(t.channel || "").trim().toLowerCase();
-  if(["online","site","web","facebook","instagram","telegram","youtube"].includes(raw)) return "Онлайн";
-  if(["cash","kasa","каса"].includes(raw)) return "Каса";
-  if(["operator","karabas","contramarka","concert","concert.ua"].includes(raw)) return "Оператори";
-  if(["authorized","agent","уповноважений","upovnovazhenyi"].includes(raw)) return "Уповноважені";
-  if(["ref","referral","partner_ref"].includes(raw)) return "Реферали";
-  return raw ? t.channel : "Невідомо";
-}
-
-function getChannelRows(seanceIds = null){
-  const ids = seanceIds
-    ? seanceIds.map(String)
-    : null;
-
-  const sourceTickets = ids
-    ? TICKETS.filter(t => ids.includes(String(t.seance_id)))
-    : TICKETS;
-
-  const totalTickets = sourceTickets.length || 0;
-  const map = {};
-
-  for(const t of sourceTickets){
-    const channel = normalizeSalesChannel(t);
-
-    if(!map[channel]){
-      map[channel] = {
-        channel,
-        tickets: 0,
-        sum: 0
+  function getScenarios(ctx={}){
+    return (DATA.scenarios||[]).filter(s=>{
+      const match=(key,arr)=>{
+        const v=String(ctx[key]||"");
+        return !arr?.length||!v||v==="all"||arr.includes(v)||arr.includes("all");
       };
-    }
-
-    map[channel].tickets++;
-    map[channel].sum += Number(t.price || 0);
-  }
-
-  return Object.values(map)
-    .sort((a,b) => b.tickets - a.tickets)
-    .map(r => ({
-      ...r,
-      avg: r.tickets ? Math.round(r.sum / r.tickets) : 0,
-      share: totalTickets ? Math.round((r.tickets / totalTickets) * 100) : 0
-    }));
-}
-
-
-function buyerKeysForSeances(seanceIds){
-  const ids = new Set((seanceIds || []).map(String));
-  const orderByKey = new Map();
-
-  ORDERS.forEach(o => {
-    [o.id, o.order_id].forEach(k => {
-      if(k !== null && k !== undefined && k !== "") orderByKey.set(String(k), o);
+      return match("objective",s.objectives)&&match("audience",s.audiences)&&match("channel",s.channels);
     });
+  }
+  function renderTemplate(template,vars={}){
+    const replace=s=>String(s||"").replace(/{{\s*([a-zA-Z0-9_]+)\s*}}/g,(_,k)=>String(vars[k]??`{{${k}}}`));
+    return {subject:replace(template?.subject||""),body:replace(template?.body||"")};
+  }
+  function auditAgainstTaxonomy(taxonomy){
+    const missingTypes=[]; const missingGenres=[];
+    for(const t of taxonomy?.raw||[]){
+      if(!DATA.typeBank[t.value]) missingTypes.push(t.value);
+      for(const [genre,label] of t.genres||[]) if(!DATA.genreBank[sourceKey(t.value,genre)]) missingGenres.push(`${t.value} / ${label}`);
+    }
+    return {ok:!missingTypes.length&&!missingGenres.length,missingTypes,missingGenres};
+  }
+  global.VAMarketingKnowledgeBase=Object.freeze({
+    version:"2.0.1",
+    resolve,
+    getItem,
+    getTemplates,
+    getScenarios,
+    renderTemplate,
+    auditAgainstTaxonomy,
+    objectives:()=>options("objectives"),
+    audiences:()=>options("audiences"),
+    channels:()=>options("channels"),
+    categoryLabels:Object.freeze({
+      campaignTheme:"Тема / кут кампанії",
+      primaryAudience:"Кому говоримо",
+      corePromise:"Головна теза / гачок",
+      keyArguments:"Аргумент / мотив",
+      tone:"Тон",
+      cta:"CTA",
+      barriers:"Бар’єр / заперечення",
+      priceAngle:"Ціновий кут",
+      contentMechanic:"Механіка контенту",
+      occasion:"Привід / момент",
+      doNotUse:"Не використовувати"
+    })
   });
-
-  const keys = new Set();
-
-  TICKETS
-    .filter(t => ids.has(String(t.seance_id)))
-    .forEach(t => {
-      const o = orderByKey.get(String(t.order_id || ""));
-      if(o) keys.add(normKey(o));
-    });
-
-  ORDERS.forEach(o => {
-    const status = String(o.status || "").toLowerCase();
-    if(status && !["paid","success","completed","approved"].includes(status)) return;
-    if(ids.has(String(o.seance_id || ""))) keys.add(normKey(o));
-  });
-
-  return keys;
-}
-
-function reachableCount(clients){
-  return (clients || []).filter(c => c.hasEmail || c.hasPhone).length;
-}
-
-function isTechnicalMarketingClient(c){
-  const name = String(c?.name || "").trim().toLowerCase();
-  const technicalNames = new Set(["каса", "касса", "kasa", "cash", "cashier"]);
-  return !c?.hasEmail && !c?.hasPhone && technicalNames.has(name);
-}
-
-function getAudienceIntelligence(seanceIds){
-  const ids = (seanceIds || []).map(String);
-  const alreadyBought = buyerKeysForSeances(ids);
-  const scopeSeances = SEANCES.filter(s => ids.includes(String(s.id)));
-  const genres = Array.from(new Set(scopeSeances.map(s => s.genre).filter(g => g && g !== "—")));
-  const marketingClients = CLIENTS.filter(c => !isTechnicalMarketingClient(c));
-  const alreadyBoughtClients = marketingClients.filter(c => alreadyBought.has(c.key));
-
-  const notBought = marketingClients.filter(c => !alreadyBought.has(c.key));
-  const allProspects = notBought;
-  const newProspects = notBought.filter(c => Number(c.orders || 0) === 1);
-  const returnedProspects = notBought.filter(c => Number(c.orders || 0) >= 2);
-  const genreProspects = notBought.filter(c => genres.includes(c.favGenre));
-  const regularProspects = notBought.filter(c => c.isRegular);
-  const vipProspects = notBought.filter(c => c.isVip);
-  const lostProspects = notBought.filter(c => c.isLost && (genres.length === 0 || genres.includes(c.favGenre)));
-
-  const segments = [
-    {
-      key:"all",
-      label:"Вся КБ",
-      description:"Усі ідентифіковані клієнти VA, крім тих, хто вже купив цей сеанс",
-      clients: allProspects,
-      priority: allProspects.length ? 10 : 0
-    },
-    {
-      key:"new",
-      label:"Нові",
-      description:"Мають одну покупку в історії VA і ще не купили цей сеанс",
-      clients: newProspects,
-      priority: newProspects.length ? 35 : 0
-    },
-    {
-      key:"returned",
-      label:"Повернулися",
-      description:"Мають дві або більше покупок у VA і ще не купили цей сеанс",
-      clients: returnedProspects,
-      priority: returnedProspects.length ? 50 : 0
-    },
-    {
-      key:"genre",
-      label:"Любителі жанру",
-      description: genres.length ? `Історично обирали: ${genres.join(", ")}` : "Історична жанрова аудиторія",
-      clients: genreProspects,
-      priority: genreProspects.length ? 100 : 0
-    },
-    {
-      key:"regular",
-      label:"Постійні",
-      description:"Мають 5+ покупок або 5+ фактичних відвідувань",
-      clients: regularProspects,
-      priority: regularProspects.length ? 80 : 0
-    },
-    {
-      key:"vip",
-      label:"VIP",
-      description:"Найактивніша частина клієнтської бази",
-      clients: vipProspects,
-      priority: vipProspects.length ? 70 : 0
-    },
-    {
-      key:"lost",
-      label:"Втрачені 90+",
-      description:"Глядачі, які давно не проявляли активності та ще не купили цей сеанс",
-      clients: lostProspects,
-      priority: lostProspects.length ? 60 : 0
-    }
-  ].map(s => ({
-    ...s,
-    count:s.clients.length,
-    reachable:reachableCount(s.clients),
-    email:s.clients.filter(c => c.hasEmail).length,
-    phone:s.clients.filter(c => c.hasPhone).length
-  }));
-
-  const recommended = segments
-    .filter(s => s.count > 0)
-    .sort((a,b) => (b.priority - a.priority) || (b.reachable - a.reachable) || (b.count - a.count))[0] || null;
-
-  return {
-    alreadyBought: alreadyBoughtClients.length,
-    baseSize: marketingClients.length,
-    genres,
-    segments,
-    recommended,
-    relevantNotBought: notBought.length,
-    selectableNotBought: notBought.length
-  };
-}
-
-function getAudienceSegment(key){
-  const intel = getAudienceIntelligence(getScopeSeanceIds());
-  const normalized = key === "repeat" ? "returned" : key;
-  const found = intel.segments.find(s => s.key === normalized) || null;
-  if(!found) return null;
-  // Backward compatibility for campaigns saved in V2.4–V2.6.
-  if(key === "repeat") return { ...found, key:"repeat", label:"Повторні покупці" };
-  return found;
-}
-
-function chooseCampaignChannel(segment){
-  if(!segment) return "Ручний вибір";
-  if(segment.email >= segment.phone && segment.email > 0) return "Email";
-  if(segment.phone > 0) return "SMS / месенджер";
-  return "Реклама / соцмережі";
-}
-
-function prepareCampaignForSegment(key){
-  const segment = getAudienceSegment(key);
-  if(!segment){
-    alert("Сегмент недоступний.");
-    return;
-  }
-
-  const snap = getMarketingSnapshot();
-  const focusName = snap.seances.length === 1 ? (snap.seances[0].show || "сеанс") : scopeTitle();
-  const channel = chooseCampaignChannel(segment);
-  const objective = snap.focus && snap.focus.analysis.lag < 0
-    ? `Прискорити темп продажів для «${focusName}»`
-    : `Запросити релевантну аудиторію на «${focusName}»`;
-
-  const focusSeance = getFocusSeance();
-  const passport = focusSeance ? marketingContextStatus(focusSeance.id) : null;
-  const passportText = passport?.ctx?.corePromise
-    ? ` Головна теза події: ${passport.ctx.corePromise}`
-    : "";
-
-  CAMPAIGN_DRAFT = {
-    segmentKey: segment.key,
-    segmentLabel: segment.label,
-    audienceCount: segment.count,
-    reachableCount: segment.reachable,
-    channel,
-    objective,
-    comment: `${segment.label}: ${segment.count} потенційних глядачів, з них ${segment.reachable} мають email або телефон. Уже купили вибраний сеанс: ${getAudienceIntelligence(getScopeSeanceIds()).alreadyBought}.${passportText}`
-  };
-
-  openMarketingSection(3);
-}
-
-function sendCampaignDraftToJournal(){
-  openMarketingSection(5);
-  const type = document.getElementById("jType");
-  const channel = document.getElementById("jChannel");
-  const comment = document.getElementById("jComment");
-
-  if(type) type.value = CAMPAIGN_DRAFT.segmentLabel ? `Кампанія: ${CAMPAIGN_DRAFT.segmentLabel}` : "Маркетингова кампанія";
-  if(channel) channel.value = CAMPAIGN_DRAFT.channel || "";
-  if(comment){
-    const focusSeance = getFocusSeance();
-    const passport = focusSeance ? marketingContextStatus(focusSeance.id) : null;
-    const contentContext = passport?.ctx?.corePromise
-      ? `Контекст: ${passport.ctx.corePromise}${passport.ctx.tone ? ` | Тон: ${passport.ctx.tone}` : ""}`
-      : "";
-    comment.value = [CAMPAIGN_DRAFT.objective, CAMPAIGN_DRAFT.comment, contentContext].filter(Boolean).join("\n");
-  }
-}
-
-function resetCampaignDraft(){
-  CAMPAIGN_DRAFT = {
-    segmentKey: "",
-    segmentLabel: "",
-    audienceCount: 0,
-    reachableCount: 0,
-    channel: "",
-    objective: "",
-    comment: ""
-  };
-}
-
-function setFocusSeance(id){
-  CURRENT_SEANCE_IDS = [String(id)];
-  const active = getActiveCampaign();
-  if(active && String(active.seance_id) !== String(id)) ACTIVE_CAMPAIGN_ID = "";
-  resetCampaignDraft();
-  updateUrlContext();
-  renderContextBridge();
-  refreshActiveSection();
-}
-
-function getScopeCapacity(){
-  return getScopeSeances().reduce((sum,s) => sum + Number(s.capacity || 0), 0);
-}
-
-function getSalesWindowStats(seanceIds){
-  const ids = new Set((seanceIds || []).map(String));
-  const now = new Date();
-  const start24 = new Date(now.getTime() - 24 * 3600000);
-  const start7 = new Date(now.getTime() - 7 * 86400000);
-  const start14 = new Date(now.getTime() - 14 * 86400000);
-
-  const dated = TICKETS.filter(t =>
-    ids.has(String(t.seance_id)) &&
-    t.created_at &&
-    !isNaN(new Date(t.created_at))
-  );
-
-  const last24 = dated.filter(t => new Date(t.created_at) >= start24).length;
-  const last7 = dated.filter(t => new Date(t.created_at) >= start7).length;
-  const prev7 = dated.filter(t => {
-    const d = new Date(t.created_at);
-    return d >= start14 && d < start7;
-  }).length;
-
-  let change = null;
-  if(prev7 > 0) change = Math.round(((last7 - prev7) / prev7) * 100);
-  else if(last7 > 0) change = 100;
-  else change = 0;
-
-  return {
-    last24,
-    last7,
-    prev7,
-    change,
-    daily7: Math.round((last7 / 7) * 10) / 10
-  };
-}
-
-function getScopeAudienceStats(seanceIds){
-  const ids = new Set((seanceIds || []).map(String));
-  const orderByKey = new Map();
-
-  ORDERS.forEach(o => {
-    [o.id, o.order_id].forEach(k => {
-      if(k !== null && k !== undefined && k !== "") orderByKey.set(String(k), o);
-    });
-  });
-
-  const buyerKeys = new Set();
-
-  TICKETS
-    .filter(t => ids.has(String(t.seance_id)))
-    .forEach(t => {
-      const o = orderByKey.get(String(t.order_id || ""));
-      if(o) buyerKeys.add(normKey(o));
-    });
-
-  ORDERS.forEach(o => {
-    const status = String(o.status || "").toLowerCase();
-    if(status && !["paid","success","completed","approved"].includes(status)) return;
-    if(ids.has(String(o.seance_id || ""))) buyerKeys.add(normKey(o));
-  });
-
-  const clientMap = new Map(CLIENTS.filter(c => !isTechnicalMarketingClient(c)).map(c => [c.key, c]));
-  const people = Array.from(buyerKeys).map(k => clientMap.get(k)).filter(Boolean);
-
-  return {
-    buyers: people.length,
-    newBuyers: people.filter(c => c.orders <= 1).length,
-    repeatBuyers: people.filter(c => c.orders >= 2).length,
-    regular: people.filter(c => c.isRegular).length,
-    vip: people.filter(c => c.isVip).length,
-    lost: people.filter(c => c.isLost).length
-  };
-}
-
-function getScopeGenreAudience(seanceIds){
-  const ids = new Set((seanceIds || []).map(String));
-  const genres = Array.from(new Set(
-    SEANCES
-      .filter(s => ids.has(String(s.id)))
-      .map(s => s.genre)
-      .filter(g => g && g !== "—")
-  ));
-
-  const keys = new Set();
-  genres.forEach(g => audienceForGenre(g).forEach(c => keys.add(c.key)));
-  return { genres, count: keys.size };
-}
-
-function loadLocalMarketingContexts(){
-  try{
-    const raw = localStorage.getItem(MARKETING_CONTEXT_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : {};
-    if(parsed && typeof parsed === "object"){
-      MARKETING_CONTEXTS = parsed;
-      Object.keys(parsed).forEach(id => { MARKETING_CONTEXT_SOURCE[id] = "Локально"; });
-    }
-  }catch(e){
-    console.warn("VA marketing context local load failed", e);
-    MARKETING_CONTEXTS = {};
-  }
-}
-
-function saveLocalMarketingContexts(){
-  try{
-    localStorage.setItem(MARKETING_CONTEXT_STORAGE_KEY, JSON.stringify(MARKETING_CONTEXTS));
-  }catch(e){
-    console.warn("VA marketing context local save failed", e);
-  }
-}
-
-async function loadRemoteMarketingContextsOptional(){
-  try{
-    const { data, error } = await sb
-      .from("marketing_seance_context")
-      .select("seance_id,context,updated_at,author")
-      .limit(1000);
-
-    if(error){
-      console.info("marketing_seance_context is not connected yet; local passport storage is active.", error.message);
-      return;
-    }
-
-    (data || []).forEach(row => {
-      if(!row?.seance_id) return;
-      const id = String(row.seance_id);
-      MARKETING_CONTEXTS[id] = (row.context && typeof row.context === "object") ? row.context : {};
-      MARKETING_CONTEXT_SOURCE[id] = "Supabase";
-    });
-    saveLocalMarketingContexts();
-  }catch(e){
-    console.info("marketing_seance_context optional load skipped", e);
-  }
-}
-
-function emptyMarketingContext(){
-  return {
-    primaryAudience:"",
-    secondaryAudience:"",
-    campaignTheme:"",
-    corePromise:"",
-    keyArguments:"",
-    barriers:"",
-    tone:"",
-    priceAngle:"",
-    cta:"",
-    doNotUse:"",
-    notes:"",
-    updatedAt:""
-  };
-}
-
-function getMarketingContext(seanceId){
-  const id = String(seanceId || "");
-  return { ...emptyMarketingContext(), ...(MARKETING_CONTEXTS[id] || {}) };
-}
-
-function marketingContextCompleteness(ctx){
-  const fields = [
-    "primaryAudience","corePromise","keyArguments","tone","cta",
-    "campaignTheme","secondaryAudience","barriers","priceAngle","doNotUse","notes"
-  ];
-  const weights = {
-    primaryAudience:18, corePromise:22, keyArguments:16, tone:12, cta:12,
-    campaignTheme:5, secondaryAudience:4, barriers:4, priceAngle:3, doNotUse:2, notes:2
-  };
-  return fields.reduce((sum,k) => sum + (String(ctx?.[k] || "").trim() ? weights[k] : 0), 0);
-}
-
-function marketingContextQuickReady(ctx){
-  return ["primaryAudience","corePromise","tone","cta"]
-    .every(k => String(ctx?.[k] || "").trim());
-}
-
-function marketingContextStatus(seanceId){
-  const ctx = getMarketingContext(seanceId);
-  const completeness = marketingContextCompleteness(ctx);
-  const quickReady = marketingContextQuickReady(ctx);
-  return {
-    ctx,
-    completeness,
-    quickReady,
-    ready: quickReady,
-    expertReady: completeness >= 80,
-    source: MARKETING_CONTEXT_SOURCE[String(seanceId)] || (MARKETING_CONTEXTS[String(seanceId)] ? "Локально" : "Не збережено")
-  };
-}
-
-function getFocusSeance(){
-  if(CURRENT_SEANCE_IDS.length !== 1) return null;
-  return SEANCES.find(s => String(s.id) === String(CURRENT_SEANCE_IDS[0])) || null;
-}
-
-async function persistMarketingContextObject(seanceId, context, noticeText="Паспорт оновлено."){
-  const sid=String(seanceId||"");
-  if(!sid) return false;
-  const ctx={...emptyMarketingContext(),...(context||{}),updatedAt:new Date().toISOString()};
-  MARKETING_CONTEXTS[sid]=ctx;
-  MARKETING_CONTEXT_SOURCE[sid]="Локально";
-  saveLocalMarketingContexts();
-  PASSPORT_NOTICE=noticeText;
-  try{
-    const {error}=await sb.from("marketing_seance_context").upsert({seance_id:sid,context:ctx,updated_at:ctx.updatedAt,author:"admin"},{onConflict:"seance_id"});
-    if(!error){ MARKETING_CONTEXT_SOURCE[sid]="Supabase"; PASSPORT_NOTICE=noticeText+" Збережено в Supabase."; }
-    else console.info("Passport saved locally; Supabase context table is not available yet:",error.message);
-  }catch(e){ console.info("Passport remote save skipped",e); }
-  return true;
-}
-
-async function saveMarketingPassport(){
-  const seance = getFocusSeance();
-  if(!seance){
-    alert("Оберіть один сеанс кнопкою «Фокус».");
-    return;
-  }
-
-  const val = id => String(document.getElementById(id)?.value || "").trim();
-  const ctx = {
-    primaryAudience: val("mpPrimaryAudience"),
-    secondaryAudience: val("mpSecondaryAudience"),
-    campaignTheme: val("mpCampaignTheme"),
-    corePromise: val("mpCorePromise"),
-    keyArguments: val("mpKeyArguments"),
-    barriers: val("mpBarriers"),
-    tone: val("mpTone"),
-    priceAngle: val("mpPriceAngle"),
-    cta: val("mpCta"),
-    doNotUse: val("mpDoNotUse"),
-    notes: val("mpNotes"),
-    updatedAt: new Date().toISOString()
-  };
-
-  const sid = String(seance.id);
-  await persistMarketingContextObject(sid, ctx, "Паспорт збережено.");
-  renderMarketingPassportSection();
-}
-
-function clearMarketingPassportDraft(){
-  const seance = getFocusSeance();
-  if(!seance) return;
-  if(!confirm("Очистити маркетинговий паспорт цього сеансу в поточному браузері?")) return;
-  delete MARKETING_CONTEXTS[String(seance.id)];
-  delete MARKETING_CONTEXT_SOURCE[String(seance.id)];
-  saveLocalMarketingContexts();
-  PASSPORT_NOTICE = "Локальну чернетку очищено. Віддалений запис, якщо він існує, не видалявся.";
-  renderMarketingPassportSection();
-}
-
-function renderMarketingPassportMini(s){
-  if(!s.focus){
-    return `
-      <div class="box">
-        <h3>🧭 Паспорт сеансу</h3>
-        <div class="muted">Оберіть один сеанс кнопкою «Фокус», щоб зафіксувати маркетинговий контекст.</div>
-        <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openMarketingSection(7)">Відкрити</button></div>
-      </div>`;
-  }
-
-  const st = marketingContextStatus(s.focus.seance.id);
-  return `
-    <div class="box">
-      <h3>🧭 Паспорт сеансу</h3>
-      <div class="metric-row"><span>Готовність</span><b>${st.completeness}%</b></div>
-      <div class="metric-row"><span>Збереження</span><b>${esc(st.source)}</b></div>
-      <div class="muted" style="margin-top:8px">${st.quickReady ? "Швидкий паспорт готовий: уже можна збирати кампанію." : "Для старту достатньо 4 полів: аудиторія, причина піти, тон і CTA."}</div>
-      <div class="progress"><div style="width:${st.completeness}%"></div></div>
-      <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openMarketingSection(7)">${st.completeness ? "Редагувати" : "Заповнити"}</button></div>
-    </div>`;
-}
-
-function renderMarketingPassportSection(){
-  const panel = document.getElementById("activeSectionPanel");
-  const seance = getFocusSeance();
-
-  if(!seance){
-    panel.innerHTML = `
-      <div class="section-caption">
-        <div>
-          <div class="eyebrow">SEANCE CONTEXT</div>
-          <h2>🧭 Маркетинговий паспорт сеансу</h2>
-          <div class="muted">Паспорт належить конкретному сеансу. Спочатку оберіть один сеанс.</div>
-        </div>
-      </div>
-      <div class="notice"><b>Потрібен «Фокус».</b> Поверніться у Control Center і натисніть «Фокус» біля потрібного сеансу.</div>
-      <div class="toolbar"><button class="btn" onclick="openMarketingSection(0)">До Control Center</button></div>`;
-    return;
-  }
-
-  const st = marketingContextStatus(seance.id);
-  const c = st.ctx;
-  const sourceClass = st.source === "Supabase" ? "good" : st.source === "Локально" ? "warn" : "";
-  const toneOptions = ["","Стримано та інтелігентно","Емоційно","Преміально","Сучасно і просто","Дотепно","Сімейно і тепло","Експериментально"];
-  const toneHtml = toneOptions.map(v => `<option value="${escAttr(v)}" ${c.tone === v ? "selected" : ""}>${esc(v || "Оберіть тон")}</option>`).join("");
-
-  panel.innerHTML = `
-    <div class="section-caption">
-      <div>
-        <div class="eyebrow">SEANCE CONTEXT • QUICK + PRO</div>
-        <h2>🧭 Маркетинговий паспорт</h2>
-        <div class="muted">Не анкета. Чотири поля запускають кампанію; решта потрібна лише коли маркетолог хоче поглибити контекст.</div>
-      </div>
-      <div class="passport-score">
-        <div class="score-circle">${st.completeness}%</div>
-        <div>
-          <b>${esc(seance.show || "Подія")}</b><br>
-          <span class="pill ${sourceClass}">${esc(st.source)}</span>
-          ${st.quickReady ? `<br><span class="quick-ready" style="margin-top:7px">ШВИДКИЙ ПАСПОРТ ГОТОВИЙ</span>` : ""}
-        </div>
-      </div>
-    </div>
-
-    ${renderScopeHeader()}
-    ${PASSPORT_NOTICE ? `<div class="notice">${esc(PASSPORT_NOTICE)}</div>` : ""}
-
-    <div class="box quick-passport">
-      <div class="eyebrow">ШВИДКИЙ ПАСПОРТ • 4 ПОЛЯ</div>
-      <h3>Цього достатньо, щоб VA зібрала перші повідомлення</h3>
-      <div class="muted" style="margin-bottom:14px">Заповнюємо не все, що знаємо про подію, а мінімум для осмисленої комунікації.</div>
-      <div class="passport-grid">
-        <div class="field">
-          <label>1. Кому продаємо *</label>
-          <textarea id="mpPrimaryAudience" placeholder="Напр.: 25–40, міська аудиторія, яка любить живі культурні події...">${esc(c.primaryAudience)}</textarea>
-        </div>
-        <div class="field">
-          <label>2. Чому варто піти саме на цю подію *</label>
-          <textarea id="mpCorePromise" placeholder="Одна головна причина витратити вечір саме на цю подію">${esc(c.corePromise)}</textarea>
-        </div>
-        <div class="field">
-          <label>3. Як говоримо *</label>
-          <select id="mpTone">${toneHtml}</select>
-        </div>
-        <div class="field">
-          <label>4. Що людина має зробити *</label>
-          <input id="mpCta" value="${escAttr(c.cta)}" placeholder="Напр.: Оберіть місця на 12 вересня">
-        </div>
-      </div>
-    </div>
-
-    <details class="advanced-passport" ${st.completeness > 64 ? "open" : ""}>
-      <summary>▸ Розширений паспорт — аргументи, бар'єри, ціна, заборони та примітки</summary>
-      <div style="padding-bottom:14px">
-        <div class="passport-grid">
-          <div class="field">
-            <label>Тема / кут кампанії</label>
-            <textarea id="mpCampaignTheme" placeholder="Напр.: Вечір удвох; повернення до класики; живе виконання замість екрана...">${esc(c.campaignTheme)}</textarea>
-          </div>
-          <div class="field">
-            <label>Додаткова аудиторія</label>
-            <textarea id="mpSecondaryAudience" placeholder="Хто ще може прийти і чому">${esc(c.secondaryAudience)}</textarea>
-          </div>
-          <div class="field">
-            <label>Ключові аргументи</label>
-            <textarea id="mpKeyArguments" placeholder="3–5 конкретних сильних сторін: склад, формат, емоція, унікальність...">${esc(c.keyArguments)}</textarea>
-          </div>
-          <div class="field">
-            <label>Бар'єри / заперечення глядача</label>
-            <textarea id="mpBarriers" placeholder="Дорого, незнайомий твір, будній день, далеко їхати...">${esc(c.barriers)}</textarea>
-          </div>
-          <div class="field">
-            <label>Ціновий кут</label>
-            <textarea id="mpPriceAngle" placeholder="Як говоримо про ціну: доступний вхід, різні зони, преміум-місця...">${esc(c.priceAngle)}</textarea>
-          </div>
-          <div class="field">
-            <label>Не використовувати</label>
-            <textarea id="mpDoNotUse" placeholder="Штампи, слова, обіцянки або образи, яких треба уникати">${esc(c.doNotUse)}</textarea>
-          </div>
-          <div class="field">
-            <label>Примітки маркетолога</label>
-            <textarea id="mpNotes" placeholder="Все, що важливо не втратити в кампанії">${esc(c.notes)}</textarea>
-          </div>
-        </div>
-      </div>
-    </details>
-
-    <div class="two-col">
-      <div class="box">
-        <div class="eyebrow">ГОТОВНІСТЬ</div>
-        <h3>${st.quickReady ? "Можна працювати" : "Потрібні 4 базові відповіді"}</h3>
-        <div class="progress"><div style="width:${st.completeness}%"></div></div>
-        <div class="muted" style="margin-top:10px">
-          Швидкий паспорт = 4 обов'язкові поля. ${st.completeness}% показує вже глибину розширеного контексту, а не дозвіл починати роботу.
-        </div>
-      </div>
-      <div class="box">
-        <div class="eyebrow">НАСТУПНИЙ КРОК</div>
-        <h3>${st.quickReady ? "Збираємо повідомлення" : "Збережіть основу"}</h3>
-        <div class="muted">Campaign Workbench використовує ці чотири відповіді разом із реальним сегментом аудиторії та станом продажів.</div>
-      </div>
-    </div>
-
-    <div class="toolbar">
-      <button class="btn" onclick="saveMarketingPassport()">Зберегти паспорт</button>
-      <button class="btn secondary" onclick="openMarketingSection(3)" ${st.quickReady ? "" : "disabled"}>До кампанії</button>
-      <button class="btn secondary" onclick="openMarketingSection(0)">Control Center</button>
-      <button class="btn danger" onclick="clearMarketingPassportDraft()">Очистити локальну чернетку</button>
-    </div>
-
-    <div class="notice">
-      <b>Принцип V2.3:</b> маркетолог не повинен заповнювати CRM-анкету перед кожною кампанією. Чотири відповіді — робочий мінімум. Розширений паспорт накопичується поступово.
-    </div>`;
-
-  PASSPORT_NOTICE = "";
-}
-
-function getMarketingSnapshot(){
-  const seanceIds = getScopeSeanceIds();
-  const seances = getScopeSeances();
-  const tickets = getScopeTickets();
-  const sold = tickets.length;
-  const revenue = tickets.reduce((sum,t) => sum + Number(t.price || 0), 0);
-  const visited = tickets.filter(t => t.checked_in_at).length;
-  const capacity = getScopeCapacity();
-  const fill = capacity > 0 ? Math.round((sold / capacity) * 100) : 0;
-  const sales = getSalesWindowStats(seanceIds);
-  const audience = getScopeAudienceStats(seanceIds);
-  const genreAudience = getScopeGenreAudience(seanceIds);
-  const channels = getChannelRows(seanceIds);
-  const knownTickets = channels
-    .filter(r => String(r.channel).toLowerCase() !== "невідомо")
-    .reduce((sum,r) => sum + r.tickets, 0);
-  const attribution = sold ? Math.round((knownTickets / sold) * 100) : 0;
-
-  let focus = null;
-  if(seances.length === 1){
-    const s = seances[0];
-    const days = daysToSeance(s);
-    const genre = s.genre || "—";
-    const aud = audienceForGenre(genre);
-    const stats = getSeanceStats(s.id);
-    const analysis = evaluateSeance({
-      sold: stats.sold,
-      capacity: Number(s.capacity || 0),
-      daysLeft: days ?? 0,
-      genreAudience: aud.length,
-      vipCount: aud.filter(c => c.isVip).length,
-      lostCount: aud.filter(c => c.isLost).length,
-      last7Sales: sales.last7
-    });
-
-    const projectedSold = days !== null && days > 0
-      ? stats.sold + sales.daily7 * days
-      : stats.sold;
-    const projectedFill = Number(s.capacity || 0) > 0
-      ? Math.min(100, Math.round((projectedSold / Number(s.capacity || 0)) * 100))
-      : 0;
-    const targetSold = Math.ceil(Number(s.capacity || 0) * 0.85);
-    const remainingTo85 = Math.max(0, targetSold - stats.sold);
-    const neededPerDay = days && days > 0
-      ? Math.round((remainingTo85 / days) * 10) / 10
-      : 0;
-
-    focus = { seance:s, days, analysis, projectedFill, neededPerDay, genreAudience:aud.length };
-  }
-
-  return {
-    seanceIds, seances, tickets, sold, revenue, visited, capacity, fill,
-    sales, audience, genreAudience, channels, attribution, focus
-  };
-}
-
-function trendHtml(change){
-  if(change > 0) return `<span class="trend-up">▲ ${change}%</span>`;
-  if(change < 0) return `<span class="trend-down">▼ ${Math.abs(change)}%</span>`;
-  return `<span class="trend-flat">→ 0%</span>`;
-}
-
-function buildMarketingBrief(s){
-  const facts = [];
-  const actions = [];
-
-  if(s.focus){
-    const a = s.focus.analysis;
-    facts.push({type:a.risk === "Високий" ? "bad" : a.risk === "Середній" ? "warn" : "good", text:`Заповнення ${a.fill}% при внутрішньому орієнтирі ${a.plannedFill}%: відхилення ${a.lag > 0 ? "+" : ""}${a.lag}%.`});
-    facts.push({type:s.sales.change < -20 ? "bad" : s.sales.change < 0 ? "warn" : "good", text:`За останні 7 днів продано ${s.sales.last7} квитків; попередні 7 днів — ${s.sales.prev7}. Динаміка ${s.sales.change > 0 ? "+" : ""}${s.sales.change}%.`});
-    facts.push({type:"info", text:`Простий прогноз за поточним 7-денним темпом: близько ${s.focus.projectedFill}% заповнення до дати сеансу.`});
-
-    if(s.focus.analysis.lag < 0){
-      actions.push(`Сеанс нижче внутрішнього орієнтира на ${Math.abs(s.focus.analysis.lag)} п.п. — потрібна окрема маркетингова дія, а не загальне «посилити рекламу».`);
-    } else {
-      actions.push(`Продажі не нижче внутрішнього орієнтира. Не змінювати механіку без причини; контролювати темп.`);
-    }
-
-    if(s.sales.change < -20) actions.push(`Темп 7/7 знизився на ${Math.abs(s.sales.change)}%. Перевірити останні дії в журналі та канали, де впав фактичний продаж.`);
-    else if(s.sales.change > 20) actions.push(`Темп зростає на ${s.sales.change}%. Зафіксувати, які дії передували росту, щоб не втратити робочу зв'язку.`);
-
-    if(s.genreAudience.count > 0) actions.push(`У КБ є ${s.genreAudience.count} клієнтів з історичним інтересом до жанрів цього сеансу — підготувати окрему кампанію для них.`);
-    if(s.audience.lost > 0) actions.push(`Серед покупців/аудиторії є «втрачені 90+». Винести повернення цієї групи в окремий сценарій, не змішувати з усією базою.`);
-    if(s.focus.neededPerDay > 0) actions.push(`Для орієнтира 85% потрібно в середньому ще ≈ ${s.focus.neededPerDay} квитка/день до сеансу.`);
-
-    const passport = marketingContextStatus(s.focus.seance.id);
-    if(passport.completeness < 80){
-      facts.push({type:"warn", text:`Маркетинговий паспорт сеансу заповнений на ${passport.completeness}%. Система знає цифри, але зміст кампанії ще не зафіксований.`});
-      actions.push(`Заповнити маркетинговий паспорт: кому продаємо, головна причина піти, аргументи та tone of voice.`);
-    }
-  } else {
-    const highRisk = s.seances.filter(se => {
-      const stats = getSeanceStats(se.id);
-      const genre = se.genre || "—";
-      const aud = audienceForGenre(genre);
-      return evaluateSeance({
-        sold: stats.sold,
-        capacity: Number(se.capacity || 0),
-        daysLeft: daysToSeance(se) ?? 0,
-        genreAudience: aud.length,
-        vipCount: aud.filter(c => c.isVip).length,
-        lostCount: aud.filter(c => c.isLost).length,
-        last7Sales: getLast7Sales(se.id)
-      }).risk === "Високий";
-    }).length;
-
-    facts.push({type:highRisk ? "warn" : "good", text:`У поточному портфелі ${s.seances.length} сеансів; високий ризик за внутрішнім орієнтиром мають ${highRisk}.`});
-    facts.push({type:s.sales.change < 0 ? "warn" : "good", text:`Сумарно за 7 днів: ${s.sales.last7} квитків проти ${s.sales.prev7} за попередній період.`});
-    actions.push(`Для точного діагнозу виберіть один сеанс кнопкою «Фокус». Портфельний режим потрібен для пошуку проблем, а не для фінального рішення.`);
-    if(highRisk) actions.push(`Спочатку розібрати ${highRisk} сеанс(и) з високим ризиком — вони мають пріоритет над загальними кампаніями.`);
-  }
-
-  const top = s.channels[0];
-  if(top){
-    facts.push({type:"info", text:`Найбільше фактичних продажів у вибраному обсязі дає канал «${top.channel}»: ${top.tickets} квитків (${top.share}%).`});
-  }
-
-  if(s.attribution < 80 && s.sold > 0){
-    facts.push({type:"warn", text:`Канал визначено лише для ${s.attribution}% проданих квитків. Частина маркетингової картини поки сліпа.`});
-    actions.push(`Підняти покриття каналів/UTM/ref: без цього VA бачить продаж, але не завжди бачить, що саме його привело.`);
-  }
-
-  return { facts:facts.slice(0,5), actions:Array.from(new Set(actions)).slice(0,5) };
-}
-
-function currentScopeSummaryHtml(){
-  const s = getMarketingSnapshot();
-  const title = s.focus ? (s.focus.seance.show || "Вибраний сеанс") : scopeTitle();
-  const subtitle = s.focus
-    ? `${fmtDate(s.focus.seance.date)} • ${esc(s.focus.seance.time || "")} • ${esc(s.focus.seance.genre || "жанр не вказаний")}`
-    : `Портфельний режим • ${s.seances.length} найближчих/вибраних сеансів`;
-  const fillText = s.capacity > 0 ? `${s.fill}%` : "—";
-
-  return `
-    <div class="box" style="margin-bottom:14px">
-      <div class="eyebrow">Поточний фокус</div>
-      <div class="hero-head">
-        <div>
-          <h3 class="focus-name">${esc(title)}</h3>
-          <div class="muted">${subtitle}</div>
-        </div>
-        <div class="hero-badges">
-          ${s.focus ? `<span class="badge">До сеансу: ${s.focus.days !== null ? s.focus.days + " дн." : "—"}</span>` : `<span class="badge">Сеансів: ${s.seances.length}</span>`}
-          <span class="badge">Атрибуція: ${s.attribution}%</span>
-        </div>
-      </div>
-
-      <div class="kpi-grid">
-        <div class="kpi"><span>Продано</span><strong>${s.sold.toLocaleString("uk-UA")}</strong><small>${s.capacity ? `із ${s.capacity.toLocaleString("uk-UA")} місць` : "місткість не задана"}</small></div>
-        <div class="kpi"><span>Заповнення</span><strong>${fillText}</strong><small>${s.focus ? `орієнтир ${s.focus.analysis.plannedFill}%` : "по вибраному обсягу"}</small></div>
-        <div class="kpi"><span>Виручка</span><strong>${s.revenue.toLocaleString("uk-UA")}</strong><small>грн за проданими квитками</small></div>
-        <div class="kpi"><span>Останні 7 днів</span><strong>${s.sales.last7}</strong><small>${trendHtml(s.sales.change)} до попередніх 7 днів</small></div>
-        <div class="kpi"><span>Останні 24 години</span><strong>${s.sales.last24}</strong><small>фактичних квитків</small></div>
-        <div class="kpi"><span>Покупці</span><strong>${s.audience.buyers}</strong><small>нові ${s.audience.newBuyers} • повторні ${s.audience.repeatBuyers}</small></div>
-      </div>
-
-      ${s.capacity > 0 ? `<div class="progress" title="Заповнення ${s.fill}%"><div style="width:${Math.min(100,s.fill)}%"></div></div>` : ""}
-    </div>
-  `;
-}
-
-function renderAudienceMini(s){
-  const intel = getAudienceIntelligence(s.seanceIds);
-  return `
-    <div class="box">
-      <h3>👥 Аудиторія</h3>
-      <div class="metric-row"><span>Покупців у фокусі</span><b>${s.audience.buyers}</b></div>
-      <div class="metric-row"><span>Нові / повторні</span><b>${s.audience.newBuyers} / ${s.audience.repeatBuyers}</b></div>
-      <div class="metric-row"><span>Постійні / VIP</span><b>${s.audience.regular} / ${s.audience.vip}</b></div>
-      <div class="metric-row"><span>Релевантні, але ще не купили</span><b>${intel.relevantNotBought}</b></div>
-      <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openMarketingSection(1)">Кому запропонувати</button></div>
-    </div>
-  `;
-}
-
-function renderChannelsMini(s){
-  const top = s.channels.slice(0,4);
-  return `
-    <div class="box">
-      <h3>📣 Канали продажів</h3>
-      ${top.length ? top.map(r => `
-        <div style="margin-bottom:10px">
-          <div class="metric-row" style="padding-bottom:4px"><span>${esc(r.channel)}</span><b>${r.tickets} • ${r.share}%</b></div>
-          <div class="channel-bar"><div style="width:${Math.min(100,r.share)}%"></div></div>
-        </div>
-      `).join("") : `<div class="muted">Поки немає продажів.</div>`}
-      <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openMarketingSection(2)">Відкрити канали</button></div>
-    </div>
-  `;
-}
-
-function renderTicketTypesMini(s){
-  const stats = getTicketTypeStats(s.seanceIds);
-  const rows = Object.entries(stats).sort((a,b) => b[1] - a[1]).slice(0,6);
-  return `
-    <div class="box">
-      <h3>🎟️ Структура квитків</h3>
-      ${rows.length ? rows.map(([k,v]) => `<span class="pill">${esc(ticketTypeLabel(k))}: ${v}</span>`).join(" ") : `<div class="muted">Поки немає квитків.</div>`}
-      <div class="micro" style="margin-top:12px">Це факт по квитках, а не припущення про аудиторію.</div>
-    </div>
-  `;
-}
-
-function renderControlCenterHtml(){
-  const s = getMarketingSnapshot();
-  const brief = buildMarketingBrief(s);
-
-  return `
-    ${CURRENT_SEANCE_IDS.length !== 1 ? `
-      <div class="notice">
-        <b>Портфельний режим.</b> Для повного маркетингового розбору натисніть «Фокус» біля одного сеансу. Мультивибір залишаємо для порівняння та групових дій.
-      </div>
-    ` : ""}
-
-    ${currentScopeSummaryHtml()}
-
-    <div class="two-col">
-      <div class="box">
-        <div class="eyebrow">VA • Факти та діагноз</div>
-        <h3>Що відбувається</h3>
-        <div class="signal-list">
-          ${brief.facts.map(x => `<div class="signal ${x.type}-line">${esc(x.text)}</div>`).join("") || `<div class="signal info-line">Недостатньо даних для діагнозу.</div>`}
-        </div>
-      </div>
-
-      <div class="box">
-        <div class="eyebrow">VA • Наступний крок</div>
-        <h3>Що робити зараз</h3>
-        <div class="action-list">
-          ${brief.actions.map((x,i) => `<div class="action-item"><strong>${i+1}.</strong> ${esc(x)}</div>`).join("") || `<div class="action-item">Спостерігати та накопичувати факт.</div>`}
-        </div>
-        <div class="toolbar" style="margin-bottom:0">
-          <button class="btn" onclick="openMarketingSection(3)">Підготувати кампанію</button>
-          <button class="btn secondary" onclick="openMarketingSection(7)">Паспорт сеансу</button>
-          <button class="btn secondary" onclick="openMarketingSection(5)">Записати дію</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="four-col">
-      ${renderAudienceMini(s)}
-      ${renderChannelsMini(s)}
-      ${renderTicketTypesMini(s)}
-      ${renderMarketingPassportMini(s)}
-    </div>
-  `;
-}
-
-function renderCurrentSection(){
-  const panel = document.getElementById("activeSectionPanel");
-  panel.innerHTML = `
-    <div class="section-caption">
-      <div>
-        <div class="eyebrow">LIVE • CONTROL CENTER</div>
-        <h2>📍 Що відбувається зараз</h2>
-        <div class="muted">Не звіт заради звіту: знайти відхилення, зрозуміти причину, перейти до дії.</div>
-      </div>
-      <div class="toolbar" style="margin:0">
-        <button class="btn secondary" onclick="selectAllVisibleSeances()">Вибрати всі найближчі</button>
-        <button class="btn danger" onclick="clearSeanceSelection()">Скинути вибір</button>
-      </div>
-    </div>
-
-    ${renderControlCenterHtml()}
-
-    <div class="section-caption">
-      <div>
-        <h3>Сеанси під контролем</h3>
-        <div class="muted">«Фокус» відкриває детальний розбір одного сеансу. Checkbox залишає мультивибір.</div>
-      </div>
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Сеанс</th>
-            <th>Дата</th>
-            <th>Жанр</th>
-            <th>Продажі та аудиторія</th>
-            <th>Стан і дії</th>
-          </tr>
-        </thead>
-        <tbody>${opportunitiesRowsHtml()}</tbody>
-      </table>
-    </div>
-  `;
-}
-
-function opportunitiesRowsHtml(){
-  const upcoming = upcomingSeances().slice(0, 30);
-  if(!upcoming.length) return `<tr><td colspan="6" class="muted">Немає майбутніх сеансів</td></tr>`;
-
-  return upcoming.map(s => {
-    const genre = s.genre || "—";
-    const aud = audienceForGenre(genre);
-    const stats = getSeanceStats(s.id);
-    const days = daysToSeance(s);
-    const vip = aud.filter(c => c.isVip).length;
-    const lost = aud.filter(c => c.isLost).length;
-    const sales = getSalesWindowStats([String(s.id)]);
-    const analysis = evaluateSeance({
-      sold: stats.sold,
-      capacity: Number(s.capacity || 0),
-      daysLeft: days ?? 0,
-      genreAudience: aud.length,
-      vipCount: vip,
-      lostCount: lost,
-      last7Sales: sales.last7
-    });
-
-    const riskClass = analysis.risk === "Високий" ? "bad" : analysis.risk === "Середній" ? "warn" : "good";
-    const checked = CURRENT_SEANCE_IDS.includes(String(s.id)) ? "checked" : "";
-    const focused = CURRENT_SEANCE_IDS.length === 1 && CURRENT_SEANCE_IDS.includes(String(s.id));
-
-    return `
-      <tr class="${focused ? "focused-row" : ""}">
-        <td><input type="checkbox" ${checked} onchange="toggleSeance('${esc(s.id)}')"></td>
-        <td>
-          <b>${esc(s.show || "Подія")}</b><br>
-          <span class="muted">${esc(s.event_type || "")}</span><br>
-          <span class="muted">До сеансу: ${days !== null ? days + " дн." : "—"}</span><br>
-          <button class="btn small secondary" style="margin-top:7px" onclick="setFocusSeance('${esc(s.id)}')">Фокус</button>
-        </td>
-        <td>${fmtDate(s.date)}</td>
-        <td><span class="pill">${esc(genre)}</span></td>
-        <td>
-          Продано: <b>${stats.sold}</b>${Number(s.capacity || 0) ? ` / ${Number(s.capacity).toLocaleString("uk-UA")}` : ""}<br>
-          Сума: ${stats.sum.toLocaleString("uk-UA")} грн<br>
-          За 7 днів: ${sales.last7} (${sales.change > 0 ? "+" : ""}${sales.change}%)<br>
-          Аудиторія жанру: ${aud.length}<br>
-          VIP: ${vip} • Втрачені: ${lost}
-        </td>
-        <td>
-          <span class="pill ${riskClass}">${analysis.status}</span>
-          <span class="pill">Ризик: ${analysis.risk}</span><br><br>
-          Факт: ${analysis.fill}%<br>
-          Орієнтир: ${analysis.plannedFill}%<br>
-          Відхилення: ${analysis.lag > 0 ? "+" : ""}${analysis.lag}%<br><br>
-          ${analysis.reasons.slice(0,2).map(esc).join("<br>")}<br><br>
-          <b style="color:#8dc2ff">${analysis.actions.slice(0,3).map(esc).join("<br>")}</b>
-        </td>
-      </tr>
-    `;
-  }).join("");
-}
-
-function renderAudienceSection(){
-  const panel = document.getElementById("activeSectionPanel");
-  const scopeIds = getScopeSeanceIds();
-  const scopeSeances = getScopeSeances();
-  const genres = Array.from(new Set(scopeSeances.map(s => s.genre).filter(x => x && x !== "—")));
-  const ticketTypes = getTicketTypeStats(scopeIds);
-  const intel = getAudienceIntelligence(scopeIds);
-  const recommendedKey = intel.recommended?.key || "";
-
-  panel.innerHTML = `
-    <div class="section-caption">
-      <div>
-        <div class="eyebrow">AUDIENCE INTELLIGENCE</div>
-        <h2>👥 Кому запропонувати цей сеанс</h2>
-        <div class="muted">Головне правило: не рекламувати тим, хто вже купив. VA відокремлює факт покупки від потенційної аудиторії.</div>
-      </div>
-    </div>
-
-    ${renderScopeHeader()}
-
-    ${renderExternalAudienceContext()}
-
-    <div class="flow">
-      <div class="flow-step">Клієнтська база: <b>${intel.baseSize}</b></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">Уже купили: <b>${intel.alreadyBought}</b></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">Можна запросити, ще не купили: <b>${intel.relevantNotBought}</b></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">Обрати сегмент і дію</div>
-    </div>
-
-    <div class="audience-grid">
-      ${intel.segments.map(seg => `
-        <div class="aud-card ${seg.key === recommendedKey ? "recommended" : ""}">
-          ${seg.key === recommendedKey ? `<div class="aud-label">Рекомендований старт</div>` : ""}
-          <h3>${esc(seg.label)}</h3>
-          <div class="aud-number">${seg.count}</div>
-          <div class="aud-meta">${esc(seg.description)}</div>
-          <div class="aud-meta" style="margin-top:8px">
-            Контакти: ${seg.reachable}<br>
-            Email: ${seg.email} • Телефон: ${seg.phone}
-          </div>
-          <button class="btn small" style="margin-top:12px" onclick="prepareCampaignForSegment('${seg.key}')" ${seg.count ? "" : "disabled"}>
-            До кампанії
-          </button>
-        </div>
-      `).join("")}
-    </div>
-
-    <div class="three-col">
-      <div class="box">
-        <h3>Жанри у фокусі</h3>
-        ${genres.length ? genres.map(g => `<span class="pill">${esc(g)}</span>`).join(" ") : `<span class="muted">Жанр не заповнений у сеансі.</span>`}
-      </div>
-      <div class="box">
-        <h3>Типи квитків уже купили</h3>
-        ${Object.keys(ticketTypes).length
-          ? Object.entries(ticketTypes).map(([k,v]) => `<span class="pill">${esc(ticketTypeLabel(k))}: ${v}</span>`).join(" ")
-          : `<span class="muted">Поки немає квитків.</span>`}
-      </div>
-      <div class="box">
-        <h3>Принцип VA</h3>
-        <div class="muted">Сегменти тут не створюють копію КБ. Вони обчислюються на льоту з історії покупок, відвідувань і поточного сеансу.</div>
-      </div>
-    </div>
-
-    <div class="privacy-note">На цьому екрані показуються тільки агреговані кількості. Персональні контакти не виводяться і не експортуються автоматично.</div>
-  `;
-}
-
-function renderChannelsSection(){
-  const panel = document.getElementById("activeSectionPanel");
-  const rows = getChannelRows(getScopeSeanceIds());
-  panel.innerHTML = `
-    <h2>📣 Канали продажів</h2>
-    ${renderScopeHeader()}
-    <div class="muted" style="margin-bottom:12px">Рахуємо тільки продані квитки. Канал = місце входу на схему, яке дало продаж.</div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Канал</th><th>Квитків</th><th>Сума</th><th>Середній чек</th><th>Частка</th></tr>
-        </thead>
-        <tbody>
-          ${rows.length ? rows.map(r => `
-            <tr>
-              <td><b>${esc(r.channel)}</b></td>
-              <td>${r.tickets}</td>
-              <td>${r.sum.toLocaleString("uk-UA")} грн</td>
-              <td>${r.avg.toLocaleString("uk-UA")} грн</td>
-              <td>${r.share}%</td>
-            </tr>
-          `).join("") : `<tr><td colspan="5" class="muted">Немає продажів</td></tr>`}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function compactText(v, max=140){
-  const x = String(v || "").replace(/\s+/g," ").trim();
-  return x.length > max ? x.slice(0, max - 1).trim() + "…" : x;
-}
-
-function splitArguments(v){
-  return String(v || "")
-    .split(/\n|;|•/)
-    .map(x => x.replace(/^[-–—\s]+/,"").trim())
-    .filter(Boolean)
-    .slice(0,4);
-}
-
-function seanceDateLine(seance){
-  if(!seance) return "";
-  const date = seance.date ? fmtDate(seance.date) : "";
-  const time = seance.time ? String(seance.time).slice(0,5) : "";
-  return [date,time].filter(Boolean).join(" • ");
-}
-
-function buildCampaignCopies(seance, ctx, segment){
-  if(!seance || !marketingContextQuickReady(ctx) || !segment) return null;
-  const title = seance.show || "Подія";
-  const when = seanceDateLine(seance);
-  const audience = segment.label || ctx.primaryAudience;
-  const theme = String(ctx.campaignTheme || "").trim();
-  const promise = String(ctx.corePromise || "").trim();
-  const cta = String(ctx.cta || "").trim();
-  const args = splitArguments(ctx.keyArguments);
-  const argText = args.length ? `\n\n${args.map(x => "• " + x).join("\n")}` : "";
-  const price = ctx.priceAngle ? `\n\n${String(ctx.priceAngle).trim()}` : "";
-
-  const social = `«${title}»${when ? ` — ${when}` : ""}.\n\n${theme ? theme + "\n\n" : ""}${promise}${argText}${price}\n\n${cta}`;
-  const emailSubject = compactText(`${title}: ${promise}`, 75);
-  const emailBody = `${audience ? `Для вас — «${title}».` : `«${title}».`}${when ? `\n${when}` : ""}\n\n${theme ? theme + "\n\n" : ""}${promise}${argText}${price}\n\n${cta}`;
-  const sms = compactText(`${title}${when ? `, ${when}` : ""}. ${promise} ${cta}`, 220);
-  const adHeadline = compactText(promise || title, 60);
-  const adPrimary = compactText(`${title}${when ? ` • ${when}` : ""}. ${promise}${args[0] ? ` ${args[0]}.` : ""} ${cta}`, 220);
-
-  return { social, emailSubject, emailBody, sms, adHeadline, adPrimary };
-}
-
-async function copyCampaignText(id){
-  const el = document.getElementById(id);
-  if(!el) return;
-  const text = el.dataset.copy || el.innerText || "";
-  try{
-    await navigator.clipboard.writeText(text);
-  }catch(e){
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    ta.remove();
-  }
-}
-
-function renderCampaignCopyCard(title, body, id, subject=""){
-  const copyValue = subject ? `${subject}\n\n${body}` : body;
-  return `
-    <div class="copy-card">
-      <h3>${esc(title)}</h3>
-      ${subject ? `<div class="copy-subject"><b>Тема:</b> ${esc(subject)}</div>` : ""}
-      <div class="copy-text" id="${id}" data-copy="${escAttr(copyValue)}">${esc(body)}</div>
-      <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="copyCampaignText('${id}')">Копіювати</button></div>
-    </div>`;
-}
-
-
-function campaignAudienceRecipients(campaign){
-  if(!campaign || campaign.segmentKey === "external") return [];
-  const normalized = campaign.segmentKey === "repeat" ? "returned" : campaign.segmentKey;
-  const seg = getAudienceSegment(normalized);
-  const clients = Array.isArray(seg?.clients) ? seg.clients : [];
-  return clients
-    .filter(c => c && (c.email || c.phone))
-    .map(c => ({
-      key:c.key||"",
-      name:c.name||"",
-      email:String(c.email||"").trim(),
-      phone:String(c.phone||"").trim()
-    }));
-}
-
-function sendCampaignToServiceCommunications(){
-  const campaign = getActiveCampaign();
-  if(!campaign) return alert("Спочатку відкрийте або збережіть кампанію.");
-  if(String(campaign.status||"draft") !== "active") return alert("Перед відправленням запустіть кампанію. Так стартовий зріз буде зафіксовано до першого листа.");
-  if(!campaign.seance_id) return alert("У кампанії немає seance_id.");
-  if(campaign.segmentKey === "external") return alert("Зовнішню базу поки не передаємо в автоматичну розсилку. Спочатку потрібен окремий імпорт з явною згодою на контакт.");
-
-  const seance = SEANCES.find(s => String(s.id) === String(campaign.seance_id));
-  if(!seance) return alert("Сеанс кампанії не знайдено.");
-  const normalized = campaign.segmentKey === "repeat" ? "returned" : campaign.segmentKey;
-  const seg = getAudienceSegment(normalized);
-  if(!seg) return alert("Сегмент кампанії зараз недоступний.");
-
-  const passport = marketingContextStatus(seance.id);
-  const ctx = passport?.ctx || emptyMarketingContext();
-  const copies = buildCampaignCopies(seance, ctx, seg);
-  const recipients = campaignAudienceRecipients(campaign);
-  const targetUrl = campaignAttributionUrl(campaign);
-
-  if(!targetUrl) return alert("Не вдалося створити campaign-link.");
-  if(!recipients.length) return alert("У поточному сегменті немає доступних контактів.");
-
-  const payload = {
-    version:1,
-    created_at:new Date().toISOString(),
-    campaign_id:String(campaign.id),
-    campaign_name:campaign.name||`${seance.show||"Подія"} • ${campaign.segmentLabel||"Кампанія"}`,
-    campaign_status:campaign.status||"active",
-    segment_key:normalized,
-    segment_label:campaign.segmentLabel||seg.label||"",
-    seance_id:String(campaign.seance_id),
-    project_id:String(seance.project_id||""),
-    venue_id:String(seance.venue_id||seance.venue||""),
-    channel:"email",
-    subject:copies?.emailSubject||`${seance.show||"Подія"} — запрошення`,
-    body:copies?.emailBody||`${ctx.corePromise||""}\n\n${ctx.cta||"Обрати квиток"}`.trim(),
-    cta_text:ctx.cta||"Обрати квиток",
-    target_url:targetUrl,
-    recipients
-  };
-
-  try{
-    localStorage.setItem(SERVICE_BRIDGE_STORAGE_KEY, JSON.stringify(payload));
-  }catch(e){
-    console.error(e);
-    return alert("Не вдалося передати контекст у Службові комунікації.");
-  }
-
-  const url = new URL("service-communications.html", location.href);
-  url.searchParams.set("source","marketing");
-  url.searchParams.set("campaign_id",String(campaign.id));
-  url.searchParams.set("seance",String(campaign.seance_id));
-  if(payload.project_id) url.searchParams.set("project",payload.project_id);
-  if(payload.venue_id) url.searchParams.set("venue",payload.venue_id);
-  window.location.href = url.toString();
-}
-function renderCampaignsSection(){
-  const s = getMarketingSnapshot();
-  const brief = buildMarketingBrief(s);
-  const intel = getAudienceIntelligence(getScopeSeanceIds());
-  const externalCtx = externalContextForFocus();
-  const selected = CAMPAIGN_DRAFT.segmentKey === "external" && externalCtx
-    ? {
-        key:"external",
-        label:CAMPAIGN_DRAFT.segmentLabel || `${externalCtx.operator || "Зовнішня база"}`,
-        count:Number(externalCtx.available||0),
-        reachable:Number(externalCtx.available||0),
-        email:Number(externalCtx.email||0),
-        phone:Number(externalCtx.phone||0),
-        description:`Окремий імпорт ${externalCtx.operator || "оператора"}; виключено тих, хто вже купив поточний сеанс.`
-      }
-    : (CAMPAIGN_DRAFT.segmentKey
-        ? getAudienceSegment(CAMPAIGN_DRAFT.segmentKey)
-        : null);
-
-  const focusSeance = s.seances.length === 1 ? s.seances[0] : null;
-  const days = focusSeance ? daysToSeance(focusSeance) : null;
-  const passport = focusSeance ? marketingContextStatus(focusSeance.id) : null;
-  const ctx = passport?.ctx || emptyMarketingContext();
-  const copies = buildCampaignCopies(focusSeance, ctx, selected);
-  const activeCampaign = getActiveCampaign();
-  const campaignRows = selectedSeanceCampaigns();
-
-  document.getElementById("activeSectionPanel").innerHTML = `
-    <div class="section-caption">
-      <div>
-        <div class="eyebrow">CAMPAIGN WORKBENCH</div>
-        <h2>🎯 Кампанія: від діагнозу до дії</h2>
-        <div class="muted">Без автоматичної відправки. VA готує обґрунтоване завдання, маркетолог приймає рішення.</div>
-      </div>
-    </div>
-
-    ${renderExternalAudienceContext()}
-
-    <div class="box campaign-card" style="margin-bottom:14px">
-      <div class="eyebrow">VA Campaign Object • V2.8.1</div>
-      ${activeCampaign ? `
-        <div class="context-bridge-row">
-          <div>
-            <h3>${esc(activeCampaign.name || "Кампанія")}</h3>
-            <div class="micro"><span class="campaign-id">${esc(activeCampaign.id)}</span> • створено ${fmtDate(activeCampaign.created_at)}</div>
-          </div>
-          <div><span class="pill status-${esc(activeCampaign.status || "draft")}">${esc(campaignStatusLabel(activeCampaign.status || "draft"))}</span></div>
-        </div>
-      ` : `<div class="muted">Поки це робоча чернетка. Після вибору сегмента натисніть «Зберегти як кампанію» — VA створить постійний campaign_id.</div>`}
-      <div class="toolbar">
-        <button class="btn" onclick="saveCampaignEntity()" ${(CAMPAIGN_DRAFT.segmentKey && (!activeCampaign || (activeCampaign.status || "draft") === "draft")) ? "" : "disabled"}>${activeCampaign && (activeCampaign.status || "draft") !== "draft" ? "Параметри зафіксовані" : activeCampaign ? "Оновити кампанію" : "Зберегти як кампанію"}</button>
-        <button class="btn secondary" onclick="newCampaignEntity()">Нова кампанія</button>
-      </div>
-      ${activeCampaign ? renderCampaignLifecycle(activeCampaign) : ""}
-    </div>
-
-    ${renderScopeHeader()}
-
-    <div class="box" style="margin-bottom:14px">
-      <div class="eyebrow">ОБЕРІТЬ АУДИТОРІЮ КАМПАНІЇ</div>
-      <h3 style="margin-bottom:6px">Кому показуємо саме цей сеанс</h3>
-      <div class="muted" style="margin-bottom:12px">Ті, хто вже купив поточний сеанс (${intel.alreadyBought}), автоматично виключені з усіх сегментів. Сегменти можуть перетинатися.</div>
-      <div class="toolbar" style="margin-bottom:8px">
-        ${intel.segments.map(seg => `
-          <button class="btn small ${CAMPAIGN_DRAFT.segmentKey === seg.key ? "" : "secondary"}"
-                  onclick="prepareCampaignForSegment('${seg.key}')"
-                  ${seg.count ? "" : "disabled"}>
-            ${esc(seg.label)} · ${seg.count}${seg.key === intel.recommended?.key ? " ★" : ""}
-          </button>
-        `).join("")}
-        ${externalCtx ? `
-          <button class="btn small ${CAMPAIGN_DRAFT.segmentKey === "external" ? "" : "secondary"}"
-                  onclick="prepareExternalCampaign()"
-                  ${Number(externalCtx.available||0) ? "" : "disabled"}>
-            Зовнішня база · ${Number(externalCtx.available||0)}
-          </button>
-        ` : ""}
-      </div>
-      <div class="micro">★ — рекомендація VA за наявними даними. «Вся КБ» означає всю ідентифіковану клієнтську базу, крім тих, хто вже купив цей сеанс.</div>
-    </div>
-
-    <div class="campaign-brief">
-      <div class="box">
-        <div class="eyebrow">1 • Аудиторія</div>
-        <h3>${esc(CAMPAIGN_DRAFT.segmentLabel || "Сегмент не обраний")}</h3>
-        <div class="big-value">${CAMPAIGN_DRAFT.audienceCount || 0}</div>
-        <div class="muted">потенційних глядачів • доступні контакти: ${CAMPAIGN_DRAFT.reachableCount || 0}</div>
-        <div class="toolbar">
-          <button class="btn secondary" onclick="openMarketingSection(1)">Змінити сегмент</button>
-        </div>
-      </div>
-
-      <div class="box">
-        <div class="eyebrow">2 • Задача</div>
-        <h3>${esc(CAMPAIGN_DRAFT.objective || "Спочатку оберіть аудиторію")}</h3>
-        <div class="metric-row"><span>Канал для прямого контакту</span><b>${esc(CAMPAIGN_DRAFT.channel || "—")}</b></div>
-        <div class="metric-row"><span>До сеансу</span><b>${days !== null ? days + " дн." : "—"}</b></div>
-        <div class="metric-row"><span>Темп 7/7</span><b>${s.sales.change > 0 ? "+" : ""}${s.sales.change}%</b></div>
-      </div>
-    </div>
-
-    <div class="two-col">
-      <div class="box">
-        <div class="eyebrow">3 • Чому саме зараз</div>
-        <h3>Факти VA</h3>
-        <div class="signal-list">
-          ${brief.facts.slice(0,4).map(x => `<div class="signal ${x.type}-line">${esc(x.text)}</div>`).join("") || `<div class="signal info-line">Поки недостатньо даних.</div>`}
-        </div>
-      </div>
-
-      <div class="box">
-        <div class="eyebrow">4 • Рішення маркетолога</div>
-        <h3>Рекомендовані дії</h3>
-        <div class="action-list">
-          ${brief.actions.slice(0,4).map((x,i) => `<div class="action-item"><strong>${i+1}.</strong> ${esc(x)}</div>`).join("") || `<div class="action-item">Спостерігати.</div>`}
-        </div>
-      </div>
-    </div>
-
-    <div class="box" style="margin-top:14px">
-      <div class="eyebrow">5 • Що говорити</div>
-      <h3>Змістова основа кампанії</h3>
-      ${focusSeance ? `
-        <div class="passport-grid">
-          <div>
-            <div class="metric-row"><span>Готовність паспорта</span><b>${passport.completeness}%</b></div>
-            <div class="metric-row"><span>Основна аудиторія</span><b>${esc(ctx.primaryAudience || "—")}</b></div>
-            <div class="metric-row"><span>Tone of voice</span><b>${esc(ctx.tone || "—")}</b></div>
-          </div>
-          <div class="context-preview"><b>Головна теза</b><br>${esc(ctx.corePromise || "Поки не зафіксована.")}<br><br><b>CTA</b><br>${esc(ctx.cta || "—")}</div>
-        </div>
-        ${ctx.doNotUse ? `<div class="notice"><b>Не використовувати:</b> ${esc(ctx.doNotUse)}</div>` : ""}
-        <div class="toolbar"><button class="btn secondary" onclick="openMarketingSection(7)">${passport.quickReady ? "Редагувати паспорт" : "Заповнити 4 поля"}</button></div>
-      ` : `<div class="muted">Для змістової основи оберіть один сеанс.</div>`}
-    </div>
-
-    <div class="box" style="margin-top:14px">
-      <div class="eyebrow">6 • Чернетки повідомлень</div>
-      <h3>Один контекст → чотири робочі формати</h3>
-      ${copies ? `
-        <div class="muted">Це не зовнішній AI. V2.3 збирає структуровані чернетки з паспорта, даних сеансу та вибраного сегмента. Маркетолог редагує перед публікацією.</div>
-        <div class="copy-grid">
-          ${renderCampaignCopyCard("Соцмережі", copies.social, "copySocial")}
-          ${renderCampaignCopyCard("Email", copies.emailBody, "copyEmail", copies.emailSubject)}
-          ${renderCampaignCopyCard("SMS / месенджер", copies.sms, "copySms")}
-          ${renderCampaignCopyCard("Рекламне оголошення", copies.adPrimary, "copyAd", copies.adHeadline)}
-        </div>
-      ` : `
-        <div class="notice"><b>Потрібен швидкий паспорт.</b> Заповніть 4 поля: кому продаємо, чому йти, як говоримо і CTA. Після цього чернетки з'являться тут автоматично.</div>
-        <div class="toolbar"><button class="btn secondary" onclick="openMarketingSection(7)">До швидкого паспорта</button></div>
-      `}
-    </div>
-
-    <div class="box" style="margin-top:14px">
-      <div class="eyebrow">7 • Закрити цикл</div>
-      <h3>Зафіксувати рішення</h3>
-      <div class="muted">${esc(CAMPAIGN_DRAFT.comment || "Оберіть сегмент аудиторії — і VA збере контекст кампанії.")}</div>
-      <div class="toolbar">
-        <button class="btn" onclick="sendCampaignDraftToJournal()" ${CAMPAIGN_DRAFT.segmentKey ? "" : "disabled"}>Передати в журнал маркетингу</button>
-        <button class="btn" onclick="sendCampaignToServiceCommunications()" ${activeCampaign && String(activeCampaign.status||"draft")==="active" ? "" : "disabled"}>✉ Передати в комунікації</button>
-        <button class="btn secondary" onclick="openMarketingSection(0)">Назад у Control Center</button>
-      </div>
-    </div>
-
-    <div class="box" style="margin-top:14px">
-      <div class="eyebrow">Кампанії цього сеансу</div>
-      <h3>Постійні об'єкти, а не записи журналу</h3>
-      ${campaignRows.length ? `
-        <div class="campaign-list">
-          ${campaignRows.slice(0,8).map(c => `
-            <div class="campaign-row ${String(c.id) === String(ACTIVE_CAMPAIGN_ID) ? "active" : ""}">
-              <div><b>${esc(c.name || "Кампанія")}</b><div class="micro campaign-id">${esc(c.id)}</div></div>
-              <div><span class="pill status-${esc(c.status || "draft")}">${esc(campaignStatusLabel(c.status || "draft"))}</span></div>
-              <div class="micro">${esc(c.segmentLabel || "—")} • ${Number(c.audienceCount || 0)} ос.</div>
-              <div><button class="btn secondary small" onclick="openCampaignEntity('${escAttr(c.id)}')">Відкрити</button></div>
-            </div>
-          `).join("")}
-        </div>
-      ` : `<div class="muted">Для цього сеансу ще немає збережених кампаній.</div>`}
-    </div>
-
-    <div class="notice">
-      <b>Що вже замкнуто:</b> стан сеансу → маркетинговий паспорт → релевантна аудиторія → виключення тих, хто вже купив → вибір сегмента → змістова основа кампанії → журнал дії.
-      У V2.10 lifecycle, Attribution V1 і міст у «Службові комунікації» збережені. Додано Campaign Result V1: часовий приріст, пряма атрибуція, Email-виконання, бюджет і доказовий підсумок, який передається директору.
-    </div>
-  `;
-}
-
-
-function playbookSelectHtml(rows,selected){
-  return (rows||[]).map(x=>`<option value="${escAttr(x.value)}" ${String(x.value)===String(selected)?"selected":""}>${esc(x.label)}</option>`).join("");
-}
-function playbookGenresFor(type){
-  const tax=window.VAEventTaxonomy;
-  const wanted=String(type||"");
-  if(!tax||!wanted)return [];
-  try{
-    const direct=typeof tax.genresFor==="function" ? tax.genresFor(wanted) : [];
-    if(Array.isArray(direct)&&direct.length){
-      return direct.map(x=>Array.isArray(x)?{value:x[0],label:x[1]}:{value:x.value,label:x.label});
-    }
-  }catch(e){console.warn("VA taxonomy genresFor fallback",e);}
-  const row=(Array.isArray(tax.raw)?tax.raw:[]).find(t=>String(t?.value||t?.label||"")===wanted);
-  return (row?.genres||[]).map(x=>Array.isArray(x)?{value:x[0],label:x[1]}:{value:x.value,label:x.label}).filter(x=>x.value);
-}
-function knowledgeBankV2Ready(){
-  const kb=window.VAMarketingKnowledgeBase;
-  return !!(kb && typeof kb.resolve==="function" && typeof kb.getScenarios==="function" && typeof kb.getTemplates==="function");
-}
-function playbookChannelFromCampaign(value){
-  const v=String(value||"").toLowerCase();
-  if(v.includes("email"))return "email"; if(v.includes("facebook")||v.includes("instagram")||v.includes("social"))return "social"; if(v.includes("telegram")||v.includes("viber"))return "messenger"; if(v.includes("sms"))return "sms"; return "all";
-}
-function playbookAudienceFromCampaign(value){
-  const v=String(value||"").toLowerCase();
-  if(["new","returned","regular","vip","lost","genre"].includes(v))return v;
-  if(v==="repeat")return "returned"; return "all";
-}
-function syncPlaybookFiltersFromFocus(){
-  const s=getFocusSeance(); const sid=String(s?.id||"");
-  if(sid===PLAYBOOK_FILTER_SEANCE_ID)return;
-  PLAYBOOK_FILTER_SEANCE_ID=sid;
-  const c=getActiveCampaign();
-  PLAYBOOK_FILTERS={eventType:String(s?.event_type||""),genre:String(s?.genre||""),objective:"launch",audience:c&&String(c.seance_id)===sid?playbookAudienceFromCampaign(c.segmentKey):"all",channel:c&&String(c.seance_id)===sid?playbookChannelFromCampaign(c.channel):"all"};
-}
-function setPlaybookTab(tab){ PLAYBOOK_TAB=tab; renderPlaybooksSection(); }
-function setPlaybookFilter(key,value){
-  PLAYBOOK_FILTERS[key]=String(value||"");
-  if(key==="eventType"){
-    const rows=playbookGenresFor(PLAYBOOK_FILTERS.eventType);
-    if(!rows.some(x=>x.value===PLAYBOOK_FILTERS.genre))PLAYBOOK_FILTERS.genre="";
-  }
-  renderPlaybooksSection();
-}
-function knowledgeVenueId(){ return String(getFocusSeance()?.venue_id||""); }
-function customKnowledgeMatches(row, filters=PLAYBOOK_FILTERS){
-  if(!row || row.is_active===false) return false;
-  const exact=(field,filterKey)=>{
-    const rv=String(row[field]||"").trim();
-    const fv=String(filters[filterKey]||"").trim();
-    return !rv || !fv || rv===fv;
-  };
-  if(row.scope==="venue" && row.venue_id && String(row.venue_id)!==knowledgeVenueId()) return false;
-  return exact("event_type","eventType")&&exact("genre","genre")&&exact("objective","objective")&&exact("audience","audience")&&exact("channel","channel");
-}
-async function reloadCustomKnowledge(){
-  try{
-    const {data,error}=await sb.from("marketing_knowledge_items").select("*").eq("is_active",true).order("created_at",{ascending:false}).limit(2000);
-    if(error) throw error;
-    CUSTOM_KNOWLEDGE_ITEMS=data||[];
-    CUSTOM_KNOWLEDGE_SCHEMA_READY=true;
-  }catch(e){
-    CUSTOM_KNOWLEDGE_ITEMS=[];
-    CUSTOM_KNOWLEDGE_SCHEMA_READY=false;
-    console.info("Custom Marketing Knowledge table is optional until installed:",e.message);
-  }
-}
-function customIdeaRows(category=""){
-  return CUSTOM_KNOWLEDGE_ITEMS.filter(r=>r.kind==="idea"&&(!category||r.category===category)&&customKnowledgeMatches(r));
-}
-function customTemplateRows(){
-  return CUSTOM_KNOWLEDGE_ITEMS.filter(r=>r.kind==="template"&&customKnowledgeMatches(r));
-}
-function customItemAsPlaybook(row){
-  return row?{id:`custom:${row.id}`,target:row.category,text:row.text||row.title||"",source:"custom",raw:row}:null;
-}
-function getPlaybookItemById(id){
-  const raw=String(id||"");
-  if(raw.startsWith("custom:")){
-    const row=CUSTOM_KNOWLEDGE_ITEMS.find(x=>String(x.id)===raw.slice(7));
-    return customItemAsPlaybook(row);
-  }
-  return window.VAMarketingKnowledgeBase?.getItem(raw)||null;
-}
-function mergeCustomIntoPack(pack){
-  const out={...pack};
-  const categories=["campaignTheme","primaryAudience","corePromise","keyArguments","tone","cta","barriers","priceAngle","contentMechanic","occasion","doNotUse"];
-  categories.forEach(cat=>{
-    const mine=customIdeaRows(cat).map(customItemAsPlaybook).filter(Boolean);
-    out[cat]=[...mine,...(pack?.[cat]||[])];
-  });
-  return out;
-}
-async function applyPlaybookItem(id){
-  const s=getFocusSeance(); if(!s)return alert("Спочатку оберіть один сеанс кнопкою «Фокус».");
-  const item=getPlaybookItemById(id); if(!item)return;
-  const ctx=getMarketingContext(s.id); const target=item.target;
-  const appendTargets=["keyArguments","barriers","doNotUse","notes"];
-  if(target==="contentMechanic"||target==="occasion"){
-    const line=item.text;
-    const lines=String(ctx.notes||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);
-    if(!lines.includes(line))lines.push(line);
-    ctx.notes=lines.join("\n");
-  }else if(appendTargets.includes(target)){
-    const lines=String(ctx[target]||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);
-    if(!lines.includes(item.text))lines.push(item.text);
-    ctx[target]=lines.join("\n");
-  }else{
-    ctx[target]=item.text;
-  }
-  await persistMarketingContextObject(s.id,ctx,`${item.source==="custom"?"Власну":"Банкову"} ідею додано в паспорт: ${item.text}`);
-  renderPlaybooksSection();
-}
-async function applyPlaybookBundle(overwrite=false){
-  const s=getFocusSeance(); if(!s)return alert("Спочатку оберіть один сеанс кнопкою «Фокус».");
-  if(!window.VAMarketingKnowledgeBase)return alert("Банк маркетингових ідей не завантажено.");
-  if(overwrite&&!confirm("Замінити базові поля маркетингового паспорта вибраною основою?"))return;
-  const pack=mergeCustomIntoPack(VAMarketingKnowledgeBase.resolve(PLAYBOOK_FILTERS)); const ctx=getMarketingContext(s.id);
-  const put=(field,value)=>{ if(value&&(overwrite||!String(ctx[field]||"").trim()))ctx[field]=value; };
-  put("primaryAudience",pack.primaryAudience?.[0]?.text||"");
-  put("campaignTheme",pack.campaignTheme?.[0]?.text||"");
-  put("corePromise",pack.corePromise?.[0]?.text||"");
-  put("tone",pack.tone?.[0]?.text||"");
-  put("cta",pack.cta?.[0]?.text||"");
-  if(overwrite||!String(ctx.keyArguments||"").trim())ctx.keyArguments=(pack.keyArguments||[]).slice(0,3).map(x=>x.text).join("\n");
-  await persistMarketingContextObject(s.id,ctx,overwrite?"Паспорт замінено основою з Банку ідей.":"Порожні поля паспорта заповнено з Банку ідей.");
-  renderPlaybooksSection();
-}
-function openPassportFromPlaybook(){ openMarketingSection(7); }
-function playbookVars(pack){
-  const s=getFocusSeance()||{}; const ctx=getMarketingContext(s.id); const c=getActiveCampaign();
-  const arg=String(ctx.keyArguments||"").split(/\n+/).map(x=>x.trim()).find(Boolean)||pack.keyArguments?.[0]?.text||"";
-  const campaignUrl=c&&String(c.seance_id)===String(s.id)?campaignAttributionUrl(c):"{{campaign_url}}";
-  return {
-    event:s.show||"Назва події",
-    date:fmtDate(s.date||"")||"дата",
-    time:String(s.time||"").slice(0,5)||"час",
-    campaignTheme:ctx.campaignTheme||pack.campaignTheme?.[0]?.text||"",
-    corePromise:ctx.corePromise||pack.corePromise?.[0]?.text||"",
-    argument1:arg,
-    cta:ctx.cta||pack.cta?.[0]?.text||"Обрати квиток",
-    campaign_url:campaignUrl
-  };
-}
-async function copyPlaybookTemplate(id){
-  const kb=window.VAMarketingKnowledgeBase; if(!kb)return;
-  let t=null;
-  if(String(id).startsWith("customtpl:")){
-    const row=CUSTOM_KNOWLEDGE_ITEMS.find(x=>String(x.id)===String(id).slice(10));
-    if(row)t={id,name:row.title||"Мій шаблон",channel:row.channel||"all",subject:row.subject_template||"",body:row.body_template||"",notes:row.notes||""};
-  }else t=kb.getTemplates({...PLAYBOOK_FILTERS,channel:"all"}).find(x=>x.id===id)||null;
-  if(!t)return;
-  const pack=mergeCustomIntoPack(kb.resolve(PLAYBOOK_FILTERS));
-  const r=kb.renderTemplate(t,playbookVars(pack));
-  const text=[r.subject,r.body].filter(Boolean).join("\n\n");
-  try{await navigator.clipboard.writeText(text);alert("Шаблон скопійовано.");}catch(e){window.prompt("Скопіюйте текст:",text);}
-}
-async function reuseCampaignExperience(id){
-  const current=getFocusSeance(); if(!current)return alert("Оберіть сеанс, для якого треба використати досвід.");
-  const c=CAMPAIGNS.find(x=>String(x.id)===String(id)); if(!c)return;
-  const p=c.passport||{}; const ctx=getMarketingContext(current.id);
-  if(!confirm(`Використати основу кампанії «${c.name||"Кампанія"}» для паспорта поточного сеансу?`))return;
-  ["primaryAudience","campaignTheme","corePromise","keyArguments","tone","cta"].forEach(k=>{if(String(p[k]||"").trim())ctx[k]=p[k]});
-  await persistMarketingContextObject(current.id,ctx,"Основа перевіреного сценарію перенесена в паспорт."); renderPlaybooksSection();
-}
-function renderIdeaGroup(title,items){
-  return `<div class="box"><h3>${esc(title)}</h3><div class="idea-list">${(items||[]).length?(items||[]).map(x=>`<div class="idea-item ${x.source==="custom"?"mine":""}"><div><div class="idea-target">${esc(title)}${x.source==="custom"?'<span class="custom-chip">МОЄ</span>':""}</div><div class="idea-text">${esc(x.text)}</div></div><div class="idea-actions"><button class="btn small secondary" onclick="applyPlaybookItem('${escAttr(x.id)}')">→ Паспорт</button>${x.source==="custom"?`<button class="btn small secondary" onclick="editCustomIdea('${escAttr(x.raw.id)}')">Редагувати</button><button class="btn small danger" onclick="deleteCustomKnowledge('${escAttr(x.raw.id)}')">×</button>`:""}</div></div>`).join(""):`<div class="muted">Для цього фільтра варіантів немає.</div>`}</div></div>`;
-}
-function knowledgeScopeOptions(selected="current"){
-  return [
-    ["current","Поточний тип + жанр + задача + аудиторія + канал"],
-    ["genre","Поточний тип + жанр"],
-    ["type","Лише поточний тип"],
-    ["universal","Універсально"]
-  ].map(([v,l])=>`<option value="${v}" ${v===selected?"selected":""}>${esc(l)}</option>`).join("");
-}
-function knowledgeCategoryOptions(selected="campaignTheme"){
-  const labels=window.VAMarketingKnowledgeBase?.categoryLabels||{};
-  return Object.entries(labels).filter(([k])=>!["contentMechanic","occasion"].includes(k)||true).map(([v,l])=>`<option value="${escAttr(v)}" ${v===selected?"selected":""}>${esc(l)}</option>`).join("");
-}
-function knowledgeSecretValue(){ try{return sessionStorage.getItem(KNOWLEDGE_EDIT_SECRET_SESSION_KEY)||""}catch(e){return""} }
-function setKnowledgeSecret(v){ try{if(v)sessionStorage.setItem(KNOWLEDGE_EDIT_SECRET_SESSION_KEY,v);else sessionStorage.removeItem(KNOWLEDGE_EDIT_SECRET_SESSION_KEY)}catch(e){} }
-function customKnowledgeForm(){
-  const row=CUSTOM_IDEA_EDIT_ID?CUSTOM_KNOWLEDGE_ITEMS.find(x=>String(x.id)===String(CUSTOM_IDEA_EDIT_ID)):null;
-  const category=row?.category||"campaignTheme";
-  const scopeMode=row?.scope_mode||"current";
-  return `<details class="custom-bank" ${CUSTOM_IDEA_EDIT_ID?"open":""}><summary>＋ ${CUSTOM_IDEA_EDIT_ID?"Редагувати власний запис":"Додати свою тему або формулювання"}</summary>
-    <div class="muted" style="margin-top:8px">Власні записи не змінюють системний Банк. Вони накладаються поверх нього й можуть бути прив’язані до жанру, задачі або всього майданчика.</div>
-    <div class="custom-form-grid">
-      <div><label>Категорія</label><select id="kbCustomCategory">${knowledgeCategoryOptions(category)}</select></div>
-      <div><label>Прив’язка</label><select id="kbCustomScopeMode">${knowledgeScopeOptions(scopeMode)}</select></div>
-      <div><label>Рівень</label><select id="kbCustomVenueScope"><option value="global" ${row?.scope!=="venue"?"selected":""}>Для всіх майданчиків</option><option value="venue" ${row?.scope==="venue"?"selected":""}>Лише цей майданчик</option></select></div>
-      <div class="wide"><label>Текст / тема</label><textarea id="kbCustomText" placeholder="Ваша формулювання, тема, аргумент, CTA, механіка...">${esc(row?.text||"")}</textarea></div>
-      <div class="wide"><label>Ключ редагування Банку</label><input id="kbEditSecret" type="password" value="${escAttr(knowledgeSecretValue())}" placeholder="MARKETING_KNOWLEDGE_SECRET"></div>
-    </div>
-    <div class="toolbar" style="margin:10px 0 0"><button class="btn small" onclick="saveCustomIdea()">${CUSTOM_IDEA_EDIT_ID?"Зберегти зміни":"Додати в Банк"}</button>${CUSTOM_IDEA_EDIT_ID?'<button class="btn small secondary" onclick="cancelCustomIdeaEdit()">Скасувати</button>':""}</div>
-  </details>`;
-}
-function customTemplateForm(){
-  const row=CUSTOM_TEMPLATE_EDIT_ID?CUSTOM_KNOWLEDGE_ITEMS.find(x=>String(x.id)===String(CUSTOM_TEMPLATE_EDIT_ID)):null;
-  return `<details class="custom-bank" ${CUSTOM_TEMPLATE_EDIT_ID?"open":""}><summary>＋ ${CUSTOM_TEMPLATE_EDIT_ID?"Редагувати власний шаблон":"Додати свій шаблон тексту"}</summary>
-    <div class="custom-form-grid">
-      <div><label>Назва</label><input id="kbTplTitle" value="${escAttr(row?.title||"")}" placeholder="Напр.: Email — особисте запрошення"></div>
-      <div><label>Прив’язка</label><select id="kbTplScopeMode">${knowledgeScopeOptions(row?.scope_mode||"current")}</select></div>
-      <div><label>Рівень</label><select id="kbTplVenueScope"><option value="global" ${row?.scope!=="venue"?"selected":""}>Для всіх майданчиків</option><option value="venue" ${row?.scope==="venue"?"selected":""}>Лише цей майданчик</option></select></div>
-      <div class="wide"><label>Тема листа / заголовок</label><input id="kbTplSubject" value="${escAttr(row?.subject_template||"")}" placeholder="{{event}} — {{date}}"></div>
-      <div class="wide"><label>Текст шаблону</label><textarea id="kbTplBody" placeholder="{{campaignTheme}}\n\n{{corePromise}}\n\n{{cta}}">${esc(row?.body_template||"")}</textarea></div>
-      <div class="wide"><label>Ключ редагування Банку</label><input id="kbTplSecret" type="password" value="${escAttr(knowledgeSecretValue())}" placeholder="MARKETING_KNOWLEDGE_SECRET"></div>
-    </div>
-    <div class="toolbar" style="margin:10px 0 0"><button class="btn small" onclick="saveCustomTemplate()">${CUSTOM_TEMPLATE_EDIT_ID?"Зберегти зміни":"Додати шаблон"}</button>${CUSTOM_TEMPLATE_EDIT_ID?'<button class="btn small secondary" onclick="cancelCustomTemplateEdit()">Скасувати</button>':""}</div>
-  </details>`;
-}
-function knowledgeBinding(mode){
-  const f=PLAYBOOK_FILTERS;
-  if(mode==="current")return {event_type:f.eventType||null,genre:f.genre||null,objective:f.objective||null,audience:f.audience||null,channel:f.channel||null};
-  if(mode==="genre")return {event_type:f.eventType||null,genre:f.genre||null,objective:null,audience:null,channel:null};
-  if(mode==="type")return {event_type:f.eventType||null,genre:null,objective:null,audience:null,channel:null};
-  return {event_type:null,genre:null,objective:null,audience:null,channel:null};
-}
-async function knowledgeAdminRequest(action,item){
-  const secret=String(item?._secret||"").trim()||knowledgeSecretValue();
-  if(!secret)throw new Error("Вкажіть ключ редагування Банку.");
-  setKnowledgeSecret(secret);
-  const payload={action,item:{...item}};
-  delete payload.item._secret;
-  const r=await fetch(`${SUPABASE_URL}/functions/v1/marketing-knowledge-admin`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json",apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"x-va-knowledge-secret":secret},
-    body:JSON.stringify(payload)
-  });
-  const raw=await r.text(); let data={}; try{data=raw?JSON.parse(raw):{}}catch(e){}
-  if(!r.ok||data?.ok===false)throw new Error(data?.error||raw||`HTTP ${r.status}`);
-  return data;
-}
-async function saveCustomIdea(){
-  try{
-    const text=String(document.getElementById("kbCustomText")?.value||"").trim();
-    if(!text)throw new Error("Введіть текст або тему.");
-    const mode=String(document.getElementById("kbCustomScopeMode")?.value||"current");
-    const venueScope=String(document.getElementById("kbCustomVenueScope")?.value||"global");
-    const secret=String(document.getElementById("kbEditSecret")?.value||"").trim();
-    const item={
-      id:CUSTOM_IDEA_EDIT_ID||null,kind:"idea",
-      category:String(document.getElementById("kbCustomCategory")?.value||"campaignTheme"),
-      text,scope_mode:mode,scope:venueScope,venue_id:venueScope==="venue"?knowledgeVenueId():null,
-      ...knowledgeBinding(mode),_secret:secret,is_active:true
-    };
-    await knowledgeAdminRequest("upsert",item);
-    CUSTOM_IDEA_EDIT_ID="";
-    await reloadCustomKnowledge(); renderPlaybooksSection();
-  }catch(e){alert(e.message);}
-}
-function editCustomIdea(id){CUSTOM_IDEA_EDIT_ID=String(id||"");renderPlaybooksSection();setTimeout(()=>document.getElementById("kbCustomText")?.focus(),0);}
-function cancelCustomIdeaEdit(){CUSTOM_IDEA_EDIT_ID="";renderPlaybooksSection();}
-async function saveCustomTemplate(){
-  try{
-    const title=String(document.getElementById("kbTplTitle")?.value||"").trim();
-    const body=String(document.getElementById("kbTplBody")?.value||"").trim();
-    if(!title||!body)throw new Error("Вкажіть назву і текст шаблону.");
-    const mode=String(document.getElementById("kbTplScopeMode")?.value||"current");
-    const venueScope=String(document.getElementById("kbTplVenueScope")?.value||"global");
-    const secret=String(document.getElementById("kbTplSecret")?.value||"").trim();
-    const item={
-      id:CUSTOM_TEMPLATE_EDIT_ID||null,kind:"template",category:"template",title,
-      subject_template:String(document.getElementById("kbTplSubject")?.value||""),
-      body_template:body,scope_mode:mode,scope:venueScope,venue_id:venueScope==="venue"?knowledgeVenueId():null,
-      ...knowledgeBinding(mode),_secret:secret,is_active:true
-    };
-    await knowledgeAdminRequest("upsert",item);
-    CUSTOM_TEMPLATE_EDIT_ID="";
-    await reloadCustomKnowledge(); renderPlaybooksSection();
-  }catch(e){alert(e.message);}
-}
-function editCustomTemplate(id){CUSTOM_TEMPLATE_EDIT_ID=String(id||"");renderPlaybooksSection();}
-function cancelCustomTemplateEdit(){CUSTOM_TEMPLATE_EDIT_ID="";renderPlaybooksSection();}
-async function deleteCustomKnowledge(id){
-  if(!confirm("Видалити цей власний запис із Банку?"))return;
-  try{
-    const secret=knowledgeSecretValue()||window.prompt("Ключ редагування Банку:","");
-    if(!secret)return;
-    await knowledgeAdminRequest("delete",{id:String(id),_secret:secret});
-    CUSTOM_IDEA_EDIT_ID="";CUSTOM_TEMPLATE_EDIT_ID="";
-    await reloadCustomKnowledge(); renderPlaybooksSection();
-  }catch(e){alert(e.message);}
-}
-function renderPlaybookIdeas(basePack){
-  const pack=mergeCustomIntoPack(basePack);
-  return `${customKnowledgeForm()}
-    <div class="toolbar"><button class="btn small" onclick="applyPlaybookBundle(false)">Заповнити порожні поля паспорта</button><button class="btn small secondary" onclick="applyPlaybookBundle(true)">Замінити базові поля</button><button class="btn small secondary" onclick="openPassportFromPlaybook()">Відкрити паспорт →</button></div>
-    <div class="idea-columns">
-      ${renderIdeaGroup("Тема / кут кампанії",pack.campaignTheme)}
-      ${renderIdeaGroup("Кому говоримо",pack.primaryAudience)}
-      ${renderIdeaGroup("Головна теза / гачок",pack.corePromise)}
-      ${renderIdeaGroup("Аргументи й мотиви",pack.keyArguments)}
-      ${renderIdeaGroup("Механіка контенту",pack.contentMechanic)}
-      ${renderIdeaGroup("Привід / момент",pack.occasion)}
-      ${renderIdeaGroup("Тон",pack.tone)}
-      ${renderIdeaGroup("CTA",pack.cta)}
-      ${renderIdeaGroup("Бар’єри",pack.barriers)}
-      ${renderIdeaGroup("Ціновий кут",pack.priceAngle)}
-      ${renderIdeaGroup("Не використовувати",pack.doNotUse)}
-    </div>`;
-}
-function renderPlaybookTemplates(basePack){
-  const kb=window.VAMarketingKnowledgeBase;
-  const pack=mergeCustomIntoPack(basePack);
-  const built=kb.getTemplates(PLAYBOOK_FILTERS).map(t=>({...t,_custom:false}));
-  const mine=customTemplateRows().map(r=>({id:`customtpl:${r.id}`,name:r.title||"Мій шаблон",channel:r.channel||"all",subject:r.subject_template||"",body:r.body_template||"",notes:r.notes||"",_custom:true,_raw:r}));
-  const rows=[...mine,...built];
-  const vars=playbookVars(pack);
-  return `${customTemplateForm()}${rows.length?rows.map(t=>{const r=kb.renderTemplate(t,vars);return `<div class="template-card"><div class="section-caption"><div><div class="eyebrow">${esc(String(t.channel||"all").toUpperCase())}${t._custom?'<span class="custom-chip">МОЄ</span>':""}</div><h3>${esc(t.name)}</h3></div></div>${t.notes?`<div class="muted">${esc(t.notes)}</div>`:""}${r.subject?`<div class="template-preview"><b>${esc(r.subject)}</b>\n\n${esc(r.body)}</div>`:`<div class="template-preview">${esc(r.body)}</div>`}<div class="toolbar"><button class="btn small" onclick="copyPlaybookTemplate('${escAttr(t.id)}')">Скопіювати текст</button><button class="btn small secondary" onclick="applyPlaybookBundle(false)">Заповнити паспорт основою</button>${t._custom?`<button class="btn small secondary" onclick="editCustomTemplate('${escAttr(t._raw.id)}')">Редагувати</button><button class="btn small danger" onclick="deleteCustomKnowledge('${escAttr(t._raw.id)}')">Видалити</button>`:""}</div></div>`}).join(""):`<div class="notice">Для вибраного каналу й задачі шаблонів поки немає.</div>`}`;
-}
-function renderPlaybookScenarios(){
-  const kb=window.VAMarketingKnowledgeBase;
-  if(!knowledgeBankV2Ready()){
-    return `<div class="notice bad"><b>Завантажено старий Marketing Knowledge Bank.</b><br>Для сценаріїв потрібен shared/marketing-knowledge-base-v2.js версії 2.0.1. Поточна версія: ${esc(kb?.version||"не визначена")}.</div>`;
-  }
-  const rows=kb.getScenarios(PLAYBOOK_FILTERS)||[];
-  if(!rows.length)return `<div class="notice">Для цих фільтрів окремого сценарію поки немає. Змініть задачу, аудиторію або канал.</div>`;
-  return rows.map(s=>`<div class="scenario-card"><div class="eyebrow">СЦЕНАРІЙ КАМПАНІЇ</div><h3>${esc(s.name)}</h3><div class="muted"><b>Коли:</b> ${esc(s.useWhen||"—")}</div>${s.theme?`<div class="scenario-theme"><b>Тема:</b> ${esc(s.theme)}</div>`:""}${s.steps?.length?`<ol class="scenario-steps">${s.steps.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`:""}<div class="toolbar"><button class="btn small secondary" onclick="useScenarioTheme('${escAttr(s.id)}')">Тему → у паспорт</button></div></div>`).join("");
-}
-async function useScenarioTheme(id){
-  const kb=window.VAMarketingKnowledgeBase;
-  if(!knowledgeBankV2Ready())return alert("Потрібен Marketing Knowledge Bank V2.0.1.");
-  const s=(kb.getScenarios({eventType:"",genre:"",objective:"",audience:"",channel:""})||[]).find(x=>x.id===id);
-  const seance=getFocusSeance(); if(!s||!seance)return;
-  const ctx=getMarketingContext(seance.id);ctx.campaignTheme=s.theme||ctx.campaignTheme;
-  if(s.steps?.length){
-    const note=`Сценарій «${s.name}»: ${s.steps.join(" → ")}`;
-    const lines=String(ctx.notes||"").split(/\n+/).filter(Boolean);if(!lines.includes(note))lines.push(note);ctx.notes=lines.join("\n");
-  }
-  await persistMarketingContextObject(seance.id,ctx,`Сценарій «${s.name}» додано в паспорт.`);
-  renderPlaybooksSection();
-}
-function renderPlaybookExperience(){
-  const type=PLAYBOOK_FILTERS.eventType, genre=PLAYBOOK_FILTERS.genre;
-  const rows=CAMPAIGNS.filter(c=>(c.status||"draft")==="done").map(c=>({c,s:SEANCES.find(s=>String(s.id)===String(c.seance_id))||{}})).filter(x=>(!type||String(x.s.event_type||"")===type)&&(!genre||String(x.s.genre||"")===genre)).sort((a,b)=>Number(b.c.result_v1?.attribution?.tickets||0)-Number(a.c.result_v1?.attribution?.tickets||0));
-  if(!rows.length)return `<div class="notice"><b>Поки немає завершених кампаній за цим типом/жанром.</b> Коли Campaign Result V1 зафіксує результат, досвід автоматично з’явиться тут.</div>`;
-  return rows.map(({c,s})=>{const r=c.result_v1||campaignResultV1(c)||{};const a=r.attribution||{},g=r.growth||{};const proven=Number(a.tickets||0)>0;return `<div class="experience-card"><div class="section-caption"><div><div class="eyebrow">${proven?"ДОКАЗАНИЙ РЕЗУЛЬТАТ":"ІСТОРИЧНИЙ СЦЕНАРІЙ"}</div><h3>${esc(c.name||s.show||"Кампанія")}</h3><div class="micro">${esc(s.event_type||"—")} • ${esc(window.VAEventTaxonomy?.genreLabel(s.event_type,s.genre)||s.genre||"—")} • ${esc(c.segmentLabel||"—")} • ${esc(c.channel||"—")}</div></div><span class="pill ${proven?"good":"warn"}">${proven?"є пряма атрибуція":"без прямої атрибуції"}</span></div><div class="experience-grid"><div class="experience-metric"><span>Прямі квитки</span><b>${Number(a.tickets||0)}</b></div><div class="experience-metric"><span>Пряма виручка</span><b>${Number(a.revenue||0).toLocaleString("uk-UA")} грн</b></div><div class="experience-metric"><span>Загальний приріст</span><b>${signedNumber(g.tickets||0)} квит.</b></div><div class="experience-metric"><span>Частка приросту</span><b>${a.ticket_share_pct==null?"—":resultPercent(a.ticket_share_pct)}</b></div></div><div class="result-proof"><strong>Тема:</strong> ${esc(c.passport?.campaignTheme||"—")}<br><strong>Теза:</strong> ${esc(c.passport?.corePromise||"—")}<br><strong>CTA:</strong> ${esc(c.passport?.cta||"—")}</div><div class="toolbar"><button class="btn small" onclick="reuseCampaignExperience('${escAttr(c.id)}')">Використати як основу</button><button class="btn small secondary" onclick="openCampaignEntity('${escAttr(c.id)}')">Відкрити кампанію</button></div></div>`}).join("");
-}
-function renderPlaybooksSection(){
-  const panel=document.getElementById("activeSectionPanel"); syncPlaybookFiltersFromFocus();
-  const tax=window.VAEventTaxonomy, kb=window.VAMarketingKnowledgeBase;
-  if(!tax||!kb){panel.innerHTML=`<h2>🧰 Сценарії та досвід</h2><div class="notice"><b>Не завантажено shared-довідники.</b> Потрібні ../shared/event-taxonomy.js та ../shared/marketing-knowledge-base.js.</div>`;return;}
-  const ta=tax.audit(); const ka=kb.auditAgainstTaxonomy(tax); const focus=getFocusSeance();
-  const typeRows=tax.types(), genreRows=playbookGenresFor(PLAYBOOK_FILTERS.eventType); const pack=kb.resolve(PLAYBOOK_FILTERS);
-  const body=PLAYBOOK_TAB==="templates"?renderPlaybookTemplates(pack):PLAYBOOK_TAB==="scenarios"?renderPlaybookScenarios():PLAYBOOK_TAB==="experience"?renderPlaybookExperience():renderPlaybookIdeas(pack);
-  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2.12.1</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
-  <div class="knowledge-status"><span class="pill ${ta.ok&&ka.ok?"good":"warn"}">Таксономія ${esc(tax.version)} • ${ta.typeCount} типів • ${ta.genreCount} жанрів</span><span class="pill ${ka.ok?"good":"warn"}">Банк ${esc(kb.version)} • покриття ${ka.ok?"повне":"неповне"}</span><span class="pill ${CUSTOM_KNOWLEDGE_SCHEMA_READY?"good":"warn"}">Власний банк: ${CUSTOM_KNOWLEDGE_SCHEMA_READY?CUSTOM_KNOWLEDGE_ITEMS.length+" записів":"таблиця не підключена"}</span>${focus?`<span class="pill">Авто з сеансу: ${esc(focus.event_type||"тип не задано")} / ${esc(tax.genreLabel(focus.event_type,focus.genre)||focus.genre||"жанр не задано")}</span>`:""}</div>
-  ${!ka.ok?`<div class="notice"><b>Контроль дрейфу:</b> у довіднику з’явилися позиції без окремого банку: ${esc([...ka.missingTypes,...ka.missingGenres].join(", "))}.</div>`:""}
-  ${!knowledgeBankV2Ready()?`<div class="notice bad"><b>Підключено не той shared-файл Банку.</b> Поточна версія: ${esc(kb.version||"—")}. V2.12.1 очікує <b>marketing-knowledge-base-v2.js • 2.0.1</b>.</div>`:""}
-  ${!CUSTOM_KNOWLEDGE_SCHEMA_READY?`<div class="notice"><b>Власні формулювання поки не зберігаються централізовано.</b> Встановіть таблицю marketing_knowledge_items та Edge Function marketing-knowledge-admin. Системний Банк продовжує працювати.</div>`:""}
-  <div class="playbook-filters"><div><label>Тип події</label><select onchange="setPlaybookFilter('eventType',this.value)"><option value="">Усі типи</option>${playbookSelectHtml(typeRows,PLAYBOOK_FILTERS.eventType)}</select></div><div><label>Жанр</label><select onchange="setPlaybookFilter('genre',this.value)"><option value="">Усі жанри типу</option>${playbookSelectHtml(genreRows,PLAYBOOK_FILTERS.genre)}</select></div><div><label>Задача</label><select onchange="setPlaybookFilter('objective',this.value)">${playbookSelectHtml(kb.objectives(),PLAYBOOK_FILTERS.objective)}</select></div><div><label>Аудиторія</label><select onchange="setPlaybookFilter('audience',this.value)">${playbookSelectHtml(kb.audiences(),PLAYBOOK_FILTERS.audience)}</select></div><div><label>Канал</label><select onchange="setPlaybookFilter('channel',this.value)">${playbookSelectHtml(kb.channels(),PLAYBOOK_FILTERS.channel)}</select></div></div>
-  <div class="playbook-tabs"><button class="playbook-tab ${PLAYBOOK_TAB==="ideas"?"active":""}" onclick="setPlaybookTab('ideas')">💡 Банк ідей</button><button class="playbook-tab ${PLAYBOOK_TAB==="scenarios"?"active":""}" onclick="setPlaybookTab('scenarios')">🎯 Сценарії кампаній</button><button class="playbook-tab ${PLAYBOOK_TAB==="templates"?"active":""}" onclick="setPlaybookTab('templates')">📝 Шаблони текстів</button><button class="playbook-tab ${PLAYBOOK_TAB==="experience"?"active":""}" onclick="setPlaybookTab('experience')">🏆 Перевірені сценарії</button></div>${body}`;
-}
-
-function renderJournalSection(){
-  const panel = document.getElementById("activeSectionPanel");
-  const seanceIds = getActiveSeanceIds();
-
-  const rows = JOURNAL
-    .filter(j => seanceIds.includes(String(j.seance_id)))
-    .sort((a,b) => new Date(b.action_date || b.created_at) - new Date(a.action_date || a.created_at));
-
-  panel.innerHTML = `
-    <h2>📒 Журнал маркетингу</h2>
-    ${getActiveCampaign() ? `<div class="notice"><b>Активна кампанія:</b> ${esc(getActiveCampaign().name)} <span class="campaign-id">${esc(getActiveCampaign().id)}</span><br><span class="micro">Нова дія після збереження буде локально прив'язана до цієї кампанії.</span></div>` : ""}
-    <div class="muted" style="margin-bottom:12px">
-      Дії по вибраних сеансах.
-    </div>
-
-    <div class="box">
-      <h3>Додати дію</h3>
-
-      <div class="grid">
-        <input id="jDate" type="date" class="box" value="${new Date().toISOString().slice(0,10)}">
-        <input id="jType" class="box" placeholder="Дія: пост, реклама, флаєри...">
-        <input id="jChannel" class="box" placeholder="Канал: Telegram, Facebook...">
-        <input id="jBudget" type="number" class="box" placeholder="Бюджет">
-      </div>
-
-      <textarea id="jComment" class="box" style="width:100%;margin-top:12px;box-sizing:border-box" rows="3" placeholder="Коментар"></textarea>
-      <textarea id="jResult" class="box" style="width:100%;margin-top:12px;box-sizing:border-box" rows="2" placeholder="Результат"></textarea>
-
-      <button class="btn" style="margin-top:12px" onclick="saveJournalEntry()">
-        Зберегти дію
-      </button>
-    </div>
-
-    <div class="box" style="margin-top:16px">
-      <h3>Історія дій</h3>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Сеанс</th>
-            <th>Кампанія</th>
-            <th>Дія</th>
-            <th>Канал</th>
-            <th>Бюджет</th>
-            <th>Коментар / результат</th>
-<th>Висновок</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${
-            rows.length
-              ? rows.map(j => {
-                  const s = SEANCES.find(x => String(x.id) === String(j.seance_id));
-                  const campaign = campaignForJournalId(j.id);
-                  return `
-                    <tr>
-                      <td>${fmtDate(j.action_date || j.created_at)}</td>
-                      <td>${esc(s?.show || j.seance_id)}</td>
-                      <td>${campaign ? `<span class="campaign-id">${esc(campaign.id)}</span><br><span class="micro">${esc(campaign.name || "")}</span>` : "—"}</td>
-                      <td>${esc(j.action_type || "—")}</td>
-                      <td>${esc(j.channel || "—")}</td>
-                      <td>${Number(j.budget || 0).toLocaleString("uk-UA")} грн</td>
-                      <td>
-                        ${esc(j.comment || "")}<br>
-                        <span class="muted">${esc(j.result || "")}</span>
-                      </td>
-                      <td>${esc(j.conclusion || "—")}</td>
-                    </tr>
-                  `;
-                }).join("")
-              : `<tr><td colspan="8" class="muted">Поки немає записів.</td></tr>`
-          }
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-async function saveJournalEntry(){
-  const seanceIds = getActiveSeanceIds();
-
-  if(!seanceIds.length){
-    alert("Оберіть хоча б один сеанс.");
-    return;
-  }
-
-  const action_date = document.getElementById("jDate").value;
-  const action_type = document.getElementById("jType").value.trim();
-  const channel = document.getElementById("jChannel").value.trim();
-  const budget = Number(document.getElementById("jBudget").value || 0);
-  const comment = document.getElementById("jComment").value.trim();
-  const result = document.getElementById("jResult").value.trim();
-
-  const rows = seanceIds.map(seance_id => ({
-    seance_id,
-    action_date,
-    action_type,
-    channel,
-    budget,
-    comment,
-    result,
-    author: "admin"
-  }));
-
-  const { data, error } = await sb
-    .from("marketing_journal")
-    .insert(rows)
-    .select("*");
-
-  if(error){
-    console.error(error);
-    alert("Помилка збереження: " + error.message);
-    return;
-  }
-
-  JOURNAL = JOURNAL.concat(data || []);
-
-  const campaign = getActiveCampaign();
-  if(campaign && Array.isArray(data)){
-    const ids = data.map(x => x?.id).filter(Boolean).map(String);
-    campaign.journalIds = Array.from(new Set([...(campaign.journalIds || []).map(String), ...ids]));
-    campaign.budget = Number(campaign.budget || 0) + budget;
-    campaign.updated_at = new Date().toISOString();
-    saveLocalCampaigns();
-    renderContextBridge();
-  }
-
-  renderJournalSection();
-}
-  
-function renderEfficiencySection(){
-  const panel = document.getElementById("activeSectionPanel");
-  const seanceIds = getActiveSeanceIds();
-  const tickets = TICKETS.filter(t => seanceIds.includes(String(t.seance_id)));
-  const sold = tickets.length;
-  const revenue = tickets.reduce((sum, t) => sum + Number(t.price || 0), 0);
-  const visited = tickets.filter(t => t.checked_in_at).length;
-  const avg = sold ? Math.round(revenue / sold) : 0;
-  const attendance = sold ? Math.round((visited / sold) * 100) : 0;
-  const ticketTypes = getTicketTypeStats(seanceIds);
-  const channels = getChannelRows(seanceIds);
-  const campaignRows = CAMPAIGNS
-    .filter(c => seanceIds.includes(String(c.seance_id || "")))
-    .sort((a,b) => new Date(b.completed_at || b.updated_at || b.created_at || 0) - new Date(a.completed_at || a.updated_at || a.created_at || 0));
-  const completed = campaignRows.filter(c => (c.status || "draft") === "done" && c.start_snapshot && c.end_snapshot);
-
-  panel.innerHTML = `
-    <h2>📊 Ефективність</h2>
-    <div class="muted" style="margin-bottom:12px">Факти по вибраних сеансах. Campaign Result V1 окремо показує часовий приріст, пряму атрибуцію та виконану Email-комунікацію.</div>
-
-    ${completed.length ? `<div class="section-caption"><div><div class="eyebrow">CAMPAIGN RESULT V1</div><h3>Завершені кампанії</h3></div><div class="micro">${completed.length} кампан.</div></div>${completed.map(c => renderCampaignResultCard(c)).join("")}` : `<div class="notice"><b>Завершених кампаній у вибраному контексті ще немає.</b> Після завершення тут з’явиться доказовий підсумок.</div>`}
-
-    <div class="section-caption"><div><div class="eyebrow">СЕАНС • ФАКТИ</div><h3>Загальний результат продажів</h3></div></div>
-    <div class="grid">
-      <div class="box"><span>Квитків</span><b>${sold}</b></div>
-      <div class="box"><span>Виручка</span><b>${revenue.toLocaleString("uk-UA")} грн</b></div>
-      <div class="box"><span>Середній чек</span><b>${avg.toLocaleString("uk-UA")} грн</b></div>
-      <div class="box"><span>Явка</span><b>${attendance}%</b></div>
-    </div>
-
-    <div class="box" style="margin-top:16px">
-      <h3>Типи квитків</h3>
-      ${Object.keys(ticketTypes).length ? Object.entries(ticketTypes).map(([k,v]) => `<span class="pill">${esc(ticketTypeLabel(k))}: ${v}</span>`).join(" ") : `<span class="muted">Немає квитків.</span>`}
-    </div>
-
-    <div class="box" style="margin-top:16px">
-      <h3>Канали продажів</h3>
-      <table><thead><tr><th>Канал</th><th>Квитків</th><th>Сума</th><th>Середній чек</th><th>Частка</th></tr></thead><tbody>
-        ${channels.length ? channels.map(r => `<tr><td><b>${esc(r.channel)}</b></td><td>${r.tickets}</td><td>${r.sum.toLocaleString("uk-UA")} грн</td><td>${r.avg.toLocaleString("uk-UA")} грн</td><td>${r.share}%</td></tr>`).join("") : `<tr><td colspan="5" class="muted">Немає продажів</td></tr>`}
-      </tbody></table>
-    </div>`;
-}
-
-async function boot(){
-  buildTools();
-  initMarketingSections();
-  loadLocalMarketingContexts();
-  loadLocalCampaigns();
-
-  try{
-    const [orders, tickets, seances, journal, serviceMessages, serviceRecipients, serviceDeliveries] = await Promise.all([
-      fetchAll("orders", "*"),
-      fetchAll("tickets", "id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"),
-      fetchAll("seances", "id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity"),
-      fetchAll("marketing_journal", "id,created_at,seance_id,action_date,action_type,channel,budget,comment,result,conclusion,author"),
-      fetchAllOptional("service_messages", "id,seance_id,status,recipient_count,sent_at,event_snapshot"),
-      fetchAllOptional("service_message_recipients", "id,service_message_id,email,phone,delivery_status,provider_message_id,error_text,metadata"),
-      fetchAllOptional("service_delivery_log", "id,service_message_id,recipient_id,action,status,provider,attempted_at,response_text")
-    ]);
-
-    ORDERS = orders || [];
-    TICKETS = tickets || [];
-    SEANCES = seances || [];
-    JOURNAL = journal || [];
-    SERVICE_MESSAGES = serviceMessages || [];
-    SERVICE_RECIPIENTS = serviceRecipients || [];
-    SERVICE_DELIVERIES = serviceDeliveries || [];
-    await reloadCustomKnowledge();
-
-    buildClients(ORDERS, TICKETS, SEANCES);
-    backfillCampaignResultsV1();
-    await loadRemoteMarketingContextsOptional();
-    restoreContextFromUrl();
-    updateUrlContext();
-    renderContextBridge();
-    openMarketingSection(0);
-    scheduleCampaignLiveRefresh();
-    const restoredCampaign = getActiveCampaign();
-    if(restoredCampaign && (restoredCampaign.status || "draft") === "active"){
-      // Одразу після перезавантаження підтягнути продажі, які відбулися поки сторінка була закрита.
-      refreshActiveCampaignData({rerender:false, silent:true});
-    }
-
-  }catch(e){
-    console.error(e);
-    document.getElementById("activeSectionPanel").innerHTML = `
-      <h2>Помилка</h2>
-      <div class="box">${esc(e.message)}</div>
-    `;
-  }
-}
-
-document.addEventListener("DOMContentLoaded", boot);
-</script>
-</body>
-</html>
+})(window);
