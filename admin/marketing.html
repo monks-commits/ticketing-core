@@ -210,6 +210,22 @@ textarea::placeholder{
   @media(max-width:1000px){.playbook-filters{grid-template-columns:repeat(2,1fr)}.idea-columns{grid-template-columns:1fr}.experience-grid{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:650px){.playbook-filters,.experience-grid{grid-template-columns:1fr}}
 
+
+  .custom-bank{margin:12px 0 16px;border:1px solid rgba(117,88,214,.45);background:linear-gradient(180deg,rgba(117,88,214,.10),rgba(117,88,214,.025));border-radius:14px;padding:14px}
+  .custom-bank summary{cursor:pointer;font-weight:900}
+  .custom-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+  .custom-form-grid .wide{grid-column:1/-1}
+  .custom-form-grid label{display:block;font-size:11px;color:#aebbd0;font-weight:800;margin-bottom:5px}
+  .custom-form-grid input,.custom-form-grid select,.custom-form-grid textarea{width:100%;box-sizing:border-box;background:#07182b;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px}
+  .custom-form-grid textarea{min-height:90px;resize:vertical}
+  .custom-chip{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:#4a3b86;color:#fff;font-size:10px;font-weight:900;margin-left:6px}
+  .scenario-card{background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:14px;margin-top:10px}
+  .scenario-steps{margin:10px 0 0;padding-left:20px;color:#dbe7f5;line-height:1.5}
+  .scenario-theme{margin-top:9px;padding:9px 11px;border-radius:10px;background:#10243f;border:1px solid rgba(98,176,255,.20)}
+  .idea-item.mine{border-color:rgba(117,88,214,.55);background:rgba(117,88,214,.07)}
+  .idea-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  @media(max-width:900px){.custom-form-grid{grid-template-columns:1fr}.custom-form-grid .wide{grid-column:auto}}
+
   </style>
 </head>
 
@@ -220,10 +236,10 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.10</h1>
+        <h1>Marketing Control Center V2.12</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          Основна аналітика читає live-дані Supabase; V2.11 додає єдину типологію подій, Банк маркетингових ідей, шаблони текстів і повернення доказаного досвіду в роботу з новими сеансами.
+          Основна аналітика читає live-дані Supabase; V2.12 розгортає Банк ідей у повноцінну маркетингову бібліотеку: теми, гачки, мотиви, механіки, сценарії, шаблони та власні формулювання майданчика.
         </div>
       </div>
       <div class="hero-badges">
@@ -293,6 +309,12 @@ let PASSPORT_NOTICE = "";
 let PLAYBOOK_TAB = "ideas";
 let PLAYBOOK_FILTER_SEANCE_ID = "";
 let PLAYBOOK_FILTERS = {eventType:"",genre:"",objective:"launch",audience:"all",channel:"all"};
+let CUSTOM_KNOWLEDGE_ITEMS = [];
+let CUSTOM_KNOWLEDGE_SCHEMA_READY = true;
+let CUSTOM_IDEA_EDIT_ID = "";
+let CUSTOM_TEMPLATE_EDIT_ID = "";
+const KNOWLEDGE_EDIT_SECRET_SESSION_KEY = "va_marketing_knowledge_edit_secret_v1";
+
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
   segmentKey: "",
@@ -543,7 +565,9 @@ function campaignSnapshotFromDraft(){
     comment: CAMPAIGN_DRAFT.comment || "",
     passport: {
       primaryAudience: passport.ctx.primaryAudience || "",
+      campaignTheme: passport.ctx.campaignTheme || "",
       corePromise: passport.ctx.corePromise || "",
+      keyArguments: passport.ctx.keyArguments || "",
       tone: passport.ctx.tone || "",
       cta: passport.ctx.cta || ""
     }
@@ -1846,6 +1870,7 @@ function emptyMarketingContext(){
   return {
     primaryAudience:"",
     secondaryAudience:"",
+    campaignTheme:"",
     corePromise:"",
     keyArguments:"",
     barriers:"",
@@ -1866,11 +1891,11 @@ function getMarketingContext(seanceId){
 function marketingContextCompleteness(ctx){
   const fields = [
     "primaryAudience","corePromise","keyArguments","tone","cta",
-    "secondaryAudience","barriers","priceAngle","doNotUse","notes"
+    "campaignTheme","secondaryAudience","barriers","priceAngle","doNotUse","notes"
   ];
   const weights = {
     primaryAudience:18, corePromise:22, keyArguments:16, tone:12, cta:12,
-    secondaryAudience:5, barriers:5, priceAngle:4, doNotUse:3, notes:3
+    campaignTheme:5, secondaryAudience:4, barriers:4, priceAngle:3, doNotUse:2, notes:2
   };
   return fields.reduce((sum,k) => sum + (String(ctx?.[k] || "").trim() ? weights[k] : 0), 0);
 }
@@ -1926,6 +1951,7 @@ async function saveMarketingPassport(){
   const ctx = {
     primaryAudience: val("mpPrimaryAudience"),
     secondaryAudience: val("mpSecondaryAudience"),
+    campaignTheme: val("mpCampaignTheme"),
     corePromise: val("mpCorePromise"),
     keyArguments: val("mpKeyArguments"),
     barriers: val("mpBarriers"),
@@ -2047,6 +2073,10 @@ function renderMarketingPassportSection(){
       <summary>▸ Розширений паспорт — аргументи, бар'єри, ціна, заборони та примітки</summary>
       <div style="padding-bottom:14px">
         <div class="passport-grid">
+          <div class="field">
+            <label>Тема / кут кампанії</label>
+            <textarea id="mpCampaignTheme" placeholder="Напр.: Вечір удвох; повернення до класики; живе виконання замість екрана...">${esc(c.campaignTheme)}</textarea>
+          </div>
           <div class="field">
             <label>Додаткова аудиторія</label>
             <textarea id="mpSecondaryAudience" placeholder="Хто ще може прийти і чому">${esc(c.secondaryAudience)}</textarea>
@@ -2577,15 +2607,16 @@ function buildCampaignCopies(seance, ctx, segment){
   const title = seance.show || "Подія";
   const when = seanceDateLine(seance);
   const audience = segment.label || ctx.primaryAudience;
+  const theme = String(ctx.campaignTheme || "").trim();
   const promise = String(ctx.corePromise || "").trim();
   const cta = String(ctx.cta || "").trim();
   const args = splitArguments(ctx.keyArguments);
   const argText = args.length ? `\n\n${args.map(x => "• " + x).join("\n")}` : "";
   const price = ctx.priceAngle ? `\n\n${String(ctx.priceAngle).trim()}` : "";
 
-  const social = `«${title}»${when ? ` — ${when}` : ""}.\n\n${promise}${argText}${price}\n\n${cta}`;
+  const social = `«${title}»${when ? ` — ${when}` : ""}.\n\n${theme ? theme + "\n\n" : ""}${promise}${argText}${price}\n\n${cta}`;
   const emailSubject = compactText(`${title}: ${promise}`, 75);
-  const emailBody = `${audience ? `Для вас — «${title}».` : `«${title}».`}${when ? `\n${when}` : ""}\n\n${promise}${argText}${price}\n\n${cta}`;
+  const emailBody = `${audience ? `Для вас — «${title}».` : `«${title}».`}${when ? `\n${when}` : ""}\n\n${theme ? theme + "\n\n" : ""}${promise}${argText}${price}\n\n${cta}`;
   const sms = compactText(`${title}${when ? `, ${when}` : ""}. ${promise} ${cta}`, 220);
   const adHeadline = compactText(promise || title, 60);
   const adPrimary = compactText(`${title}${when ? ` • ${when}` : ""}. ${promise}${args[0] ? ` ${args[0]}.` : ""} ${cta}`, 220);
@@ -2880,6 +2911,7 @@ function renderCampaignsSection(){
   `;
 }
 
+
 function playbookSelectHtml(rows,selected){
   return (rows||[]).map(x=>`<option value="${escAttr(x.value)}" ${String(x.value)===String(selected)?"selected":""}>${esc(x.label)}</option>`).join("");
 }
@@ -2902,26 +2934,92 @@ function syncPlaybookFiltersFromFocus(){
 function setPlaybookTab(tab){ PLAYBOOK_TAB=tab; renderPlaybooksSection(); }
 function setPlaybookFilter(key,value){
   PLAYBOOK_FILTERS[key]=String(value||"");
-  if(key==="eventType"){ const rows=window.VAEventTaxonomy?.genresFor(PLAYBOOK_FILTERS.eventType)||[]; if(!rows.some(x=>x.value===PLAYBOOK_FILTERS.genre))PLAYBOOK_FILTERS.genre=""; }
+  if(key==="eventType"){
+    const rows=window.VAEventTaxonomy?.genresFor(PLAYBOOK_FILTERS.eventType)||[];
+    if(!rows.some(x=>x.value===PLAYBOOK_FILTERS.genre))PLAYBOOK_FILTERS.genre="";
+  }
   renderPlaybooksSection();
+}
+function knowledgeVenueId(){ return String(getFocusSeance()?.venue_id||""); }
+function customKnowledgeMatches(row, filters=PLAYBOOK_FILTERS){
+  if(!row || row.is_active===false) return false;
+  const exact=(field,filterKey)=>{
+    const rv=String(row[field]||"").trim();
+    const fv=String(filters[filterKey]||"").trim();
+    return !rv || !fv || rv===fv;
+  };
+  if(row.scope==="venue" && row.venue_id && String(row.venue_id)!==knowledgeVenueId()) return false;
+  return exact("event_type","eventType")&&exact("genre","genre")&&exact("objective","objective")&&exact("audience","audience")&&exact("channel","channel");
+}
+async function reloadCustomKnowledge(){
+  try{
+    const {data,error}=await sb.from("marketing_knowledge_items").select("*").eq("is_active",true).order("created_at",{ascending:false}).limit(2000);
+    if(error) throw error;
+    CUSTOM_KNOWLEDGE_ITEMS=data||[];
+    CUSTOM_KNOWLEDGE_SCHEMA_READY=true;
+  }catch(e){
+    CUSTOM_KNOWLEDGE_ITEMS=[];
+    CUSTOM_KNOWLEDGE_SCHEMA_READY=false;
+    console.info("Custom Marketing Knowledge table is optional until installed:",e.message);
+  }
+}
+function customIdeaRows(category=""){
+  return CUSTOM_KNOWLEDGE_ITEMS.filter(r=>r.kind==="idea"&&(!category||r.category===category)&&customKnowledgeMatches(r));
+}
+function customTemplateRows(){
+  return CUSTOM_KNOWLEDGE_ITEMS.filter(r=>r.kind==="template"&&customKnowledgeMatches(r));
+}
+function customItemAsPlaybook(row){
+  return row?{id:`custom:${row.id}`,target:row.category,text:row.text||row.title||"",source:"custom",raw:row}:null;
+}
+function getPlaybookItemById(id){
+  const raw=String(id||"");
+  if(raw.startsWith("custom:")){
+    const row=CUSTOM_KNOWLEDGE_ITEMS.find(x=>String(x.id)===raw.slice(7));
+    return customItemAsPlaybook(row);
+  }
+  return window.VAMarketingKnowledgeBase?.getItem(raw)||null;
+}
+function mergeCustomIntoPack(pack){
+  const out={...pack};
+  const categories=["campaignTheme","primaryAudience","corePromise","keyArguments","tone","cta","barriers","priceAngle","contentMechanic","occasion","doNotUse"];
+  categories.forEach(cat=>{
+    const mine=customIdeaRows(cat).map(customItemAsPlaybook).filter(Boolean);
+    out[cat]=[...mine,...(pack?.[cat]||[])];
+  });
+  return out;
 }
 async function applyPlaybookItem(id){
   const s=getFocusSeance(); if(!s)return alert("Спочатку оберіть один сеанс кнопкою «Фокус».");
-  const item=window.VAMarketingKnowledgeBase?.getItem(id); if(!item)return;
+  const item=getPlaybookItemById(id); if(!item)return;
   const ctx=getMarketingContext(s.id); const target=item.target;
-  if(["keyArguments","barriers","doNotUse"].includes(target)){
-    const lines=String(ctx[target]||"").split(/\n+/).map(x=>x.trim()).filter(Boolean); if(!lines.includes(item.text))lines.push(item.text); ctx[target]=lines.join("\n");
-  }else ctx[target]=item.text;
-  await persistMarketingContextObject(s.id,ctx,`Додано з Банку ідей: ${item.text}`);
+  const appendTargets=["keyArguments","barriers","doNotUse","notes"];
+  if(target==="contentMechanic"||target==="occasion"){
+    const line=item.text;
+    const lines=String(ctx.notes||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    if(!lines.includes(line))lines.push(line);
+    ctx.notes=lines.join("\n");
+  }else if(appendTargets.includes(target)){
+    const lines=String(ctx[target]||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    if(!lines.includes(item.text))lines.push(item.text);
+    ctx[target]=lines.join("\n");
+  }else{
+    ctx[target]=item.text;
+  }
+  await persistMarketingContextObject(s.id,ctx,`${item.source==="custom"?"Власну":"Банкову"} ідею додано в паспорт: ${item.text}`);
   renderPlaybooksSection();
 }
 async function applyPlaybookBundle(overwrite=false){
   const s=getFocusSeance(); if(!s)return alert("Спочатку оберіть один сеанс кнопкою «Фокус».");
   if(!window.VAMarketingKnowledgeBase)return alert("Банк маркетингових ідей не завантажено.");
   if(overwrite&&!confirm("Замінити базові поля маркетингового паспорта вибраною основою?"))return;
-  const pack=VAMarketingKnowledgeBase.resolve(PLAYBOOK_FILTERS); const ctx=getMarketingContext(s.id);
+  const pack=mergeCustomIntoPack(VAMarketingKnowledgeBase.resolve(PLAYBOOK_FILTERS)); const ctx=getMarketingContext(s.id);
   const put=(field,value)=>{ if(value&&(overwrite||!String(ctx[field]||"").trim()))ctx[field]=value; };
-  put("primaryAudience",pack.primaryAudience?.[0]?.text||""); put("corePromise",pack.corePromise?.[0]?.text||""); put("tone",pack.tone?.[0]?.text||""); put("cta",pack.cta?.[0]?.text||"");
+  put("primaryAudience",pack.primaryAudience?.[0]?.text||"");
+  put("campaignTheme",pack.campaignTheme?.[0]?.text||"");
+  put("corePromise",pack.corePromise?.[0]?.text||"");
+  put("tone",pack.tone?.[0]?.text||"");
+  put("cta",pack.cta?.[0]?.text||"");
   if(overwrite||!String(ctx.keyArguments||"").trim())ctx.keyArguments=(pack.keyArguments||[]).slice(0,3).map(x=>x.text).join("\n");
   await persistMarketingContextObject(s.id,ctx,overwrite?"Паспорт замінено основою з Банку ідей.":"Порожні поля паспорта заповнено з Банку ідей.");
   renderPlaybooksSection();
@@ -2931,11 +3029,28 @@ function playbookVars(pack){
   const s=getFocusSeance()||{}; const ctx=getMarketingContext(s.id); const c=getActiveCampaign();
   const arg=String(ctx.keyArguments||"").split(/\n+/).map(x=>x.trim()).find(Boolean)||pack.keyArguments?.[0]?.text||"";
   const campaignUrl=c&&String(c.seance_id)===String(s.id)?campaignAttributionUrl(c):"{{campaign_url}}";
-  return {event:s.show||"Назва події",date:fmtDate(s.date||"")||"дата",time:String(s.time||"").slice(0,5)||"час",corePromise:ctx.corePromise||pack.corePromise?.[0]?.text||"",argument1:arg,cta:ctx.cta||pack.cta?.[0]?.text||"Обрати квиток",campaign_url:campaignUrl};
+  return {
+    event:s.show||"Назва події",
+    date:fmtDate(s.date||"")||"дата",
+    time:String(s.time||"").slice(0,5)||"час",
+    campaignTheme:ctx.campaignTheme||pack.campaignTheme?.[0]?.text||"",
+    corePromise:ctx.corePromise||pack.corePromise?.[0]?.text||"",
+    argument1:arg,
+    cta:ctx.cta||pack.cta?.[0]?.text||"Обрати квиток",
+    campaign_url:campaignUrl
+  };
 }
 async function copyPlaybookTemplate(id){
-  const kb=window.VAMarketingKnowledgeBase; const t=kb?.getTemplates({...PLAYBOOK_FILTERS,channel:"all"}).find(x=>x.id===id)||null;
-  if(!t)return; const pack=kb.resolve(PLAYBOOK_FILTERS); const r=kb.renderTemplate(t,playbookVars(pack)); const text=[r.subject,r.body].filter(Boolean).join("\n\n");
+  const kb=window.VAMarketingKnowledgeBase; if(!kb)return;
+  let t=null;
+  if(String(id).startsWith("customtpl:")){
+    const row=CUSTOM_KNOWLEDGE_ITEMS.find(x=>String(x.id)===String(id).slice(10));
+    if(row)t={id,name:row.title||"Мій шаблон",channel:row.channel||"all",subject:row.subject_template||"",body:row.body_template||"",notes:row.notes||""};
+  }else t=kb.getTemplates({...PLAYBOOK_FILTERS,channel:"all"}).find(x=>x.id===id)||null;
+  if(!t)return;
+  const pack=mergeCustomIntoPack(kb.resolve(PLAYBOOK_FILTERS));
+  const r=kb.renderTemplate(t,playbookVars(pack));
+  const text=[r.subject,r.body].filter(Boolean).join("\n\n");
   try{await navigator.clipboard.writeText(text);alert("Шаблон скопійовано.");}catch(e){window.prompt("Скопіюйте текст:",text);}
 }
 async function reuseCampaignExperience(id){
@@ -2943,24 +3058,178 @@ async function reuseCampaignExperience(id){
   const c=CAMPAIGNS.find(x=>String(x.id)===String(id)); if(!c)return;
   const p=c.passport||{}; const ctx=getMarketingContext(current.id);
   if(!confirm(`Використати основу кампанії «${c.name||"Кампанія"}» для паспорта поточного сеансу?`))return;
-  ["primaryAudience","corePromise","tone","cta"].forEach(k=>{if(String(p[k]||"").trim())ctx[k]=p[k]});
+  ["primaryAudience","campaignTheme","corePromise","keyArguments","tone","cta"].forEach(k=>{if(String(p[k]||"").trim())ctx[k]=p[k]});
   await persistMarketingContextObject(current.id,ctx,"Основа перевіреного сценарію перенесена в паспорт."); renderPlaybooksSection();
 }
 function renderIdeaGroup(title,items){
-  return `<div class="box"><h3>${esc(title)}</h3><div class="idea-list">${(items||[]).length?(items||[]).map(x=>`<div class="idea-item"><div><div class="idea-target">${esc(x.target)}</div><div class="idea-text">${esc(x.text)}</div></div><button class="btn small secondary" onclick="applyPlaybookItem('${escAttr(x.id)}')">→ Паспорт</button></div>`).join(""):`<div class="muted">Для цього фільтра окремих варіантів немає; працює базовий рівень типу події.</div>`}</div></div>`;
+  return `<div class="box"><h3>${esc(title)}</h3><div class="idea-list">${(items||[]).length?(items||[]).map(x=>`<div class="idea-item ${x.source==="custom"?"mine":""}"><div><div class="idea-target">${esc(title)}${x.source==="custom"?'<span class="custom-chip">МОЄ</span>':""}</div><div class="idea-text">${esc(x.text)}</div></div><div class="idea-actions"><button class="btn small secondary" onclick="applyPlaybookItem('${escAttr(x.id)}')">→ Паспорт</button>${x.source==="custom"?`<button class="btn small secondary" onclick="editCustomIdea('${escAttr(x.raw.id)}')">Редагувати</button><button class="btn small danger" onclick="deleteCustomKnowledge('${escAttr(x.raw.id)}')">×</button>`:""}</div></div>`).join(""):`<div class="muted">Для цього фільтра варіантів немає.</div>`}</div></div>`;
 }
-function renderPlaybookIdeas(pack){
-  return `<div class="toolbar"><button class="btn small" onclick="applyPlaybookBundle(false)">Заповнити порожні поля паспорта</button><button class="btn small secondary" onclick="applyPlaybookBundle(true)">Замінити базові 4 поля</button><button class="btn small secondary" onclick="openPassportFromPlaybook()">Відкрити паспорт →</button></div><div class="idea-columns">${renderIdeaGroup("Кому говоримо",pack.primaryAudience)}${renderIdeaGroup("Головна теза",pack.corePromise)}${renderIdeaGroup("Ключові аргументи",pack.keyArguments)}${renderIdeaGroup("Тон",pack.tone)}${renderIdeaGroup("CTA",pack.cta)}${renderIdeaGroup("Бар’єри",pack.barriers)}${renderIdeaGroup("Ціновий кут",pack.priceAngle)}${renderIdeaGroup("Не використовувати",pack.doNotUse)}</div>`;
+function knowledgeScopeOptions(selected="current"){
+  return [
+    ["current","Поточний тип + жанр + задача + аудиторія + канал"],
+    ["genre","Поточний тип + жанр"],
+    ["type","Лише поточний тип"],
+    ["universal","Універсально"]
+  ].map(([v,l])=>`<option value="${v}" ${v===selected?"selected":""}>${esc(l)}</option>`).join("");
 }
-function renderPlaybookTemplates(pack){
-  const kb=window.VAMarketingKnowledgeBase; const rows=kb.getTemplates(PLAYBOOK_FILTERS); const vars=playbookVars(pack);
-  return rows.length?rows.map(t=>{const r=kb.renderTemplate(t,vars);return `<div class="template-card"><div class="section-caption"><div><div class="eyebrow">${esc(t.channel.toUpperCase())}</div><h3>${esc(t.name)}</h3></div></div>${t.notes?`<div class="muted">${esc(t.notes)}</div>`:""}${r.subject?`<div class="template-preview"><b>${esc(r.subject)}</b>\n\n${esc(r.body)}</div>`:`<div class="template-preview">${esc(r.body)}</div>`}<div class="toolbar"><button class="btn small" onclick="copyPlaybookTemplate('${escAttr(t.id)}')">Скопіювати текст</button><button class="btn small secondary" onclick="applyPlaybookBundle(false)">Заповнити паспорт основою</button></div></div>`}).join(""):`<div class="notice">Для вибраного каналу й задачі окремого шаблону поки немає. Змініть канал на «Усі / універсальний».</div>`;
+function knowledgeCategoryOptions(selected="campaignTheme"){
+  const labels=window.VAMarketingKnowledgeBase?.categoryLabels||{};
+  return Object.entries(labels).filter(([k])=>!["contentMechanic","occasion"].includes(k)||true).map(([v,l])=>`<option value="${escAttr(v)}" ${v===selected?"selected":""}>${esc(l)}</option>`).join("");
+}
+function knowledgeSecretValue(){ try{return sessionStorage.getItem(KNOWLEDGE_EDIT_SECRET_SESSION_KEY)||""}catch(e){return""} }
+function setKnowledgeSecret(v){ try{if(v)sessionStorage.setItem(KNOWLEDGE_EDIT_SECRET_SESSION_KEY,v);else sessionStorage.removeItem(KNOWLEDGE_EDIT_SECRET_SESSION_KEY)}catch(e){} }
+function customKnowledgeForm(){
+  const row=CUSTOM_IDEA_EDIT_ID?CUSTOM_KNOWLEDGE_ITEMS.find(x=>String(x.id)===String(CUSTOM_IDEA_EDIT_ID)):null;
+  const category=row?.category||"campaignTheme";
+  const scopeMode=row?.scope_mode||"current";
+  return `<details class="custom-bank" ${CUSTOM_IDEA_EDIT_ID?"open":""}><summary>＋ ${CUSTOM_IDEA_EDIT_ID?"Редагувати власний запис":"Додати свою тему або формулювання"}</summary>
+    <div class="muted" style="margin-top:8px">Власні записи не змінюють системний Банк. Вони накладаються поверх нього й можуть бути прив’язані до жанру, задачі або всього майданчика.</div>
+    <div class="custom-form-grid">
+      <div><label>Категорія</label><select id="kbCustomCategory">${knowledgeCategoryOptions(category)}</select></div>
+      <div><label>Прив’язка</label><select id="kbCustomScopeMode">${knowledgeScopeOptions(scopeMode)}</select></div>
+      <div><label>Рівень</label><select id="kbCustomVenueScope"><option value="global" ${row?.scope!=="venue"?"selected":""}>Для всіх майданчиків</option><option value="venue" ${row?.scope==="venue"?"selected":""}>Лише цей майданчик</option></select></div>
+      <div class="wide"><label>Текст / тема</label><textarea id="kbCustomText" placeholder="Ваша формулювання, тема, аргумент, CTA, механіка...">${esc(row?.text||"")}</textarea></div>
+      <div class="wide"><label>Ключ редагування Банку</label><input id="kbEditSecret" type="password" value="${escAttr(knowledgeSecretValue())}" placeholder="MARKETING_KNOWLEDGE_SECRET"></div>
+    </div>
+    <div class="toolbar" style="margin:10px 0 0"><button class="btn small" onclick="saveCustomIdea()">${CUSTOM_IDEA_EDIT_ID?"Зберегти зміни":"Додати в Банк"}</button>${CUSTOM_IDEA_EDIT_ID?'<button class="btn small secondary" onclick="cancelCustomIdeaEdit()">Скасувати</button>':""}</div>
+  </details>`;
+}
+function customTemplateForm(){
+  const row=CUSTOM_TEMPLATE_EDIT_ID?CUSTOM_KNOWLEDGE_ITEMS.find(x=>String(x.id)===String(CUSTOM_TEMPLATE_EDIT_ID)):null;
+  return `<details class="custom-bank" ${CUSTOM_TEMPLATE_EDIT_ID?"open":""}><summary>＋ ${CUSTOM_TEMPLATE_EDIT_ID?"Редагувати власний шаблон":"Додати свій шаблон тексту"}</summary>
+    <div class="custom-form-grid">
+      <div><label>Назва</label><input id="kbTplTitle" value="${escAttr(row?.title||"")}" placeholder="Напр.: Email — особисте запрошення"></div>
+      <div><label>Прив’язка</label><select id="kbTplScopeMode">${knowledgeScopeOptions(row?.scope_mode||"current")}</select></div>
+      <div><label>Рівень</label><select id="kbTplVenueScope"><option value="global" ${row?.scope!=="venue"?"selected":""}>Для всіх майданчиків</option><option value="venue" ${row?.scope==="venue"?"selected":""}>Лише цей майданчик</option></select></div>
+      <div class="wide"><label>Тема листа / заголовок</label><input id="kbTplSubject" value="${escAttr(row?.subject_template||"")}" placeholder="{{event}} — {{date}}"></div>
+      <div class="wide"><label>Текст шаблону</label><textarea id="kbTplBody" placeholder="{{campaignTheme}}\n\n{{corePromise}}\n\n{{cta}}">${esc(row?.body_template||"")}</textarea></div>
+      <div class="wide"><label>Ключ редагування Банку</label><input id="kbTplSecret" type="password" value="${escAttr(knowledgeSecretValue())}" placeholder="MARKETING_KNOWLEDGE_SECRET"></div>
+    </div>
+    <div class="toolbar" style="margin:10px 0 0"><button class="btn small" onclick="saveCustomTemplate()">${CUSTOM_TEMPLATE_EDIT_ID?"Зберегти зміни":"Додати шаблон"}</button>${CUSTOM_TEMPLATE_EDIT_ID?'<button class="btn small secondary" onclick="cancelCustomTemplateEdit()">Скасувати</button>':""}</div>
+  </details>`;
+}
+function knowledgeBinding(mode){
+  const f=PLAYBOOK_FILTERS;
+  if(mode==="current")return {event_type:f.eventType||null,genre:f.genre||null,objective:f.objective||null,audience:f.audience||null,channel:f.channel||null};
+  if(mode==="genre")return {event_type:f.eventType||null,genre:f.genre||null,objective:null,audience:null,channel:null};
+  if(mode==="type")return {event_type:f.eventType||null,genre:null,objective:null,audience:null,channel:null};
+  return {event_type:null,genre:null,objective:null,audience:null,channel:null};
+}
+async function knowledgeAdminRequest(action,item){
+  const secret=String(item?._secret||"").trim()||knowledgeSecretValue();
+  if(!secret)throw new Error("Вкажіть ключ редагування Банку.");
+  setKnowledgeSecret(secret);
+  const payload={action,item:{...item}};
+  delete payload.item._secret;
+  const r=await fetch(`${SUPABASE_URL}/functions/v1/marketing-knowledge-admin`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json",apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"x-va-knowledge-secret":secret},
+    body:JSON.stringify(payload)
+  });
+  const raw=await r.text(); let data={}; try{data=raw?JSON.parse(raw):{}}catch(e){}
+  if(!r.ok||data?.ok===false)throw new Error(data?.error||raw||`HTTP ${r.status}`);
+  return data;
+}
+async function saveCustomIdea(){
+  try{
+    const text=String(document.getElementById("kbCustomText")?.value||"").trim();
+    if(!text)throw new Error("Введіть текст або тему.");
+    const mode=String(document.getElementById("kbCustomScopeMode")?.value||"current");
+    const venueScope=String(document.getElementById("kbCustomVenueScope")?.value||"global");
+    const secret=String(document.getElementById("kbEditSecret")?.value||"").trim();
+    const item={
+      id:CUSTOM_IDEA_EDIT_ID||null,kind:"idea",
+      category:String(document.getElementById("kbCustomCategory")?.value||"campaignTheme"),
+      text,scope_mode:mode,scope:venueScope,venue_id:venueScope==="venue"?knowledgeVenueId():null,
+      ...knowledgeBinding(mode),_secret:secret,is_active:true
+    };
+    await knowledgeAdminRequest("upsert",item);
+    CUSTOM_IDEA_EDIT_ID="";
+    await reloadCustomKnowledge(); renderPlaybooksSection();
+  }catch(e){alert(e.message);}
+}
+function editCustomIdea(id){CUSTOM_IDEA_EDIT_ID=String(id||"");renderPlaybooksSection();setTimeout(()=>document.getElementById("kbCustomText")?.focus(),0);}
+function cancelCustomIdeaEdit(){CUSTOM_IDEA_EDIT_ID="";renderPlaybooksSection();}
+async function saveCustomTemplate(){
+  try{
+    const title=String(document.getElementById("kbTplTitle")?.value||"").trim();
+    const body=String(document.getElementById("kbTplBody")?.value||"").trim();
+    if(!title||!body)throw new Error("Вкажіть назву і текст шаблону.");
+    const mode=String(document.getElementById("kbTplScopeMode")?.value||"current");
+    const venueScope=String(document.getElementById("kbTplVenueScope")?.value||"global");
+    const secret=String(document.getElementById("kbTplSecret")?.value||"").trim();
+    const item={
+      id:CUSTOM_TEMPLATE_EDIT_ID||null,kind:"template",category:"template",title,
+      subject_template:String(document.getElementById("kbTplSubject")?.value||""),
+      body_template:body,scope_mode:mode,scope:venueScope,venue_id:venueScope==="venue"?knowledgeVenueId():null,
+      ...knowledgeBinding(mode),_secret:secret,is_active:true
+    };
+    await knowledgeAdminRequest("upsert",item);
+    CUSTOM_TEMPLATE_EDIT_ID="";
+    await reloadCustomKnowledge(); renderPlaybooksSection();
+  }catch(e){alert(e.message);}
+}
+function editCustomTemplate(id){CUSTOM_TEMPLATE_EDIT_ID=String(id||"");renderPlaybooksSection();}
+function cancelCustomTemplateEdit(){CUSTOM_TEMPLATE_EDIT_ID="";renderPlaybooksSection();}
+async function deleteCustomKnowledge(id){
+  if(!confirm("Видалити цей власний запис із Банку?"))return;
+  try{
+    const secret=knowledgeSecretValue()||window.prompt("Ключ редагування Банку:","");
+    if(!secret)return;
+    await knowledgeAdminRequest("delete",{id:String(id),_secret:secret});
+    CUSTOM_IDEA_EDIT_ID="";CUSTOM_TEMPLATE_EDIT_ID="";
+    await reloadCustomKnowledge(); renderPlaybooksSection();
+  }catch(e){alert(e.message);}
+}
+function renderPlaybookIdeas(basePack){
+  const pack=mergeCustomIntoPack(basePack);
+  return `${customKnowledgeForm()}
+    <div class="toolbar"><button class="btn small" onclick="applyPlaybookBundle(false)">Заповнити порожні поля паспорта</button><button class="btn small secondary" onclick="applyPlaybookBundle(true)">Замінити базові поля</button><button class="btn small secondary" onclick="openPassportFromPlaybook()">Відкрити паспорт →</button></div>
+    <div class="idea-columns">
+      ${renderIdeaGroup("Тема / кут кампанії",pack.campaignTheme)}
+      ${renderIdeaGroup("Кому говоримо",pack.primaryAudience)}
+      ${renderIdeaGroup("Головна теза / гачок",pack.corePromise)}
+      ${renderIdeaGroup("Аргументи й мотиви",pack.keyArguments)}
+      ${renderIdeaGroup("Механіка контенту",pack.contentMechanic)}
+      ${renderIdeaGroup("Привід / момент",pack.occasion)}
+      ${renderIdeaGroup("Тон",pack.tone)}
+      ${renderIdeaGroup("CTA",pack.cta)}
+      ${renderIdeaGroup("Бар’єри",pack.barriers)}
+      ${renderIdeaGroup("Ціновий кут",pack.priceAngle)}
+      ${renderIdeaGroup("Не використовувати",pack.doNotUse)}
+    </div>`;
+}
+function renderPlaybookTemplates(basePack){
+  const kb=window.VAMarketingKnowledgeBase;
+  const pack=mergeCustomIntoPack(basePack);
+  const built=kb.getTemplates(PLAYBOOK_FILTERS).map(t=>({...t,_custom:false}));
+  const mine=customTemplateRows().map(r=>({id:`customtpl:${r.id}`,name:r.title||"Мій шаблон",channel:r.channel||"all",subject:r.subject_template||"",body:r.body_template||"",notes:r.notes||"",_custom:true,_raw:r}));
+  const rows=[...mine,...built];
+  const vars=playbookVars(pack);
+  return `${customTemplateForm()}${rows.length?rows.map(t=>{const r=kb.renderTemplate(t,vars);return `<div class="template-card"><div class="section-caption"><div><div class="eyebrow">${esc(String(t.channel||"all").toUpperCase())}${t._custom?'<span class="custom-chip">МОЄ</span>':""}</div><h3>${esc(t.name)}</h3></div></div>${t.notes?`<div class="muted">${esc(t.notes)}</div>`:""}${r.subject?`<div class="template-preview"><b>${esc(r.subject)}</b>\n\n${esc(r.body)}</div>`:`<div class="template-preview">${esc(r.body)}</div>`}<div class="toolbar"><button class="btn small" onclick="copyPlaybookTemplate('${escAttr(t.id)}')">Скопіювати текст</button><button class="btn small secondary" onclick="applyPlaybookBundle(false)">Заповнити паспорт основою</button>${t._custom?`<button class="btn small secondary" onclick="editCustomTemplate('${escAttr(t._raw.id)}')">Редагувати</button><button class="btn small danger" onclick="deleteCustomKnowledge('${escAttr(t._raw.id)}')">Видалити</button>`:""}</div></div>`}).join(""):`<div class="notice">Для вибраного каналу й задачі шаблонів поки немає.</div>`}`;
+}
+function renderPlaybookScenarios(){
+  const kb=window.VAMarketingKnowledgeBase;
+  const rows=kb?.getScenarios(PLAYBOOK_FILTERS)||[];
+  if(!rows.length)return `<div class="notice">Для цих фільтрів окремого сценарію поки немає. Змініть задачу, аудиторію або канал.</div>`;
+  return rows.map(s=>`<div class="scenario-card"><div class="eyebrow">СЦЕНАРІЙ КАМПАНІЇ</div><h3>${esc(s.name)}</h3><div class="muted"><b>Коли:</b> ${esc(s.useWhen||"—")}</div>${s.theme?`<div class="scenario-theme"><b>Тема:</b> ${esc(s.theme)}</div>`:""}${s.steps?.length?`<ol class="scenario-steps">${s.steps.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`:""}<div class="toolbar"><button class="btn small secondary" onclick="useScenarioTheme('${escAttr(s.id)}')">Тему → у паспорт</button></div></div>`).join("");
+}
+async function useScenarioTheme(id){
+  const kb=window.VAMarketingKnowledgeBase; const s=(kb?.getScenarios({eventType:"",genre:"",objective:"",audience:"",channel:""})||[]).find(x=>x.id===id);
+  const seance=getFocusSeance(); if(!s||!seance)return;
+  const ctx=getMarketingContext(seance.id);ctx.campaignTheme=s.theme||ctx.campaignTheme;
+  if(s.steps?.length){
+    const note=`Сценарій «${s.name}»: ${s.steps.join(" → ")}`;
+    const lines=String(ctx.notes||"").split(/\n+/).filter(Boolean);if(!lines.includes(note))lines.push(note);ctx.notes=lines.join("\n");
+  }
+  await persistMarketingContextObject(seance.id,ctx,`Сценарій «${s.name}» додано в паспорт.`);
+  renderPlaybooksSection();
 }
 function renderPlaybookExperience(){
   const type=PLAYBOOK_FILTERS.eventType, genre=PLAYBOOK_FILTERS.genre;
   const rows=CAMPAIGNS.filter(c=>(c.status||"draft")==="done").map(c=>({c,s:SEANCES.find(s=>String(s.id)===String(c.seance_id))||{}})).filter(x=>(!type||String(x.s.event_type||"")===type)&&(!genre||String(x.s.genre||"")===genre)).sort((a,b)=>Number(b.c.result_v1?.attribution?.tickets||0)-Number(a.c.result_v1?.attribution?.tickets||0));
-  if(!rows.length)return `<div class="notice"><b>Поки немає завершених кампаній за цим типом/жанром.</b> Коли Campaign Result V1 зафіксує результат, досвід автоматично з’явиться тут — без ручного переписування.</div>`;
-  return rows.map(({c,s})=>{const r=c.result_v1||campaignResultV1(c)||{};const a=r.attribution||{},g=r.growth||{};const proven=Number(a.tickets||0)>0;return `<div class="experience-card"><div class="section-caption"><div><div class="eyebrow">${proven?"ДОКАЗАНИЙ РЕЗУЛЬТАТ":"ІСТОРИЧНИЙ СЦЕНАРІЙ"}</div><h3>${esc(c.name||s.show||"Кампанія")}</h3><div class="micro">${esc(s.event_type||"—")} • ${esc(window.VAEventTaxonomy?.genreLabel(s.event_type,s.genre)||s.genre||"—")} • ${esc(c.segmentLabel||"—")} • ${esc(c.channel||"—")}</div></div><span class="pill ${proven?"good":"warn"}">${proven?"є пряма атрибуція":"без прямої атрибуції"}</span></div><div class="experience-grid"><div class="experience-metric"><span>Прямі квитки</span><b>${Number(a.tickets||0)}</b></div><div class="experience-metric"><span>Пряма виручка</span><b>${Number(a.revenue||0).toLocaleString("uk-UA")} грн</b></div><div class="experience-metric"><span>Загальний приріст</span><b>${signedNumber(g.tickets||0)} квит.</b></div><div class="experience-metric"><span>Частка приросту</span><b>${a.ticket_share_pct==null?"—":resultPercent(a.ticket_share_pct)}</b></div></div><div class="result-proof"><strong>Теза:</strong> ${esc(c.passport?.corePromise||"—")}<br><strong>CTA:</strong> ${esc(c.passport?.cta||"—")}</div><div class="toolbar"><button class="btn small" onclick="reuseCampaignExperience('${escAttr(c.id)}')">Використати як основу</button><button class="btn small secondary" onclick="openCampaignEntity('${escAttr(c.id)}')">Відкрити кампанію</button></div></div>`}).join("");
+  if(!rows.length)return `<div class="notice"><b>Поки немає завершених кампаній за цим типом/жанром.</b> Коли Campaign Result V1 зафіксує результат, досвід автоматично з’явиться тут.</div>`;
+  return rows.map(({c,s})=>{const r=c.result_v1||campaignResultV1(c)||{};const a=r.attribution||{},g=r.growth||{};const proven=Number(a.tickets||0)>0;return `<div class="experience-card"><div class="section-caption"><div><div class="eyebrow">${proven?"ДОКАЗАНИЙ РЕЗУЛЬТАТ":"ІСТОРИЧНИЙ СЦЕНАРІЙ"}</div><h3>${esc(c.name||s.show||"Кампанія")}</h3><div class="micro">${esc(s.event_type||"—")} • ${esc(window.VAEventTaxonomy?.genreLabel(s.event_type,s.genre)||s.genre||"—")} • ${esc(c.segmentLabel||"—")} • ${esc(c.channel||"—")}</div></div><span class="pill ${proven?"good":"warn"}">${proven?"є пряма атрибуція":"без прямої атрибуції"}</span></div><div class="experience-grid"><div class="experience-metric"><span>Прямі квитки</span><b>${Number(a.tickets||0)}</b></div><div class="experience-metric"><span>Пряма виручка</span><b>${Number(a.revenue||0).toLocaleString("uk-UA")} грн</b></div><div class="experience-metric"><span>Загальний приріст</span><b>${signedNumber(g.tickets||0)} квит.</b></div><div class="experience-metric"><span>Частка приросту</span><b>${a.ticket_share_pct==null?"—":resultPercent(a.ticket_share_pct)}</b></div></div><div class="result-proof"><strong>Тема:</strong> ${esc(c.passport?.campaignTheme||"—")}<br><strong>Теза:</strong> ${esc(c.passport?.corePromise||"—")}<br><strong>CTA:</strong> ${esc(c.passport?.cta||"—")}</div><div class="toolbar"><button class="btn small" onclick="reuseCampaignExperience('${escAttr(c.id)}')">Використати як основу</button><button class="btn small secondary" onclick="openCampaignEntity('${escAttr(c.id)}')">Відкрити кампанію</button></div></div>`}).join("");
 }
 function renderPlaybooksSection(){
   const panel=document.getElementById("activeSectionPanel"); syncPlaybookFiltersFromFocus();
@@ -2968,8 +3237,13 @@ function renderPlaybooksSection(){
   if(!tax||!kb){panel.innerHTML=`<h2>🧰 Сценарії та досвід</h2><div class="notice"><b>Не завантажено shared-довідники.</b> Потрібні ../shared/event-taxonomy.js та ../shared/marketing-knowledge-base.js.</div>`;return;}
   const ta=tax.audit(); const ka=kb.auditAgainstTaxonomy(tax); const focus=getFocusSeance();
   const typeRows=tax.types(), genreRows=tax.genresFor(PLAYBOOK_FILTERS.eventType); const pack=kb.resolve(PLAYBOOK_FILTERS);
-  const body=PLAYBOOK_TAB==="templates"?renderPlaybookTemplates(pack):PLAYBOOK_TAB==="experience"?renderPlaybookExperience():renderPlaybookIdeas(pack);
-  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V1</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Не порожній аркуш, а керований банк: тип/жанр із канонічного редактора → ідея → паспорт → кампанія → результат → досвід.</div></div></div>${renderScopeHeader()}<div class="knowledge-status"><span class="pill ${ta.ok&&ka.ok?"good":"warn"}">Таксономія ${esc(tax.version)} • ${ta.typeCount} типів • ${ta.genreCount} жанрів</span><span class="pill ${ka.ok?"good":"warn"}">Банк ${esc(kb.version)} • покриття ${ka.ok?"повне":"неповне"}</span>${focus?`<span class="pill">Авто з сеансу: ${esc(focus.event_type||"тип не задано")} / ${esc(tax.genreLabel(focus.event_type,focus.genre)||focus.genre||"жанр не задано")}</span>`:""}</div>${!ka.ok?`<div class="notice"><b>Контроль дрейфу:</b> у довіднику з’явилися позиції без окремого банку: ${esc([...ka.missingTypes,...ka.missingGenres].join(", "))}. Працює базовий fallback, але банк треба доповнити.</div>`:""}<div class="playbook-filters"><div><label>Тип події</label><select onchange="setPlaybookFilter('eventType',this.value)"><option value="">Усі типи</option>${playbookSelectHtml(typeRows,PLAYBOOK_FILTERS.eventType)}</select></div><div><label>Жанр</label><select onchange="setPlaybookFilter('genre',this.value)"><option value="">Усі жанри типу</option>${playbookSelectHtml(genreRows,PLAYBOOK_FILTERS.genre)}</select></div><div><label>Задача</label><select onchange="setPlaybookFilter('objective',this.value)">${playbookSelectHtml(kb.objectives(),PLAYBOOK_FILTERS.objective)}</select></div><div><label>Аудиторія</label><select onchange="setPlaybookFilter('audience',this.value)">${playbookSelectHtml(kb.audiences(),PLAYBOOK_FILTERS.audience)}</select></div><div><label>Канал</label><select onchange="setPlaybookFilter('channel',this.value)">${playbookSelectHtml(kb.channels(),PLAYBOOK_FILTERS.channel)}</select></div></div><div class="playbook-tabs"><button class="playbook-tab ${PLAYBOOK_TAB==="ideas"?"active":""}" onclick="setPlaybookTab('ideas')">💡 Банк ідей</button><button class="playbook-tab ${PLAYBOOK_TAB==="templates"?"active":""}" onclick="setPlaybookTab('templates')">📝 Шаблони текстів</button><button class="playbook-tab ${PLAYBOOK_TAB==="experience"?"active":""}" onclick="setPlaybookTab('experience')">🏆 Перевірені сценарії</button></div>${body}`;
+  const body=PLAYBOOK_TAB==="templates"?renderPlaybookTemplates(pack):PLAYBOOK_TAB==="scenarios"?renderPlaybookScenarios():PLAYBOOK_TAB==="experience"?renderPlaybookExperience():renderPlaybookIdeas(pack);
+  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
+  <div class="knowledge-status"><span class="pill ${ta.ok&&ka.ok?"good":"warn"}">Таксономія ${esc(tax.version)} • ${ta.typeCount} типів • ${ta.genreCount} жанрів</span><span class="pill ${ka.ok?"good":"warn"}">Банк ${esc(kb.version)} • покриття ${ka.ok?"повне":"неповне"}</span><span class="pill ${CUSTOM_KNOWLEDGE_SCHEMA_READY?"good":"warn"}">Власний банк: ${CUSTOM_KNOWLEDGE_SCHEMA_READY?CUSTOM_KNOWLEDGE_ITEMS.length+" записів":"таблиця не підключена"}</span>${focus?`<span class="pill">Авто з сеансу: ${esc(focus.event_type||"тип не задано")} / ${esc(tax.genreLabel(focus.event_type,focus.genre)||focus.genre||"жанр не задано")}</span>`:""}</div>
+  ${!ka.ok?`<div class="notice"><b>Контроль дрейфу:</b> у довіднику з’явилися позиції без окремого банку: ${esc([...ka.missingTypes,...ka.missingGenres].join(", "))}.</div>`:""}
+  ${!CUSTOM_KNOWLEDGE_SCHEMA_READY?`<div class="notice"><b>Власні формулювання поки не зберігаються централізовано.</b> Встановіть таблицю marketing_knowledge_items та Edge Function marketing-knowledge-admin. Системний Банк продовжує працювати.</div>`:""}
+  <div class="playbook-filters"><div><label>Тип події</label><select onchange="setPlaybookFilter('eventType',this.value)"><option value="">Усі типи</option>${playbookSelectHtml(typeRows,PLAYBOOK_FILTERS.eventType)}</select></div><div><label>Жанр</label><select onchange="setPlaybookFilter('genre',this.value)"><option value="">Усі жанри типу</option>${playbookSelectHtml(genreRows,PLAYBOOK_FILTERS.genre)}</select></div><div><label>Задача</label><select onchange="setPlaybookFilter('objective',this.value)">${playbookSelectHtml(kb.objectives(),PLAYBOOK_FILTERS.objective)}</select></div><div><label>Аудиторія</label><select onchange="setPlaybookFilter('audience',this.value)">${playbookSelectHtml(kb.audiences(),PLAYBOOK_FILTERS.audience)}</select></div><div><label>Канал</label><select onchange="setPlaybookFilter('channel',this.value)">${playbookSelectHtml(kb.channels(),PLAYBOOK_FILTERS.channel)}</select></div></div>
+  <div class="playbook-tabs"><button class="playbook-tab ${PLAYBOOK_TAB==="ideas"?"active":""}" onclick="setPlaybookTab('ideas')">💡 Банк ідей</button><button class="playbook-tab ${PLAYBOOK_TAB==="scenarios"?"active":""}" onclick="setPlaybookTab('scenarios')">🎯 Сценарії кампаній</button><button class="playbook-tab ${PLAYBOOK_TAB==="templates"?"active":""}" onclick="setPlaybookTab('templates')">📝 Шаблони текстів</button><button class="playbook-tab ${PLAYBOOK_TAB==="experience"?"active":""}" onclick="setPlaybookTab('experience')">🏆 Перевірені сценарії</button></div>${body}`;
 }
 
 function renderJournalSection(){
@@ -3170,6 +3444,7 @@ async function boot(){
     SERVICE_MESSAGES = serviceMessages || [];
     SERVICE_RECIPIENTS = serviceRecipients || [];
     SERVICE_DELIVERIES = serviceDeliveries || [];
+    await reloadCustomKnowledge();
 
     buildClients(ORDERS, TICKETS, SEANCES);
     backfillCampaignResultsV1();
