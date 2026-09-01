@@ -5,8 +5,8 @@
   <title>VA Marketing Control Center V2.11</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../shared/event-taxonomy.js"></script>
-  <script src="../shared/marketing-knowledge-base.js"></script>
+  <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
+  <script src="../shared/marketing-knowledge-base-v2.js?v=2.0.1-20260901"></script>
 
   <style>
     body{margin:0;font-family:Arial,sans-serif;background:#071a35;color:#fff}
@@ -2915,6 +2915,23 @@ function renderCampaignsSection(){
 function playbookSelectHtml(rows,selected){
   return (rows||[]).map(x=>`<option value="${escAttr(x.value)}" ${String(x.value)===String(selected)?"selected":""}>${esc(x.label)}</option>`).join("");
 }
+function playbookGenresFor(type){
+  const tax=window.VAEventTaxonomy;
+  const wanted=String(type||"");
+  if(!tax||!wanted)return [];
+  try{
+    const direct=typeof tax.genresFor==="function" ? tax.genresFor(wanted) : [];
+    if(Array.isArray(direct)&&direct.length){
+      return direct.map(x=>Array.isArray(x)?{value:x[0],label:x[1]}:{value:x.value,label:x.label});
+    }
+  }catch(e){console.warn("VA taxonomy genresFor fallback",e);}
+  const row=(Array.isArray(tax.raw)?tax.raw:[]).find(t=>String(t?.value||t?.label||"")===wanted);
+  return (row?.genres||[]).map(x=>Array.isArray(x)?{value:x[0],label:x[1]}:{value:x.value,label:x.label}).filter(x=>x.value);
+}
+function knowledgeBankV2Ready(){
+  const kb=window.VAMarketingKnowledgeBase;
+  return !!(kb && typeof kb.resolve==="function" && typeof kb.getScenarios==="function" && typeof kb.getTemplates==="function");
+}
 function playbookChannelFromCampaign(value){
   const v=String(value||"").toLowerCase();
   if(v.includes("email"))return "email"; if(v.includes("facebook")||v.includes("instagram")||v.includes("social"))return "social"; if(v.includes("telegram")||v.includes("viber"))return "messenger"; if(v.includes("sms"))return "sms"; return "all";
@@ -2935,7 +2952,7 @@ function setPlaybookTab(tab){ PLAYBOOK_TAB=tab; renderPlaybooksSection(); }
 function setPlaybookFilter(key,value){
   PLAYBOOK_FILTERS[key]=String(value||"");
   if(key==="eventType"){
-    const rows=window.VAEventTaxonomy?.genresFor(PLAYBOOK_FILTERS.eventType)||[];
+    const rows=playbookGenresFor(PLAYBOOK_FILTERS.eventType);
     if(!rows.some(x=>x.value===PLAYBOOK_FILTERS.genre))PLAYBOOK_FILTERS.genre="";
   }
   renderPlaybooksSection();
@@ -3210,12 +3227,17 @@ function renderPlaybookTemplates(basePack){
 }
 function renderPlaybookScenarios(){
   const kb=window.VAMarketingKnowledgeBase;
-  const rows=kb?.getScenarios(PLAYBOOK_FILTERS)||[];
+  if(!knowledgeBankV2Ready()){
+    return `<div class="notice bad"><b>Завантажено старий Marketing Knowledge Bank.</b><br>Для сценаріїв потрібен shared/marketing-knowledge-base-v2.js версії 2.0.1. Поточна версія: ${esc(kb?.version||"не визначена")}.</div>`;
+  }
+  const rows=kb.getScenarios(PLAYBOOK_FILTERS)||[];
   if(!rows.length)return `<div class="notice">Для цих фільтрів окремого сценарію поки немає. Змініть задачу, аудиторію або канал.</div>`;
   return rows.map(s=>`<div class="scenario-card"><div class="eyebrow">СЦЕНАРІЙ КАМПАНІЇ</div><h3>${esc(s.name)}</h3><div class="muted"><b>Коли:</b> ${esc(s.useWhen||"—")}</div>${s.theme?`<div class="scenario-theme"><b>Тема:</b> ${esc(s.theme)}</div>`:""}${s.steps?.length?`<ol class="scenario-steps">${s.steps.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`:""}<div class="toolbar"><button class="btn small secondary" onclick="useScenarioTheme('${escAttr(s.id)}')">Тему → у паспорт</button></div></div>`).join("");
 }
 async function useScenarioTheme(id){
-  const kb=window.VAMarketingKnowledgeBase; const s=(kb?.getScenarios({eventType:"",genre:"",objective:"",audience:"",channel:""})||[]).find(x=>x.id===id);
+  const kb=window.VAMarketingKnowledgeBase;
+  if(!knowledgeBankV2Ready())return alert("Потрібен Marketing Knowledge Bank V2.0.1.");
+  const s=(kb.getScenarios({eventType:"",genre:"",objective:"",audience:"",channel:""})||[]).find(x=>x.id===id);
   const seance=getFocusSeance(); if(!s||!seance)return;
   const ctx=getMarketingContext(seance.id);ctx.campaignTheme=s.theme||ctx.campaignTheme;
   if(s.steps?.length){
@@ -3236,11 +3258,12 @@ function renderPlaybooksSection(){
   const tax=window.VAEventTaxonomy, kb=window.VAMarketingKnowledgeBase;
   if(!tax||!kb){panel.innerHTML=`<h2>🧰 Сценарії та досвід</h2><div class="notice"><b>Не завантажено shared-довідники.</b> Потрібні ../shared/event-taxonomy.js та ../shared/marketing-knowledge-base.js.</div>`;return;}
   const ta=tax.audit(); const ka=kb.auditAgainstTaxonomy(tax); const focus=getFocusSeance();
-  const typeRows=tax.types(), genreRows=tax.genresFor(PLAYBOOK_FILTERS.eventType); const pack=kb.resolve(PLAYBOOK_FILTERS);
+  const typeRows=tax.types(), genreRows=playbookGenresFor(PLAYBOOK_FILTERS.eventType); const pack=kb.resolve(PLAYBOOK_FILTERS);
   const body=PLAYBOOK_TAB==="templates"?renderPlaybookTemplates(pack):PLAYBOOK_TAB==="scenarios"?renderPlaybookScenarios():PLAYBOOK_TAB==="experience"?renderPlaybookExperience():renderPlaybookIdeas(pack);
-  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
+  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2.12.1</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
   <div class="knowledge-status"><span class="pill ${ta.ok&&ka.ok?"good":"warn"}">Таксономія ${esc(tax.version)} • ${ta.typeCount} типів • ${ta.genreCount} жанрів</span><span class="pill ${ka.ok?"good":"warn"}">Банк ${esc(kb.version)} • покриття ${ka.ok?"повне":"неповне"}</span><span class="pill ${CUSTOM_KNOWLEDGE_SCHEMA_READY?"good":"warn"}">Власний банк: ${CUSTOM_KNOWLEDGE_SCHEMA_READY?CUSTOM_KNOWLEDGE_ITEMS.length+" записів":"таблиця не підключена"}</span>${focus?`<span class="pill">Авто з сеансу: ${esc(focus.event_type||"тип не задано")} / ${esc(tax.genreLabel(focus.event_type,focus.genre)||focus.genre||"жанр не задано")}</span>`:""}</div>
   ${!ka.ok?`<div class="notice"><b>Контроль дрейфу:</b> у довіднику з’явилися позиції без окремого банку: ${esc([...ka.missingTypes,...ka.missingGenres].join(", "))}.</div>`:""}
+  ${!knowledgeBankV2Ready()?`<div class="notice bad"><b>Підключено не той shared-файл Банку.</b> Поточна версія: ${esc(kb.version||"—")}. V2.12.1 очікує <b>marketing-knowledge-base-v2.js • 2.0.1</b>.</div>`:""}
   ${!CUSTOM_KNOWLEDGE_SCHEMA_READY?`<div class="notice"><b>Власні формулювання поки не зберігаються централізовано.</b> Встановіть таблицю marketing_knowledge_items та Edge Function marketing-knowledge-admin. Системний Банк продовжує працювати.</div>`:""}
   <div class="playbook-filters"><div><label>Тип події</label><select onchange="setPlaybookFilter('eventType',this.value)"><option value="">Усі типи</option>${playbookSelectHtml(typeRows,PLAYBOOK_FILTERS.eventType)}</select></div><div><label>Жанр</label><select onchange="setPlaybookFilter('genre',this.value)"><option value="">Усі жанри типу</option>${playbookSelectHtml(genreRows,PLAYBOOK_FILTERS.genre)}</select></div><div><label>Задача</label><select onchange="setPlaybookFilter('objective',this.value)">${playbookSelectHtml(kb.objectives(),PLAYBOOK_FILTERS.objective)}</select></div><div><label>Аудиторія</label><select onchange="setPlaybookFilter('audience',this.value)">${playbookSelectHtml(kb.audiences(),PLAYBOOK_FILTERS.audience)}</select></div><div><label>Канал</label><select onchange="setPlaybookFilter('channel',this.value)">${playbookSelectHtml(kb.channels(),PLAYBOOK_FILTERS.channel)}</select></div></div>
   <div class="playbook-tabs"><button class="playbook-tab ${PLAYBOOK_TAB==="ideas"?"active":""}" onclick="setPlaybookTab('ideas')">💡 Банк ідей</button><button class="playbook-tab ${PLAYBOOK_TAB==="scenarios"?"active":""}" onclick="setPlaybookTab('scenarios')">🎯 Сценарії кампаній</button><button class="playbook-tab ${PLAYBOOK_TAB==="templates"?"active":""}" onclick="setPlaybookTab('templates')">📝 Шаблони текстів</button><button class="playbook-tab ${PLAYBOOK_TAB==="experience"?"active":""}" onclick="setPlaybookTab('experience')">🏆 Перевірені сценарії</button></div>${body}`;
