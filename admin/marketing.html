@@ -2964,12 +2964,48 @@ function resetPlaybookTypeGenre(){
   renderPlaybooksSection();
 }
 function bindPlaybookControls(){
+  const tax=window.VAEventTaxonomy;
   const typeEl=document.getElementById("playbookEventType");
   const genreEl=document.getElementById("playbookGenre");
   const objectiveEl=document.getElementById("playbookObjective");
   const audienceEl=document.getElementById("playbookAudience");
   const channelEl=document.getElementById("playbookChannel");
-  typeEl?.addEventListener("change",()=>setPlaybookFilter("eventType",typeEl.value));
+
+  // V2.12.4: controls are populated by the canonical taxonomy API AFTER DOM creation.
+  // No duplicated event type / genre option list exists in Marketing.
+  if(typeEl){
+    typeEl.disabled=false;
+    if(tax && typeof tax.fillTypeSelect==="function") {
+      tax.fillTypeSelect(typeEl, PLAYBOOK_FILTERS.eventType, "Оберіть тип");
+    } else {
+      const rows=(tax && typeof tax.types==="function") ? tax.types() : [];
+      typeEl.replaceChildren(new Option("Оберіть тип", ""), ...rows.map(x=>new Option(x.label,x.value)));
+      typeEl.value=PLAYBOOK_FILTERS.eventType||"";
+    }
+  }
+
+  if(genreEl){
+    const selectedType=String(PLAYBOOK_FILTERS.eventType||"");
+    genreEl.disabled=!selectedType;
+    if(selectedType){
+      if(tax && typeof tax.fillGenreSelect==="function") {
+        tax.fillGenreSelect(genreEl, selectedType, PLAYBOOK_FILTERS.genre, "Оберіть жанр");
+      } else {
+        const rows=playbookGenresFor(selectedType);
+        genreEl.replaceChildren(new Option("Оберіть жанр", ""), ...rows.map(x=>new Option(x.label,x.value)));
+        genreEl.value=PLAYBOOK_FILTERS.genre||"";
+      }
+    } else {
+      genreEl.replaceChildren(new Option("Спочатку оберіть тип", ""));
+      genreEl.value="";
+    }
+  }
+
+  typeEl?.addEventListener("change",()=>{
+    PLAYBOOK_FILTERS.eventType=String(typeEl.value||"");
+    PLAYBOOK_FILTERS.genre="";
+    renderPlaybooksSection();
+  });
   genreEl?.addEventListener("change",()=>setPlaybookFilter("genre",genreEl.value));
   objectiveEl?.addEventListener("change",()=>setPlaybookFilter("objective",objectiveEl.value));
   audienceEl?.addEventListener("change",()=>setPlaybookFilter("audience",audienceEl.value));
@@ -3280,14 +3316,14 @@ function renderPlaybooksSection(){
   const ta=tax.audit(); const ka=kb.auditAgainstTaxonomy(tax); const focus=getFocusSeance();
   const typeRows=tax.types(), genreRows=playbookGenresFor(PLAYBOOK_FILTERS.eventType); const pack=kb.resolve(PLAYBOOK_FILTERS);
   const body=PLAYBOOK_TAB==="templates"?renderPlaybookTemplates(pack):PLAYBOOK_TAB==="scenarios"?renderPlaybookScenarios():PLAYBOOK_TAB==="experience"?renderPlaybookExperience():renderPlaybookIdeas(pack);
-  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2.12.3</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
+  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2.12.4</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
   <div class="knowledge-status"><span class="pill ${ta.ok&&ka.ok?"good":"warn"}">Таксономія ${esc(tax.version)} • ${ta.typeCount} типів • ${ta.genreCount} жанрів</span><span class="pill ${ka.ok?"good":"warn"}">Банк ${esc(kb.version)} • покриття ${ka.ok?"повне":"неповне"}</span><span class="pill ${CUSTOM_KNOWLEDGE_SCHEMA_READY?"good":"warn"}">Власний банк: ${CUSTOM_KNOWLEDGE_SCHEMA_READY?CUSTOM_KNOWLEDGE_ITEMS.length+" записів":"таблиця не підключена"}</span>${focus?`<span class="pill">Авто з сеансу: ${esc(focus.event_type||"тип не задано")} / ${esc(tax.genreLabel(focus.event_type,focus.genre)||focus.genre||"жанр не задано")}</span>`:""}</div>
   ${!ka.ok?`<div class="notice"><b>Контроль дрейфу:</b> у довіднику з’явилися позиції без окремого банку: ${esc([...ka.missingTypes,...ka.missingGenres].join(", "))}.</div>`:""}
-  ${!knowledgeBankV2Ready()?`<div class="notice bad"><b>Підключено не той shared-файл Банку.</b> Поточна версія: ${esc(kb.version||"—")}. V2.12.3 очікує <b>marketing-knowledge-base.js • 2.0.1</b>.</div>`:""}
+  ${!knowledgeBankV2Ready()?`<div class="notice bad"><b>Підключено не той shared-файл Банку.</b> Поточна версія: ${esc(kb.version||"—")}. V2.12.4 очікує <b>marketing-knowledge-base.js • 2.0.1</b>.</div>`:""}
   ${!CUSTOM_KNOWLEDGE_SCHEMA_READY?`<div class="notice"><b>Власні формулювання поки не зберігаються централізовано.</b> Встановіть таблицю marketing_knowledge_items та Edge Function marketing-knowledge-admin. Системний Банк продовжує працювати.</div>`:""}
   <div class="playbook-filters">
-    <div><label>Тип події</label><select id="playbookEventType"><option value="">Оберіть тип</option>${playbookSelectHtml(typeRows,PLAYBOOK_FILTERS.eventType)}</select></div>
-    <div><label>Жанр</label><select id="playbookGenre" ${PLAYBOOK_FILTERS.eventType?"":"disabled"}><option value="">${PLAYBOOK_FILTERS.eventType?"Оберіть жанр":"Спочатку оберіть тип"}</option>${playbookSelectHtml(genreRows,PLAYBOOK_FILTERS.genre)}</select></div>
+    <div><label>Тип події</label><select id="playbookEventType"><option value="">Оберіть тип</option></select></div>
+    <div><label>Жанр</label><select id="playbookGenre"><option value="">Спочатку оберіть тип</option></select></div>
     <div><label>Задача</label><select id="playbookObjective">${playbookSelectHtml(kb.objectives(),PLAYBOOK_FILTERS.objective)}</select></div>
     <div><label>Аудиторія</label><select id="playbookAudience">${playbookSelectHtml(kb.audiences(),PLAYBOOK_FILTERS.audience)}</select></div>
     <div><label>Канал</label><select id="playbookChannel">${playbookSelectHtml(kb.channels(),PLAYBOOK_FILTERS.channel)}</select></div>
