@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.13.1 —  Control Center V2.11</title>
+  <title>VA Marketing V2.13.2 — Scanner Proof</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -177,10 +177,10 @@ textarea::placeholder{
   .attribution-box{margin-top:12px;border:1px solid rgba(85,217,138,.35);background:#0a241e;border-radius:12px;padding:12px}
   .attribution-link-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
   .attribution-link{flex:1;min-width:280px;background:#07172b;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;color:#dce8ff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
-  .attribution-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  .attribution-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
   .campaign-result{margin-top:14px;border:1px solid rgba(242,182,50,.42);background:linear-gradient(180deg,rgba(242,182,50,.10),rgba(242,182,50,.035));border-radius:14px;padding:14px}
   .campaign-result-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px}
-  .campaign-result-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:10px}
+  .campaign-result-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:10px}
   .campaign-result-cell{background:#09182c;border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:11px}
   .campaign-result-cell span{display:block;color:#aebbd0;font-size:11px;margin-bottom:5px}
   .campaign-result-cell b{font-size:19px;line-height:1.2}
@@ -718,9 +718,10 @@ async function refreshActiveCampaignData({rerender=true, silent=true} = {}){
 
     if(rerender){
       renderContextBridge();
-      if(ACTIVE_SECTION === 3){
+      if(ACTIVE_SECTION === 3 || ACTIVE_SECTION === 6){
         const y = window.scrollY;
-        renderCampaignsSection();
+        if(ACTIVE_SECTION === 3) renderCampaignsSection();
+        else renderEfficiencySection();
         requestAnimationFrame(() => window.scrollTo(0, y));
       }
     }
@@ -875,6 +876,35 @@ function campaignAttributionMetrics(campaign){
   };
 }
 
+function campaignAttendanceMetrics(campaign){
+  if(!campaign?.id) return {attributed_tickets:0,attributed_checked_in:0,attributed_attendance_pct:null,seance_tickets:0,seance_checked_in:0,seance_attendance_pct:null};
+  const paidStatuses = new Set(["paid","success","completed","approved"]);
+  const startedAt = campaign.started_at ? new Date(campaign.started_at).getTime() : null;
+  const completedAt = campaign.completed_at ? new Date(campaign.completed_at).getTime() : null;
+  const rows = ORDERS.filter(o => {
+    if(String(o.marketing_campaign_id || "") !== String(campaign.id)) return false;
+    if(o.status && !paidStatuses.has(String(o.status).toLowerCase())) return false;
+    if(!startedAt) return false;
+    const stamp = new Date(o.marketing_attributed_at || o.created_at || 0).getTime();
+    if(!Number.isFinite(stamp) || stamp < startedAt) return false;
+    if(completedAt && stamp > completedAt) return false;
+    return true;
+  });
+  const orderIds = new Set(rows.map(o => String(o.order_id || o.id || "")).filter(Boolean));
+  const attributedTickets = TICKETS.filter(t => orderIds.has(String(t.order_id || "")));
+  const attributedChecked = attributedTickets.filter(t => !!t.checked_in_at);
+  const seanceTickets = TICKETS.filter(t => String(t.seance_id || "") === String(campaign.seance_id || ""));
+  const seanceChecked = seanceTickets.filter(t => !!t.checked_in_at);
+  return {
+    attributed_tickets: attributedTickets.length,
+    attributed_checked_in: attributedChecked.length,
+    attributed_attendance_pct: attributedTickets.length ? Math.round((attributedChecked.length / attributedTickets.length) * 100) : null,
+    seance_tickets: seanceTickets.length,
+    seance_checked_in: seanceChecked.length,
+    seance_attendance_pct: seanceTickets.length ? Math.round((seanceChecked.length / seanceTickets.length) * 100) : null
+  };
+}
+
 function campaignDeliveryMetrics(campaign){
   if(!campaign?.id) return {messages:0,recipients:0,sent:0,failed:0,pending:0,testSends:0};
   const cid = String(campaign.id);
@@ -952,12 +982,14 @@ function renderCampaignResultCard(campaign, compact=false){
   const result = campaign.result_v1 || campaignResultV1(campaign);
   if(!result) return "";
   const g=result.growth||{}, a=result.attribution||{}, u=result.unattributed||{}, d=result.delivery||{}, e=result.economics||{};
+  const attendance=campaignAttendanceMetrics(campaign);
   const finished=(campaign.status||"draft") === "done";
   const periodStart=result.started_at ? `${fmtDate(result.started_at)} ${new Date(result.started_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "—";
   const periodEnd=result.completed_at ? `${fmtDate(result.completed_at)} ${new Date(result.completed_at).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}` : "зараз";
   const attributionText = a.ticket_share_pct == null ? "—" : `${a.tickets} з ${Math.max(0,Number(g.tickets||0))} · ${resultPercent(a.ticket_share_pct)}`;
   const deliveryText = d.recipients ? `${d.sent}/${d.recipients}` : "—";
-  const proof = `За період кампанії: ${signedNumber(g.tickets)} квит. / ${signedNumber(g.revenue," грн")}. Прямо за campaign_id: ${Number(a.orders||0)} замовл., ${Number(a.tickets||0)} квит., ${Number(a.revenue||0).toLocaleString("uk-UA")} грн. Без прямої атрибуції: ${Number(u.tickets||0)} квит.`;
+  const attendanceText = attendance.attributed_tickets ? `${attendance.attributed_checked_in}/${attendance.attributed_tickets} · ${resultPercent(attendance.attributed_attendance_pct)}` : "0/0 · —";
+  const proof = `За період кампанії: ${signedNumber(g.tickets)} квит. / ${signedNumber(g.revenue," грн")}. Прямо за campaign_id: ${Number(a.orders||0)} замовл., ${Number(a.tickets||0)} квит., ${Number(a.revenue||0).toLocaleString("uk-UA")} грн. Без прямої атрибуції: ${Number(u.tickets||0)} квит. За сканером: ${Number(attendance.attributed_checked_in||0)} із ${Number(attendance.attributed_tickets||0)} атрибутованих квитків пройшли.`;
   return `
     <div class="campaign-result ${compact ? "compact-result" : ""}">
       <div class="campaign-result-head">
@@ -968,16 +1000,18 @@ function renderCampaignResultCard(campaign, compact=false){
         <div class="campaign-result-cell"><span>Загальний приріст</span><b>${signedNumber(g.tickets)} квит.</b><div class="micro">${signedNumber(g.revenue," грн")} · покупці ${signedNumber(g.buyers)}</div></div>
         <div class="campaign-result-cell"><span>Пряма атрибуція</span><b>${esc(attributionText)}</b><div class="micro">${Number(a.orders||0)} замовл. · ${Number(a.revenue||0).toLocaleString("uk-UA")} грн</div></div>
         <div class="campaign-result-cell"><span>Email / доставка</span><b>${esc(deliveryText)}</b><div class="micro">надіслано / одержувачів · помилки ${Number(d.failed||0)}${d.testSends?` · тестів ${Number(d.testSends)}`:""}</div></div>
+        <div class="campaign-result-cell"><span>Прохід / сканер</span><b>${esc(attendanceText)}</b><div class="micro">кампанія · сеанс ${Number(attendance.seance_checked_in||0)}/${Number(attendance.seance_tickets||0)} · ${resultPercent(attendance.seance_attendance_pct)}</div></div>
         <div class="campaign-result-cell"><span>Бюджет / ROAS</span><b>${Number(result.budget||0).toLocaleString("uk-UA")} грн</b><div class="micro">${e.direct_roas == null ? "ROAS —" : `прямий ROAS ${Number(e.direct_roas).toFixed(2)}×`}</div></div>
       </div>
       <div class="result-proof"><strong>Доказовий підсумок:</strong> ${esc(proof)}</div>
-      ${finished ? `<div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openVAWorkspace('director')">Директору →</button></div>` : ""}
+      ${finished ? `<div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="refreshActiveCampaignData({rerender:true,silent:false})">↻ Оновити прохід</button><button class="btn small secondary" onclick="openVAWorkspace('director')">Директору →</button></div>` : ""}
     </div>`;
 }
 
 function renderCampaignAttribution(campaign){
   const url = campaignAttributionUrl(campaign);
   const a = campaignAttributionMetrics(campaign);
+  const attendance = campaignAttendanceMetrics(campaign);
   return `
     <div class="attribution-box">
       <div class="eyebrow">CAMPAIGN ATTRIBUTION V1</div>
@@ -991,6 +1025,7 @@ function renderCampaignAttribution(campaign){
         <div class="snapshot-cell"><span>Атрибутовані покупці</span><b>${a.buyers}</b></div>
         <div class="snapshot-cell"><span>Замовлення</span><b>${a.orders}</b></div>
         <div class="snapshot-cell"><span>Квитки</span><b>${a.tickets}</b></div>
+        <div class="snapshot-cell"><span>Пройшли</span><b>${attendance.attributed_checked_in}/${attendance.attributed_tickets}</b><div class="micro">${resultPercent(attendance.attributed_attendance_pct)}</div></div>
         <div class="snapshot-cell"><span>Виручка</span><b>${Number(a.revenue||0).toLocaleString("uk-UA")} грн</b></div>
       </div>
     </div>`;
@@ -3287,10 +3322,10 @@ function renderPlaybooksSection(){
   const pack=kb.resolve(PLAYBOOK_FILTERS);
   const body=PLAYBOOK_TAB==="templates"?renderPlaybookTemplates(pack):PLAYBOOK_TAB==="scenarios"?renderPlaybookScenarios():PLAYBOOK_TAB==="experience"?renderPlaybookExperience():renderPlaybookIdeas(pack);
 
-  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2.13</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
+  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2.13.2</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
   <div class="knowledge-status"><span class="pill ${ta.ok&&ka.ok?"good":"warn"}">Таксономія ${esc(tax.version)} • ${ta.typeCount} типів • ${ta.genreCount} жанрів</span><span class="pill ${ka.ok?"good":"warn"}">Банк ${esc(kb.version)} • покриття ${ka.ok?"повне":"неповне"}</span><span class="pill ${CUSTOM_KNOWLEDGE_SCHEMA_READY?"good":"warn"}">Власний банк: ${CUSTOM_KNOWLEDGE_SCHEMA_READY?CUSTOM_KNOWLEDGE_ITEMS.length+" записів":"серверний шар не підключено"}</span>${focus?`<span class="pill">Авто з сеансу: ${esc(focus.event_type||"тип не задано")} / ${esc(tax.genreLabel(focus.event_type,focus.genre)||focus.genre||"жанр не задано")}</span>`:""}</div>
   ${!ka.ok?`<div class="notice"><b>Контроль дрейфу:</b> у довіднику з’явилися позиції без окремого банку: ${esc([...ka.missingTypes,...ka.missingGenres].join(", "))}.</div>`:""}
-  ${!knowledgeBankV2Ready()?`<div class="notice bad"><b>Підключено не той shared-файл Банку.</b> Поточна версія: ${esc(kb.version||"—")}. V2.13 очікує <b>marketing-knowledge-base.js • 2.0.1</b>.</div>`:""}
+  ${!knowledgeBankV2Ready()?`<div class="notice bad"><b>Підключено не той shared-файл Банку.</b> Поточна версія: ${esc(kb.version||"—")}. V2.13.2 очікує <b>marketing-knowledge-base.js • 2.0.1</b>.</div>`:""}
   ${!CUSTOM_KNOWLEDGE_SCHEMA_READY?`<div class="notice"><b>Системний Банк працює.</b> Для власних формулювань встановіть SQL і Edge Function <b>marketing-knowledge-admin</b>. Прямого REST-запиту до таблиці з браузера V2.13 більше не робить.</div>`:""}
 
   <div class="playbook-filters">
