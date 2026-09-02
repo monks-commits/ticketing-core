@@ -175,7 +175,7 @@
     .campaign-result-title{font-size:20px;font-weight:900}
     .campaign-result-period{color:#9fb3ca;font-size:12px;margin-top:4px}
     .result-status{display:inline-flex;padding:6px 9px;border-radius:999px;background:#17613e;font-size:11px;font-weight:900}
-    .result-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+    .result-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
     .result-card{background:#0b1a30;border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:11px;min-height:80px}
     .result-card span{display:block;color:#8fa8c6;font-size:11px;margin-bottom:6px}
     .result-card b{display:block;font-size:18px;line-height:1.25}
@@ -337,6 +337,7 @@
           <div class="result-card"><span>Загальний приріст</span><b id="resultGrowth">—</b><small id="resultGrowthMoney">—</small></div>
           <div class="result-card"><span>Пряма атрибуція</span><b id="resultAttribution">—</b><small id="resultAttributionMoney">—</small></div>
           <div class="result-card"><span>Email / виконання</span><b id="resultDelivery">—</b><small id="resultDeliveryMeta">—</small></div>
+          <div class="result-card"><span>Прохід / сканер</span><b id="resultAttendance">—</b><small id="resultAttendanceMeta">—</small></div>
           <div class="result-card"><span>Бюджет / прямий ROAS</span><b id="resultBudget">—</b><small id="resultRoas">—</small></div>
         </div>
         <div class="result-proof" id="resultProof">—</div>
@@ -364,7 +365,7 @@
     </div>
 
     <div class="version">
-      VA Director V1.3 · Campaign Result Bridge
+      VA Director V1.4 · Campaign Result + Scanner Proof
     </div>
   </main>
 
@@ -389,6 +390,8 @@
 
     let VA_CAMPAIGN = null;
     let VA_SEANCE = null;
+    let VA_ATTENDANCE = {attributed_tickets:0,attributed_checked_in:0,attributed_attendance_pct:null,seance_tickets:0,seance_checked_in:0,seance_attendance_pct:null,error:""};
+    let VA_ATTENDANCE_TIMER = null;
     let VA_CONTEXT_ACTIVE = false;
 
     function esc(v){
@@ -487,6 +490,49 @@
       }
     }
 
+    async function loadCampaignAttendance(){
+      VA_ATTENDANCE = {attributed_tickets:0,attributed_checked_in:0,attributed_attendance_pct:null,seance_tickets:0,seance_checked_in:0,seance_attendance_pct:null,error:""};
+      if(!VA_CONTEXT.campaign_id || !VA_CONTEXT.seance_id || !window.supabase?.createClient) return VA_ATTENDANCE;
+      try{
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const [ordersRes,ticketsRes] = await Promise.all([
+          sb.from("orders")
+            .select("id,order_id,seance_id,marketing_campaign_id,status")
+            .eq("marketing_campaign_id", VA_CONTEXT.campaign_id)
+            .eq("seance_id", VA_CONTEXT.seance_id),
+          sb.from("tickets")
+            .select("id,order_id,seance_id,checked_in_at")
+            .eq("seance_id", VA_CONTEXT.seance_id)
+        ]);
+        if(ordersRes.error) throw ordersRes.error;
+        if(ticketsRes.error) throw ticketsRes.error;
+        const paidStatuses = new Set(["paid","success","completed","approved"]);
+        const orders = (ordersRes.data || []).filter(o => !o.status || paidStatuses.has(String(o.status).toLowerCase()));
+        const orderIds = new Set(orders.map(o => String(o.order_id || o.id || "")).filter(Boolean));
+        const seanceTickets = ticketsRes.data || [];
+        const attributedTickets = seanceTickets.filter(t => orderIds.has(String(t.order_id || "")));
+        const attributedChecked = attributedTickets.filter(t => !!t.checked_in_at);
+        const seanceChecked = seanceTickets.filter(t => !!t.checked_in_at);
+        VA_ATTENDANCE = {
+          attributed_tickets:attributedTickets.length,
+          attributed_checked_in:attributedChecked.length,
+          attributed_attendance_pct:attributedTickets.length ? Math.round((attributedChecked.length / attributedTickets.length) * 100) : null,
+          seance_tickets:seanceTickets.length,
+          seance_checked_in:seanceChecked.length,
+          seance_attendance_pct:seanceTickets.length ? Math.round((seanceChecked.length / seanceTickets.length) * 100) : null,
+          error:""
+        };
+      }catch(e){
+        VA_ATTENDANCE.error = e?.message || String(e);
+        console.warn("Director scanner proof", e);
+      }
+      return VA_ATTENDANCE;
+    }
+
+    function attendancePct(v){
+      return v == null || !Number.isFinite(Number(v)) ? "—" : `${Math.round(Number(v))}%`;
+    }
+
     function seanceTitle(){
       return VA_SEANCE?.show || VA_SEANCE?.title || VA_SEANCE?.name || VA_CONTEXT.seance_id || "Контекст не вибрано";
     }
@@ -548,9 +594,12 @@
       document.getElementById("resultAttributionMoney").textContent = `${Number(a.orders||0)} замовл. · ${formatMoney(a.revenue)}`;
       document.getElementById("resultDelivery").textContent = d.recipients ? `${Number(d.sent||0)} / ${Number(d.recipients||0)}` : "—";
       document.getElementById("resultDeliveryMeta").textContent = d.recipients ? `надіслано / одержувачів · помилки ${Number(d.failed||0)}` : "Email-виконання не зафіксовано";
+      const att = VA_ATTENDANCE || {};
+      document.getElementById("resultAttendance").textContent = att.error ? "помилка" : `${Number(att.attributed_checked_in||0)} / ${Number(att.attributed_tickets||0)} · ${attendancePct(att.attributed_attendance_pct)}`;
+      document.getElementById("resultAttendanceMeta").textContent = att.error ? "не вдалося прочитати checked_in_at" : `пройшли / атрибутовані · сеанс ${Number(att.seance_checked_in||0)}/${Number(att.seance_tickets||0)} · ${attendancePct(att.seance_attendance_pct)}`;
       document.getElementById("resultBudget").textContent = formatMoney(result.budget);
       document.getElementById("resultRoas").textContent = e.direct_roas == null ? "прямий ROAS —" : `прямий ROAS ${Number(e.direct_roas).toFixed(2)}×`;
-      document.getElementById("resultProof").textContent = `За час кампанії: ${signed(g.tickets)} квит. / ${signed(g.revenue," грн")}. Прямо за campaign_id: ${Number(a.orders||0)} замовл., ${Number(a.tickets||0)} квит., ${formatMoney(a.revenue)}. Без прямої атрибуції: ${Number(u.tickets||0)} квит.`;
+      document.getElementById("resultProof").textContent = `За час кампанії: ${signed(g.tickets)} квит. / ${signed(g.revenue," грн")}. Прямо за campaign_id: ${Number(a.orders||0)} замовл., ${Number(a.tickets||0)} квит., ${formatMoney(a.revenue)}. Без прямої атрибуції: ${Number(u.tickets||0)} квит. За сканером: ${Number(att.attributed_checked_in||0)} із ${Number(att.attributed_tickets||0)} атрибутованих квитків пройшли.`;
     }
 
     function renderContext(){
@@ -641,8 +690,15 @@
 
     async function boot(){
       resolveContext();
-      await loadSeance();
+      await Promise.all([loadSeance(), loadCampaignAttendance()]);
       renderContext();
+      clearInterval(VA_ATTENDANCE_TIMER);
+      if(VA_CONTEXT_ACTIVE && VA_CONTEXT.campaign_id && VA_CONTEXT.seance_id){
+        VA_ATTENDANCE_TIMER = setInterval(async()=>{
+          await loadCampaignAttendance();
+          renderCampaignResult();
+        },8000);
+      }
     }
 
     document.addEventListener("DOMContentLoaded", boot);
