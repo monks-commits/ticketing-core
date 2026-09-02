@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing Control Center V2.11</title>
+  <title>VA Marketing V2.13.1 —  Control Center V2.11</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -1843,27 +1843,10 @@ function saveLocalMarketingContexts(){
 }
 
 async function loadRemoteMarketingContextsOptional(){
-  try{
-    const { data, error } = await sb
-      .from("marketing_seance_context")
-      .select("seance_id,context,updated_at,author")
-      .limit(1000);
-
-    if(error){
-      console.info("marketing_seance_context is not connected yet; local passport storage is active.", error.message);
-      return;
-    }
-
-    (data || []).forEach(row => {
-      if(!row?.seance_id) return;
-      const id = String(row.seance_id);
-      MARKETING_CONTEXTS[id] = (row.context && typeof row.context === "object") ? row.context : {};
-      MARKETING_CONTEXT_SOURCE[id] = "Supabase";
-    });
-    saveLocalMarketingContexts();
-  }catch(e){
-    console.info("marketing_seance_context optional load skipped", e);
-  }
+  // V2.13.1: маркетинговий паспорт поки зберігається локально.
+  // Прямий browser REST до optional marketing_seance_context прибрано,
+  // щоб не створювати 404 і не відкривати публічний запис в admin-дані.
+  return;
 }
 
 function emptyMarketingContext(){
@@ -1931,12 +1914,7 @@ async function persistMarketingContextObject(seanceId, context, noticeText="Па
   MARKETING_CONTEXTS[sid]=ctx;
   MARKETING_CONTEXT_SOURCE[sid]="Локально";
   saveLocalMarketingContexts();
-  PASSPORT_NOTICE=noticeText;
-  try{
-    const {error}=await sb.from("marketing_seance_context").upsert({seance_id:sid,context:ctx,updated_at:ctx.updatedAt,author:"admin"},{onConflict:"seance_id"});
-    if(!error){ MARKETING_CONTEXT_SOURCE[sid]="Supabase"; PASSPORT_NOTICE=noticeText+" Збережено в Supabase."; }
-    else console.info("Passport saved locally; Supabase context table is not available yet:",error.message);
-  }catch(e){ console.info("Passport remote save skipped",e); }
+  PASSPORT_NOTICE=noticeText+" Збережено локально.";
   return true;
 }
 
