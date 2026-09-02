@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.13.2 — Scanner Proof</title>
+  <title>VA Marketing V2.14 — Psychology + Offer V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -130,6 +130,19 @@ textarea::placeholder{
   .context-preview{white-space:pre-wrap;line-height:1.5}
   .quick-passport{border:1px solid rgba(45,140,255,.45);background:linear-gradient(180deg,rgba(45,140,255,.08),rgba(45,140,255,.02))}
   .quick-passport h3{margin-bottom:6px}
+  .psychology-card{border:1px solid rgba(255,190,72,.42);background:linear-gradient(180deg,rgba(255,190,72,.07),rgba(255,190,72,.02));margin-bottom:16px}
+  .psychology-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+  .psychology-score{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .psychology-score .score-circle{border-color:rgba(255,190,72,.55)}
+  .psych-rule{margin:12px 0;padding:10px 12px;border-radius:11px;background:#1c2431;border-left:3px solid #f2b84b;color:#dce7f4}
+  .offer-bridge{margin-top:15px;padding:14px;border-radius:14px;background:#091a2d;border:1px solid rgba(77,183,255,.32)}
+  .offer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+  .offer-cell{padding:11px;border-radius:11px;background:#10243b;border:1px solid rgba(255,255,255,.08);min-height:86px}
+  .offer-cell span{display:block;color:#8fa8c6;font-size:11px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+  .offer-cell b{display:block;font-size:14px;line-height:1.4}
+  .psychology-summary{margin-top:12px;padding:11px 12px;border-radius:11px;background:#132943;color:#d8e7f7;line-height:1.45}
+  @media(max-width:900px){.offer-grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.offer-grid{grid-template-columns:1fr}}
   details.advanced-passport{background:#0b1b31;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:0 14px;margin-bottom:16px}
   details.advanced-passport summary{cursor:pointer;padding:15px 0;font-weight:700;list-style:none}
   details.advanced-passport summary::-webkit-details-marker{display:none}
@@ -570,7 +583,25 @@ function campaignSnapshotFromDraft(){
       keyArguments: passport.ctx.keyArguments || "",
       tone: passport.ctx.tone || "",
       cta: passport.ctx.cta || ""
-    }
+    },
+    psychology: {
+      decisionJob: passport.ctx.decisionJob || "",
+      primaryMotive: passport.ctx.primaryMotive || "",
+      motiveDetail: passport.ctx.motiveDetail || "",
+      primaryBarrier: passport.ctx.primaryBarrier || "",
+      barrierDetail: passport.ctx.barrierDetail || "",
+      perceivedRisk: passport.ctx.perceivedRisk || "",
+      alternative: passport.ctx.alternative || "",
+      barrierResponse: passport.ctx.barrierResponse || "",
+      proofType: passport.ctx.proofType || "",
+      proofDetail: passport.ctx.proofDetail || "",
+      triggerType: passport.ctx.triggerType || "",
+      triggerDetail: passport.ctx.triggerDetail || "",
+      hypothesis: passport.ctx.hypothesis || "",
+      successMetric: passport.ctx.successMetric || "purchase",
+      evidenceLevel: passport.ctx.evidenceLevel || "hypothesis"
+    },
+    offer: buildOfferBridge(passport.ctx)
   };
 }
 
@@ -1884,6 +1915,162 @@ async function loadRemoteMarketingContextsOptional(){
   return;
 }
 
+const VA_PSYCHOLOGY_V1 = {
+  motives:[
+    "Емоційне враження",
+    "Спільний час / стосунки",
+    "Відпочинок / переключення",
+    "Цікавість / новий досвід",
+    "Саморозвиток / осмислення",
+    "Культурна причетність / ідентичність",
+    "Статус / особливість",
+    "Підтримка своїх / локальність",
+    "Практична вигода",
+    "Інше"
+  ],
+  barriers:[
+    "Не розумію, що отримаю",
+    "Не знаю / не довіряю",
+    "Дорого / не бачу цінності",
+    "Незручно за часом",
+    "Складно дістатися / повернутися",
+    "Немає компанії",
+    "Боюся, що буде нудно / складно",
+    "Відкладаю рішення",
+    "Вже маю кращу альтернативу",
+    "Інше"
+  ],
+  risks:[
+    "Втратити гроші",
+    "Втратити час",
+    "Не отримати очікувану емоцію",
+    "Відчути себе не на місці",
+    "Логістичний ризик",
+    "Ризик зміни планів / тривоги",
+    "Соціальний / репутаційний ризик",
+    "Ризик впровадження / зміни звичного",
+    "Інше"
+  ],
+  proofs:[
+    "Відгук реального клієнта",
+    "Цифра / вимірюваний факт",
+    "Демонстрація / фрагмент",
+    "Рекомендація знайомого",
+    "Авторитет / нагорода / репутація",
+    "Гарантія / зняття ризику",
+    "Прозора логістика / правила",
+    "Порівняння до / після",
+    "Власний попередній досвід клієнта",
+    "Інше"
+  ],
+  triggers:[
+    "Дата події наближається",
+    "Обмежені місця / ресурс",
+    "Зручний конкретний час",
+    "Разова подія / прем'єра",
+    "Сезонний або календарний привід",
+    "Персональна релевантність",
+    "Вигідна умова",
+    "Соціальний привід / компанія",
+    "Без штучного тригера",
+    "Інше"
+  ],
+  metrics:[
+    {value:"purchase",label:"Покупка"},
+    {value:"conversion",label:"Конверсія в покупку"},
+    {value:"attendance",label:"Фактичне відвідування"},
+    {value:"repeat_purchase",label:"Повторна покупка"},
+    {value:"lead",label:"Контакт / заявка"},
+    {value:"demo",label:"Демонстрація / зустріч"},
+    {value:"contract",label:"Угода / підключення"}
+  ],
+  evidence:[
+    {value:"hypothesis",label:"Гіпотеза"},
+    {value:"observed",label:"Є спостереження"},
+    {value:"tested",label:"Перевірено кампанією"}
+  ]
+};
+
+function psychologyOptions(items,current,placeholder="Оберіть"){
+  const rows = Array.isArray(items) ? items : [];
+  const normalized = rows.map(x => typeof x === "string" ? {value:x,label:x} : x);
+  return `<option value="">${esc(placeholder)}</option>` + normalized.map(x => `<option value="${escAttr(x.value)}" ${String(current||"")===String(x.value)?"selected":""}>${esc(x.label)}</option>`).join("");
+}
+
+function psychologyMetricLabel(v){
+  return VA_PSYCHOLOGY_V1.metrics.find(x => String(x.value) === String(v))?.label || "Покупка";
+}
+
+function psychologyEvidenceLabel(v){
+  return VA_PSYCHOLOGY_V1.evidence.find(x => String(x.value) === String(v))?.label || "Гіпотеза";
+}
+
+function psychologyCompleteness(ctx){
+  const fields={
+    decisionJob:14, primaryMotive:12, motiveDetail:6,
+    primaryBarrier:16, barrierDetail:6, perceivedRisk:8,
+    alternative:10, barrierResponse:10, proofType:5, proofDetail:5,
+    triggerType:3, triggerDetail:2, hypothesis:2, successMetric:1
+  };
+  return Object.entries(fields).reduce((sum,[k,w]) => sum + (String(ctx?.[k]||"").trim() ? w : 0),0);
+}
+
+function psychologyReady(ctx){
+  return ["decisionJob","primaryMotive","primaryBarrier","alternative","barrierResponse","proofDetail"]
+    .every(k => String(ctx?.[k]||"").trim());
+}
+
+function psychologyContextStatus(ctx){
+  const completeness=psychologyCompleteness(ctx||{});
+  return {completeness,ready:psychologyReady(ctx||{}),evidence:psychologyEvidenceLabel(ctx?.evidenceLevel)};
+}
+
+function buildOfferBridge(ctx){
+  const c=ctx||{};
+  const barrier=[c.primaryBarrier,c.barrierDetail].filter(Boolean).join(" — ");
+  const motive=[c.primaryMotive,c.motiveDetail].filter(Boolean).join(" — ");
+  const proof=[c.proofType,c.proofDetail].filter(Boolean).join(" — ");
+  const trigger=[c.triggerType,c.triggerDetail].filter(Boolean).join(" — ");
+  const metric=psychologyMetricLabel(c.successMetric||"purchase");
+  const autoHypothesis = c.primaryBarrier
+    ? `Якщо зняти бар'єр «${c.primaryBarrier}»${c.primaryMotive?` і підсилити мотив «${c.primaryMotive}»`:""}, показник «${metric}» має зрости.`
+    : "";
+  return {
+    value:String(c.corePromise||c.decisionJob||"").trim(),
+    decisionJob:String(c.decisionJob||"").trim(),
+    motive,
+    barrier,
+    risk:String(c.perceivedRisk||"").trim(),
+    alternative:String(c.alternative||"").trim(),
+    response:String(c.barrierResponse||"").trim(),
+    proof,
+    trigger,
+    cta:String(c.cta||"").trim(),
+    metric,
+    hypothesis:String(c.hypothesis||autoHypothesis).trim(),
+    evidence:psychologyEvidenceLabel(c.evidenceLevel)
+  };
+}
+
+function renderOfferBridge(ctx,compact=false){
+  const o=buildOfferBridge(ctx);
+  const p=psychologyContextStatus(ctx);
+  if(!p.completeness) return `<div class="notice"><b>Decision Map ще порожня.</b> Спочатку зафіксуйте, що людина купує, її головний мотив і один головний бар'єр.</div>`;
+  return `
+    <div class="offer-bridge">
+      <div class="eyebrow">OFFER BRIDGE V1 • НЕ КОПІРАЙТ, А КОНСТРУКЦІЯ ПРОПОЗИЦІЇ</div>
+      <div class="offer-grid">
+        <div class="offer-cell"><span>Цінність</span><b>${esc(o.value||"—")}</b></div>
+        <div class="offer-cell"><span>Головний мотив</span><b>${esc(o.motive||"—")}</b></div>
+        <div class="offer-cell"><span>Головний бар'єр</span><b>${esc(o.barrier||"—")}</b></div>
+        ${compact?"":`<div class="offer-cell"><span>Що змінюємо</span><b>${esc(o.response||"—")}</b></div>
+        <div class="offer-cell"><span>Чим доводимо</span><b>${esc(o.proof||"—")}</b></div>
+        <div class="offer-cell"><span>Чому зараз</span><b>${esc(o.trigger||"—")}</b></div>`}
+      </div>
+      <div class="psychology-summary"><b>Перевіряємо:</b> ${esc(o.hypothesis||"Сформулюйте перевірювану гіпотезу.")}<br><b>Метрика:</b> ${esc(o.metric)} · <b>Статус знання:</b> ${esc(o.evidence)}</div>
+    </div>`;
+}
+
 function emptyMarketingContext(){
   return {
     primaryAudience:"",
@@ -1897,6 +2084,21 @@ function emptyMarketingContext(){
     cta:"",
     doNotUse:"",
     notes:"",
+    decisionJob:"",
+    primaryMotive:"",
+    motiveDetail:"",
+    primaryBarrier:"",
+    barrierDetail:"",
+    perceivedRisk:"",
+    alternative:"",
+    barrierResponse:"",
+    proofType:"",
+    proofDetail:"",
+    triggerType:"",
+    triggerDetail:"",
+    hypothesis:"",
+    successMetric:"purchase",
+    evidenceLevel:"hypothesis",
     updatedAt:""
   };
 }
@@ -1973,6 +2175,21 @@ async function saveMarketingPassport(){
     cta: val("mpCta"),
     doNotUse: val("mpDoNotUse"),
     notes: val("mpNotes"),
+    decisionJob: val("mpDecisionJob"),
+    primaryMotive: val("mpPrimaryMotive"),
+    motiveDetail: val("mpMotiveDetail"),
+    primaryBarrier: val("mpPrimaryBarrier"),
+    barrierDetail: val("mpBarrierDetail"),
+    perceivedRisk: val("mpPerceivedRisk"),
+    alternative: val("mpAlternative"),
+    barrierResponse: val("mpBarrierResponse"),
+    proofType: val("mpProofType"),
+    proofDetail: val("mpProofDetail"),
+    triggerType: val("mpTriggerType"),
+    triggerDetail: val("mpTriggerDetail"),
+    hypothesis: val("mpHypothesis"),
+    successMetric: val("mpSuccessMetric") || "purchase",
+    evidenceLevel: val("mpEvidenceLevel") || "hypothesis",
     updatedAt: new Date().toISOString()
   };
 
@@ -2037,6 +2254,14 @@ function renderMarketingPassportSection(){
   const sourceClass = st.source === "Supabase" ? "good" : st.source === "Локально" ? "warn" : "";
   const toneOptions = ["","Стримано та інтелігентно","Емоційно","Преміально","Сучасно і просто","Дотепно","Сімейно і тепло","Експериментально"];
   const toneHtml = toneOptions.map(v => `<option value="${escAttr(v)}" ${c.tone === v ? "selected" : ""}>${esc(v || "Оберіть тон")}</option>`).join("");
+  const psych = psychologyContextStatus(c);
+  const motiveHtml = psychologyOptions(VA_PSYCHOLOGY_V1.motives,c.primaryMotive,"Оберіть головний мотив");
+  const barrierHtml = psychologyOptions(VA_PSYCHOLOGY_V1.barriers,c.primaryBarrier,"Оберіть один головний бар'єр");
+  const riskHtml = psychologyOptions(VA_PSYCHOLOGY_V1.risks,c.perceivedRisk,"Оберіть сприйнятий ризик");
+  const proofHtml = psychologyOptions(VA_PSYCHOLOGY_V1.proofs,c.proofType,"Оберіть тип доказу");
+  const triggerHtml = psychologyOptions(VA_PSYCHOLOGY_V1.triggers,c.triggerType,"Оберіть тригер");
+  const metricHtml = psychologyOptions(VA_PSYCHOLOGY_V1.metrics,c.successMetric||"purchase","Оберіть метрику");
+  const evidenceHtml = psychologyOptions(VA_PSYCHOLOGY_V1.evidence,c.evidenceLevel||"hypothesis","Оберіть статус");
 
   panel.innerHTML = `
     <div class="section-caption">
@@ -2080,6 +2305,73 @@ function renderMarketingPassportSection(){
           <input id="mpCta" value="${escAttr(c.cta)}" placeholder="Напр.: Оберіть місця на 12 вересня">
         </div>
       </div>
+    </div>
+
+    <div class="box psychology-card">
+      <div class="psychology-head">
+        <div>
+          <div class="eyebrow">MARKETING PSYCHOLOGY V1 • DECISION MAP</div>
+          <h3>Чому ця людина купить — або не купить</h3>
+          <div class="muted">Не описуємо «ЦА взагалі». Фіксуємо конкретне рішення конкретної аудиторії для цього сеансу.</div>
+        </div>
+        <div class="psychology-score">
+          <div class="score-circle">${psych.completeness}%</div>
+          <div><b>${psych.ready?"Карта рішення готова":"Карта ще неповна"}</b><br><span class="pill ${c.evidenceLevel==="tested"?"good":c.evidenceLevel==="observed"?"warn":""}">${esc(psych.evidence)}</span></div>
+        </div>
+      </div>
+
+      <div class="psych-rule"><b>Правило експерименту:</b> одна кампанія = один головний бар'єр. Якщо змішати п'ять причин і п'ять рішень, після продажів ми не дізнаємося, що саме спрацювало.</div>
+
+      <div class="passport-grid">
+        <div class="field">
+          <label>1. Що людина насправді купує</label>
+          <textarea id="mpDecisionJob" placeholder="Не «квиток», а результат для себе: сильний вечір, спільний час, безпечне повернення, новий досвід...">${esc(c.decisionJob)}</textarea>
+        </div>
+        <div class="field">
+          <label>2. Головний мотив</label>
+          <select id="mpPrimaryMotive">${motiveHtml}</select>
+          <textarea id="mpMotiveDetail" placeholder="Конкретно для цієї аудиторії: що саме в цьому мотиві важливо">${esc(c.motiveDetail)}</textarea>
+        </div>
+        <div class="field">
+          <label>3. Один головний бар'єр</label>
+          <select id="mpPrimaryBarrier">${barrierHtml}</select>
+          <textarea id="mpBarrierDetail" placeholder="Як цей бар'єр проявляється саме тут. Напр.: після 20:30 складно виїхати з району">${esc(c.barrierDetail)}</textarea>
+        </div>
+        <div class="field">
+          <label>4. Який ризик бачить покупець</label>
+          <select id="mpPerceivedRisk">${riskHtml}</select>
+        </div>
+        <div class="field">
+          <label>5. Що він зробить замість покупки</label>
+          <textarea id="mpAlternative" placeholder="Справжній конкурент: залишиться вдома, піде ближче, відкладе рішення, залишиться з чинним оператором...">${esc(c.alternative)}</textarea>
+        </div>
+        <div class="field">
+          <label>6. Що ми реально змінюємо / знімаємо</label>
+          <textarea id="mpBarrierResponse" placeholder="Не рекламний лозунг, а конкретна відповідь на бар'єр: показати маршрут, дати демонстрацію, гарантувати сценарій, пояснити формат...">${esc(c.barrierResponse)}</textarea>
+        </div>
+        <div class="field">
+          <label>7. Чим доводимо</label>
+          <select id="mpProofType">${proofHtml}</select>
+          <textarea id="mpProofDetail" placeholder="Конкретний доказ: цифра, відгук, відеофрагмент, правило повернення, кейс до/після...">${esc(c.proofDetail)}</textarea>
+        </div>
+        <div class="field">
+          <label>8. Чому діяти зараз</label>
+          <select id="mpTriggerType">${triggerHtml}</select>
+          <textarea id="mpTriggerDetail" placeholder="Тільки реальний привід. Якщо його немає — оберіть «Без штучного тригера». ">${esc(c.triggerDetail)}</textarea>
+        </div>
+        <div class="field">
+          <label>9. Перевірювана гіпотеза</label>
+          <textarea id="mpHypothesis" placeholder="Якщо ми знімемо X для аудиторії Y, то показник Z має зрости, тому що...">${esc(c.hypothesis)}</textarea>
+        </div>
+        <div class="field">
+          <label>10. Чим міряємо результат</label>
+          <select id="mpSuccessMetric">${metricHtml}</select>
+          <label style="margin-top:8px">Статус знання</label>
+          <select id="mpEvidenceLevel">${evidenceHtml}</select>
+        </div>
+      </div>
+
+      ${renderOfferBridge(c)}
     </div>
 
     <details class="advanced-passport" ${st.completeness > 64 ? "open" : ""}>
@@ -2142,7 +2434,7 @@ function renderMarketingPassportSection(){
     </div>
 
     <div class="notice">
-      <b>Принцип V2.3:</b> маркетолог не повинен заповнювати CRM-анкету перед кожною кампанією. Чотири відповіді — робочий мінімум. Розширений паспорт накопичується поступово.
+      <b>Принцип V2.14:</b> швидкий паспорт дає зміст, Decision Map формулює перевірювану психологічну гіпотезу, Offer Bridge перетворює її на конструкцію пропозиції. Кампанія повинна перевіряти один головний бар'єр.
     </div>`;
 
   PASSPORT_NOTICE = "";
@@ -2626,13 +2918,15 @@ function buildCampaignCopies(seance, ctx, segment){
   const args = splitArguments(ctx.keyArguments);
   const argText = args.length ? `\n\n${args.map(x => "• " + x).join("\n")}` : "";
   const price = ctx.priceAngle ? `\n\n${String(ctx.priceAngle).trim()}` : "";
+  const offerSupport = [ctx.barrierResponse,ctx.proofDetail,ctx.triggerDetail].map(x=>String(x||"").trim()).filter(Boolean);
+  const supportText = offerSupport.length ? `\n\n${offerSupport.join("\n")}` : "";
 
-  const social = `«${title}»${when ? ` — ${when}` : ""}.\n\n${theme ? theme + "\n\n" : ""}${promise}${argText}${price}\n\n${cta}`;
+  const social = `«${title}»${when ? ` — ${when}` : ""}.\n\n${theme ? theme + "\n\n" : ""}${promise}${argText}${price}${supportText}\n\n${cta}`;
   const emailSubject = compactText(`${title}: ${promise}`, 75);
-  const emailBody = `${audience ? `Для вас — «${title}».` : `«${title}».`}${when ? `\n${when}` : ""}\n\n${theme ? theme + "\n\n" : ""}${promise}${argText}${price}\n\n${cta}`;
+  const emailBody = `${audience ? `Для вас — «${title}».` : `«${title}».`}${when ? `\n${when}` : ""}\n\n${theme ? theme + "\n\n" : ""}${promise}${argText}${price}${supportText}\n\n${cta}`;
   const sms = compactText(`${title}${when ? `, ${when}` : ""}. ${promise} ${cta}`, 220);
   const adHeadline = compactText(promise || title, 60);
-  const adPrimary = compactText(`${title}${when ? ` • ${when}` : ""}. ${promise}${args[0] ? ` ${args[0]}.` : ""} ${cta}`, 220);
+  const adPrimary = compactText(`${title}${when ? ` • ${when}` : ""}. ${promise}${ctx.barrierResponse ? ` ${ctx.barrierResponse}` : ""}${args[0] ? ` ${args[0]}.` : ""} ${cta}`, 220);
 
   return { social, emailSubject, emailBody, sms, adHeadline, adPrimary };
 }
@@ -2759,6 +3053,8 @@ function renderCampaignsSection(){
   const days = focusSeance ? daysToSeance(focusSeance) : null;
   const passport = focusSeance ? marketingContextStatus(focusSeance.id) : null;
   const ctx = passport?.ctx || emptyMarketingContext();
+  const psychology = psychologyContextStatus(ctx);
+  const offer = buildOfferBridge(ctx);
   const copies = buildCampaignCopies(focusSeance, ctx, selected);
   const activeCampaign = getActiveCampaign();
   const campaignRows = selectedSeanceCampaigns();
@@ -2867,8 +3163,9 @@ function renderCampaignsSection(){
           </div>
           <div class="context-preview"><b>Головна теза</b><br>${esc(ctx.corePromise || "Поки не зафіксована.")}<br><br><b>CTA</b><br>${esc(ctx.cta || "—")}</div>
         </div>
+        ${psychology.completeness ? `<div class="notice"><b>Decision Map:</b> мотив — ${esc(ctx.primaryMotive||"—")} · головний бар'єр — ${esc(ctx.primaryBarrier||"—")} · альтернатива — ${esc(ctx.alternative||"—")}</div>${renderOfferBridge(ctx,true)}` : `<div class="notice"><b>Psychology V1 ще не заповнена.</b> Кампанію можна зібрати і без неї, але тоді VA не знає, яку причину рішення ми перевіряємо.</div>`}
         ${ctx.doNotUse ? `<div class="notice"><b>Не використовувати:</b> ${esc(ctx.doNotUse)}</div>` : ""}
-        <div class="toolbar"><button class="btn secondary" onclick="openMarketingSection(7)">${passport.quickReady ? "Редагувати паспорт" : "Заповнити 4 поля"}</button></div>
+        <div class="toolbar"><button class="btn secondary" onclick="openMarketingSection(7)">${passport.quickReady ? "Редагувати паспорт / Decision Map" : "Заповнити паспорт"}</button></div>
       ` : `<div class="muted">Для змістової основи оберіть один сеанс.</div>`}
     </div>
 
@@ -2876,7 +3173,7 @@ function renderCampaignsSection(){
       <div class="eyebrow">6 • Чернетки повідомлень</div>
       <h3>Один контекст → чотири робочі формати</h3>
       ${copies ? `
-        <div class="muted">Це не зовнішній AI. V2.3 збирає структуровані чернетки з паспорта, даних сеансу та вибраного сегмента. Маркетолог редагує перед публікацією.</div>
+        <div class="muted">Це не зовнішній AI. V2.14 збирає чернетки з паспорта, Decision Map, Offer Bridge, даних сеансу та сегмента. Маркетолог редагує перед публікацією.</div>
         <div class="copy-grid">
           ${renderCampaignCopyCard("Соцмережі", copies.social, "copySocial")}
           ${renderCampaignCopyCard("Email", copies.emailBody, "copyEmail", copies.emailSubject)}
@@ -3322,10 +3619,10 @@ function renderPlaybooksSection(){
   const pack=kb.resolve(PLAYBOOK_FILTERS);
   const body=PLAYBOOK_TAB==="templates"?renderPlaybookTemplates(pack):PLAYBOOK_TAB==="scenarios"?renderPlaybookScenarios():PLAYBOOK_TAB==="experience"?renderPlaybookExperience():renderPlaybookIdeas(pack);
 
-  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2.13.2</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
+  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">MARKETING KNOWLEDGE BANK V2.14</div><h2>🧰 Сценарії та досвід</h2><div class="muted">Системна бібліотека + власний досвід майданчика: тема → формулювання → сценарій → текст → кампанія → доказаний результат.</div></div></div>${renderScopeHeader()}
   <div class="knowledge-status"><span class="pill ${ta.ok&&ka.ok?"good":"warn"}">Таксономія ${esc(tax.version)} • ${ta.typeCount} типів • ${ta.genreCount} жанрів</span><span class="pill ${ka.ok?"good":"warn"}">Банк ${esc(kb.version)} • покриття ${ka.ok?"повне":"неповне"}</span><span class="pill ${CUSTOM_KNOWLEDGE_SCHEMA_READY?"good":"warn"}">Власний банк: ${CUSTOM_KNOWLEDGE_SCHEMA_READY?CUSTOM_KNOWLEDGE_ITEMS.length+" записів":"серверний шар не підключено"}</span>${focus?`<span class="pill">Авто з сеансу: ${esc(focus.event_type||"тип не задано")} / ${esc(tax.genreLabel(focus.event_type,focus.genre)||focus.genre||"жанр не задано")}</span>`:""}</div>
   ${!ka.ok?`<div class="notice"><b>Контроль дрейфу:</b> у довіднику з’явилися позиції без окремого банку: ${esc([...ka.missingTypes,...ka.missingGenres].join(", "))}.</div>`:""}
-  ${!knowledgeBankV2Ready()?`<div class="notice bad"><b>Підключено не той shared-файл Банку.</b> Поточна версія: ${esc(kb.version||"—")}. V2.13.2 очікує <b>marketing-knowledge-base.js • 2.0.1</b>.</div>`:""}
+  ${!knowledgeBankV2Ready()?`<div class="notice bad"><b>Підключено не той shared-файл Банку.</b> Поточна версія: ${esc(kb.version||"—")}. V2.14 очікує <b>marketing-knowledge-base.js • 2.0.1</b>.</div>`:""}
   ${!CUSTOM_KNOWLEDGE_SCHEMA_READY?`<div class="notice"><b>Системний Банк працює.</b> Для власних формулювань встановіть SQL і Edge Function <b>marketing-knowledge-admin</b>. Прямого REST-запиту до таблиці з браузера V2.13 більше не робить.</div>`:""}
 
   <div class="playbook-filters">
