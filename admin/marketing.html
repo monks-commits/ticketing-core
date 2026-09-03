@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.14 — Psychology + Offer V1</title>
+  <title>VA Marketing V2.15 — Psychology + Offer + CRO V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -239,6 +239,33 @@ textarea::placeholder{
   .idea-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
   @media(max-width:900px){.custom-form-grid{grid-template-columns:1fr}.custom-form-grid .wide{grid-column:auto}}
 
+
+  /* ===== VA Marketing CRO V1 ===== */
+  .cro-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:14px 0}
+  .cro-controls label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .cro-controls select{min-width:190px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
+  .cro-funnel-wrap{overflow-x:auto;padding-bottom:4px}
+  .cro-funnel{display:grid;grid-template-columns:repeat(7,minmax(135px,1fr));gap:10px;min-width:1030px}
+  .cro-step{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;position:relative}
+  .cro-step strong{display:block;font-size:30px;line-height:1;margin:8px 0}
+  .cro-step .cro-name{font-size:13px;font-weight:800}
+  .cro-step .cro-sub{font-size:11px;color:var(--muted);line-height:1.35}
+  .cro-step.good{border-color:#86efac;background:#f0fdf4}
+  .cro-step.warn{border-color:#fcd34d;background:#fffbeb}
+  .cro-step.bad{border-color:#fca5a5;background:#fef2f2}
+  .cro-insight{padding:14px 16px;border-radius:14px;border:1px solid #fcd34d;background:#fffbeb;margin:14px 0}
+  .cro-meta-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
+  .cro-mini{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+  .cro-mini span{display:block;color:var(--muted);font-size:12px}
+  .cro-mini b{display:block;font-size:22px;margin-top:5px}
+  .cro-table-wrap{overflow-x:auto}
+  .cro-table-wrap table{min-width:760px}
+  .cro-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+  .cro-tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:700}
+  .cro-tab.active{background:#111827;color:#fff;border-color:#111827}
+  @media(max-width:900px){.cro-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:560px){.cro-meta-grid{grid-template-columns:1fr}.cro-controls select{min-width:100%}}
+
   </style>
 </head>
 
@@ -249,16 +276,17 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.12</h1>
+        <h1>Marketing Control Center V2.15</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          Основна аналітика читає live-дані Supabase; V2.12 розгортає Банк ідей у повноцінну маркетингову бібліотеку: теми, гачки, мотиви, механіки, сценарії, шаблони та власні формулювання майданчика.
+          V2.15 додає CRO V1: анонімний first-party шлях від входу в зал до фактично оплаченої покупки, з втратами між етапами та розрізами по джерелах, кампаніях, рефералах, пристроях і сеансах.
         </div>
       </div>
       <div class="hero-badges">
         <span class="badge">LIVE DATA</span>
         <span class="badge">Без дублювання КБ</span>
         <span class="badge">Без зовнішнього AI API</span>
+        <span class="badge">CRO V1</span>
       </div>
     </div>
   </div>
@@ -327,6 +355,14 @@ let CUSTOM_KNOWLEDGE_SCHEMA_READY = true;
 let CUSTOM_IDEA_EDIT_ID = "";
 let CUSTOM_TEMPLATE_EDIT_ID = "";
 const KNOWLEDGE_EDIT_SECRET_SESSION_KEY = "va_marketing_knowledge_edit_secret_v1";
+
+let CRO_REPORT = null;
+let CRO_REPORT_KEY = "";
+let CRO_REPORT_BUSY = false;
+let CRO_REPORT_ERROR = "";
+let CRO_PERIOD = "30d";
+let CRO_SEANCE_FILTER = "__context__";
+let CRO_BREAKDOWN_TAB = "sources";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
@@ -1156,7 +1192,8 @@ const TOOLS = [
   ["🧰 Сценарії та досвід", "Банк ідей, шаблони текстів і доказаний досвід кампаній", "База знань"],
   ["📒 Журнал маркетингу", "Що робили, коли робили і який був результат", "Пам'ять"],
   ["📊 Ефективність", "Фактична аналітика по жанрах, каналах і сеансах", "Результат"],
-  ["🧭 Паспорт сеансу", "Кому, що і яким тоном говоримо про конкретну подію", "Контекст"]
+  ["🧭 Паспорт сеансу", "Кому, що і яким тоном говоримо про конкретну подію", "Контекст"],
+  ["🧪 CRO / Воронка", "Де саме губляться покупці: від входу до фактичної оплати", "Конверсія"]
 ];
 
 function esc(v){
@@ -1267,6 +1304,7 @@ function openMarketingSection(index){
   if(index === 5) return renderJournalSection();
   if(index === 6) return renderEfficiencySection();
   if(index === 7) return renderMarketingPassportSection();
+  if(index === 8) return renderCROSection();
 }
 
 function buildClients(orders, tickets, seances){
@@ -3809,6 +3847,342 @@ function renderEfficiencySection(){
         ${channels.length ? channels.map(r => `<tr><td><b>${esc(r.channel)}</b></td><td>${r.tickets}</td><td>${r.sum.toLocaleString("uk-UA")} грн</td><td>${r.avg.toLocaleString("uk-UA")} грн</td><td>${r.share}%</td></tr>`).join("") : `<tr><td colspan="5" class="muted">Немає продажів</td></tr>`}
       </tbody></table>
     </div>`;
+}
+
+
+// ===== VA Marketing CRO Dashboard V1 =====
+
+function croPeriodFromIso(){
+  if(CRO_PERIOD === "all") return null;
+  const now = new Date();
+
+  if(CRO_PERIOD === "today"){
+    return new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,0,0,0
+    ).toISOString();
+  }
+
+  const days =
+    CRO_PERIOD === "7d" ? 7 :
+    CRO_PERIOD === "90d" ? 90 :
+    30;
+
+  return new Date(now.getTime() - days * 86400000).toISOString();
+}
+
+function croResolvedSeanceId(){
+  if(CRO_SEANCE_FILTER === "__all__") return null;
+  if(CRO_SEANCE_FILTER && CRO_SEANCE_FILTER !== "__context__"){
+    return CRO_SEANCE_FILTER;
+  }
+  return CURRENT_SEANCE_IDS.length === 1
+    ? String(CURRENT_SEANCE_IDS[0])
+    : null;
+}
+
+function croParamsKey(){
+  return JSON.stringify({
+    period:CRO_PERIOD,
+    seance:croResolvedSeanceId() || ""
+  });
+}
+
+function croPct(a,b){
+  const n=Number(a||0), d=Number(b||0);
+  return d>0 ? Math.round((n/d)*100) : 0;
+}
+
+function croSeanceLabel(id){
+  const s=SEANCES.find(x=>String(x.id)===String(id));
+  if(!s) return String(id||"—");
+  return `${s.show||s.id}${s.date ? " • "+fmtDate(s.date) : ""}${s.time ? " "+s.time : ""}`;
+}
+
+function croCampaignLabel(id){
+  const c=CAMPAIGNS.find(x=>String(x.id)===String(id));
+  return c?.name ? `${c.name} • ${id}` : String(id||"—");
+}
+
+function croDeviceLabel(key){
+  const map={mobile:"Мобільний",tablet:"Планшет",desktop:"Desktop",unknown:"Не визначено"};
+  return map[String(key||"").toLowerCase()] || String(key||"—");
+}
+
+function croBreakdownLabel(tab,key){
+  if(tab==="campaigns") return croCampaignLabel(key);
+  if(tab==="devices") return croDeviceLabel(key);
+  if(tab==="seances") return croSeanceLabel(key);
+  return String(key||"—");
+}
+
+function croStageData(){
+  const f=CRO_REPORT?.funnel||{};
+  return [
+    ["source_touch","Вхід",Number(f.source_touch||0)],
+    ["hall_open","Зал",Number(f.hall_open||0)],
+    ["seat_selected","Вибір місця",Number(f.seat_selected||0)],
+    ["order_open","Замовлення",Number(f.order_open||0)],
+    ["checkout_open","Checkout",Number(f.checkout_open||0)],
+    ["payment_started","LiqPay",Number(f.payment_started||0)],
+    ["paid","Оплачено",Number(f.paid||0)]
+  ];
+}
+
+function croLargestLoss(){
+  const stages=croStageData();
+  let best=null;
+
+  for(let i=1;i<stages.length;i++){
+    const prev=stages[i-1][2], cur=stages[i][2];
+    if(prev<=0) continue;
+    const lost=Math.max(0,prev-cur);
+    const lossPct=Math.round((lost/prev)*100);
+    if(!best || lost>best.lost){
+      best={
+        from:stages[i-1][1],
+        to:stages[i][1],
+        lost,
+        lossPct,
+        conversion:croPct(cur,prev)
+      };
+    }
+  }
+  return best;
+}
+
+function croSeanceOptions(){
+  const rows=[...SEANCES].sort((a,b)=>{
+    const ad=new Date(`${a.date||"1970-01-01"}T${a.time||"00:00"}`);
+    const bd=new Date(`${b.date||"1970-01-01"}T${b.time||"00:00"}`);
+    return bd-ad;
+  });
+
+  return rows.slice(0,150).map(s=>
+    `<option value="${escAttr(String(s.id))}" ${CRO_SEANCE_FILTER===String(s.id)?"selected":""}>${esc(croSeanceLabel(s.id))}</option>`
+  ).join("");
+}
+
+function croControlsHtml(){
+  const contextText=CURRENT_SEANCE_IDS.length===1
+    ? `Поточний фокус: ${croSeanceLabel(CURRENT_SEANCE_IDS[0])}`
+    : "Поточний фокус: усі / мультивибір";
+
+  return `
+    <div class="cro-controls">
+      <div>
+        <label>Період</label>
+        <select id="croPeriod">
+          <option value="today" ${CRO_PERIOD==="today"?"selected":""}>Сьогодні</option>
+          <option value="7d" ${CRO_PERIOD==="7d"?"selected":""}>7 днів</option>
+          <option value="30d" ${CRO_PERIOD==="30d"?"selected":""}>30 днів</option>
+          <option value="90d" ${CRO_PERIOD==="90d"?"selected":""}>90 днів</option>
+          <option value="all" ${CRO_PERIOD==="all"?"selected":""}>Весь час</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Сеанс</label>
+        <select id="croSeance">
+          <option value="__context__" ${CRO_SEANCE_FILTER==="__context__"?"selected":""}>${esc(contextText)}</option>
+          <option value="__all__" ${CRO_SEANCE_FILTER==="__all__"?"selected":""}>Усі сеанси</option>
+          ${croSeanceOptions()}
+        </select>
+      </div>
+
+      <button class="btn" onclick="reloadCROReport()" ${CRO_REPORT_BUSY?"disabled":""}>${CRO_REPORT_BUSY?"Оновлення…":"Оновити"}</button>
+    </div>`;
+}
+
+function croFunnelHtml(){
+  const stages=croStageData();
+  return `
+    <div class="cro-funnel-wrap">
+      <div class="cro-funnel">
+        ${stages.map((s,i)=>{
+          const prev=i?stages[i-1][2]:0;
+          const conv=i ? croPct(s[2],prev) : 100;
+          const lost=i ? Math.max(0,prev-s[2]) : 0;
+          const cls=i===0 ? "" : conv>=80 ? "good" : conv>=50 ? "warn" : "bad";
+          return `<div class="cro-step ${cls}">
+            <div class="cro-name">${esc(s[1])}</div>
+            <strong>${Number(s[2]).toLocaleString("uk-UA")}</strong>
+            <div class="cro-sub">${i===0 ? "зафіксованих шляхів" : `з попереднього кроку: ${conv}%${lost ? ` • втрата ${lost}` : ""}`}</div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+}
+
+function croBreakdownRows(){
+  return Array.isArray(CRO_REPORT?.[CRO_BREAKDOWN_TAB]) ? CRO_REPORT[CRO_BREAKDOWN_TAB] : [];
+}
+
+function croBreakdownTitle(){
+  return {
+    sources:"Джерела",
+    campaigns:"Кампанії",
+    referrals:"Реферали",
+    devices:"Пристрої",
+    seances:"Сеанси"
+  }[CRO_BREAKDOWN_TAB] || "Розріз";
+}
+
+function croBreakdownHtml(){
+  const rows=croBreakdownRows();
+
+  return `
+    <div class="cro-tabs">
+      ${[
+        ["sources","Джерела"],
+        ["campaigns","Кампанії"],
+        ["referrals","Реферали"],
+        ["devices","Пристрої"],
+        ["seances","Сеанси"]
+      ].map(([key,label])=>`<button class="cro-tab ${CRO_BREAKDOWN_TAB===key?"active":""}" onclick="setCROBreakdown('${key}')">${label}</button>`).join("")}
+    </div>
+
+    <div class="box">
+      <div class="section-caption">
+        <div>
+          <div class="eyebrow">CRO • BREAKDOWN</div>
+          <h3>${esc(croBreakdownTitle())}</h3>
+        </div>
+      </div>
+
+      <div class="cro-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>${CRO_BREAKDOWN_TAB==="seances"?"Сеанс":"Значення"}</th>
+              <th>Зал</th>
+              <th>Місце</th>
+              <th>Checkout</th>
+              <th>LiqPay</th>
+              <th>Paid</th>
+              <th>Конверсія</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map(r=>{
+              const sessions=Number(r.sessions||0), paid=Number(r.paid||0);
+              return `<tr>
+                <td><b>${esc(croBreakdownLabel(CRO_BREAKDOWN_TAB,r.key))}</b></td>
+                <td>${sessions}</td>
+                <td>${Number(r.seat_selected||0)}</td>
+                <td>${Number(r.checkout_open||0)}</td>
+                <td>${Number(r.payment_started||0)}</td>
+                <td>${paid}</td>
+                <td><b>${croPct(paid,sessions)}%</b></td>
+              </tr>`;
+            }).join("") : `<tr><td colspan="7" class="muted">У цьому розрізі даних поки немає.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function setCROBreakdown(tab){
+  CRO_BREAKDOWN_TAB=String(tab||"sources");
+  renderCROSection();
+}
+
+function applyCROControls(){
+  CRO_PERIOD=String(document.getElementById("croPeriod")?.value||"30d");
+  CRO_SEANCE_FILTER=String(document.getElementById("croSeance")?.value||"__context__");
+}
+
+async function reloadCROReport(){
+  applyCROControls();
+  CRO_REPORT_KEY="";
+  await loadCROReport();
+}
+
+async function loadCROReport(){
+  if(CRO_REPORT_BUSY) return;
+
+  CRO_REPORT_BUSY=true;
+  CRO_REPORT_ERROR="";
+  renderCROSection();
+
+  try{
+    const params={
+      p_seance_id:croResolvedSeanceId(),
+      p_from:croPeriodFromIso(),
+      p_to:null
+    };
+
+    const {data,error}=await sb.rpc("cro_report_v1",params);
+    if(error) throw error;
+
+    CRO_REPORT=data||{};
+    CRO_REPORT_KEY=croParamsKey();
+  }catch(e){
+    console.error("CRO report error",e);
+    CRO_REPORT=null;
+    CRO_REPORT_ERROR=String(e?.message||e||"Не вдалося завантажити CRO.");
+  }finally{
+    CRO_REPORT_BUSY=false;
+    renderCROSection();
+  }
+}
+
+function renderCROSection(){
+  const panel=document.getElementById("activeSectionPanel");
+  const wantedKey=croParamsKey();
+
+  if(!CRO_REPORT_BUSY && CRO_REPORT_KEY!==wantedKey && !CRO_REPORT_ERROR){
+    setTimeout(()=>loadCROReport(),0);
+  }
+
+  const f=CRO_REPORT?.funnel||{};
+  const hall=Number(f.hall_open||0);
+  const paid=Number(f.paid||0);
+  const source=Number(f.source_touch||0);
+  const loss=croLargestLoss();
+
+  panel.innerHTML=`
+    <div class="section-caption">
+      <div>
+        <div class="eyebrow">CRO V1 • FIRST-PARTY FUNNEL</div>
+        <h2>🧪 Де губляться покупці</h2>
+        <div class="muted">CRO показує <b>де</b> зупинився шлях. Decision Map / Psychology пояснює, <b>чому</b>. Paid визначається не сторінкою «Дякуємо», а фактичним status замовлення через той самий idempotency_key.</div>
+      </div>
+    </div>
+
+    ${croControlsHtml()}
+
+    ${CRO_REPORT_ERROR ? `
+      <div class="notice bad">
+        <b>CRO-звіт недоступний.</b> ${esc(CRO_REPORT_ERROR)}
+        <div class="micro" style="margin-top:8px">Спочатку виконайте <b>supabase/cro-dashboard-v1.sql</b>. Raw cro_events браузеру не відкриваються.</div>
+      </div>
+    ` : ""}
+
+    ${CRO_REPORT_BUSY ? `<div class="notice">Завантажуємо CRO-вирву…</div>` : ""}
+
+    ${CRO_REPORT ? `
+      <div class="cro-meta-grid">
+        <div class="cro-mini"><span>Шляхів у вибірці</span><b>${Number(CRO_REPORT.journeys||0).toLocaleString("uk-UA")}</b></div>
+        <div class="cro-mini"><span>Подій CRO</span><b>${Number(CRO_REPORT.event_rows||0).toLocaleString("uk-UA")}</b></div>
+        <div class="cro-mini"><span>Hall → Paid</span><b>${croPct(paid,hall)}%</b></div>
+        <div class="cro-mini"><span>Source → Paid</span><b>${croPct(paid,source)}%</b></div>
+      </div>
+
+      ${loss ? `<div class="cro-insight"><b>Найбільша втрата:</b> ${esc(loss.from)} → ${esc(loss.to)}: мінус <b>${loss.lost}</b> шлях(и) • втрата ${loss.lossPct}% • перехід ${loss.conversion}%.</div>` : `<div class="notice good"><b>Поки немає достатньо переходів для визначення точки найбільшої втрати.</b></div>`}
+
+      ${croFunnelHtml()}
+
+      <div class="micro" style="margin-top:10px">
+        Час звіту: ${CRO_REPORT.generated_at ? new Date(CRO_REPORT.generated_at).toLocaleString("uk-UA") : "—"} • браузер показує локальний час.
+        Один покупець може мати кілька сеансів; CRO рахує окремий шлях як session_id + seance_id. PII у звіт не повертається.
+      </div>
+
+      ${croBreakdownHtml()}
+    ` : ""}
+  `;
 }
 
 async function boot(){
