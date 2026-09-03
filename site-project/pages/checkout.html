@@ -450,6 +450,7 @@
   </div>
 
   <script src="../../shared/gateway-client.js"></script>
+  <script src="../../shared/va-cro-tracker.js"></script>
 
   <script>
     const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
@@ -513,6 +514,69 @@ function readMarketingAttribution(){
     }
 
     const seats = seatsRaw.split(",").map(s => s.trim()).filter(Boolean);
+
+    // ===== VA CRO V1 =====
+    function croOnceKey(name){
+      if (!window.VACRO) return "";
+      const identity = window.VACRO.identity();
+      return `va_cro_${name}_v1:${identity.session_id}:${seance}`;
+    }
+
+    function croTrackCheckoutOpen(){
+      if (!window.VACRO || !seance || !seats.length) return;
+
+      const onceKey = croOnceKey("checkout_open");
+      try {
+        if (onceKey && sessionStorage.getItem(onceKey) === "1") return;
+        if (onceKey) sessionStorage.setItem(onceKey, "1");
+      } catch (_) {}
+
+      window.VACRO.track("checkout_open", {
+        page_code: "checkout",
+        seance_id: seance,
+        seat_count: seats.length,
+        amount,
+        metadata: {
+          mode: GATEWAY_MODE ? "gateway" : "native",
+          venue: GATEWAY_MODE ? GATEWAY_VENUE_CODE : null
+        }
+      }).catch(() => {});
+    }
+
+    function croTrackPaymentStarted(idempotencyKey){
+      if (!window.VACRO || !idempotencyKey) return;
+
+      window.VACRO.track("payment_started", {
+        page_code: "checkout",
+        seance_id: seance,
+        seat_count: seats.length,
+        amount,
+        idempotency_key: idempotencyKey,
+        metadata: {
+          provider: "liqpay",
+          mode: GATEWAY_MODE ? "gateway" : "native",
+          venue: GATEWAY_MODE ? GATEWAY_VENUE_CODE : null
+        }
+      }).catch(() => {});
+    }
+
+    function croTrackPaymentInitError(idempotencyKey, code){
+      if (!window.VACRO) return;
+
+      window.VACRO.track("payment_init_error", {
+        page_code: "checkout",
+        seance_id: seance,
+        seat_count: seats.length,
+        amount,
+        idempotency_key: idempotencyKey || null,
+        metadata: {
+          provider: "liqpay",
+          mode: GATEWAY_MODE ? "gateway" : "native",
+          venue: GATEWAY_MODE ? GATEWAY_VENUE_CODE : null,
+          error_code: String(code || "liqpay_init_failed").slice(0, 120)
+        }
+      }).catch(() => {});
+    }
 
     function seatKeyToHuman(k){
       const m = String(k).match(/^([PAB])(\d+)-M(\d+)$/i);
@@ -685,8 +749,10 @@ function readMarketingAttribution(){
         }
       }
 
+      const idempotencyKey = newIdempotencyKey();
+
       const payload = {
-        idempotency_key: newIdempotencyKey(),
+        idempotency_key: idempotencyKey,
         show_slug: show,
         seance_id: seance,
         seats,
@@ -720,12 +786,18 @@ function readMarketingAttribution(){
           ).trim();
 
           if (errorCode === "online_sales_disabled") {
+            croTrackPaymentInitError(idempotencyKey, errorCode);
             showCheckoutError(
               "Наразі придбати квитки можна лише в касі.",
               "sales-disabled"
             );
             return;
           }
+
+          croTrackPaymentInitError(
+            idempotencyKey,
+            errorCode || `http_${r.status}`
+          );
 
           showCheckoutError(
             j?.message ||
@@ -734,9 +806,17 @@ function readMarketingAttribution(){
           return;
         }
 
+        // liqpay-init has accepted this exact idempotency key and is about
+        // to hand the buyer to LiqPay. This is the last browser-side funnel step.
+        croTrackPaymentStarted(idempotencyKey);
         submitToLiqPay(j.data, j.signature);
 
       } catch (e) {
+        croTrackPaymentInitError(
+          idempotencyKey,
+          e?.message || "network_error"
+        );
+
         showCheckoutError(
           "Не вдалося з’єднатися із сервісом оплати. Перевірте інтернет-з’єднання."
         );
@@ -744,6 +824,7 @@ function readMarketingAttribution(){
     };
 
     renderPage();
+    croTrackCheckoutOpen();
   </script>
 </body>
 </html>
