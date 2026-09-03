@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.15 — Psychology + Offer + CRO V1</title>
+  <title>VA Marketing V2.15.1 — Psychology + Offer + CRO V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -246,18 +246,18 @@ textarea::placeholder{
   .cro-controls select{min-width:190px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
   .cro-funnel-wrap{overflow-x:auto;padding-bottom:4px}
   .cro-funnel{display:grid;grid-template-columns:repeat(7,minmax(135px,1fr));gap:10px;min-width:1030px}
-  .cro-step{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;position:relative}
-  .cro-step strong{display:block;font-size:30px;line-height:1;margin:8px 0}
-  .cro-step .cro-name{font-size:13px;font-weight:800}
-  .cro-step .cro-sub{font-size:11px;color:var(--muted);line-height:1.35}
+  .cro-step{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;position:relative;color:#111827}
+  .cro-step strong{display:block;font-size:30px;line-height:1;margin:8px 0;color:#0f172a}
+  .cro-step .cro-name{font-size:13px;font-weight:800;color:#111827}
+  .cro-step .cro-sub{font-size:11px;color:#475569;line-height:1.35}
   .cro-step.good{border-color:#86efac;background:#f0fdf4}
   .cro-step.warn{border-color:#fcd34d;background:#fffbeb}
   .cro-step.bad{border-color:#fca5a5;background:#fef2f2}
-  .cro-insight{padding:14px 16px;border-radius:14px;border:1px solid #fcd34d;background:#fffbeb;margin:14px 0}
+  .cro-insight{padding:14px 16px;border-radius:14px;border:1px solid #fcd34d;background:#fffbeb;margin:14px 0;color:#78350f}
   .cro-meta-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
-  .cro-mini{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
-  .cro-mini span{display:block;color:var(--muted);font-size:12px}
-  .cro-mini b{display:block;font-size:22px;margin-top:5px}
+  .cro-mini{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;color:#111827}
+  .cro-mini span{display:block;color:#64748b;font-size:12px}
+  .cro-mini b{display:block;font-size:22px;margin-top:5px;color:#0f172a}
   .cro-table-wrap{overflow-x:auto}
   .cro-table-wrap table{min-width:760px}
   .cro-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
@@ -276,7 +276,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.15</h1>
+        <h1>Marketing Control Center V2.15.1</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.15 додає CRO V1: анонімний first-party шлях від входу в зал до фактично оплаченої покупки, з втратами між етапами та розрізами по джерелах, кампаніях, рефералах, пристроях і сеансах.
@@ -3915,6 +3915,9 @@ function croBreakdownLabel(tab,key){
   if(tab==="campaigns") return croCampaignLabel(key);
   if(tab==="devices") return croDeviceLabel(key);
   if(tab==="seances") return croSeanceLabel(key);
+  if(tab==="sources" && String(key||"")===String(location.hostname||"")){
+    return "Прямий / внутрішній перехід";
+  }
   return String(key||"—");
 }
 
@@ -3939,6 +3942,7 @@ function croLargestLoss(){
     const prev=stages[i-1][2], cur=stages[i][2];
     if(prev<=0) continue;
     const lost=Math.max(0,prev-cur);
+    if(lost<=0) continue;
     const lossPct=Math.round((lost/prev)*100);
     if(!best || lost>best.lost){
       best={
