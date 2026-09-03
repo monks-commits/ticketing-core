@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.17 — Psychology + Offer + CRO + A/B + Paid Acquisition V1</title>
+  <title>VA Marketing V2.17.1 — Psychology + Offer + CRO + A/B + Paid Acquisition V1.1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -311,7 +311,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.17</h1>
+        <h1>Marketing Control Center V2.17.1</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.17 замикає Paid Acquisition V1: витрати з Журналу маркетингу → campaign_id → CRO → фактичний Paid → покупці, квитки, виручка, CPA, CPT і ROAS.
@@ -4201,7 +4201,7 @@ function paidAcqCampaignRows(){
       row.roas=row.spend>0 ? row.revenue/row.spend : null;
       return row;
     })
-    .filter(r=>r.spend>0 || r.hall>0 || r.paid_orders>0 || r.revenue>0)
+    .filter(r=>r.spend>0)
     .sort((a,b)=>b.spend-a.spend || b.revenue-a.revenue);
 }
 
@@ -4314,7 +4314,7 @@ function paidAcqTableHtml(){
     const roasClass=r.roas==null?"":r.roas>=2?"paid-good":r.roas>=1?"paid-warn":"paid-bad";
     const budgetNote=r.spendSource==="campaign_total"?'<div class="micro">fallback total</div>':"";
     return `<tr><td><b>${esc(PAID_ACQ_TAB==="campaigns"?r.name:r.source)}</b>${PAID_ACQ_TAB==="campaigns"?`<div class="micro campaign-id">${esc(r.campaign_id)}</div>`:""}</td>${PAID_ACQ_TAB==="campaigns"?`<td>${esc(r.source)}</td>`:`<td>${Number(r.campaigns||0)}</td>`}<td><b>${paidAcqMoney(r.spend)}</b>${budgetNote}</td><td>${r.hall}</td><td>${r.seat_selected}</td><td>${r.payment_started}</td><td><b>${r.cro_paid}</b>${r.hall?`<div class="micro">${Math.round((r.cro_paid/r.hall)*100)}% Hall→Paid</div>`:""}</td><td>${r.buyers}</td><td>${r.tickets}</td><td><b>${paidAcqMoney(r.revenue)}</b></td><td>${r.cpa==null?"—":paidAcqMoney(r.cpa)}</td><td>${r.cpt==null?"—":paidAcqMoney(r.cpt)}</td><td class="${roasClass}">${r.roas==null?"—":r.roas.toFixed(2)+"×"}</td></tr>`;
-  }).join(""):`<tr><td colspan="13" class="muted">У вибраному періоді ще немає кампаній з витратами або атрибутованим трафіком.</td></tr>`}</tbody></table></div></div>`;
+  }).join(""):`<tr><td colspan="13" class="muted">У вибраному періоді немає paid-кампаній з витратами.</td></tr>`}</tbody></table></div></div>`;
 }
 
 function renderPaidAcquisitionSection(){
@@ -4330,7 +4330,7 @@ function renderPaidAcquisitionSection(){
   ${PAID_ACQ_REPORT?`<div class="paid-kpis"><div class="paid-kpi"><span>Витрати</span><b>${paidAcqMoney(t.spend)}</b><div class="micro">лише кампанії з бюджетом</div></div><div class="paid-kpi"><span>Покупці</span><b>${t.buyers}</b><div class="micro">унікальні у paid кампаніях</div></div><div class="paid-kpi"><span>Квитки</span><b>${t.tickets}</b><div class="micro">пряма атрибуція</div></div><div class="paid-kpi"><span>Пряма виручка</span><b>${paidAcqMoney(t.revenue)}</b><div class="micro">orders.status = paid</div></div><div class="paid-kpi"><span>CPA</span><b>${t.cpa==null?"—":paidAcqMoney(t.cpa)}</b><div class="micro">витрати / покупці</div></div><div class="paid-kpi"><span>ROAS</span><b>${t.roas==null?"—":t.roas.toFixed(2)+"×"}</b><div class="micro">виручка / витрати</div></div></div>
   <div class="paid-insight"><b>Що каже VA:</b> ${esc(paidAcqInsight())}</div>
   ${paidAcqTableHtml()}
-  <div class="micro" style="margin-top:10px">Бюджет береться з записів Журналу, локально прив'язаних до campaign_id. Старі кампанії без journalIds можуть показувати fallback total. CRO Paid — оплачений шлях session_id + seance_id; комерційна виручка, покупці та квитки беруться з orders/tickets. Нульовий бюджет не створює штучний ROAS.</div>`:""}`;
+  <div class="micro" style="margin-top:10px">Бюджет береться з записів Журналу, локально прив'язаних до campaign_id. Старі кампанії без journalIds можуть показувати fallback total. CRO Paid — оплачений шлях session_id + seance_id; комерційна виручка, покупці та квитки беруться з orders/tickets. Кампанії з нульовим бюджетом у Paid Acquisition не показуються: їхня атрибуція лишається у Marketing/CRO.</div>`:""}`;
 }
 
 // ===== VA Marketing CRO Dashboard V1 =====
