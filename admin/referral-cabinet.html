@@ -2,166 +2,81 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Кабінет реферала</title>
+<title>Кабінет реферала · VA Referral V1</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#08172b;color:white;padding:28px}
-.wrap{max-width:1180px;margin:0 auto}
-h1{margin:0 0 8px;font-size:34px}
-.sub{color:#cbd5e1;margin-bottom:22px}
-.panel,.card{background:#18283e;border:1px solid #334155;border-radius:18px;padding:18px}
-.filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-input,button{padding:12px;border-radius:10px;border:1px solid #334155}
-input{background:#071325;color:white}
-button{background:#3b82f6;color:white;font-weight:700;cursor:pointer}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}
-.card .label{color:#cbd5e1}
-.card .num{font-size:30px;font-weight:800;margin-top:8px}
-table{width:100%;border-collapse:collapse;margin-top:18px;background:#102033;border-radius:14px;overflow:hidden}
-th,td{padding:12px 14px;border-bottom:1px solid #334155;text-align:left}
-th{background:#0f172a}
-.money{font-weight:700;white-space:nowrap}
-.empty{padding:20px;color:#cbd5e1}
-@media(max-width:800px){.grid{grid-template-columns:1fr}}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#08172b;color:#fff;padding:28px}.wrap{max-width:1240px;margin:0 auto}
+h1{margin:0 0 8px;font-size:34px}.sub{color:#cbd5e1;margin-bottom:22px}.panel,.card{background:#18283e;border:1px solid #334155;border-radius:18px;padding:18px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:18px}.field{display:grid;gap:6px}.field label{font-size:12px;color:#b9c8dc}input,button{padding:11px 12px;border-radius:10px;border:1px solid #334155}input{background:#071325;color:#fff}button{background:#3b82f6;color:#fff;font-weight:700;cursor:pointer}.secondary{background:#27364d}.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}.card{padding:15px}.card .label{color:#cbd5e1;font-size:12px}.card .num{font-size:25px;font-weight:800;margin-top:7px}.positive{color:#86efac}.negative{color:#fca5a5}.table-wrap{overflow:auto;border-radius:14px;border:1px solid #334155}table{width:100%;border-collapse:collapse;background:#102033;min-width:980px}th,td{padding:11px 12px;border-bottom:1px solid #334155;text-align:left;font-size:13px}th{background:#0f172a;position:sticky;top:0}.money{font-weight:700;white-space:nowrap}.muted{color:#94a3b8}.empty{padding:20px;color:#cbd5e1}.pill{display:inline-block;border:1px solid #475569;border-radius:999px;padding:4px 8px;font-size:11px}.ok{color:#86efac}.bad{color:#fca5a5}.warn{color:#fde68a}.topline{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}.version{font-size:12px;color:#7fa0d8}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:650px){body{padding:14px}.grid{grid-template-columns:1fr 1fr}h1{font-size:28px}}
 </style>
 </head>
 <body>
-
 <div class="wrap">
-  <h1>Кабінет реферала</h1>
-  <div id="partnerInfo" class="sub">Завантаження...</div>
-
+  <div class="topline"><div><h1>Кабінет реферала</h1><div id="partnerInfo" class="sub">Завантаження...</div></div><div class="version">VA Referral V1</div></div>
   <div class="panel">
     <div class="filters">
-      <input id="dateFrom" type="date">
-      <input id="dateTo" type="date">
+      <div class="field"><label>Від</label><input id="dateFrom" type="date"></div>
+      <div class="field"><label>До</label><input id="dateTo" type="date"></div>
       <button onclick="loadCabinet()">Показати</button>
-      <button onclick="logout()">Вийти</button>
+      <button class="secondary" onclick="resetMonth()">Поточний місяць</button>
+      <button class="secondary" onclick="logout()">Вийти</button>
     </div>
 
     <div class="grid">
-      <div class="card">
-        <div class="label">Продажів</div>
-        <div id="salesCount" class="num">0</div>
-      </div>
-      <div class="card">
-        <div class="label">Сума продажів</div>
-        <div id="totalSales" class="num">0 грн</div>
-      </div>
-      <div class="card">
-        <div class="label">Нараховано</div>
-        <div id="totalCommission" class="num">0 грн</div>
-      </div>
+      <div class="card"><div class="label">Оплачених продажів</div><div id="salesCount" class="num">0</div></div>
+      <div class="card"><div class="label">Сума продажів</div><div id="totalSales" class="num">0 грн</div></div>
+      <div class="card"><div class="label">Нараховано</div><div id="totalCommission" class="num">0 грн</div></div>
+      <div class="card"><div class="label">Сторновано</div><div id="totalReversed" class="num negative">0 грн</div></div>
+      <div class="card"><div class="label">Виплачено</div><div id="totalPaid" class="num">0 грн</div></div>
+      <div class="card"><div class="label">До виплати</div><div id="totalPayable" class="num positive">0 грн</div></div>
     </div>
 
     <div id="tableBox"></div>
   </div>
 </div>
-
 <script>
+"use strict";
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-
 const qs = new URLSearchParams(location.search);
-const refCode = qs.get("ref") || sessionStorage.getItem("va_partner_target") || "";
-
-function money(v){
-  return Number(v || 0).toFixed(2) + " грн";
+const refCode = String(qs.get("ref") || sessionStorage.getItem("va_partner_target") || "").trim();
+const $ = id => document.getElementById(id);
+function money(v){return Number(v||0).toLocaleString("uk-UA",{minimumFractionDigits:2,maximumFractionDigits:2})+" грн"}
+function esc(v){return String(v??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"})[s])}
+function localDate(d){const x=new Date(d);return Number.isNaN(x.getTime())?"—":x.toLocaleString("uk-UA")}
+function startOfMonth(){const n=new Date();return new Date(n.getFullYear(),n.getMonth(),1)}
+function inputDate(d){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
+function resetMonth(){dateFrom.value=inputDate(startOfMonth());dateTo.value=inputDate(new Date());loadCabinet()}
+function rowStatus(r){
+  if(String(r.status||"").toLowerCase()==="reversed") return '<span class="pill bad">Сторно</span>';
+  if(String(r.settlement_status||"").toLowerCase()==="paid") return '<span class="pill ok">Виплачено</span>';
+  return '<span class="pill warn">До виплати</span>';
 }
-
-function setDefaultDates(){
-  const now = new Date();
-  const first = new Date(now.getFullYear(), now.getMonth(), 1);
-  document.getElementById("dateFrom").value = first.toISOString().slice(0,10);
-  document.getElementById("dateTo").value = now.toISOString().slice(0,10);
-}
-
-async function fetchJson(path){
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers:{
-      apikey: SUPABASE_ANON_KEY,
-      Authorization:`Bearer ${SUPABASE_ANON_KEY}`
-    }
-  });
-
-  if (!res.ok) throw new Error(await res.text());
-  return await res.json();
-}
-
+async function fetchJson(path){const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});if(!res.ok)throw new Error(await res.text());return res.json()}
 async function loadCabinet(){
-  if (!refCode) {
-    document.getElementById("partnerInfo").textContent = "Реферальний код не задано";
-    return;
-  }
-
-  document.getElementById("partnerInfo").textContent = `Партнер: ${refCode}`;
-
-  const rows = await fetchJson(
-    `referral_pilot_dashboard?select=*&ref_code=eq.${encodeURIComponent(refCode)}`
-  );
-
-  const r = rows[0];
-
-  if (!r) {
-    document.getElementById("salesCount").textContent = "0";
-    document.getElementById("totalSales").textContent = "0 грн";
-    document.getElementById("totalCommission").textContent = "0 грн";
-    document.getElementById("tableBox").innerHTML =
-      `<div class="empty">Продажів поки немає.</div>`;
-    return;
-  }
-
-  document.getElementById("partnerInfo").textContent =
-    `Партнер: ${r.referral_name || r.ref_code}`;
-
-  document.getElementById("salesCount").textContent = r.sales_count || 0;
-  document.getElementById("totalSales").textContent = money(r.total_sales);
-  document.getElementById("totalCommission").textContent = money(r.total_commission);
-
-  document.getElementById("tableBox").innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Партнер</th>
-          <th>Ref code</th>
-          <th>Продажів</th>
-          <th>Сума продажів</th>
-          <th>Нараховано</th>
-          <th>Перший продаж</th>
-          <th>Останній продаж</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>${r.referral_name || r.ref_code}</td>
-          <td>${r.ref_code}</td>
-          <td>${r.sales_count || 0}</td>
-          <td class="money">${money(r.total_sales)}</td>
-          <td class="money">${money(r.total_commission)}</td>
-          <td>${r.first_sale_at ? new Date(r.first_sale_at).toLocaleString("uk-UA") : "—"}</td>
-          <td>${r.last_sale_at ? new Date(r.last_sale_at).toLocaleString("uk-UA") : "—"}</td>
-        </tr>
-      </tbody>
-    </table>
-  `;
+  if(!refCode){partnerInfo.textContent="Реферальний код не задано";tableBox.innerHTML='<div class="empty">Відкрийте кабінет із ref-кодом партнера.</div>';return}
+  partnerInfo.textContent=`Партнер: ${refCode}`;
+  const from=dateFrom.value||"1900-01-01", to=dateTo.value||"2999-12-31";
+  const toExclusive=new Date(`${to}T00:00:00`);toExclusive.setDate(toExclusive.getDate()+1);
+  const toISO=inputDate(toExclusive);
+  const [partners,rows]=await Promise.all([
+    fetchJson(`referral_dashboard_v1?select=ref_code,referral_name,site_url,commission_percent&ref_code=eq.${encodeURIComponent(refCode)}&limit=1`),
+    fetchJson(`referral_sales_v1?select=*&ref_code=eq.${encodeURIComponent(refCode)}&created_at=gte.${encodeURIComponent(from+"T00:00:00")}&created_at=lt.${encodeURIComponent(toISO+"T00:00:00")}&order=created_at.desc`)
+  ]);
+  const p=partners[0]||{};partnerInfo.textContent=`Партнер: ${p.referral_name||refCode}${p.site_url?` · ${p.site_url}`:""}${p.commission_percent!=null?` · ${Number(p.commission_percent)}%`:""}`;
+  const gross=rows.reduce((s,r)=>s+Number(r.total_amount||0),0);
+  const accrued=rows.reduce((s,r)=>s+Number(r.commission_amount||0),0);
+  const reversed=rows.reduce((s,r)=>s+Number(r.reversal_amount||0),0);
+  const paid=rows.reduce((s,r)=>s+(String(r.settlement_status||"").toLowerCase()==="paid"?Number(r.commission_amount||0):0),0);
+  const payable=accrued-reversed-paid;
+  salesCount.textContent=rows.filter(r=>String(r.status||"").toLowerCase()!=="reversed").length;
+  totalSales.textContent=money(gross);totalCommission.textContent=money(accrued);totalReversed.textContent=money(reversed);totalPaid.textContent=money(paid);totalPayable.textContent=money(payable);
+  if(!rows.length){tableBox.innerHTML='<div class="empty">У вибраному періоді реферальних продажів немає.</div>';return}
+  tableBox.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Дата</th><th>Сеанс</th><th>Замовлення</th><th>Квитків</th><th>Продаж</th><th>%</th><th>Комісія</th><th>Сторно</th><th>Розрахунок</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(localDate(r.created_at))}</td><td><b>${esc(r.show||r.seance_id||"—")}</b><div class="muted">${esc([r.seance_date,r.seance_time?String(r.seance_time).slice(0,5):""].filter(Boolean).join(" · "))}</div></td><td>${esc(r.order_id||"—")}</td><td>${Number(r.tickets_count||0)}</td><td class="money">${money(r.total_amount)}</td><td>${Number(r.commission_percent||0)}%</td><td class="money">${money(r.commission_amount)}</td><td class="money">${Number(r.reversal_amount||0)?money(r.reversal_amount):"—"}</td><td>${rowStatus(r)}</td></tr>`).join("")}</tbody></table></div>`;
 }
-
-function logout(){
-  sessionStorage.removeItem("va_partner_login");
-  sessionStorage.removeItem("va_partner_type");
-  sessionStorage.removeItem("va_partner_target");
-  location.href = "partner-login.html";
-}
-
-setDefaultDates();
-
-loadCabinet().catch(err => {
-  console.error(err);
-  document.getElementById("partnerInfo").textContent = `Партнер: ${refCode || "—"}`;
-  document.getElementById("tableBox").innerHTML =
-    `<div class="empty">Помилка завантаження даних з referral_pilot_dashboard.</div>`;
-});
+function logout(){sessionStorage.removeItem("va_partner_login");sessionStorage.removeItem("va_partner_type");sessionStorage.removeItem("va_partner_target");location.href="partner-login.html"}
+dateFrom.value=inputDate(startOfMonth());dateTo.value=inputDate(new Date());loadCabinet().catch(err=>{console.error(err);partnerInfo.textContent=`Партнер: ${refCode||"—"}`;tableBox.innerHTML=`<div class="empty">Помилка Referral V1: ${esc(err.message)}</div>`});
 </script>
-
 </body>
 </html>
