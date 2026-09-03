@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.16.1 — Psychology + Offer + CRO + A/B V1</title>
+  <title>VA Marketing V2.17 — Psychology + Offer + CRO + A/B + Paid Acquisition V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -281,6 +281,26 @@ textarea::placeholder{
   .ab-list-item{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px;background:#0b1f39}
   @media(max-width:900px){.ab-form-grid,.ab-result-grid{grid-template-columns:1fr}.ab-form-grid .full{grid-column:auto}}
 
+  /* ===== VA Marketing Paid Acquisition V1 ===== */
+  .paid-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:14px 0}
+  .paid-controls label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .paid-controls select{min-width:190px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#111827}
+  .paid-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:14px 0}
+  .paid-kpi{background:#fff;color:#111827;border:1px solid var(--line);border-radius:14px;padding:13px}
+  .paid-kpi span{display:block;color:#64748b;font-size:11px;margin-bottom:5px}
+  .paid-kpi b{display:block;color:#0f172a;font-size:24px;line-height:1.1}
+  .paid-kpi .micro{color:#64748b;margin-top:5px}
+  .paid-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .paid-tab{border:1px solid var(--line);background:#fff;color:#111827;border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:800}
+  .paid-tab.active{background:#111827;color:#fff;border-color:#111827}
+  .paid-table-wrap{overflow-x:auto}
+  .paid-table-wrap table{min-width:1280px}
+  .paid-good{font-weight:900;color:#166534}.paid-warn{font-weight:900;color:#92400e}.paid-bad{font-weight:900;color:#991b1b}
+  .paid-insight{padding:14px 16px;border-radius:14px;border:1px solid #93c5fd;background:#eff6ff;color:#1e3a8a;margin:14px 0;line-height:1.45}
+  .paid-rule{padding:12px 14px;border-radius:12px;border:1px solid rgba(242,182,50,.42);background:rgba(242,182,50,.08);margin:12px 0}
+  @media(max-width:1050px){.paid-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:620px){.paid-kpis{grid-template-columns:1fr 1fr}.paid-controls select{min-width:100%}}
+
   </style>
 </head>
 
@@ -291,10 +311,10 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.16.1</h1>
+        <h1>Marketing Control Center V2.17</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          V2.15 додає CRO V1: анонімний first-party шлях від входу в зал до фактично оплаченої покупки, з втратами між етапами та розрізами по джерелах, кампаніях, рефералах, пристроях і сеансах.
+          V2.17 замикає Paid Acquisition V1: витрати з Журналу маркетингу → campaign_id → CRO → фактичний Paid → покупці, квитки, виручка, CPA, CPT і ROAS.
         </div>
       </div>
       <div class="hero-badges">
@@ -303,6 +323,7 @@ textarea::placeholder{
         <span class="badge">Без зовнішнього AI API</span>
         <span class="badge">CRO V1</span>
         <span class="badge">A/B V1</span>
+        <span class="badge">Paid Acquisition V1</span>
       </div>
     </div>
   </div>
@@ -386,6 +407,14 @@ let ACTIVE_AB_ID = "";
 let AB_REPORT = null;
 let AB_REPORT_BUSY = false;
 let AB_REPORT_ERROR = "";
+
+let PAID_ACQ_REPORT = null;
+let PAID_ACQ_REPORT_KEY = "";
+let PAID_ACQ_BUSY = false;
+let PAID_ACQ_ERROR = "";
+let PAID_ACQ_PERIOD = "30d";
+let PAID_ACQ_SEANCE_FILTER = "__context__";
+let PAID_ACQ_TAB = "sources";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
@@ -1217,7 +1246,8 @@ const TOOLS = [
   ["📊 Ефективність", "Фактична аналітика по жанрах, каналах і сеансах", "Результат"],
   ["🧭 Паспорт сеансу", "Кому, що і яким тоном говоримо про конкретну подію", "Контекст"],
   ["🧪 CRO / Воронка", "Де саме губляться покупці: від входу до фактичної оплати", "Конверсія"],
-  ["⚗️ A/B експерименти", "Рандомно порівнюємо два варіанти і міряємо реальну оплату", "Експеримент"]
+  ["⚗️ A/B експерименти", "Рандомно порівнюємо два варіанти і міряємо реальну оплату", "Експеримент"],
+  ["💰 Paid Acquisition", "Витрати → трафік → Paid → виручка → CPA / CPT / ROAS", "Реклама"]
 ];
 
 function esc(v){
@@ -1330,6 +1360,7 @@ function openMarketingSection(index){
   if(index === 7) return renderMarketingPassportSection();
   if(index === 8) return renderCROSection();
   if(index === 9) return renderABExperimentsSection();
+  if(index === 10) return renderPaidAcquisitionSection();
 }
 
 function buildClients(orders, tickets, seances){
@@ -3897,7 +3928,8 @@ function buildABPublicLink(exp){
   const entry=new URL("../site-project/pages/experiment-entry.html",location.href);
   const hall=new URL("../site-project/pages/hall.html",location.href);
   if(exp.seance_id)hall.searchParams.set("seance",exp.seance_id);
-  if(exp.show_slug)hall.searchParams.set("show",exp.show_slug);
+  const showSlug=String(exp.show_slug||"").trim();
+  if(showSlug && !["false","null","undefined"].includes(showSlug.toLowerCase())) hall.searchParams.set("show",showSlug);
   if(exp.title)hall.searchParams.set("title",exp.title);
 
   entry.searchParams.set("experiment_id",exp.id);
@@ -4027,6 +4059,278 @@ function renderABExperimentsSection(){
   <div class="ab-variant"><div class="tag">B</div><div class="ab-field"><label>Заголовок</label><input id="abBHead" placeholder="Варіант B"></div><div class="ab-field" style="margin-top:8px"><label>Текст</label><textarea id="abBText"></textarea></div><div class="ab-field" style="margin-top:8px"><label>CTA</label><input id="abBCTA" value="Обрати місця"></div></div></div><div class="row" style="margin-top:12px"><button class="btn" onclick="createABExperiment()">Створити A/B</button></div></div>
   ${renderABActive(activeAB())}
   <div class="box" style="margin-top:14px"><h3>Журнал експериментів</h3>${AB_EXPERIMENTS.length?AB_EXPERIMENTS.map(exp=>`<div class="ab-list-item"><div class="row" style="justify-content:space-between"><div><b>${esc(exp.name)}</b><div class="micro">${esc(exp.id)} • ${esc(exp.status||"draft")} • ${esc(croSeanceLabel(exp.seance_id))}</div></div><div class="row"><button class="btn secondary" onclick="ACTIVE_AB_ID='${escAttr(exp.id)}';AB_REPORT=null;AB_REPORT_ERROR='';renderABExperimentsSection()">Відкрити</button><button class="btn secondary" onclick="loadABReport('${escAttr(exp.id)}')">Результат</button><button class="btn secondary" onclick="deleteABExperiment('${escAttr(exp.id)}')">Видалити</button></div></div></div>`).join(""):`<div class="muted">Експериментів ще немає.</div>`}</div>`
+}
+
+
+// ===== VA Marketing Paid Acquisition V1 =====
+// V1 deliberately reuses existing facts instead of creating another tracker:
+// marketing_journal = spend, campaign_id = attribution key,
+// cro_report_v1 = path quality, orders/tickets = commercial truth.
+
+function paidAcqPeriodFromIso(){
+  if(PAID_ACQ_PERIOD === "all") return null;
+  const now=new Date();
+  if(PAID_ACQ_PERIOD === "today"){
+    return new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0,0).toISOString();
+  }
+  const days=PAID_ACQ_PERIOD === "7d" ? 7 : PAID_ACQ_PERIOD === "90d" ? 90 : 30;
+  return new Date(now.getTime()-days*86400000).toISOString();
+}
+
+function paidAcqResolvedSeanceId(){
+  if(PAID_ACQ_SEANCE_FILTER === "__all__") return null;
+  if(PAID_ACQ_SEANCE_FILTER && PAID_ACQ_SEANCE_FILTER !== "__context__") return PAID_ACQ_SEANCE_FILTER;
+  return CURRENT_SEANCE_IDS.length === 1 ? String(CURRENT_SEANCE_IDS[0]) : null;
+}
+
+function paidAcqParamsKey(){
+  return JSON.stringify({period:PAID_ACQ_PERIOD,seance:paidAcqResolvedSeanceId()||""});
+}
+
+function paidAcqFromMs(){
+  const iso=paidAcqPeriodFromIso();
+  return iso ? new Date(iso).getTime() : null;
+}
+
+function paidAcqInPeriod(value){
+  const from=paidAcqFromMs();
+  if(from==null) return true;
+  if(!value) return false;
+  let stamp;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(String(value))){
+    stamp=new Date(`${value}T12:00:00`).getTime();
+  }else stamp=new Date(value).getTime();
+  return Number.isFinite(stamp) && stamp >= from;
+}
+
+function paidAcqMoney(v){
+  return `${Number(v||0).toLocaleString("uk-UA",{maximumFractionDigits:2})} грн`;
+}
+
+function paidAcqMetric(v,digits=2,suffix=""){
+  const n=Number(v);
+  if(!Number.isFinite(n)) return "—";
+  return `${n.toLocaleString("uk-UA",{minimumFractionDigits:digits,maximumFractionDigits:digits})}${suffix}`;
+}
+
+function paidAcqCampaignSource(c){
+  const v=String(c?.channel||"").trim();
+  return v || "Канал не вказано";
+}
+
+function paidAcqCampaignSpend(c){
+  const ids=new Set((c?.journalIds||[]).map(String));
+  const sid=paidAcqResolvedSeanceId();
+  const linked=JOURNAL.filter(j=>ids.has(String(j.id||"")));
+  const rows=linked.filter(j=>(!sid || String(j.seance_id||"")===sid) && paidAcqInPeriod(j.action_date||j.created_at));
+  const journalAmount=rows.reduce((sum,j)=>sum+Math.max(0,Number(j.budget||0)),0);
+
+  if(linked.length){
+    return {amount:journalAmount,actions:rows.length,source:"journal"};
+  }
+
+  // Compatibility for older local campaign entities that already contain a total budget
+  // but have no retained journalIds. Use it only if the campaign itself falls into period.
+  const fallback=Math.max(0,Number(c?.budget||0));
+  const campaignStamp=c?.started_at||c?.created_at||null;
+  if(fallback>0 && paidAcqInPeriod(campaignStamp)){
+    return {amount:fallback,actions:0,source:"campaign_total"};
+  }
+  return {amount:0,actions:0,source:"none"};
+}
+
+function paidAcqCampaignCommercial(c){
+  const paidStatuses=new Set(["paid","success","completed","approved"]);
+  const sid=paidAcqResolvedSeanceId();
+  const orders=ORDERS.filter(o=>{
+    if(String(o.marketing_campaign_id||"")!==String(c?.id||"")) return false;
+    if(o.status && !paidStatuses.has(String(o.status).toLowerCase())) return false;
+    if(sid && String(o.seance_id||"")!==sid) return false;
+    return paidAcqInPeriod(o.marketing_attributed_at||o.created_at);
+  });
+  const orderIds=new Set(orders.map(o=>String(o.order_id||o.id||"")).filter(Boolean));
+  const buyerKeys=new Set(orders.map(o=>normKey(o)).filter(Boolean));
+  const tickets=TICKETS.filter(t=>orderIds.has(String(t.order_id||"")));
+  return {
+    orders:orders.length,
+    buyers:buyerKeys.size,
+    buyerKeys,
+    tickets:tickets.length,
+    revenue:orders.reduce((sum,o)=>sum+Number(o.amount||0),0)
+  };
+}
+
+function paidAcqCroCampaignMap(){
+  return new Map((PAID_ACQ_REPORT?.campaigns||[]).map(r=>[String(r.key||""),r]));
+}
+
+function paidAcqCampaignRows(){
+  const sid=paidAcqResolvedSeanceId();
+  const croMap=paidAcqCroCampaignMap();
+  return CAMPAIGNS
+    .filter(c=>!sid || String(c.seance_id||"")===sid)
+    .map(c=>{
+      const spend=paidAcqCampaignSpend(c);
+      const commercial=paidAcqCampaignCommercial(c);
+      const cr=croMap.get(String(c.id||""))||{};
+      const hall=Number(cr.sessions||0);
+      const croPaid=Number(cr.paid||0);
+      const row={
+        key:String(c.id||""),
+        name:c.name||"Кампанія",
+        source:paidAcqCampaignSource(c),
+        campaign_id:String(c.id||""),
+        campaigns:1,
+        spend:Number(spend.amount||0),
+        spendSource:spend.source,
+        actions:Number(spend.actions||0),
+        hall,
+        seat_selected:Number(cr.seat_selected||0),
+        checkout_open:Number(cr.checkout_open||0),
+        payment_started:Number(cr.payment_started||0),
+        cro_paid:croPaid,
+        paid_orders:Number(commercial.orders||0),
+        buyers:Number(commercial.buyers||0),
+        buyerKeys:commercial.buyerKeys,
+        tickets:Number(commercial.tickets||0),
+        revenue:Number(commercial.revenue||0)
+      };
+      row.hall_to_paid=hall>0 ? croPaid/hall : null;
+      row.cpa=row.spend>0 && row.buyers>0 ? row.spend/row.buyers : null;
+      row.cpt=row.spend>0 && row.tickets>0 ? row.spend/row.tickets : null;
+      row.roas=row.spend>0 ? row.revenue/row.spend : null;
+      return row;
+    })
+    .filter(r=>r.spend>0 || r.hall>0 || r.paid_orders>0 || r.revenue>0)
+    .sort((a,b)=>b.spend-a.spend || b.revenue-a.revenue);
+}
+
+function paidAcqSourceRows(campaignRows){
+  const map=new Map();
+  for(const r of campaignRows){
+    const key=r.source||"Канал не вказано";
+    if(!map.has(key)) map.set(key,{
+      key,name:key,source:key,campaigns:0,spend:0,actions:0,hall:0,seat_selected:0,checkout_open:0,payment_started:0,cro_paid:0,paid_orders:0,buyers:0,buyerKeys:new Set(),tickets:0,revenue:0,spendFallback:false
+    });
+    const x=map.get(key);
+    x.campaigns+=1;x.spend+=r.spend;x.actions+=r.actions;x.hall+=r.hall;x.seat_selected+=r.seat_selected;x.checkout_open+=r.checkout_open;x.payment_started+=r.payment_started;x.cro_paid+=r.cro_paid;x.paid_orders+=r.paid_orders;x.tickets+=r.tickets;x.revenue+=r.revenue;
+    if(r.spendSource==="campaign_total") x.spendFallback=true;
+    for(const bk of r.buyerKeys||[]) x.buyerKeys.add(bk);
+  }
+  return [...map.values()].map(x=>{
+    x.buyers=x.buyerKeys.size;
+    x.hall_to_paid=x.hall>0 ? x.cro_paid/x.hall : null;
+    x.cpa=x.spend>0 && x.buyers>0 ? x.spend/x.buyers : null;
+    x.cpt=x.spend>0 && x.tickets>0 ? x.spend/x.tickets : null;
+    x.roas=x.spend>0 ? x.revenue/x.spend : null;
+    return x;
+  }).sort((a,b)=>b.spend-a.spend || b.revenue-a.revenue);
+}
+
+function paidAcqRows(){
+  const campaigns=paidAcqCampaignRows();
+  return PAID_ACQ_TAB==="campaigns" ? campaigns : paidAcqSourceRows(campaigns);
+}
+
+function paidAcqTotals(){
+  // Financial KPIs answer the paid-acquisition question, so zero-spend rows do not enter totals.
+  const campaigns=paidAcqCampaignRows().filter(r=>r.spend>0);
+  const buyers=new Set();
+  let spend=0,tickets=0,revenue=0,hall=0,croPaid=0,paidOrders=0;
+  for(const r of campaigns){
+    spend+=r.spend;tickets+=r.tickets;revenue+=r.revenue;hall+=r.hall;croPaid+=r.cro_paid;paidOrders+=r.paid_orders;
+    for(const k of r.buyerKeys||[]) buyers.add(k);
+  }
+  return {
+    campaigns:campaigns.length,spend,buyers:buyers.size,tickets,revenue,hall,croPaid,paidOrders,
+    cpa:spend>0 && buyers.size>0 ? spend/buyers.size : null,
+    cpt:spend>0 && tickets>0 ? spend/tickets : null,
+    roas:spend>0 ? revenue/spend : null,
+    conversion:hall>0 ? croPaid/hall : null
+  };
+}
+
+function paidAcqInsight(){
+  const sources=paidAcqSourceRows(paidAcqCampaignRows()).filter(r=>r.spend>0);
+  if(!sources.length) return "Поки немає кампаній з витратами у вибраному періоді. Додайте бюджет у Журналі маркетингу до активної кампанії й використовуйте її campaign-link у рекламі.";
+  const noTraffic=sources.filter(r=>r.spend>0 && r.hall===0);
+  if(noTraffic.length) return `Є витрати без зафіксованого входу в зал: ${noTraffic.map(r=>r.source).join(", ")}. Перевірте, чи реклама веде саме через campaign-link VA.`;
+  const noPaid=sources.filter(r=>r.hall>0 && r.cro_paid===0);
+  if(noPaid.length) return `Трафік доходить до залу, але не доходить до Paid: ${noPaid.map(r=>r.source).join(", ")}. Дивіться CRO-втрати цих кампаній перед збільшенням бюджету.`;
+  const proven=sources.filter(r=>r.roas!=null && r.revenue>0).sort((a,b)=>b.roas-a.roas);
+  if(proven.length){
+    const best=proven[0];
+    return `Найкращий прямий ROAS у вибірці: ${best.source} — ${best.roas.toFixed(2)}×. Це не оцінка брендингу: тут лише витрати, які VA може прямо зв'язати з campaign_id та Paid.`;
+  }
+  return "Витрати вже зафіксовані, але прямої Paid-виручки в поточній вибірці ще немає.";
+}
+
+function paidAcqSeanceOptions(){
+  const rows=[...SEANCES].sort((a,b)=>{
+    const ad=new Date(`${a.date||"1970-01-01"}T${a.time||"00:00"}`),bd=new Date(`${b.date||"1970-01-01"}T${b.time||"00:00"}`);return bd-ad;
+  });
+  return rows.slice(0,150).map(s=>`<option value="${escAttr(String(s.id))}" ${PAID_ACQ_SEANCE_FILTER===String(s.id)?"selected":""}>${esc(croSeanceLabel(s.id))}</option>`).join("");
+}
+
+function paidAcqControlsHtml(){
+  const contextText=CURRENT_SEANCE_IDS.length===1 ? `Поточний фокус: ${croSeanceLabel(CURRENT_SEANCE_IDS[0])}` : "Поточний фокус: усі / мультивибір";
+  return `<div class="paid-controls">
+    <div><label>Період</label><select id="paidAcqPeriod"><option value="today" ${PAID_ACQ_PERIOD==="today"?"selected":""}>Сьогодні</option><option value="7d" ${PAID_ACQ_PERIOD==="7d"?"selected":""}>7 днів</option><option value="30d" ${PAID_ACQ_PERIOD==="30d"?"selected":""}>30 днів</option><option value="90d" ${PAID_ACQ_PERIOD==="90d"?"selected":""}>90 днів</option><option value="all" ${PAID_ACQ_PERIOD==="all"?"selected":""}>Весь час</option></select></div>
+    <div><label>Сеанс</label><select id="paidAcqSeance"><option value="__context__" ${PAID_ACQ_SEANCE_FILTER==="__context__"?"selected":""}>${esc(contextText)}</option><option value="__all__" ${PAID_ACQ_SEANCE_FILTER==="__all__"?"selected":""}>Усі сеанси</option>${paidAcqSeanceOptions()}</select></div>
+    <button class="btn" onclick="reloadPaidAcquisition()" ${PAID_ACQ_BUSY?"disabled":""}>${PAID_ACQ_BUSY?"Оновлення…":"Оновити"}</button>
+  </div>`;
+}
+
+function applyPaidAcqControls(){
+  PAID_ACQ_PERIOD=String(document.getElementById("paidAcqPeriod")?.value||"30d");
+  PAID_ACQ_SEANCE_FILTER=String(document.getElementById("paidAcqSeance")?.value||"__context__");
+}
+
+async function reloadPaidAcquisition(){
+  applyPaidAcqControls();PAID_ACQ_REPORT_KEY="";await loadPaidAcquisitionReport();
+}
+
+async function loadPaidAcquisitionReport(){
+  if(PAID_ACQ_BUSY) return;
+  PAID_ACQ_BUSY=true;PAID_ACQ_ERROR="";renderPaidAcquisitionSection();
+  try{
+    const {data,error}=await sb.rpc("cro_report_v1",{p_seance_id:paidAcqResolvedSeanceId(),p_from:paidAcqPeriodFromIso(),p_to:null});
+    if(error) throw error;
+    PAID_ACQ_REPORT=data||{};PAID_ACQ_REPORT_KEY=paidAcqParamsKey();
+  }catch(e){
+    console.error("Paid Acquisition report error",e);PAID_ACQ_REPORT=null;PAID_ACQ_ERROR=String(e?.message||e||"Не вдалося завантажити Paid Acquisition.");
+  }finally{PAID_ACQ_BUSY=false;renderPaidAcquisitionSection();}
+}
+
+function setPaidAcqTab(tab){PAID_ACQ_TAB=String(tab||"sources");renderPaidAcquisitionSection();}
+
+function paidAcqTableHtml(){
+  const rows=paidAcqRows();
+  const first=PAID_ACQ_TAB==="campaigns" ? "Кампанія" : "Джерело";
+  return `<div class="paid-tabs"><button class="paid-tab ${PAID_ACQ_TAB==="sources"?"active":""}" onclick="setPaidAcqTab('sources')">Джерела</button><button class="paid-tab ${PAID_ACQ_TAB==="campaigns"?"active":""}" onclick="setPaidAcqTab('campaigns')">Кампанії</button></div>
+  <div class="box"><div class="section-caption"><div><div class="eyebrow">PAID ACQUISITION • DIRECT ECONOMICS</div><h3>${first}</h3></div></div>
+  <div class="paid-table-wrap"><table><thead><tr><th>${first}</th>${PAID_ACQ_TAB==="campaigns"?"<th>Джерело</th>":"<th>Кампаній</th>"}<th>Витрати</th><th>Hall</th><th>Місце</th><th>LiqPay</th><th>CRO Paid</th><th>Покупці</th><th>Квитки</th><th>Виручка</th><th>CPA</th><th>CPT</th><th>ROAS</th></tr></thead><tbody>
+  ${rows.length?rows.map(r=>{
+    const roasClass=r.roas==null?"":r.roas>=2?"paid-good":r.roas>=1?"paid-warn":"paid-bad";
+    const budgetNote=r.spendSource==="campaign_total"?'<div class="micro">fallback total</div>':"";
+    return `<tr><td><b>${esc(PAID_ACQ_TAB==="campaigns"?r.name:r.source)}</b>${PAID_ACQ_TAB==="campaigns"?`<div class="micro campaign-id">${esc(r.campaign_id)}</div>`:""}</td>${PAID_ACQ_TAB==="campaigns"?`<td>${esc(r.source)}</td>`:`<td>${Number(r.campaigns||0)}</td>`}<td><b>${paidAcqMoney(r.spend)}</b>${budgetNote}</td><td>${r.hall}</td><td>${r.seat_selected}</td><td>${r.payment_started}</td><td><b>${r.cro_paid}</b>${r.hall?`<div class="micro">${Math.round((r.cro_paid/r.hall)*100)}% Hall→Paid</div>`:""}</td><td>${r.buyers}</td><td>${r.tickets}</td><td><b>${paidAcqMoney(r.revenue)}</b></td><td>${r.cpa==null?"—":paidAcqMoney(r.cpa)}</td><td>${r.cpt==null?"—":paidAcqMoney(r.cpt)}</td><td class="${roasClass}">${r.roas==null?"—":r.roas.toFixed(2)+"×"}</td></tr>`;
+  }).join(""):`<tr><td colspan="13" class="muted">У вибраному періоді ще немає кампаній з витратами або атрибутованим трафіком.</td></tr>`}</tbody></table></div></div>`;
+}
+
+function renderPaidAcquisitionSection(){
+  const panel=document.getElementById("activeSectionPanel");
+  const wanted=paidAcqParamsKey();
+  if(!PAID_ACQ_BUSY && PAID_ACQ_REPORT_KEY!==wanted && !PAID_ACQ_ERROR) setTimeout(()=>loadPaidAcquisitionReport(),0);
+  const t=paidAcqTotals();
+  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">PAID ACQUISITION V1</div><h2>💰 Куди варто платити за рекламу</h2><div class="muted">Не кліки заради кліків. VA зводить <b>витрати → campaign_id → CRO → фактичний Paid → покупців / квитки / виручку</b> і рахує CPA, CPT та прямий ROAS.</div></div></div>
+  <div class="paid-rule"><b>Правило чистої економіки:</b> один paid campaign_id = один платний канал. Якщо Facebook Ads і Telegram Ads мають окремі бюджети — це дві окремі кампанії. Джерело тут береться з поля «Канал» кампанії; факт продажу доводиться campaign_id.</div>
+  ${paidAcqControlsHtml()}
+  ${PAID_ACQ_ERROR?`<div class="notice bad"><b>Paid Acquisition недоступний.</b> ${esc(PAID_ACQ_ERROR)}<div class="micro" style="margin-top:8px">Модуль використовує вже встановлений <b>cro_report_v1</b>; нового SQL для Paid Acquisition V1 немає.</div></div>`:""}
+  ${PAID_ACQ_BUSY?'<div class="notice">Зводимо витрати, CRO та Paid…</div>':""}
+  ${PAID_ACQ_REPORT?`<div class="paid-kpis"><div class="paid-kpi"><span>Витрати</span><b>${paidAcqMoney(t.spend)}</b><div class="micro">лише кампанії з бюджетом</div></div><div class="paid-kpi"><span>Покупці</span><b>${t.buyers}</b><div class="micro">унікальні у paid кампаніях</div></div><div class="paid-kpi"><span>Квитки</span><b>${t.tickets}</b><div class="micro">пряма атрибуція</div></div><div class="paid-kpi"><span>Пряма виручка</span><b>${paidAcqMoney(t.revenue)}</b><div class="micro">orders.status = paid</div></div><div class="paid-kpi"><span>CPA</span><b>${t.cpa==null?"—":paidAcqMoney(t.cpa)}</b><div class="micro">витрати / покупці</div></div><div class="paid-kpi"><span>ROAS</span><b>${t.roas==null?"—":t.roas.toFixed(2)+"×"}</b><div class="micro">виручка / витрати</div></div></div>
+  <div class="paid-insight"><b>Що каже VA:</b> ${esc(paidAcqInsight())}</div>
+  ${paidAcqTableHtml()}
+  <div class="micro" style="margin-top:10px">Бюджет береться з записів Журналу, локально прив'язаних до campaign_id. Старі кампанії без journalIds можуть показувати fallback total. CRO Paid — оплачений шлях session_id + seance_id; комерційна виручка, покупці та квитки беруться з orders/tickets. Нульовий бюджет не створює штучний ROAS.</div>`:""}`;
 }
 
 // ===== VA Marketing CRO Dashboard V1 =====
