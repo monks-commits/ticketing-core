@@ -24,7 +24,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.0.0";
+  const VERSION = "1.1.0";
 
   const DEFAULT_CONFIG = Object.freeze({
     supabaseUrl: "https://fhusjlkneckbvnrdhbil.supabase.co",
@@ -35,9 +35,11 @@
   const SESSION_KEY = "va_cro_session_id_v1";
   const SOURCE_KEY = "va_cro_source_v1";
   const SOURCE_TOUCH_KEY = "va_cro_source_touch_sent_v1";
+  const EXPERIMENT_KEY = "va_ab_experiment_v1";
 
   const ALLOWED_EVENTS = new Set([
     "source_touch",
+    "experiment_exposure",
     "hall_open",
     "seat_selected",
     "order_open",
@@ -129,14 +131,59 @@
       const u = new URL(raw);
       const host = clean(u.hostname, 255);
       const currentHost = clean(location.hostname || "", 255);
-
-      // Internal navigation inside the same VA/WL site is not an acquisition source.
       if (!host || (currentHost && host === currentHost)) return "";
-
       return host;
     } catch {
       return "";
     }
+  }
+
+
+  function experimentContext() {
+    const qs = new URLSearchParams(location.search);
+
+    const urlExperimentId = clean(
+      qs.get("experiment_id") || qs.get("exp_id") || "",
+      160
+    );
+
+    const urlVariant = clean(
+      qs.get("ab_variant") || qs.get("variant") || "",
+      8
+    ).toUpperCase();
+
+    const saved = safeJsonParse(
+      getStorage(sessionStorage, EXPERIMENT_KEY)
+    ) || {};
+
+    const experimentId =
+      urlExperimentId ||
+      clean(saved.experiment_id || "", 160);
+
+    const variant =
+      (urlVariant === "A" || urlVariant === "B")
+        ? urlVariant
+        : clean(saved.variant || "", 8).toUpperCase();
+
+    if (experimentId && (variant === "A" || variant === "B")) {
+      const next = {
+        experiment_id: experimentId,
+        variant,
+        seance_id: clean(
+          qs.get("seance") ||
+          qs.get("seance_id") ||
+          saved.seance_id ||
+          "",
+          200
+        ) || null,
+        assigned_at: saved.assigned_at || new Date().toISOString()
+      };
+
+      setStorage(sessionStorage, EXPERIMENT_KEY, JSON.stringify(next));
+      return next;
+    }
+
+    return {};
   }
 
   function deviceType() {
@@ -256,8 +303,9 @@
           method: "POST",
           keepalive: true,
           headers: {
+            // Supabase publishable keys authenticate the anonymous API role
+            // through the apikey header. They are NOT bearer JWTs.
             apikey: cfg.anonKey,
-            Authorization: `Bearer ${cfg.anonKey}`,
             "Content-Type": "application/json",
             Prefer: "return=minimal"
           },
@@ -266,7 +314,9 @@
       );
 
       if (!response.ok) {
-        console.warn("VA CRO insert failed", response.status);
+        let details = "";
+        try { details = await response.text(); } catch (_) {}
+        console.warn("VA CRO insert failed", response.status, details);
         return false;
       }
 
@@ -341,6 +391,21 @@
           : null,
 
       device_type: deviceType(),
+
+      experiment_id: clean(
+        data.experiment_id ||
+        experimentContext().experiment_id ||
+        "",
+        160
+      ) || null,
+
+      experiment_variant: clean(
+        data.experiment_variant ||
+        data.variant ||
+        experimentContext().variant ||
+        "",
+        8
+      ).toUpperCase() || null,
 
       metadata: {
         tracker_version: VERSION,
