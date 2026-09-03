@@ -417,6 +417,7 @@
 </head>
 <body>
   <script src="../../shared/gateway-client.js"></script>
+  <script src="../../shared/va-cro-tracker.js"></script>
   <div class="page">
 
     <section class="hero">
@@ -557,6 +558,34 @@ if (refCode) {
 
     function calcTotal(){
       return seats.reduce((sum, key) => sum + Number(prices[key] || 0), 0);
+    }
+
+    // ===== VA CRO V1 =====
+    // "order_open" means the buyer really reached the confirmation page
+    // with at least one currently selected seat.
+    function croTrackOrderOpen(){
+      if (!window.VACRO || !seance || !seats.length) return;
+
+      const onceKey =
+        `va_cro_order_open_v1:${window.VACRO.identity().session_id}:${seance}`;
+
+      try {
+        if (sessionStorage.getItem(onceKey) === "1") return;
+        sessionStorage.setItem(onceKey, "1");
+      } catch (_) {}
+
+      window.VACRO.track("order_open", {
+        page_code: "order",
+        seance_id: seance,
+        seat_count: seats.length,
+        amount: calcTotal(),
+        metadata: {
+          mode: GATEWAY_MODE ? "gateway" : "native",
+          venue: GATEWAY_MODE
+            ? GATEWAY_VENUE_CODE
+            : (seanceMeta?.venue_id || null)
+        }
+      }).catch(() => {});
     }
 
     function rebuildUrl(){
@@ -815,6 +844,7 @@ if (refCode) {
     (async function boot(){
       await loadSeanceMeta();
       render();
+      croTrackOrderOpen();
     })();
   </script>
 </body>
