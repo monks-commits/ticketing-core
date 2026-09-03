@@ -24,7 +24,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.0.1";
+  const VERSION = "1.0.0";
 
   const DEFAULT_CONFIG = Object.freeze({
     supabaseUrl: "https://fhusjlkneckbvnrdhbil.supabase.co",
@@ -127,7 +127,13 @@
 
     try {
       const u = new URL(raw);
-      return clean(u.hostname, 255);
+      const host = clean(u.hostname, 255);
+      const currentHost = clean(location.hostname || "", 255);
+
+      // Internal navigation inside the same VA/WL site is not an acquisition source.
+      if (!host || (currentHost && host === currentHost)) return "";
+
+      return host;
     } catch {
       return "";
     }
@@ -250,9 +256,8 @@
           method: "POST",
           keepalive: true,
           headers: {
-            // Supabase publishable keys authenticate the anonymous API role
-            // through the apikey header. They are NOT bearer JWTs.
             apikey: cfg.anonKey,
+            Authorization: `Bearer ${cfg.anonKey}`,
             "Content-Type": "application/json",
             Prefer: "return=minimal"
           },
@@ -261,9 +266,7 @@
       );
 
       if (!response.ok) {
-        let details = "";
-        try { details = await response.text(); } catch (_) {}
-        console.warn("VA CRO insert failed", response.status, details);
+        console.warn("VA CRO insert failed", response.status);
         return false;
       }
 
