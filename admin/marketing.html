@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.15.1 — Psychology + Offer + CRO V1</title>
+  <title>VA Marketing V2.15.2 — Psychology + Offer + CRO V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -276,7 +276,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.15.1</h1>
+        <h1>Marketing Control Center V2.15.2</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.15 додає CRO V1: анонімний first-party шлях від входу в зал до фактично оплаченої покупки, з втратами між етапами та розрізами по джерелах, кампаніях, рефералах, пристроях і сеансах.
@@ -4175,7 +4175,12 @@ function renderCROSection(){
         <div class="cro-mini"><span>Source → Paid</span><b>${croPct(paid,source)}%</b></div>
       </div>
 
-      ${loss ? `<div class="cro-insight"><b>Найбільша втрата:</b> ${esc(loss.from)} → ${esc(loss.to)}: мінус <b>${loss.lost}</b> шлях(и) • втрата ${loss.lossPct}% • перехід ${loss.conversion}%.</div>` : `<div class="notice good"><b>Поки немає достатньо переходів для визначення точки найбільшої втрати.</b></div>`}
+      ${loss
+        ? `<div class="cro-insight"><b>Найбільша втрата:</b> ${esc(loss.from)} → ${esc(loss.to)}: мінус <b>${loss.lost}</b> шлях(и) • втрата ${loss.lossPct}% • перехід ${loss.conversion}%.</div>`
+        : Number(CRO_REPORT.journeys||0) > 0
+          ? `<div class="notice good"><b>Втрат на поточній вибірці не зафіксовано.</b> Усі зафіксовані шляхи пройшли до Paid.</div>`
+          : `<div class="notice"><b>Даних поки недостатньо для розрахунку втрат.</b></div>`
+      }
 
       ${croFunnelHtml()}
 
