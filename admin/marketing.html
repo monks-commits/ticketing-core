@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.15.2 — Psychology + Offer + CRO V1</title>
+  <title>VA Marketing V2.16 — Psychology + Offer + CRO + A/B V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -266,6 +266,21 @@ textarea::placeholder{
   @media(max-width:900px){.cro-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:560px){.cro-meta-grid{grid-template-columns:1fr}.cro-controls select{min-width:100%}}
 
+
+  .ab-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ab-form-grid .full{grid-column:1/-1}.ab-field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .ab-field input,.ab-field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#071a31;color:#fff}
+  .ab-field textarea{min-height:86px;resize:vertical}.ab-variant{border:1px solid #355a84;border-radius:14px;padding:14px;background:#0a1d35}
+  .ab-variant .tag{display:inline-flex;border-radius:999px;padding:5px 9px;font-weight:800;background:#fff;color:#0f172a;margin-bottom:10px}
+  .ab-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .ab-result-card{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff;color:#111827}.ab-result-card h3{margin:0 0 12px;color:#111827}
+  .ab-result-big{font-size:34px;font-weight:900;line-height:1}.ab-result-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+  .ab-result-meta div{border:1px solid #e2e8f0;border-radius:10px;padding:9px}.ab-result-meta span{display:block;font-size:11px;color:#64748b}.ab-result-meta b{font-size:18px}
+  .ab-link{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all;background:#061529;border:1px solid var(--line);padding:12px;border-radius:12px;font-size:12px}
+  .ab-verdict{margin-top:14px;padding:14px 16px;border-radius:14px;border:1px solid #315f91;background:#0a2b50}
+  .ab-list-item{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px;background:#0b1f39}
+  @media(max-width:900px){.ab-form-grid,.ab-result-grid{grid-template-columns:1fr}.ab-form-grid .full{grid-column:auto}}
+
   </style>
 </head>
 
@@ -276,7 +291,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.15.2</h1>
+        <h1>Marketing Control Center V2.16</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.15 додає CRO V1: анонімний first-party шлях від входу в зал до фактично оплаченої покупки, з втратами між етапами та розрізами по джерелах, кампаніях, рефералах, пристроях і сеансах.
@@ -287,6 +302,7 @@ textarea::placeholder{
         <span class="badge">Без дублювання КБ</span>
         <span class="badge">Без зовнішнього AI API</span>
         <span class="badge">CRO V1</span>
+        <span class="badge">A/B V1</span>
       </div>
     </div>
   </div>
@@ -363,6 +379,13 @@ let CRO_REPORT_ERROR = "";
 let CRO_PERIOD = "30d";
 let CRO_SEANCE_FILTER = "__context__";
 let CRO_BREAKDOWN_TAB = "sources";
+
+const AB_STORAGE_KEY = "va_marketing_ab_experiments_v1";
+let AB_EXPERIMENTS = [];
+let ACTIVE_AB_ID = "";
+let AB_REPORT = null;
+let AB_REPORT_BUSY = false;
+let AB_REPORT_ERROR = "";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
@@ -1193,7 +1216,8 @@ const TOOLS = [
   ["📒 Журнал маркетингу", "Що робили, коли робили і який був результат", "Пам'ять"],
   ["📊 Ефективність", "Фактична аналітика по жанрах, каналах і сеансах", "Результат"],
   ["🧭 Паспорт сеансу", "Кому, що і яким тоном говоримо про конкретну подію", "Контекст"],
-  ["🧪 CRO / Воронка", "Де саме губляться покупці: від входу до фактичної оплати", "Конверсія"]
+  ["🧪 CRO / Воронка", "Де саме губляться покупці: від входу до фактичної оплати", "Конверсія"],
+  ["⚗️ A/B експерименти", "Рандомно порівнюємо два варіанти і міряємо реальну оплату", "Експеримент"]
 ];
 
 function esc(v){
@@ -1305,6 +1329,7 @@ function openMarketingSection(index){
   if(index === 6) return renderEfficiencySection();
   if(index === 7) return renderMarketingPassportSection();
   if(index === 8) return renderCROSection();
+  if(index === 9) return renderABExperimentsSection();
 }
 
 function buildClients(orders, tickets, seances){
@@ -3850,6 +3875,144 @@ function renderEfficiencySection(){
 }
 
 
+
+// ===== VA Marketing A/B Experiments V1 =====
+function loadABExperiments(){
+  try{
+    const raw=localStorage.getItem(AB_STORAGE_KEY);
+    const arr=raw?JSON.parse(raw):[];
+    AB_EXPERIMENTS=Array.isArray(arr)?arr:[];
+  }catch(e){AB_EXPERIMENTS=[]}
+}
+function saveABExperiments(){localStorage.setItem(AB_STORAGE_KEY,JSON.stringify(AB_EXPERIMENTS))}
+function newABId(){
+  const tail=(crypto?.randomUUID?crypto.randomUUID():String(Date.now())).replace(/-/g,"").slice(0,6).toUpperCase();
+  return `VAX-${Date.now().toString(36).toUpperCase()}-${tail}`;
+}
+function currentABSeanceId(){return CURRENT_SEANCE_IDS.length===1?String(CURRENT_SEANCE_IDS[0]):""}
+function currentABSeance(){const sid=currentABSeanceId();return SEANCES.find(s=>String(s.id)===sid)||null}
+function activeAB(){return AB_EXPERIMENTS.find(x=>String(x.id)===String(ACTIVE_AB_ID))||null}
+
+function buildABPublicLink(exp){
+  const entry=new URL("../site-project/pages/experiment-entry.html",location.href);
+  const hall=new URL("../site-project/pages/hall.html",location.href);
+  if(exp.seance_id)hall.searchParams.set("seance",exp.seance_id);
+  if(exp.show_slug)hall.searchParams.set("show",exp.show_slug);
+  if(exp.title)hall.searchParams.set("title",exp.title);
+
+  entry.searchParams.set("experiment_id",exp.id);
+  if(exp.seance_id)entry.searchParams.set("seance_id",exp.seance_id);
+  if(exp.title)entry.searchParams.set("title",exp.title);
+  entry.searchParams.set("split_a","50");
+  entry.searchParams.set("a_head",exp.a_head||"");
+  entry.searchParams.set("a_text",exp.a_text||"");
+  entry.searchParams.set("a_cta",exp.a_cta||"Обрати місця");
+  entry.searchParams.set("b_head",exp.b_head||"");
+  entry.searchParams.set("b_text",exp.b_text||"");
+  entry.searchParams.set("b_cta",exp.b_cta||"Обрати місця");
+  entry.searchParams.set("target",hall.toString());
+  entry.searchParams.set("utm_source","va");
+  entry.searchParams.set("utm_medium","ab_test");
+  entry.searchParams.set("utm_campaign",exp.id);
+  if(exp.campaign_id)entry.searchParams.set("campaign_id",exp.campaign_id);
+  return entry.toString();
+}
+
+function createABExperiment(){
+  const s=currentABSeance(),sid=currentABSeanceId();
+  if(!sid||!s){alert("Спочатку оберіть один конкретний сеанс через «Фокус».");return}
+
+  const name=String(document.getElementById("abName")?.value||"").trim();
+  const hypothesis=String(document.getElementById("abHypothesis")?.value||"").trim();
+  if(!name||!hypothesis){alert("Заповніть назву експерименту і гіпотезу.");return}
+
+  const campaign=getActiveCampaign();
+  const campaignId=campaign&&String(campaign.seance_id||"")===sid?String(campaign.id||""):"";
+
+  const exp={
+    id:newABId(),name,hypothesis,seance_id:sid,title:s.show||s.title||sid,show_slug:s.show_slug||"",
+    metric:"paid",split_a:50,status:"draft",campaign_id:campaignId||null,
+    a_head:String(document.getElementById("abAHead")?.value||"").trim(),
+    a_text:String(document.getElementById("abAText")?.value||"").trim(),
+    a_cta:String(document.getElementById("abACTA")?.value||"Обрати місця").trim(),
+    b_head:String(document.getElementById("abBHead")?.value||"").trim(),
+    b_text:String(document.getElementById("abBText")?.value||"").trim(),
+    b_cta:String(document.getElementById("abBCTA")?.value||"Обрати місця").trim(),
+    created_at:new Date().toISOString()
+  };
+  if(!exp.a_head||!exp.b_head){alert("Для обох варіантів потрібен заголовок.");return}
+  AB_EXPERIMENTS.unshift(exp);saveABExperiments();ACTIVE_AB_ID=exp.id;AB_REPORT=null;AB_REPORT_ERROR="";renderABExperimentsSection();
+}
+function updateABStatus(id,status){
+  const exp=AB_EXPERIMENTS.find(x=>String(x.id)===String(id));if(!exp)return;
+  exp.status=status;
+  if(status==="completed")exp.completed_at=new Date().toISOString();
+  if(status==="running"&&!exp.started_at)exp.started_at=new Date().toISOString();
+  saveABExperiments();ACTIVE_AB_ID=exp.id;renderABExperimentsSection();
+}
+function deleteABExperiment(id){
+  if(!confirm("Видалити локальну картку експерименту? CRO-події у базі не видаляються."))return;
+  AB_EXPERIMENTS=AB_EXPERIMENTS.filter(x=>String(x.id)!==String(id));saveABExperiments();
+  if(ACTIVE_AB_ID===id)ACTIVE_AB_ID="";AB_REPORT=null;renderABExperimentsSection();
+}
+async function copyABLink(id){
+  const exp=AB_EXPERIMENTS.find(x=>String(x.id)===String(id));if(!exp)return;
+  const url=buildABPublicLink(exp);
+  try{await navigator.clipboard.writeText(url);alert("A/B посилання скопійовано.")}catch(e){window.prompt("Скопіюйте посилання:",url)}
+}
+function abVariantRow(letter){
+  return (AB_REPORT?.variants||[]).find(x=>String(x.variant)===letter)||{variant:letter,exposed:0,hall_open:0,seat_selected:0,order_open:0,checkout_open:0,payment_started:0,paid:0}
+}
+function abPct(n,d){n=Number(n||0);d=Number(d||0);return d>0?(n/d)*100:0}
+function abErf(x){const sign=x<0?-1:1;x=Math.abs(x);const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911,t=1/(1+p*x),y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);return sign*y}
+function abTwoProportionP(aPaid,aN,bPaid,bN){
+  aPaid=Number(aPaid||0);aN=Number(aN||0);bPaid=Number(bPaid||0);bN=Number(bN||0);
+  if(aN<=0||bN<=0)return null;
+  const p1=aPaid/aN,p2=bPaid/bN,pooled=(aPaid+bPaid)/(aN+bN),se=Math.sqrt(pooled*(1-pooled)*(1/aN+1/bN));
+  if(!se)return 1;
+  const z=Math.abs((p1-p2)/se),cdf=.5*(1+abErf(z/Math.sqrt(2)));
+  return Math.max(0,Math.min(1,2*(1-cdf)));
+}
+function abVerdict(){
+  const a=abVariantRow("A"),b=abVariantRow("B"),aN=Number(a.exposed||0),bN=Number(b.exposed||0),aPaid=Number(a.paid||0),bPaid=Number(b.paid||0);
+  const aConv=abPct(aPaid,aN),bConv=abPct(bPaid,bN),delta=bConv-aConv,p=abTwoProportionP(aPaid,aN,bPaid,bN);
+  if(aN<30||bN<30)return {text:`Поки рано оголошувати переможця. A: ${aN} показів, B: ${bN} показів. Для першого статистичного сигналу V1 чекаємо щонайменше 30 показів кожного варіанта.`};
+  if(p!==null&&p<.05&&Math.abs(delta)>0){const winner=delta>0?"B":"A";return {text:`Є статистичний сигнал на користь варіанта ${winner}: різниця ${Math.abs(delta).toFixed(1)} п.п., p≈${p.toFixed(3)}. Це сигнал для рішення, а не абсолютна гарантія.`}}
+  return {text:`Стійкої різниці поки не видно. A: ${aConv.toFixed(1)}%, B: ${bConv.toFixed(1)}%${p!==null?`, p≈${p.toFixed(3)}`:""}. Продовжуйте експеримент без зміни умов.`}
+}
+async function loadABReport(id){
+  const exp=AB_EXPERIMENTS.find(x=>String(x.id)===String(id));if(!exp||AB_REPORT_BUSY)return;
+  ACTIVE_AB_ID=exp.id;AB_REPORT_BUSY=true;AB_REPORT_ERROR="";renderABExperimentsSection();
+  try{
+    const {data,error}=await sb.rpc("ab_experiment_report_v1",{p_experiment_id:exp.id,p_from:null,p_to:null});
+    if(error)throw error;AB_REPORT=data||{};
+  }catch(e){console.error("A/B report error",e);AB_REPORT=null;AB_REPORT_ERROR=String(e?.message||e||"Не вдалося завантажити A/B звіт.")}
+  finally{AB_REPORT_BUSY=false;renderABExperimentsSection()}
+}
+function abVariantResultCard(letter){
+  const r=abVariantRow(letter),exposure=Number(r.exposed||0),paid=Number(r.paid||0),conv=abPct(paid,exposure);
+  return `<div class="ab-result-card"><h3>Варіант ${letter}</h3><div class="ab-result-big">${conv.toFixed(1)}%</div><div class="micro" style="color:#64748b;margin-top:4px">Exposure → Paid</div>
+  <div class="ab-result-meta"><div><span>Покази</span><b>${exposure}</b></div><div><span>Зал</span><b>${Number(r.hall_open||0)}</b></div><div><span>Місце</span><b>${Number(r.seat_selected||0)}</b></div><div><span>Checkout</span><b>${Number(r.checkout_open||0)}</b></div><div><span>LiqPay</span><b>${Number(r.payment_started||0)}</b></div><div><span>Paid</span><b>${paid}</b></div></div></div>`
+}
+function renderABActive(exp){
+  if(!exp)return "";
+  const link=buildABPublicLink(exp),verdict=AB_REPORT?abVerdict():null;
+  return `<div class="box" style="margin-top:14px"><div class="section-caption"><div><div class="eyebrow">A/B EXPERIMENT • ${esc(exp.status||"draft")}</div><h2>${esc(exp.name)}</h2><div class="muted"><b>Гіпотеза:</b> ${esc(exp.hypothesis)}</div></div></div>
+  <div class="ab-link">${esc(link)}</div><div class="row" style="margin-top:10px"><button class="btn" onclick="copyABLink('${escAttr(exp.id)}')">Копіювати A/B посилання</button><button class="btn secondary" onclick="updateABStatus('${escAttr(exp.id)}','running')">Запустити</button><button class="btn secondary" onclick="loadABReport('${escAttr(exp.id)}')">${AB_REPORT_BUSY?"Оновлення…":"Оновити результат"}</button><button class="btn secondary" onclick="updateABStatus('${escAttr(exp.id)}','completed')">Завершити</button></div>
+  ${AB_REPORT_ERROR?`<div class="notice bad" style="margin-top:12px">${esc(AB_REPORT_ERROR)}</div>`:""}
+  ${AB_REPORT?`<div class="ab-result-grid">${abVariantResultCard("A")}${abVariantResultCard("B")}</div><div class="ab-verdict"><b>Висновок V1:</b> ${esc(verdict?.text||"")}</div><div class="micro" style="margin-top:8px">Рандомізація 50/50. Основна метрика — фактичний Paid. Один браузер стабільно лишається у своєму варіанті для цього experiment_id.</div>`:`<div class="notice" style="margin-top:12px">Після запуску відкрийте A/B посилання на різних браузерах/пристроях або дайте його реальному трафіку, потім натисніть «Оновити результат».</div>`}</div>`
+}
+function renderABExperimentsSection(){
+  const panel=document.getElementById("activeSectionPanel"),s=currentABSeance();
+  panel.innerHTML=`<div class="section-caption"><div><div class="eyebrow">A/B V1 • RANDOMIZED EXPERIMENTS</div><h2>⚗️ A/B експерименти</h2><div class="muted">Один експеримент = одна гіпотеза і одна змінна. VA випадково ділить трафік 50/50, фіксує Exposure і порівнює не кліки, а фактичний Paid.</div></div></div>
+  <div class="notice"><b>Поточний сеанс:</b> ${s?esc(`${s.show||s.id} • ${s.date||""} ${s.time||""}`):"не вибрано"}. Для чистого тесту не міняйте одночасно ціну, текст, креатив і аудиторію — змінюйте одну річ.</div>
+  <div class="box" style="margin-top:14px"><h3>Новий експеримент</h3><div class="ab-form-grid"><div class="ab-field"><label>Назва</label><input id="abName" placeholder="Напр.: Логістика vs емоція"></div><div class="ab-field"><label>Primary metric</label><input value="Paid" disabled></div><div class="ab-field full"><label>Гіпотеза</label><textarea id="abHypothesis" placeholder="Якщо замість емоційної обіцянки показати зняття головного бар'єра, Paid-конверсія зросте."></textarea></div>
+  <div class="ab-variant"><div class="tag">A</div><div class="ab-field"><label>Заголовок</label><input id="abAHead" placeholder="Варіант A"></div><div class="ab-field" style="margin-top:8px"><label>Текст</label><textarea id="abAText"></textarea></div><div class="ab-field" style="margin-top:8px"><label>CTA</label><input id="abACTA" value="Обрати місця"></div></div>
+  <div class="ab-variant"><div class="tag">B</div><div class="ab-field"><label>Заголовок</label><input id="abBHead" placeholder="Варіант B"></div><div class="ab-field" style="margin-top:8px"><label>Текст</label><textarea id="abBText"></textarea></div><div class="ab-field" style="margin-top:8px"><label>CTA</label><input id="abBCTA" value="Обрати місця"></div></div></div><div class="row" style="margin-top:12px"><button class="btn" onclick="createABExperiment()">Створити A/B</button></div></div>
+  ${renderABActive(activeAB())}
+  <div class="box" style="margin-top:14px"><h3>Журнал експериментів</h3>${AB_EXPERIMENTS.length?AB_EXPERIMENTS.map(exp=>`<div class="ab-list-item"><div class="row" style="justify-content:space-between"><div><b>${esc(exp.name)}</b><div class="micro">${esc(exp.id)} • ${esc(exp.status||"draft")} • ${esc(croSeanceLabel(exp.seance_id))}</div></div><div class="row"><button class="btn secondary" onclick="ACTIVE_AB_ID='${escAttr(exp.id)}';AB_REPORT=null;AB_REPORT_ERROR='';renderABExperimentsSection()">Відкрити</button><button class="btn secondary" onclick="loadABReport('${escAttr(exp.id)}')">Результат</button><button class="btn secondary" onclick="deleteABExperiment('${escAttr(exp.id)}')">Видалити</button></div></div></div>`).join(""):`<div class="muted">Експериментів ще немає.</div>`}</div>`
+}
+
 // ===== VA Marketing CRO Dashboard V1 =====
 
 function croPeriodFromIso(){
@@ -4195,6 +4358,7 @@ function renderCROSection(){
 }
 
 async function boot(){
+  loadABExperiments();
   buildTools();
   initMarketingSections();
   loadLocalMarketingContexts();
