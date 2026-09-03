@@ -40,14 +40,26 @@ h1{font-size:38px;line-height:1.08;margin:0 0 18px}.copy{font-size:18px;line-hei
   function setLocal(k,v){try{localStorage.setItem(k,v)}catch(_){}}
   function setSession(k,v){try{sessionStorage.setItem(k,v)}catch(_){}}
 
+  const qaMode = qs.get("qa") === "1";
+  const forcedVariant = String(qs.get("ab_variant") || "").toUpperCase();
+
   function chooseVariant(){
     if(!experimentId) return "";
+
+    // QA only: Marketing can open deterministic A/B previews without touching
+    // the production random assignment. Production public links never set qa=1.
+    if(qaMode && (forcedVariant==="A" || forcedVariant==="B")){
+      return forcedVariant;
+    }
+
     const key=ASSIGN_PREFIX+experimentId;
     const existing=String(getLocal(key)||"").toUpperCase();
     if(existing==="A"||existing==="B") return existing;
+
     const rnd=crypto?.getRandomValues
       ? crypto.getRandomValues(new Uint32Array(1))[0]/4294967296
       : Math.random();
+
     const variant=rnd<(splitA/100)?"A":"B";
     setLocal(key,variant);
     return variant;
@@ -67,7 +79,8 @@ h1{font-size:38px;line-height:1.08;margin:0 0 18px}.copy{font-size:18px;line-hei
     experiment_id:experimentId,
     variant,
     seance_id:seanceId||null,
-    assigned_at:new Date().toISOString()
+    assigned_at:new Date().toISOString(),
+    qa_mode:qaMode
   }));
 
   const head=String(qs.get(variant==="A"?"a_head":"b_head")||"Подія");
@@ -101,7 +114,10 @@ if(window.VACRO){
   window.VACRO.track("experiment_exposure",{
     page_code:"experiment-entry",
     seance_id:new URLSearchParams(location.search).get("seance_id")||null,
-    metadata:{randomized:true}
+    metadata:{
+      randomized:!new URLSearchParams(location.search).get("qa"),
+      qa_mode:new URLSearchParams(location.search).get("qa")==="1"
+    }
   }).catch(()=>{});
 }
 </script>
