@@ -24,7 +24,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.0.0";
+  const VERSION = "1.0.1";
 
   const DEFAULT_CONFIG = Object.freeze({
     supabaseUrl: "https://fhusjlkneckbvnrdhbil.supabase.co",
@@ -250,8 +250,9 @@
           method: "POST",
           keepalive: true,
           headers: {
+            // Supabase publishable keys authenticate the anonymous API role
+            // through the apikey header. They are NOT bearer JWTs.
             apikey: cfg.anonKey,
-            Authorization: `Bearer ${cfg.anonKey}`,
             "Content-Type": "application/json",
             Prefer: "return=minimal"
           },
@@ -260,7 +261,9 @@
       );
 
       if (!response.ok) {
-        console.warn("VA CRO insert failed", response.status);
+        let details = "";
+        try { details = await response.text(); } catch (_) {}
+        console.warn("VA CRO insert failed", response.status, details);
         return false;
       }
 
