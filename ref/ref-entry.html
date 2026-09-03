@@ -1,0 +1,271 @@
+-- ============================================================================
+-- VA Referral V1
+-- Additive migration over the existing Referral Pilot.
+-- Keeps the current LiqPay callback attribution intact.
+-- Adds: journal view, reversal accounting, payable/paid state and payout register.
+-- ============================================================================
+
+begin;
+
+create extension if not exists pgcrypto;
+
+-- ---------------------------------------------------------------------------
+-- 1. Partner metadata: additive only.
+-- ---------------------------------------------------------------------------
+alter table public.referrals
+  add column if not exists referral_name text,
+  add column if not exists site_url text,
+  add column if not exists active boolean not null default true,
+  add column if not exists notes text,
+  add column if not exists updated_at timestamptz not null default now();
+
+-- Existing pilot already uses commission_percent. Do not recreate or change it.
+create unique index if not exists referrals_ref_code_key on public.referrals(ref_code);
+
+-- ---------------------------------------------------------------------------
+-- 2. Sale settlement / reversal fields.
+-- Existing callback already inserts:
+-- order_id, seance_id, ref_code, total_amount, commission_percent,
+-- commission_amount, status='confirmed', created_at.
+-- ---------------------------------------------------------------------------
+alter table public.referral_sales
+  add column if not exists reversal_amount numeric(12,2) not null default 0,
+  add column if not exists reversed_at timestamptz,
+  add column if not exists reversed_reason text,
+  add column if not exists settlement_status text not null default 'unpaid',
+  add column if not exists paid_at timestamptz,
+  add column if not exists payout_id uuid,
+  add column if not exists updated_at timestamptz not null default now();
+
+create unique index if not exists referral_sales_order_id_uidx
+  on public.referral_sales(order_id);
+create index if not exists referral_sales_ref_created_idx
+  on public.referral_sales(ref_code, created_at desc);
+create index if not exists referral_sales_settlement_idx
+  on public.referral_sales(ref_code, settlement_status, created_at desc);
+
+-- ---------------------------------------------------------------------------
+-- 3. Payout register. One row = one actual money transfer to a partner.
+-- ---------------------------------------------------------------------------
+create table if not exists public.referral_payouts (
+  id uuid primary key default gen_random_uuid(),
+  ref_code text not null,
+  period_from date not null,
+  period_to date not null,
+  amount numeric(12,2) not null default 0,
+  status text not null default 'paid',
+  paid_at timestamptz not null default now(),
+  note text,
+  created_at timestamptz not null default now(),
+  constraint referral_payout_period_ok check (period_to >= period_from),
+  constraint referral_payout_amount_nonnegative check (amount >= 0)
+);
+create index if not exists referral_payouts_ref_paid_idx
+  on public.referral_payouts(ref_code, paid_at desc);
+
+-- ---------------------------------------------------------------------------
+-- 4. Detailed journal view. NO buyer name/email/phone is exposed here.
+-- ---------------------------------------------------------------------------
+create or replace view public.referral_sales_v1 as
+select
+  rs.id,
+  rs.order_id,
+  rs.seance_id,
+  rs.ref_code,
+  rs.total_amount,
+  rs.commission_percent,
+  rs.commission_amount,
+  rs.status,
+  rs.created_at,
+  rs.reversal_amount,
+  rs.reversed_at,
+  rs.reversed_reason,
+  rs.settlement_status,
+  rs.paid_at,
+  rs.payout_id,
+  s.show,
+  s.date as seance_date,
+  s.time as seance_time,
+  coalesce(tc.tickets_count,0)::integer as tickets_count
+from public.referral_sales rs
+left join public.seances s on s.id = rs.seance_id
+left join lateral (
+  select count(*)::integer as tickets_count
+  from public.tickets t
+  where t.order_id = rs.order_id
+) tc on true;
+
+-- ---------------------------------------------------------------------------
+-- 5. Aggregated V1 dashboard view.
+-- "accrued" is the historical commission initially earned.
+-- "reversed" subtracts full-refund commission.
+-- "paid" is what has already been settled.
+-- "payable" may become negative if a previously paid sale is later refunded;
+-- that negative balance should be offset against the next payout.
+-- ---------------------------------------------------------------------------
+create or replace view public.referral_dashboard_v1 as
+select
+  r.ref_code,
+  r.referral_name,
+  r.site_url,
+  r.commission_percent,
+  r.active,
+  count(rs.id) filter (where coalesce(rs.status,'confirmed') <> 'reversed')::integer as sales_count,
+  coalesce(sum(rs.total_amount),0)::numeric(12,2) as gross_sales,
+  coalesce(sum(rs.commission_amount),0)::numeric(12,2) as commission_accrued,
+  coalesce(sum(rs.reversal_amount),0)::numeric(12,2) as commission_reversed,
+  coalesce(sum(rs.commission_amount) filter (where rs.settlement_status='paid'),0)::numeric(12,2) as commission_paid,
+  (
+    coalesce(sum(rs.commission_amount),0)
+    - coalesce(sum(rs.reversal_amount),0)
+    - coalesce(sum(rs.commission_amount) filter (where rs.settlement_status='paid'),0)
+  )::numeric(12,2) as commission_payable,
+  min(rs.created_at) as first_sale_at,
+  max(rs.created_at) as last_sale_at
+from public.referrals r
+left join public.referral_sales rs on rs.ref_code = r.ref_code
+group by r.ref_code,r.referral_name,r.site_url,r.commission_percent,r.active;
+
+-- ---------------------------------------------------------------------------
+-- 6. Full refund / reversal helper.
+-- V1 deliberately treats a reversal as a FULL referral reversal.
+-- Partial refunds are a V1.1 task and must not be guessed here.
+-- ---------------------------------------------------------------------------
+create or replace function public.referral_reverse_sale(
+  p_order_id text,
+  p_reason text default 'order_refunded'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+declare
+  v_row public.referral_sales%rowtype;
+begin
+  select * into v_row
+  from public.referral_sales
+  where order_id = p_order_id
+  for update;
+
+  if not found then
+    return jsonb_build_object('ok',false,'result','not_found','order_id',p_order_id);
+  end if;
+
+  if v_row.status = 'reversed' then
+    return jsonb_build_object('ok',true,'result','already_reversed','order_id',p_order_id);
+  end if;
+
+  update public.referral_sales
+  set status='reversed',
+      reversal_amount=coalesce(commission_amount,0),
+      reversed_at=now(),
+      reversed_reason=coalesce(nullif(trim(p_reason),''),'order_refunded'),
+      updated_at=now()
+  where order_id=p_order_id;
+
+  return jsonb_build_object(
+    'ok',true,
+    'result','reversed',
+    'order_id',p_order_id,
+    'commission_reversed',coalesce(v_row.commission_amount,0),
+    'was_paid',(v_row.settlement_status='paid')
+  );
+end;
+$$;
+
+-- Do not expose money-changing helper to browser anon.
+revoke all on function public.referral_reverse_sale(text,text) from public, anon;
+grant execute on function public.referral_reverse_sale(text,text) to authenticated, service_role;
+
+-- ---------------------------------------------------------------------------
+-- 7. Automatic referral reversal when the canonical order is fully refunded.
+-- This does nothing for ordinary pending/cancelled orders and therefore does not
+-- interfere with the current pre-payment lifecycle.
+-- ---------------------------------------------------------------------------
+create or replace function public.referral_sync_order_refund()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+begin
+  if lower(coalesce(new.status::text,'')) in ('refunded','refund','reversed','returned')
+     and lower(coalesce(old.status::text,'')) not in ('refunded','refund','reversed','returned') then
+    perform public.referral_reverse_sale(new.order_id, 'order_status:' || new.status::text);
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_referral_sync_order_refund on public.orders;
+create trigger trg_referral_sync_order_refund
+after update of status on public.orders
+for each row execute function public.referral_sync_order_refund();
+
+-- ---------------------------------------------------------------------------
+-- 8. Register an actual payout for a period. This is intended for staff / SQL,
+-- not for the public partner cabinet.
+-- ---------------------------------------------------------------------------
+create or replace function public.referral_register_payout(
+  p_ref_code text,
+  p_period_from date,
+  p_period_to date,
+  p_amount numeric,
+  p_note text default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+declare
+  v_id uuid;
+begin
+  if p_period_to < p_period_from then
+    raise exception 'invalid_period';
+  end if;
+  if coalesce(p_amount,0) < 0 then
+    raise exception 'invalid_amount';
+  end if;
+
+  insert into public.referral_payouts(ref_code,period_from,period_to,amount,note)
+  values(p_ref_code,p_period_from,p_period_to,coalesce(p_amount,0),p_note)
+  returning id into v_id;
+
+  update public.referral_sales
+  set settlement_status='paid', paid_at=now(), payout_id=v_id, updated_at=now()
+  where ref_code=p_ref_code
+    and status <> 'reversed'
+    and settlement_status <> 'paid'
+    and created_at >= p_period_from::timestamptz
+    and created_at < (p_period_to + 1)::timestamptz;
+
+  return v_id;
+end;
+$$;
+
+revoke all on function public.referral_register_payout(text,date,date,numeric,text) from public, anon;
+grant execute on function public.referral_register_payout(text,date,date,numeric,text) to authenticated, service_role;
+
+-- ---------------------------------------------------------------------------
+-- 9. Read access for the current pilot UI.
+-- SECURITY NOTE: this intentionally preserves the Pilot's public read model.
+-- Before issuing real partner credentials, move partner reads behind the
+-- protected Referral V1.1 RPC/login layer.
+-- ---------------------------------------------------------------------------
+grant select on public.referral_sales_v1 to anon, authenticated;
+grant select on public.referral_dashboard_v1 to anon, authenticated;
+grant select on public.referral_payouts to authenticated;
+
+commit;
+
+-- QUICK CHECKS (run separately):
+-- select * from public.referral_dashboard_v1 order by referral_name;
+-- select * from public.referral_sales_v1 order by created_at desc limit 20;
+--
+-- TEST FULL REVERSAL (replace order id):
+-- select public.referral_reverse_sale('ORD-...', 'manual_test_refund');
+--
+-- REGISTER REAL PAYOUT (example only):
+-- select public.referral_register_payout('gorod_dp_ua','2026-09-01','2026-09-30',123.45,'September settlement');
