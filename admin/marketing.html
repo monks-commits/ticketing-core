@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.16 — Psychology + Offer + CRO + A/B V1</title>
+  <title>VA Marketing V2.16.1 — Psychology + Offer + CRO + A/B V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -291,7 +291,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.16</h1>
+        <h1>Marketing Control Center V2.16.1</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.15 додає CRO V1: анонімний first-party шлях від входу в зал до фактично оплаченої покупки, з втратами між етапами та розрізами по джерелах, кампаніях, рефералах, пристроях і сеансах.
@@ -3918,6 +3918,22 @@ function buildABPublicLink(exp){
   return entry.toString();
 }
 
+
+function buildABQALink(exp,variant){
+  const u=new URL(buildABPublicLink(exp));
+  u.searchParams.set("experiment_id",`${exp.id}-QA`);
+  u.searchParams.set("qa","1");
+  u.searchParams.set("ab_variant",variant);
+  u.searchParams.set("utm_campaign",`${exp.id}-QA`);
+  return u.toString();
+}
+
+function openABQAVariant(id,variant){
+  const exp=AB_EXPERIMENTS.find(x=>String(x.id)===String(id));
+  if(!exp)return;
+  window.open(buildABQALink(exp,variant),"_blank");
+}
+
 function createABExperiment(){
   const s=currentABSeance(),sid=currentABSeanceId();
   if(!sid||!s){alert("Спочатку оберіть один конкретний сеанс через «Фокус».");return}
@@ -3998,9 +4014,9 @@ function renderABActive(exp){
   if(!exp)return "";
   const link=buildABPublicLink(exp),verdict=AB_REPORT?abVerdict():null;
   return `<div class="box" style="margin-top:14px"><div class="section-caption"><div><div class="eyebrow">A/B EXPERIMENT • ${esc(exp.status||"draft")}</div><h2>${esc(exp.name)}</h2><div class="muted"><b>Гіпотеза:</b> ${esc(exp.hypothesis)}</div></div></div>
-  <div class="ab-link">${esc(link)}</div><div class="row" style="margin-top:10px"><button class="btn" onclick="copyABLink('${escAttr(exp.id)}')">Копіювати A/B посилання</button><button class="btn secondary" onclick="updateABStatus('${escAttr(exp.id)}','running')">Запустити</button><button class="btn secondary" onclick="loadABReport('${escAttr(exp.id)}')">${AB_REPORT_BUSY?"Оновлення…":"Оновити результат"}</button><button class="btn secondary" onclick="updateABStatus('${escAttr(exp.id)}','completed')">Завершити</button></div>
+  <div class="ab-link">${esc(link)}</div><div class="row" style="margin-top:10px"><button class="btn" onclick="copyABLink('${escAttr(exp.id)}')">Копіювати A/B посилання</button><button class="btn secondary" onclick="openABQAVariant('${escAttr(exp.id)}','A')">Тест A</button><button class="btn secondary" onclick="openABQAVariant('${escAttr(exp.id)}','B')">Тест B</button><button class="btn secondary" onclick="updateABStatus('${escAttr(exp.id)}','running')">Запустити</button><button class="btn secondary" onclick="loadABReport('${escAttr(exp.id)}')">${AB_REPORT_BUSY?"Оновлення…":"Оновити результат"}</button><button class="btn secondary" onclick="updateABStatus('${escAttr(exp.id)}','completed')">Завершити</button></div>
   ${AB_REPORT_ERROR?`<div class="notice bad" style="margin-top:12px">${esc(AB_REPORT_ERROR)}</div>`:""}
-  ${AB_REPORT?`<div class="ab-result-grid">${abVariantResultCard("A")}${abVariantResultCard("B")}</div><div class="ab-verdict"><b>Висновок V1:</b> ${esc(verdict?.text||"")}</div><div class="micro" style="margin-top:8px">Рандомізація 50/50. Основна метрика — фактичний Paid. Один браузер стабільно лишається у своєму варіанті для цього experiment_id.</div>`:`<div class="notice" style="margin-top:12px">Після запуску відкрийте A/B посилання на різних браузерах/пристроях або дайте його реальному трафіку, потім натисніть «Оновити результат».</div>`}</div>`
+  ${AB_REPORT?`<div class="ab-result-grid">${abVariantResultCard("A")}${abVariantResultCard("B")}</div><div class="ab-verdict"><b>Висновок V1:</b> ${esc(verdict?.text||"")}</div><div class="micro" style="margin-top:8px">Рандомізація 50/50. Основна метрика — фактичний Paid. Один браузер стабільно лишається у своєму варіанті для цього experiment_id.</div>`:`<div class="notice" style="margin-top:12px">Для технічної перевірки використовуйте «Тест A» / «Тест B» — вони відкривають окремий QA experiment_id і не псують статистику бойового експерименту. Для реального тесту використовуйте одну публічну A/B-ссилку.</div>`}</div>`
 }
 function renderABExperimentsSection(){
   const panel=document.getElementById("activeSectionPanel"),s=currentABSeance();
