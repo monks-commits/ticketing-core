@@ -1705,6 +1705,7 @@ body.va-static-bg-active::before{
 <script src="../../shared/config.js"></script>
 <script src="../../shared/config-helper.js"></script>
 <script src="../../shared/gateway-client.js"></script>
+<script src="../../shared/va-cro-tracker.js"></script>
   
   <script>
     // ===== STATE =====
@@ -1791,6 +1792,49 @@ if (refCode) {
     const SEANCE_ID = (qs.get("seance") || "").trim();
     const DIRECT_HALL = (qs.get("hall") || "").trim();
     const VENUE_ID = (qs.get("venue") || "").trim();
+
+    // ===== VA CRO V1 =====
+    // Analytics is deliberately fire-and-forget: it must never block Hall,
+    // HOLD, Gateway or the buyer's route to payment.
+    let CRO_HALL_OPEN_SENT = false;
+
+    function croSelectionAmount(){
+      return Array.from(selected.values())
+        .reduce((sum, row) => sum + Number(row?.price || 0), 0);
+    }
+
+    function croTrackHallOpen(mode){
+      if (CRO_HALL_OPEN_SENT || !window.VACRO) return;
+      CRO_HALL_OPEN_SENT = true;
+
+      window.VACRO.track("hall_open", {
+        page_code: "hall",
+        seance_id: SEANCE_ID,
+        seat_count: selected.size,
+        amount: croSelectionAmount(),
+        metadata: {
+          mode: mode || (GATEWAY_MODE ? "gateway" : "native"),
+          venue: GATEWAY_MODE
+            ? GATEWAY_VENUE_CODE
+            : (VENUE_ID || null)
+        }
+      }).catch(() => {});
+    }
+
+    function croTrackSeatSelected(key, mode){
+      if (!window.VACRO) return;
+
+      window.VACRO.track("seat_selected", {
+        page_code: "hall",
+        seance_id: SEANCE_ID,
+        seat_count: selected.size,
+        amount: croSelectionAmount(),
+        metadata: {
+          seat_key: String(key || ""),
+          mode: mode || (GATEWAY_MODE ? "gateway" : "native")
+        }
+      }).catch(() => {});
+    }
 
 let CLIENT_CONFIG = null;
 
@@ -4183,6 +4227,9 @@ async function bootGatewayHall(){
 
   updateSummary();
 
+  // The Hall is counted only after Gateway state and geometry loaded successfully.
+  croTrackHallOpen("gateway");
+
   setInterval(async () => {
     try {
       const before = new Set(selected.keys());
@@ -4279,7 +4326,9 @@ async function onSeatClick(btn, key, meta, price){
     if (btn.disabled && !selected.has(key)) return;
 
     const next = new Set(selected.keys());
-    if (next.has(key)) next.delete(key);
+    const wasSelected = next.has(key);
+
+    if (wasSelected) next.delete(key);
     else next.add(key);
 
     if (next.size > 12) {
@@ -4310,6 +4359,11 @@ async function onSeatClick(btn, key, meta, price){
       });
 
       updateSummary();
+
+      // CRO counts a seat only after Gateway accepted the new selection.
+      if (!wasSelected && selected.has(key)) {
+        croTrackSeatSelected(key, "gateway");
+      }
     } catch (e) {
       console.warn("Gateway hold error", e);
       const conflict = e?.data?.conflicting_seats || e?.data?.payload?.conflicting_seats || [];
@@ -4425,6 +4479,9 @@ async function onSeatClick(btn, key, meta, price){
     selected.set(key, { meta, price });
 
     updateSummary();
+
+    // CRO counts a seat only after the native HOLD insert succeeded.
+    croTrackSeatSelected(key, "native");
 
   } catch (e) {
     console.error("booking insert error", e);
@@ -4565,6 +4622,9 @@ renderPageVideoBackground();
   }
 
   updateSummary();
+
+  // The Hall is counted only after native geometry and current seat state loaded.
+  croTrackHallOpen("native");
 
   setInterval(async () => {
     await loadTakenSeats();
