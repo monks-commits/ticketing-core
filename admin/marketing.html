@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.19 — Retention + Campaign Types + CRO + A/B + Paid Acquisition</title>
+  <title>VA Marketing V2.20 — LTV + Retention + Campaign Types + CRO + A/B + Paid Acquisition</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -325,7 +325,31 @@ textarea::placeholder{
   @media(max-width:720px){.ret-ladder{grid-template-columns:1fr 1fr}}
   @media(max-width:620px){.ret-kpis{grid-template-columns:1fr 1fr}.ret-controls select{min-width:100%}}
 
-  </style>
+  
+  /* ===== VA Marketing LTV V1 ===== */
+  .ltv-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:14px 0}
+  .ltv-controls label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .ltv-controls select{min-width:190px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#111827}
+  .ltv-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+  .ltv-kpi{background:#fff;color:#111827;border:1px solid var(--line);border-radius:14px;padding:13px}
+  .ltv-kpi span{display:block;color:#64748b;font-size:11px;margin-bottom:5px}
+  .ltv-kpi b{display:block;color:#0f172a;font-size:24px;line-height:1.1}
+  .ltv-kpi .micro{color:#64748b;margin-top:5px}
+  .ltv-rule{padding:12px 14px;border-radius:12px;border:1px solid rgba(167,139,250,.48);background:rgba(124,58,237,.09);margin:12px 0}
+  .ltv-insight{padding:14px 16px;border-radius:14px;border:1px solid #c4b5fd;background:#f5f3ff;color:#4c1d95;margin:14px 0;line-height:1.45}
+  .ltv-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .ltv-tab{border:1px solid var(--line);background:#fff;color:#111827;border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:800}
+  .ltv-tab.active{background:#111827;color:#fff;border-color:#111827}
+  .ltv-table-wrap{overflow-x:auto}
+  .ltv-table-wrap table{min-width:1180px}
+  .ltv-bridge{margin-top:14px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.06)}
+  .ltv-good{color:#22c55e;font-weight:900}
+  .ltv-warn{color:#f59e0b;font-weight:900}
+  .ltv-bad{color:#ef4444;font-weight:900}
+  @media(max-width:1050px){.ltv-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:620px){.ltv-kpis{grid-template-columns:1fr}.ltv-controls select{min-width:100%}}
+
+</style>
 </head>
 
 <body>
@@ -335,10 +359,10 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.19</h1>
+        <h1>Marketing Control Center V2.20</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          V2.19 додає Retention V1: перша покупка → повернення на інший сеанс → повторна виручка → якість джерела залучення.
+          V2.20 додає LTV V1: перша покупка → фактична цінність покупця за весь доступний горизонт → порівняння джерел і міст до CAC.
         </div>
       </div>
       <div class="hero-badges">
@@ -349,6 +373,7 @@ textarea::placeholder{
         <span class="badge">A/B V1</span>
         <span class="badge">Paid Acquisition V1</span>
         <span class="badge">Retention V1</span>
+        <span class="badge">LTV V1</span>
       </div>
     </div>
   </div>
@@ -447,6 +472,13 @@ let RETENTION_SCOPE = "all";
 let RETENTION_TAB = "sources";
 let RETENTION_BUSY = false;
 let RETENTION_ERROR = "";
+
+let LTV_COHORT_PERIOD = "all";
+let LTV_HORIZON = "all";
+let LTV_SCOPE = "all";
+let LTV_TAB = "sources";
+let LTV_BUSY = false;
+let LTV_ERROR = "";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
@@ -1350,7 +1382,8 @@ const TOOLS = [
   ["🧪 CRO / Воронка", "Де саме губляться покупці: від входу до фактичної оплати", "Конверсія"],
   ["⚗️ A/B експерименти", "Рандомно порівнюємо два варіанти і міряємо реальну оплату", "Експеримент"],
   ["💰 Paid Acquisition", "Витрати → трафік → Paid → виручка → CPA / CPT / ROAS", "Реклама"],
-  ["🔁 Retention / Повторні продажі", "Хто повернувся на інший сеанс, коли і скільки повторної виручки приніс", "Утримання"]
+  ["🔁 Retention / Повторні продажі", "Хто повернувся на інший сеанс, коли і скільки повторної виручки приніс", "Утримання"],
+  ["💎 LTV / Цінність покупця", "Скільки фактичної виручки приносить залучений покупець за доступний горизонт", "Економіка"]
 ];
 
 function esc(v){
@@ -1465,6 +1498,7 @@ function openMarketingSection(index){
   if(index === 9) return renderABExperimentsSection();
   if(index === 10) return renderPaidAcquisitionSection();
   if(index === 11) return renderRetentionSection();
+  if(index === 12) return renderLTVSection();
 }
 
 function buildClients(orders, tickets, seances){
@@ -4917,6 +4951,375 @@ function renderRetentionSection(){
       Поточні два тестові замовлення на один і той самий «Мистер Икс» правильно залишаться однією першою покупкою без retention на інший сеанс.
     </div>`;
 }
+
+
+// ===== VA Marketing LTV V1 =====
+// V1 is REALIZED LTV, not a forecast.
+// LTV-to-date = paid revenue actually received from a buyer from first paid order
+// through the selected observation horizon.
+
+function ltvMoney(v){
+  return `${Number(v||0).toLocaleString("uk-UA",{maximumFractionDigits:2})} грн`;
+}
+
+function ltvCohortFromMs(){
+  if(LTV_COHORT_PERIOD==="all") return null;
+  const days=LTV_COHORT_PERIOD==="30d"?30:LTV_COHORT_PERIOD==="90d"?90:180;
+  return Date.now()-days*RETENTION_DAY_MS;
+}
+
+function ltvHorizonDays(){
+  if(LTV_HORIZON==="all") return null;
+  return LTV_HORIZON==="30d"?30:LTV_HORIZON==="90d"?90:180;
+}
+
+function ltvBuyerMetric(buyer){
+  const days=ltvHorizonDays();
+  const cutoff=days==null ? Infinity : buyer.firstAt + days*RETENTION_DAY_MS;
+  const mature=days==null ? true : Date.now()>=cutoff;
+  const orders=buyer.orders.filter(o=>retentionOrderTimestamp(o)<=cutoff);
+  const firstAmount=Number(buyer.firstOrder?.amount||0);
+  const revenue=orders.reduce((s,o)=>s+Number(o.amount||0),0);
+  const repeatRevenue=Math.max(0,revenue-firstAmount);
+  const distinctSeances=new Set(
+    orders.map(o=>String(o.seance_id||"").trim()).filter(Boolean)
+  );
+
+  return {
+    buyer,
+    mature,
+    orders,
+    firstAmount,
+    revenue,
+    repeatRevenue,
+    ordersCount:orders.length,
+    seancesCount:distinctSeances.size
+  };
+}
+
+function ltvFilteredMetrics(){
+  const from=ltvCohortFromMs();
+  return retentionBuyerJourneys()
+    .filter(b=>from==null || b.firstAt>=from)
+    .filter(b=>LTV_SCOPE!=="paid" || b.acquisition.paid)
+    .map(ltvBuyerMetric);
+}
+
+function ltvTotals(){
+  const rows=ltvFilteredMetrics();
+  const eligible=rows.filter(r=>r.mature);
+  const buyers=eligible.length;
+  const firstRevenue=eligible.reduce((s,r)=>s+r.firstAmount,0);
+  const revenue=eligible.reduce((s,r)=>s+r.revenue,0);
+  const repeatRevenue=eligible.reduce((s,r)=>s+r.repeatRevenue,0);
+  const orders=eligible.reduce((s,r)=>s+r.ordersCount,0);
+  const seances=eligible.reduce((s,r)=>s+r.seancesCount,0);
+  const firstAvg=buyers ? firstRevenue/buyers : null;
+  const ltv=buyers ? revenue/buyers : null;
+  const lift=firstAvg>0 && ltv!=null ? ((ltv/firstAvg)-1)*100 : null;
+
+  return {
+    acquired:rows.length,
+    eligible:buyers,
+    firstRevenue,
+    revenue,
+    repeatRevenue,
+    firstAvg,
+    ltv,
+    lift,
+    ordersPerBuyer:buyers ? orders/buyers : null,
+    seancesPerBuyer:buyers ? seances/buyers : null
+  };
+}
+
+function ltvGroupRows(mode="sources"){
+  const rows=ltvFilteredMetrics();
+  const map=new Map();
+
+  for(const r of rows){
+    const a=r.buyer.acquisition;
+    const key=mode==="campaigns"
+      ? (a.campaign_id || "__direct__")
+      : a.source;
+    const label=mode==="campaigns"
+      ? (a.campaign_name || "Без campaign_id")
+      : a.source;
+
+    if(!map.has(key)){
+      map.set(key,{
+        key,label,paid:a.paid,
+        acquired:0,eligible:0,
+        firstRevenue:0,revenue:0,repeatRevenue:0,
+        orders:0,seances:0
+      });
+    }
+
+    const x=map.get(key);
+    x.acquired++;
+    if(r.mature){
+      x.eligible++;
+      x.firstRevenue+=r.firstAmount;
+      x.revenue+=r.revenue;
+      x.repeatRevenue+=r.repeatRevenue;
+      x.orders+=r.ordersCount;
+      x.seances+=r.seancesCount;
+    }
+  }
+
+  return [...map.values()].map(x=>{
+    x.firstAvg=x.eligible ? x.firstRevenue/x.eligible : null;
+    x.ltv=x.eligible ? x.revenue/x.eligible : null;
+    x.lift=x.firstAvg>0 && x.ltv!=null ? ((x.ltv/x.firstAvg)-1)*100 : null;
+    x.ordersPerBuyer=x.eligible ? x.orders/x.eligible : null;
+    x.seancesPerBuyer=x.eligible ? x.seances/x.eligible : null;
+    return x;
+  }).sort((a,b)=>(b.ltv??-1)-(a.ltv??-1) || b.eligible-a.eligible || b.acquired-a.acquired);
+}
+
+function ltvCampaignSpendAll(c){
+  const ids=new Set((c?.journalIds||[]).map(String));
+  const linked=JOURNAL.filter(j=>ids.has(String(j.id||"")));
+  if(linked.length){
+    return linked.reduce((sum,j)=>sum+Math.max(0,Number(j.budget||0)),0);
+  }
+  return Math.max(0,Number(c?.budget||0));
+}
+
+function ltvPaidBridgeRows(){
+  // The bridge is intentionally all-history only.
+  // Partial cohorts cannot honestly consume a campaign's full budget.
+  if(LTV_COHORT_PERIOD!=="all" || LTV_HORIZON!=="all") return [];
+
+  const valueRows=new Map(
+    ltvGroupRows(LTV_TAB).map(r=>[String(r.key),r])
+  );
+
+  if(LTV_TAB==="campaigns"){
+    return CAMPAIGNS
+      .filter(retentionIsPaidCampaign)
+      .map(c=>{
+        const key=String(c.id||"");
+        const value=valueRows.get(key)||{
+          key,label:c.name||key,paid:true,acquired:0,eligible:0,revenue:0,ltv:null
+        };
+        const spend=ltvCampaignSpendAll(c);
+        const cac=spend>0 && value.acquired>0 ? spend/value.acquired : null;
+        const ratio=cac>0 && value.ltv!=null ? value.ltv/cac : null;
+        const valueRoas=spend>0 ? Number(value.revenue||0)/spend : null;
+        return {...value,spend,cac,ratio,valueRoas};
+      })
+      .filter(r=>r.spend>0 || r.acquired>0)
+      .sort((a,b)=>(b.ratio??-1)-(a.ratio??-1));
+  }
+
+  const spendBySource=new Map();
+  for(const c of CAMPAIGNS.filter(retentionIsPaidCampaign)){
+    const source=String(c.channel||"").trim() || "Paid source";
+    spendBySource.set(source,(spendBySource.get(source)||0)+ltvCampaignSpendAll(c));
+  }
+
+  const keys=new Set([...spendBySource.keys(), ...[...valueRows.values()].filter(r=>r.paid).map(r=>String(r.key))]);
+  return [...keys].map(key=>{
+    const value=valueRows.get(key)||{
+      key,label:key,paid:true,acquired:0,eligible:0,revenue:0,ltv:null
+    };
+    const spend=Number(spendBySource.get(key)||0);
+    const cac=spend>0 && value.acquired>0 ? spend/value.acquired : null;
+    const ratio=cac>0 && value.ltv!=null ? value.ltv/cac : null;
+    const valueRoas=spend>0 ? Number(value.revenue||0)/spend : null;
+    return {...value,spend,cac,ratio,valueRoas};
+  }).filter(r=>r.spend>0 || r.acquired>0)
+    .sort((a,b)=>(b.ratio??-1)-(a.ratio??-1));
+}
+
+function ltvInsight(){
+  const t=ltvTotals();
+  const horizon=ltvHorizonDays();
+
+  if(!t.acquired){
+    return LTV_SCOPE==="paid"
+      ? "У вибраній когорті немає покупців, чия перша покупка прийшла через Paid Acquisition."
+      : "У вибраній когорті немає покупців.";
+  }
+
+  if(horizon!=null && !t.eligible){
+    return `Когорта ще не має покупців з повним ${horizon}-денним горизонтом. VA не змішує молодих покупців зі зрілими.`;
+  }
+
+  const base=`Фактичний LTV у вибірці — ${t.ltv==null?"—":ltvMoney(t.ltv)} на зрілого покупця. Перший чек у середньому — ${t.firstAvg==null?"—":ltvMoney(t.firstAvg)}; додаткова виручка після першого order — ${ltvMoney(t.repeatRevenue)}.`;
+
+  const groups=ltvGroupRows("sources").filter(r=>r.eligible>=3 && r.ltv!=null);
+  if(groups.length){
+    const best=groups.sort((a,b)=>b.ltv-a.ltv)[0];
+    return `${base} Найвищий realized LTV серед джерел з ≥3 зрілими покупцями: ${best.label} — ${ltvMoney(best.ltv)}.`;
+  }
+
+  return `${base} Для надійного порівняння джерел поки мало зрілих покупців.`;
+}
+
+function ltvControlsHtml(){
+  return `<div class="ltv-controls">
+    <div><label>Когорта першої покупки</label><select id="ltvCohort">
+      <option value="30d" ${LTV_COHORT_PERIOD==="30d"?"selected":""}>Останні 30 днів</option>
+      <option value="90d" ${LTV_COHORT_PERIOD==="90d"?"selected":""}>Останні 90 днів</option>
+      <option value="180d" ${LTV_COHORT_PERIOD==="180d"?"selected":""}>Останні 180 днів</option>
+      <option value="all" ${LTV_COHORT_PERIOD==="all"?"selected":""}>Уся історія</option>
+    </select></div>
+    <div><label>Горизонт цінності</label><select id="ltvHorizon">
+      <option value="all" ${LTV_HORIZON==="all"?"selected":""}>До сьогодні</option>
+      <option value="30d" ${LTV_HORIZON==="30d"?"selected":""}>30 днів від першої покупки</option>
+      <option value="90d" ${LTV_HORIZON==="90d"?"selected":""}>90 днів</option>
+      <option value="180d" ${LTV_HORIZON==="180d"?"selected":""}>180 днів</option>
+    </select></div>
+    <div><label>Джерела</label><select id="ltvScope">
+      <option value="all" ${LTV_SCOPE==="all"?"selected":""}>Усі покупці</option>
+      <option value="paid" ${LTV_SCOPE==="paid"?"selected":""}>Лише Paid Acquisition</option>
+    </select></div>
+    <button class="btn" onclick="reloadLTV()" ${LTV_BUSY?"disabled":""}>${LTV_BUSY?"Оновлення…":"Оновити"}</button>
+  </div>`;
+}
+
+function applyLTVControls(){
+  LTV_COHORT_PERIOD=String(document.getElementById("ltvCohort")?.value||"all");
+  LTV_HORIZON=String(document.getElementById("ltvHorizon")?.value||"all");
+  LTV_SCOPE=String(document.getElementById("ltvScope")?.value||"all");
+}
+
+async function reloadLTV(){
+  applyLTVControls();
+  LTV_BUSY=true;
+  LTV_ERROR="";
+  renderLTVSection();
+  try{
+    const [orders,tickets,seances]=await Promise.all([
+      fetchAll("orders","*"),
+      fetchAll("tickets","id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"),
+      fetchAll("seances","id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity")
+    ]);
+    ORDERS=orders||[];
+    TICKETS=tickets||[];
+    SEANCES=seances||[];
+    buildClients(ORDERS,TICKETS,SEANCES);
+  }catch(e){
+    console.error("LTV refresh",e);
+    LTV_ERROR=String(e?.message||e||"Не вдалося оновити LTV.");
+  }finally{
+    LTV_BUSY=false;
+    renderContextBridge();
+    renderLTVSection();
+  }
+}
+
+function setLTVTab(tab){
+  LTV_TAB=tab==="campaigns"?"campaigns":"sources";
+  renderLTVSection();
+}
+
+function ltvTableHtml(){
+  const rows=ltvGroupRows(LTV_TAB);
+  const first=LTV_TAB==="campaigns" ? "Кампанія першої покупки" : "Джерело першої покупки";
+  return `<div class="ltv-tabs">
+    <button class="ltv-tab ${LTV_TAB==="sources"?"active":""}" onclick="setLTVTab('sources')">Джерела першої покупки</button>
+    <button class="ltv-tab ${LTV_TAB==="campaigns"?"active":""}" onclick="setLTVTab('campaigns')">Кампанії першої покупки</button>
+  </div>
+  <div class="box">
+    <div class="section-caption"><div><div class="eyebrow">LTV • REALIZED VALUE</div><h3>${first}</h3></div></div>
+    <div class="ltv-table-wrap"><table>
+      <thead><tr>
+        <th>${first}</th><th>Залучено</th><th>Зрілі</th><th>Перший чек</th><th>Realized LTV</th><th>Приріст</th><th>Додаткова виручка</th><th>Orders / покупця</th><th>Сеансів / покупця</th>
+      </tr></thead>
+      <tbody>${rows.length ? rows.map(r=>`<tr>
+        <td><b>${r.paid?"💰 ":""}${esc(r.label)}</b></td>
+        <td>${r.acquired}</td>
+        <td>${r.eligible}</td>
+        <td>${r.firstAvg==null?"—":ltvMoney(r.firstAvg)}</td>
+        <td><b>${r.ltv==null?"—":ltvMoney(r.ltv)}</b></td>
+        <td>${r.lift==null?"—":`${Math.round(r.lift)}%`}</td>
+        <td>${ltvMoney(r.repeatRevenue)}</td>
+        <td>${r.ordersPerBuyer==null?"—":r.ordersPerBuyer.toFixed(2)}</td>
+        <td>${r.seancesPerBuyer==null?"—":r.seancesPerBuyer.toFixed(2)}</td>
+      </tr>`).join("") : `<tr><td colspan="9" class="muted">Немає даних для вибраної когорти.</td></tr>`}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function ltvPaidBridgeHtml(){
+  if(LTV_COHORT_PERIOD!=="all" || LTV_HORIZON!=="all"){
+    return `<div class="notice"><b>LTV ↔ CAC:</b> для чесного зіставлення повного бюджету кампанії з цінністю залучених нею покупців виберіть «Уся історія» + «До сьогодні».</div>`;
+  }
+
+  const rows=ltvPaidBridgeRows();
+  if(!rows.length) return `<div class="notice"><b>LTV ↔ CAC:</b> у поточних даних немає paid-джерел з бюджетом або новими покупцями.</div>`;
+
+  const first=LTV_TAB==="campaigns" ? "Paid-кампанія" : "Paid-джерело";
+  return `<div class="box ltv-bridge">
+    <div class="section-caption"><div>
+      <div class="eyebrow">LTV ↔ PAID ACQUISITION</div>
+      <h3>Міст до CAC</h3>
+      <div class="muted">Тут VA вже дивиться не лише на перший Paid. Повний записаний бюджет зіставляється з <b>фактичною виручкою залучених нових покупців до сьогодні</b>.</div>
+    </div></div>
+    <div class="ltv-table-wrap"><table>
+      <thead><tr><th>${first}</th><th>Витрати</th><th>Нові покупці</th><th>CAC</th><th>Realized LTV</th><th>LTV / CAC</th><th>Виручка когорти / витрати</th></tr></thead>
+      <tbody>${rows.map(r=>{
+        const ratioClass=r.ratio==null?"":r.ratio>=3?"ltv-good":r.ratio>=1?"ltv-warn":"ltv-bad";
+        return `<tr>
+          <td><b>${esc(r.label)}</b></td>
+          <td>${ltvMoney(r.spend)}</td>
+          <td>${r.acquired}</td>
+          <td>${r.cac==null?"—":ltvMoney(r.cac)}</td>
+          <td>${r.ltv==null?"—":ltvMoney(r.ltv)}</td>
+          <td class="${ratioClass}">${r.ratio==null?"—":r.ratio.toFixed(2)+"×"}</td>
+          <td>${r.valueRoas==null?"—":r.valueRoas.toFixed(2)+"×"}</td>
+        </tr>`;
+      }).join("")}</tbody>
+    </table></div>
+    <div class="micro" style="margin-top:8px">
+      Це <b>realized LTV/CAC</b>, а не прогноз. Витрати — усі зафіксовані бюджети paid-кампаній; цінність — оплачена виручка тих покупців, для кого ця кампанія/джерело було першою paid-покупкою в VA.
+    </div>
+  </div>`;
+}
+
+function renderLTVSection(){
+  const panel=document.getElementById("activeSectionPanel");
+  const t=ltvTotals();
+  const horizon=ltvHorizonDays();
+  const horizonLabel=horizon==null ? "до сьогодні" : `${horizon} днів`;
+
+  panel.innerHTML=`
+    <div class="section-caption"><div>
+      <div class="eyebrow">LTV V1 • REALIZED</div>
+      <h2>💎 Скільки покупець реально приносить VA</h2>
+      <div class="muted">Не прогнозуємо майбутнє. VA рахує <b>фактично отриману paid-виручку</b> від покупця від його першого order до вибраного горизонту та порівнює якість джерел залучення.</div>
+    </div></div>
+
+    <div class="ltv-rule"><b>Правило LTV V1:</b> LTV тут — це realized value. Перша покупка визначає джерело залучення; усі наступні paid-orders цього самого покупця збільшують його цінність незалежно від того, через який канал він повернувся.</div>
+
+    ${ltvControlsHtml()}
+    ${LTV_ERROR?`<div class="notice bad"><b>LTV недоступний.</b> ${esc(LTV_ERROR)}</div>`:""}
+    ${LTV_BUSY?`<div class="notice">Оновлюємо історію цінності покупців…</div>`:""}
+
+    <div class="ltv-kpis">
+      <div class="ltv-kpi"><span>Нові покупці</span><b>${t.acquired}</b><div class="micro">перша paid-покупка у когорті</div></div>
+      <div class="ltv-kpi"><span>Зрілі для горизонту</span><b>${t.eligible}</b><div class="micro">повне спостереження: ${horizonLabel}</div></div>
+      <div class="ltv-kpi"><span>Середній перший чек</span><b>${t.firstAvg==null?"—":ltvMoney(t.firstAvg)}</b><div class="micro">виручка першого order</div></div>
+      <div class="ltv-kpi"><span>Realized LTV</span><b>${t.ltv==null?"—":ltvMoney(t.ltv)}</b><div class="micro">вся paid-виручка / покупці</div></div>
+      <div class="ltv-kpi"><span>Додаткова виручка</span><b>${ltvMoney(t.repeatRevenue)}</b><div class="micro">після першого order</div></div>
+      <div class="ltv-kpi"><span>Приріст до першого чека</span><b>${t.lift==null?"—":Math.round(t.lift)+"%"}</b><div class="micro">LTV проти першого чека</div></div>
+      <div class="ltv-kpi"><span>Orders / покупця</span><b>${t.ordersPerBuyer==null?"—":t.ordersPerBuyer.toFixed(2)}</b><div class="micro">середня кількість paid-orders</div></div>
+      <div class="ltv-kpi"><span>Сеансів / покупця</span><b>${t.seancesPerBuyer==null?"—":t.seancesPerBuyer.toFixed(2)}</b><div class="micro">різні seance_id у горизонті</div></div>
+    </div>
+
+    <div class="ltv-insight"><b>Що каже VA:</b> ${esc(ltvInsight())}</div>
+
+    ${ltvTableHtml()}
+    ${ltvPaidBridgeHtml()}
+
+    <div class="micro" style="margin-top:10px">
+      Джерело цінності фіксується за <b>campaign_id першого paid-order</b>, як у Retention. Для фіксованих горизонтів 30/90/180 днів VA включає у порівняння лише покупців, які вже прожили весь обраний строк.
+      Додаткова виручка LTV включає всі наступні paid-orders, навіть якщо це ще одне замовлення на той самий сеанс; це відрізняється від Retention, де поверненням вважається лише інший seance_id.
+    </div>`;
+}
+
 
 // ===== VA Marketing CRO Dashboard V1 =====
 
