@@ -24,7 +24,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.1.0";
+  const VERSION = "1.1.1";
 
   const DEFAULT_CONFIG = Object.freeze({
     supabaseUrl: "https://fhusjlkneckbvnrdhbil.supabase.co",
@@ -36,6 +36,7 @@
   const SOURCE_KEY = "va_cro_source_v1";
   const SOURCE_TOUCH_KEY = "va_cro_source_touch_sent_v1";
   const EXPERIMENT_KEY = "va_ab_experiment_v1";
+  const MARKETING_KEY = "va_marketing_attribution_v1";
 
   const ALLOWED_EVENTS = new Set([
     "source_touch",
@@ -81,6 +82,15 @@
     }
   }
 
+  function removeStorage(storage, key) {
+    try {
+      storage.removeItem(key);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function ensureUuid(storage, key) {
     const existing = getStorage(storage, key);
     if (/^[0-9a-f-]{36}$/i.test(existing)) return existing;
@@ -109,7 +119,7 @@
 
   function marketingContext() {
     return safeJsonParse(
-      getStorage(sessionStorage, "va_marketing_attribution_v1")
+      getStorage(sessionStorage, MARKETING_KEY)
     ) || {};
   }
 
@@ -142,6 +152,11 @@
   function experimentContext() {
     const qs = new URLSearchParams(location.search);
 
+    const currentSeance = clean(
+      qs.get("seance") || qs.get("seance_id") || "",
+      200
+    );
+
     const urlExperimentId = clean(
       qs.get("experiment_id") || qs.get("exp_id") || "",
       160
@@ -156,6 +171,15 @@
       getStorage(sessionStorage, EXPERIMENT_KEY)
     ) || {};
 
+    const savedSeance = clean(saved.seance_id || "", 200);
+
+    // A/B context belongs to one seance. Do not leak an old experiment
+    // into another event opened later in the same browser tab.
+    if (!urlExperimentId && currentSeance && savedSeance && currentSeance !== savedSeance) {
+      removeStorage(sessionStorage, EXPERIMENT_KEY);
+      return {};
+    }
+
     const experimentId =
       urlExperimentId ||
       clean(saved.experiment_id || "", 160);
@@ -169,13 +193,7 @@
       const next = {
         experiment_id: experimentId,
         variant,
-        seance_id: clean(
-          qs.get("seance") ||
-          qs.get("seance_id") ||
-          saved.seance_id ||
-          "",
-          200
-        ) || null,
+        seance_id: currentSeance || savedSeance || null,
         assigned_at: saved.assigned_at || new Date().toISOString()
       };
 
@@ -203,9 +221,19 @@
     const qs = new URLSearchParams(location.search);
     const marketing = marketingContext();
 
+    const pageSeance = clean(
+      qs.get("seance") || qs.get("seance_id") || "",
+      200
+    );
+    const marketingSeance = clean(marketing.seance_id || "", 200);
+    const marketingApplies =
+      !pageSeance ||
+      !marketingSeance ||
+      pageSeance === marketingSeance;
+
     const campaignId = clean(
       qs.get("campaign_id") ||
-      marketing.campaign_id ||
+      (marketingApplies ? marketing.campaign_id : "") ||
       "",
       160
     );
@@ -214,26 +242,27 @@
 
     const utmSource = clean(
       qs.get("utm_source") ||
-      marketing.utm_source ||
+      (marketingApplies ? marketing.utm_source : "") ||
       "",
       120
     );
 
     const utmMedium = clean(
       qs.get("utm_medium") ||
-      marketing.utm_medium ||
+      (marketingApplies ? marketing.utm_medium : "") ||
       "",
       120
     );
 
     const utmCampaign = clean(
       qs.get("utm_campaign") ||
-      marketing.utm_campaign ||
+      (marketingApplies ? marketing.utm_campaign : "") ||
       "",
       160
     );
 
     return {
+      seance_id: pageSeance || (marketingApplies ? marketingSeance : "") || null,
       campaign_id: campaignId || null,
       ref_code: refCode || null,
       utm_source: utmSource || null,
@@ -248,15 +277,41 @@
     };
   }
 
+  function startFreshSourceJourney(now) {
+    removeStorage(sessionStorage, SESSION_KEY);
+    removeStorage(sessionStorage, SOURCE_TOUCH_KEY);
+    setStorage(sessionStorage, SOURCE_KEY, JSON.stringify(now));
+    return now;
+  }
+
   function sourceContext() {
     const saved = safeJsonParse(getStorage(sessionStorage, SOURCE_KEY));
+    const now = currentSourceCandidate();
 
     if (saved) {
+      const savedCampaign = clean(saved.campaign_id || "", 160);
+      const nowCampaign = clean(now.campaign_id || "", 160);
+      const savedSeance = clean(saved.seance_id || "", 200);
+      const nowSeance = clean(now.seance_id || "", 200);
+
+      // A click on an explicit campaign link is a new acquisition journey.
+      // This is critical when the same browser tab previously contained
+      // another campaign or an organic/direct CRO journey.
+      if (nowCampaign && nowCampaign !== savedCampaign) {
+        return startFreshSourceJourney(now);
+      }
+
+      // Source context is also seance-scoped. Never carry one event's
+      // campaign/source into a different event in the same browser tab.
+      if (nowSeance && savedSeance && nowSeance !== savedSeance) {
+        return startFreshSourceJourney(now);
+      }
+
       // Existing VA attribution may appear one redirect later.
-      // Fill only missing fields; never overwrite the first known source.
-      const now = currentSourceCandidate();
+      // Fill only missing fields inside the SAME journey.
       const merged = {
         ...saved,
+        seance_id: saved.seance_id || now.seance_id || null,
         campaign_id: saved.campaign_id || now.campaign_id || null,
         ref_code: saved.ref_code || now.ref_code || null,
         utm_source: saved.utm_source || now.utm_source || null,
@@ -268,9 +323,8 @@
       return merged;
     }
 
-    const first = currentSourceCandidate();
-    setStorage(sessionStorage, SOURCE_KEY, JSON.stringify(first));
-    return first;
+    setStorage(sessionStorage, SOURCE_KEY, JSON.stringify(now));
+    return now;
   }
 
   function config() {
