@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.18.1 — Campaign Types + Psychology + CRO + A/B + Paid Acquisition</title>
+  <title>VA Marketing V2.19 — Retention + Campaign Types + CRO + A/B + Paid Acquisition</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -301,6 +301,30 @@ textarea::placeholder{
   @media(max-width:1050px){.paid-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
   @media(max-width:620px){.paid-kpis{grid-template-columns:1fr 1fr}.paid-controls select{min-width:100%}}
 
+  /* ===== VA Marketing Retention V1 ===== */
+  .ret-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:14px 0}
+  .ret-controls label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .ret-controls select{min-width:190px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#111827}
+  .ret-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:14px 0}
+  .ret-kpi{background:#fff;color:#111827;border:1px solid var(--line);border-radius:14px;padding:13px}
+  .ret-kpi span{display:block;color:#64748b;font-size:11px;margin-bottom:5px}
+  .ret-kpi b{display:block;color:#0f172a;font-size:24px;line-height:1.1}
+  .ret-kpi .micro{color:#64748b;margin-top:5px}
+  .ret-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .ret-tab{border:1px solid var(--line);background:#fff;color:#111827;border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:800}
+  .ret-tab.active{background:#111827;color:#fff;border-color:#111827}
+  .ret-insight{padding:14px 16px;border-radius:14px;border:1px solid #86efac;background:#f0fdf4;color:#14532d;margin:14px 0;line-height:1.45}
+  .ret-rule{padding:12px 14px;border-radius:12px;border:1px solid rgba(96,165,250,.42);background:rgba(96,165,250,.08);margin:12px 0}
+  .ret-ladder{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+  .ret-ladder>div{border:1px solid var(--line);border-radius:14px;padding:13px;background:#0a1d35}
+  .ret-ladder span{display:block;color:var(--muted);font-size:11px}
+  .ret-ladder b{display:block;font-size:24px;margin-top:5px}
+  .ret-table-wrap{overflow-x:auto}
+  .ret-table-wrap table{min-width:1180px}
+  @media(max-width:1050px){.ret-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:720px){.ret-ladder{grid-template-columns:1fr 1fr}}
+  @media(max-width:620px){.ret-kpis{grid-template-columns:1fr 1fr}.ret-controls select{min-width:100%}}
+
   </style>
 </head>
 
@@ -311,10 +335,10 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.18.1</h1>
+        <h1>Marketing Control Center V2.19</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          V2.17 замикає Paid Acquisition V1: витрати з Журналу маркетингу → campaign_id → CRO → фактичний Paid → покупці, квитки, виручка, CPA, CPT і ROAS.
+          V2.19 додає Retention V1: перша покупка → повернення на інший сеанс → повторна виручка → якість джерела залучення.
         </div>
       </div>
       <div class="hero-badges">
@@ -324,6 +348,7 @@ textarea::placeholder{
         <span class="badge">CRO V1</span>
         <span class="badge">A/B V1</span>
         <span class="badge">Paid Acquisition V1</span>
+        <span class="badge">Retention V1</span>
       </div>
     </div>
   </div>
@@ -415,6 +440,13 @@ let PAID_ACQ_ERROR = "";
 let PAID_ACQ_PERIOD = "30d";
 let PAID_ACQ_SEANCE_FILTER = "__context__";
 let PAID_ACQ_TAB = "sources";
+
+let RETENTION_COHORT_PERIOD = "all";
+let RETENTION_WINDOW = "all";
+let RETENTION_SCOPE = "all";
+let RETENTION_TAB = "sources";
+let RETENTION_BUSY = false;
+let RETENTION_ERROR = "";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
@@ -1317,7 +1349,8 @@ const TOOLS = [
   ["🧭 Паспорт сеансу", "Кому, що і яким тоном говоримо про конкретну подію", "Контекст"],
   ["🧪 CRO / Воронка", "Де саме губляться покупці: від входу до фактичної оплати", "Конверсія"],
   ["⚗️ A/B експерименти", "Рандомно порівнюємо два варіанти і міряємо реальну оплату", "Експеримент"],
-  ["💰 Paid Acquisition", "Витрати → трафік → Paid → виручка → CPA / CPT / ROAS", "Реклама"]
+  ["💰 Paid Acquisition", "Витрати → трафік → Paid → виручка → CPA / CPT / ROAS", "Реклама"],
+  ["🔁 Retention / Повторні продажі", "Хто повернувся на інший сеанс, коли і скільки повторної виручки приніс", "Утримання"]
 ];
 
 function esc(v){
@@ -1431,6 +1464,7 @@ function openMarketingSection(index){
   if(index === 8) return renderCROSection();
   if(index === 9) return renderABExperimentsSection();
   if(index === 10) return renderPaidAcquisitionSection();
+  if(index === 11) return renderRetentionSection();
 }
 
 function buildClients(orders, tickets, seances){
@@ -4466,6 +4500,422 @@ function renderPaidAcquisitionSection(){
   <div class="paid-insight"><b>Що каже VA:</b> ${esc(paidAcqInsight())}</div>
   ${paidAcqTableHtml()}
   <div class="micro" style="margin-top:10px">Бюджет береться з записів Журналу, локально прив'язаних до campaign_id. Старі кампанії без journalIds можуть показувати fallback total. CRO Paid — оплачений шлях session_id + seance_id; комерційна виручка, покупці та квитки беруться з orders/tickets. Кампанії з нульовим бюджетом у Paid Acquisition не показуються: їхня атрибуція лишається у Marketing/CRO.</div>`:""}`;
+}
+
+
+// ===== VA Marketing Retention V1 =====
+// Primary retention event = a later paid purchase for ANOTHER seance.
+// Extra orders for the same seance are revenue, but are NOT treated as buyer return.
+
+const RETENTION_DAY_MS = 86400000;
+const RETENTION_PAID_STATUSES = new Set(["paid","success","completed","approved"]);
+
+function retentionMoney(v){
+  return `${Number(v||0).toLocaleString("uk-UA",{maximumFractionDigits:2})} грн`;
+}
+
+function retentionPct(num, den){
+  const n=Number(num||0), d=Number(den||0);
+  return d>0 ? Math.round((n/d)*100) : null;
+}
+
+function retentionMedian(values){
+  const a=(values||[]).map(Number).filter(Number.isFinite).sort((x,y)=>x-y);
+  if(!a.length) return null;
+  const m=Math.floor(a.length/2);
+  return a.length%2 ? a[m] : (a[m-1]+a[m])/2;
+}
+
+function retentionCampaignById(id){
+  const key=String(id||"");
+  return CAMPAIGNS.find(c=>String(c.id||"")===key) || null;
+}
+
+function retentionIsPaidCampaign(c){
+  return !!c && (c.campaignType==="paid" || c.segmentKey==="paid");
+}
+
+function retentionAcquisition(firstOrder){
+  const campaignId=String(firstOrder?.marketing_campaign_id||"").trim();
+  const campaign=campaignId ? retentionCampaignById(campaignId) : null;
+
+  if(campaign){
+    return {
+      campaign_id:campaignId,
+      campaign_name:campaign.name || campaignId,
+      source:String(campaign.channel||"").trim() || (retentionIsPaidCampaign(campaign) ? "Paid source" : "Кампанія"),
+      paid:retentionIsPaidCampaign(campaign)
+    };
+  }
+
+  if(campaignId){
+    return {
+      campaign_id:campaignId,
+      campaign_name:campaignId,
+      source:`campaign_id: ${campaignId}`,
+      paid:false
+    };
+  }
+
+  return {
+    campaign_id:"",
+    campaign_name:"Без campaign_id",
+    source:"Прямий / без campaign_id",
+    paid:false
+  };
+}
+
+function retentionOrderTimestamp(order){
+  const d=new Date(order?.marketing_attributed_at || order?.created_at || 0);
+  return Number.isFinite(d.getTime()) ? d.getTime() : 0;
+}
+
+function retentionIsTechnicalOrder(order){
+  const email=String(order?.buyer_email||"").trim();
+  const phone=String(order?.buyer_phone||"").trim();
+  const name=String(order?.buyer_name||"").trim().toLowerCase();
+  return !email && !phone && new Set(["каса","касса","kasa","cash","cashier"]).has(name);
+}
+
+function retentionPaidOrders(){
+  return ORDERS
+    .filter(o=>{
+      const status=String(o.status||"").toLowerCase();
+      if(status && !RETENTION_PAID_STATUSES.has(status)) return false;
+      if(retentionIsTechnicalOrder(o)) return false;
+      return retentionOrderTimestamp(o)>0;
+    })
+    .sort((a,b)=>retentionOrderTimestamp(a)-retentionOrderTimestamp(b));
+}
+
+function retentionBuyerJourneys(){
+  const map=new Map();
+
+  for(const order of retentionPaidOrders()){
+    const key=normKey(order);
+    if(!map.has(key)){
+      map.set(key,{
+        key,
+        name:order.buyer_name||"Без імені",
+        email:String(order.buyer_email||"").trim(),
+        phone:String(order.buyer_phone||"").trim(),
+        orders:[]
+      });
+    }
+    map.get(key).orders.push(order);
+  }
+
+  return [...map.values()].map(b=>{
+    b.orders.sort((a,c)=>retentionOrderTimestamp(a)-retentionOrderTimestamp(c));
+    const first=b.orders[0];
+    const firstAt=retentionOrderTimestamp(first);
+    const firstSeance=String(first?.seance_id||"").trim();
+    const acquisition=retentionAcquisition(first);
+
+    const firstSeanceOrders=b.orders.filter(o=>String(o.seance_id||"").trim()===firstSeance);
+    const otherOrders=b.orders.filter(o=>String(o.seance_id||"").trim()!==firstSeance);
+
+    const distinctMap=new Map();
+    for(const o of b.orders){
+      const sid=String(o.seance_id||"").trim() || `order:${o.order_id||o.id||retentionOrderTimestamp(o)}`;
+      if(!distinctMap.has(sid)) distinctMap.set(sid,o);
+    }
+    const distinctOrders=[...distinctMap.values()].sort((a,c)=>retentionOrderTimestamp(a)-retentionOrderTimestamp(c));
+    const secondDistinct=distinctOrders[1]||null;
+
+    return {
+      ...b,
+      firstOrder:first,
+      firstAt,
+      firstSeance,
+      acquisition,
+      distinctOrders,
+      initialRevenue:firstSeanceOrders.reduce((s,o)=>s+Number(o.amount||0),0),
+      totalRevenue:b.orders.reduce((s,o)=>s+Number(o.amount||0),0),
+      sameFirstSeanceOrders:firstSeanceOrders.length,
+      otherOrders,
+      secondDistinctAt:secondDistinct ? retentionOrderTimestamp(secondDistinct) : null
+    };
+  });
+}
+
+function retentionCohortFromMs(){
+  if(RETENTION_COHORT_PERIOD==="all") return null;
+  const days=RETENTION_COHORT_PERIOD==="30d"?30:RETENTION_COHORT_PERIOD==="90d"?90:180;
+  return Date.now()-days*RETENTION_DAY_MS;
+}
+
+function retentionWindowDays(){
+  if(RETENTION_WINDOW==="all") return null;
+  return RETENTION_WINDOW==="30d"?30:RETENTION_WINDOW==="90d"?90:180;
+}
+
+function retentionBuyerMetric(buyer){
+  const days=retentionWindowDays();
+  const cutoff=days==null ? Infinity : buyer.firstAt + days*RETENTION_DAY_MS;
+  const mature=days==null ? true : Date.now()>=cutoff;
+
+  const within=buyer.orders.filter(o=>retentionOrderTimestamp(o)<=cutoff);
+  const distinct=new Map();
+  for(const o of within){
+    const sid=String(o.seance_id||"").trim() || `order:${o.order_id||o.id||retentionOrderTimestamp(o)}`;
+    if(!distinct.has(sid)) distinct.set(sid,o);
+  }
+  const distinctOrders=[...distinct.values()].sort((a,c)=>retentionOrderTimestamp(a)-retentionOrderTimestamp(c));
+  const laterOther=within.filter(o=>String(o.seance_id||"").trim()!==buyer.firstSeance);
+  const second=distinctOrders[1]||null;
+  const secondAt=second ? retentionOrderTimestamp(second) : null;
+
+  return {
+    buyer,
+    mature,
+    distinctCount:distinctOrders.length,
+    returned:!!second,
+    secondAt,
+    daysToSecond:secondAt ? Math.max(0,(secondAt-buyer.firstAt)/RETENTION_DAY_MS) : null,
+    repeatRevenue:laterOther.reduce((s,o)=>s+Number(o.amount||0),0),
+    realizedRevenue:buyer.initialRevenue + laterOther.reduce((s,o)=>s+Number(o.amount||0),0),
+    sameSeanceExtra:Math.max(0,buyer.sameFirstSeanceOrders-1)
+  };
+}
+
+function retentionFilteredMetrics(){
+  const from=retentionCohortFromMs();
+  return retentionBuyerJourneys()
+    .filter(b=>from==null || b.firstAt>=from)
+    .filter(b=>RETENTION_SCOPE!=="paid" || b.acquisition.paid)
+    .map(retentionBuyerMetric);
+}
+
+function retentionTotals(){
+  const rows=retentionFilteredMetrics();
+  const eligible=rows.filter(r=>r.mature);
+  const returned=eligible.filter(r=>r.returned);
+  const three=eligible.filter(r=>r.distinctCount>=3).length;
+  const five=eligible.filter(r=>r.distinctCount>=5).length;
+  const repeatRevenue=eligible.reduce((s,r)=>s+r.repeatRevenue,0);
+  const realizedRevenue=eligible.reduce((s,r)=>s+r.realizedRevenue,0);
+  const sameSeanceExtras=rows.reduce((s,r)=>s+r.sameSeanceExtra,0);
+
+  return {
+    acquired:rows.length,
+    eligible:eligible.length,
+    returned:returned.length,
+    rate:retentionPct(returned.length,eligible.length),
+    three,
+    five,
+    repeatRevenue,
+    realizedRevenue,
+    realizedPerBuyer:eligible.length ? realizedRevenue/eligible.length : null,
+    medianDays:retentionMedian(returned.map(r=>r.daysToSecond)),
+    sameSeanceExtras
+  };
+}
+
+function retentionGroupRows(mode="sources"){
+  const metrics=retentionFilteredMetrics();
+  const map=new Map();
+
+  for(const r of metrics){
+    const a=r.buyer.acquisition;
+    const key=mode==="campaigns"
+      ? (a.campaign_id || "__direct__")
+      : a.source;
+    const label=mode==="campaigns"
+      ? (a.campaign_name || "Без campaign_id")
+      : a.source;
+
+    if(!map.has(key)){
+      map.set(key,{
+        key,label,
+        paid:a.paid,
+        acquired:0,eligible:0,returned:0,three:0,
+        repeatRevenue:0,realizedRevenue:0,days:[],
+        sameSeanceExtras:0
+      });
+    }
+    const x=map.get(key);
+    x.acquired++;
+    x.sameSeanceExtras+=r.sameSeanceExtra;
+    if(r.mature){
+      x.eligible++;
+      if(r.returned){
+        x.returned++;
+        if(r.daysToSecond!=null) x.days.push(r.daysToSecond);
+      }
+      if(r.distinctCount>=3) x.three++;
+      x.repeatRevenue+=r.repeatRevenue;
+      x.realizedRevenue+=r.realizedRevenue;
+    }
+  }
+
+  return [...map.values()].map(x=>({
+    ...x,
+    rate:retentionPct(x.returned,x.eligible),
+    realizedPerBuyer:x.eligible ? x.realizedRevenue/x.eligible : null,
+    medianDays:retentionMedian(x.days)
+  })).sort((a,b)=>(b.rate??-1)-(a.rate??-1) || b.returned-a.returned || b.acquired-a.acquired);
+}
+
+function retentionInsight(){
+  const t=retentionTotals();
+  const window=retentionWindowDays();
+
+  if(!t.acquired){
+    return RETENTION_SCOPE==="paid"
+      ? "У вибраній когорті ще немає покупців, чия перша покупка була залучена paid-кампанією."
+      : "У вибраній когорті немає нових покупців.";
+  }
+
+  if(window!=null && !t.eligible){
+    return `Когорта ще занадто молода для чесного ${window}-денного retention: жоден покупець поки не мав повного вікна спостереження.`;
+  }
+
+  const sameNote=t.sameSeanceExtras
+    ? ` ${t.sameSeanceExtras} додаткових замовлень на той самий перший сеанс не зараховано як повернення.`
+    : "";
+
+  if(!t.returned){
+    return `Повернень на інший сеанс у поточній вибірці поки не зафіксовано.${sameNote}`;
+  }
+
+  const sources=retentionGroupRows("sources").filter(x=>x.eligible>=3 && x.returned>0);
+  const best=sources[0];
+  const base=`Повернулися на інший сеанс ${t.returned} з ${t.eligible} покупців (${t.rate??0}%). Повторна виручка — ${retentionMoney(t.repeatRevenue)}.`;
+  if(best){
+    return `${base} Найвищий retention серед джерел з ≥3 зрілими покупцями: ${best.label} — ${best.rate}%.${sameNote}`;
+  }
+  return `${base} Для висновку про найкраще джерело поки мало зрілих покупців.${sameNote}`;
+}
+
+function retentionControlsHtml(){
+  return `<div class="ret-controls">
+    <div><label>Когорта першої покупки</label><select id="retCohort">
+      <option value="30d" ${RETENTION_COHORT_PERIOD==="30d"?"selected":""}>Останні 30 днів</option>
+      <option value="90d" ${RETENTION_COHORT_PERIOD==="90d"?"selected":""}>Останні 90 днів</option>
+      <option value="180d" ${RETENTION_COHORT_PERIOD==="180d"?"selected":""}>Останні 180 днів</option>
+      <option value="all" ${RETENTION_COHORT_PERIOD==="all"?"selected":""}>Уся історія</option>
+    </select></div>
+    <div><label>Вікно повернення</label><select id="retWindow">
+      <option value="all" ${RETENTION_WINDOW==="all"?"selected":""}>До сьогодні</option>
+      <option value="30d" ${RETENTION_WINDOW==="30d"?"selected":""}>30 днів</option>
+      <option value="90d" ${RETENTION_WINDOW==="90d"?"selected":""}>90 днів</option>
+      <option value="180d" ${RETENTION_WINDOW==="180d"?"selected":""}>180 днів</option>
+    </select></div>
+    <div><label>Джерела</label><select id="retScope">
+      <option value="all" ${RETENTION_SCOPE==="all"?"selected":""}>Усі покупці</option>
+      <option value="paid" ${RETENTION_SCOPE==="paid"?"selected":""}>Лише Paid Acquisition</option>
+    </select></div>
+    <button class="btn" onclick="reloadRetention()" ${RETENTION_BUSY?"disabled":""}>${RETENTION_BUSY?"Оновлення…":"Оновити"}</button>
+  </div>`;
+}
+
+function applyRetentionControls(){
+  RETENTION_COHORT_PERIOD=String(document.getElementById("retCohort")?.value||"all");
+  RETENTION_WINDOW=String(document.getElementById("retWindow")?.value||"all");
+  RETENTION_SCOPE=String(document.getElementById("retScope")?.value||"all");
+}
+
+async function reloadRetention(){
+  applyRetentionControls();
+  RETENTION_BUSY=true;
+  RETENTION_ERROR="";
+  renderRetentionSection();
+  try{
+    const [orders,tickets,seances]=await Promise.all([
+      fetchAll("orders","*"),
+      fetchAll("tickets","id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"),
+      fetchAll("seances","id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity")
+    ]);
+    ORDERS=orders||[];
+    TICKETS=tickets||[];
+    SEANCES=seances||[];
+    buildClients(ORDERS,TICKETS,SEANCES);
+  }catch(e){
+    console.error("Retention refresh",e);
+    RETENTION_ERROR=String(e?.message||e||"Не вдалося оновити retention.");
+  }finally{
+    RETENTION_BUSY=false;
+    renderContextBridge();
+    renderRetentionSection();
+  }
+}
+
+function setRetentionTab(tab){
+  RETENTION_TAB=tab==="campaigns"?"campaigns":"sources";
+  renderRetentionSection();
+}
+
+function retentionTableHtml(){
+  const rows=retentionGroupRows(RETENTION_TAB);
+  const first=RETENTION_TAB==="campaigns" ? "Кампанія першої покупки" : "Джерело першої покупки";
+  return `<div class="ret-tabs">
+    <button class="ret-tab ${RETENTION_TAB==="sources"?"active":""}" onclick="setRetentionTab('sources')">Джерела першої покупки</button>
+    <button class="ret-tab ${RETENTION_TAB==="campaigns"?"active":""}" onclick="setRetentionTab('campaigns')">Кампанії першої покупки</button>
+  </div>
+  <div class="box">
+    <div class="section-caption"><div><div class="eyebrow">RETENTION • COHORT QUALITY</div><h3>${first}</h3></div></div>
+    <div class="ret-table-wrap"><table>
+      <thead><tr><th>${first}</th><th>Залучено</th><th>Зрілі</th><th>Повернулись 2+</th><th>Retention</th><th>3+ сеанси</th><th>Повторна виручка</th><th>Виручка / покупця</th><th>Медіана до 2-го</th></tr></thead>
+      <tbody>${rows.length ? rows.map(r=>`<tr>
+        <td><b>${r.paid?"💰 ":""}${esc(r.label)}</b></td>
+        <td>${r.acquired}</td>
+        <td>${r.eligible}</td>
+        <td>${r.returned}</td>
+        <td><b>${r.rate==null?"—":r.rate+"%"}</b></td>
+        <td>${r.three}</td>
+        <td>${retentionMoney(r.repeatRevenue)}</td>
+        <td>${r.realizedPerBuyer==null?"—":retentionMoney(r.realizedPerBuyer)}</td>
+        <td>${r.medianDays==null?"—":`${Math.round(r.medianDays)} дн.`}</td>
+      </tr>`).join("") : `<tr><td colspan="9" class="muted">Немає даних для вибраної когорти.</td></tr>`}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function renderRetentionSection(){
+  const panel=document.getElementById("activeSectionPanel");
+  const t=retentionTotals();
+  const window=retentionWindowDays();
+  const windowLabel=window==null ? "до сьогодні" : `${window} днів`;
+
+  panel.innerHTML=`
+    <div class="section-caption"><div>
+      <div class="eyebrow">RETENTION V1</div>
+      <h2>🔁 Чи повертається покупець</h2>
+      <div class="muted">Перша покупка — це ще не цінність каналу. VA дивиться, чи купив цей самий покупець <b>інший сеанс</b>, коли повернувся і скільки повторної виручки приніс.</div>
+    </div></div>
+
+    <div class="ret-rule"><b>Правило Retention V1:</b> повторне замовлення на той самий сеанс не вважаємо поверненням покупця. Retention фіксується лише тоді, коли після першої покупки є оплачена покупка <b>іншого seance_id</b>.</div>
+
+    ${retentionControlsHtml()}
+    ${RETENTION_ERROR?`<div class="notice bad"><b>Retention недоступний.</b> ${esc(RETENTION_ERROR)}</div>`:""}
+    ${RETENTION_BUSY?`<div class="notice">Оновлюємо історію покупок…</div>`:""}
+
+    <div class="ret-kpis">
+      <div class="ret-kpi"><span>Нові покупці</span><b>${t.acquired}</b><div class="micro">перша paid-покупка у когорті</div></div>
+      <div class="ret-kpi"><span>Зрілі для вікна</span><b>${t.eligible}</b><div class="micro">повне спостереження: ${windowLabel}</div></div>
+      <div class="ret-kpi"><span>Повернулися</span><b>${t.returned}</b><div class="micro">купили інший сеанс</div></div>
+      <div class="ret-kpi"><span>Retention</span><b>${t.rate==null?"—":t.rate+"%"}</b><div class="micro">повернулися / зрілі</div></div>
+      <div class="ret-kpi"><span>Повторна виручка</span><b>${retentionMoney(t.repeatRevenue)}</b><div class="micro">лише наступні сеанси</div></div>
+      <div class="ret-kpi"><span>До другої покупки</span><b>${t.medianDays==null?"—":Math.round(t.medianDays)+" дн."}</b><div class="micro">медіана серед тих, хто повернувся</div></div>
+    </div>
+
+    <div class="ret-insight"><b>Що каже VA:</b> ${esc(retentionInsight())}</div>
+
+    <div class="ret-ladder">
+      <div><span>1+ сеанс</span><b>${t.eligible}</b><div class="micro">зріла когорта</div></div>
+      <div><span>2+ сеанси</span><b>${t.returned}</b><div class="micro">повернулися</div></div>
+      <div><span>3+ сеанси</span><b>${t.three}</b><div class="micro">формується звичка</div></div>
+      <div><span>5+ сеансів</span><b>${t.five}</b><div class="micro">стійкий повторний попит</div></div>
+    </div>
+
+    ${retentionTableHtml()}
+
+    <div class="micro" style="margin-top:10px">
+      Джерело залучення визначається за <b>campaign_id першого paid-order</b>. Якщо Campaign Object відомий цьому Marketing, VA показує його канал; якщо ні — залишає сам campaign_id і не вигадує джерело.
+      Для вікон 30/90/180 днів у знаменник retention входять тільки покупці, які вже мали повний строк спостереження.
+      Поточні два тестові замовлення на один і той самий «Мистер Икс» правильно залишаться однією першою покупкою без retention на інший сеанс.
+    </div>`;
 }
 
 // ===== VA Marketing CRO Dashboard V1 =====
