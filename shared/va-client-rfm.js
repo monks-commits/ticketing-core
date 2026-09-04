@@ -1,25 +1,70 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.0.0";
+  const VERSION = "1.0.1";
 
   function finiteNumber(value, fallback = 0) {
     const n = Number(value);
     return Number.isFinite(n) ? n : fallback;
   }
 
-  function daysSince(dateValue, nowMs = Date.now()) {
-    if (!dateValue) return 9999;
-    const ts = new Date(dateValue).getTime();
-    if (!Number.isFinite(ts)) return 9999;
-    return Math.floor((nowMs - ts) / 86400000);
+  function validDate(value) {
+    if (!value) return null;
+    const ts = new Date(value).getTime();
+    return Number.isFinite(ts) ? ts : null;
+  }
+
+  function daysSince(value, nowMs = Date.now()) {
+    const ts = validDate(value);
+    if (ts === null) return 9999;
+    return Math.max(0, Math.floor((nowMs - ts) / 86400000));
   }
 
   function calculate(input = {}, nowMs = Date.now()) {
+    const lastVisit =
+      input.lastVisit ||
+      input.last_visit ||
+      input.lastVisitedAt ||
+      null;
+
+    const lastOrder =
+      input.lastOrder ||
+      input.lastOrderAt ||
+      input.last_order ||
+      input.lastPurchase ||
+      null;
+
+    const visitTs = validDate(lastVisit);
+    const orderTs = validDate(lastOrder);
+
+    // daysFromVisit keeps its literal meaning.
     const daysFromVisit =
-      input.daysFromVisit !== undefined && input.daysFromVisit !== null
-        ? finiteNumber(input.daysFromVisit, 9999)
-        : daysSince(input.lastVisit, nowMs);
+      visitTs !== null
+        ? daysSince(lastVisit, nowMs)
+        : 9999;
+
+    const daysFromOrder =
+      orderTs !== null
+        ? daysSince(lastOrder, nowMs)
+        : 9999;
+
+    // Critical fix:
+    // RFM Recency uses the latest factual visit when it exists.
+    // If a buyer has NEVER been scanned/visited yet, use the last paid purchase
+    // rather than interpreting "no visit" as 9999 days of inactivity.
+    const recencyBasis =
+      visitTs !== null
+        ? "visit"
+        : orderTs !== null
+          ? "purchase"
+          : "none";
+
+    const daysRecency =
+      recencyBasis === "visit"
+        ? daysFromVisit
+        : recencyBasis === "purchase"
+          ? daysFromOrder
+          : 9999;
 
     const frequency =
       input.frequency !== undefined && input.frequency !== null
@@ -34,15 +79,15 @@
             0
           );
 
-    // EXACT current KB thresholds.
+    // Current KB score thresholds remain unchanged.
     let r = 1;
     let f = 1;
     let m = 1;
 
-    if (daysFromVisit <= 30) r = 5;
-    else if (daysFromVisit <= 90) r = 4;
-    else if (daysFromVisit <= 180) r = 3;
-    else if (daysFromVisit <= 365) r = 2;
+    if (daysRecency <= 30) r = 5;
+    else if (daysRecency <= 90) r = 4;
+    else if (daysRecency <= 180) r = 3;
+    else if (daysRecency <= 365) r = 2;
 
     if (frequency >= 10) f = 5;
     else if (frequency >= 5) f = 4;
@@ -75,6 +120,9 @@
     return {
       version: VERSION,
       daysFromVisit,
+      daysFromOrder,
+      daysRecency,
+      recencyBasis,
       frequency,
       monetary,
       r,
