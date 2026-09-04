@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.22 — Customer Research + KB RFM + LTV + Retention + Paid Acquisition</title>
+  <title>VA Marketing V2.22.1 — Customer Research V1.1 + KB RFM + LTV + Retention</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -394,6 +394,13 @@ textarea::placeholder{
   @media(max-width:950px){.research-grid{grid-template-columns:1fr}.research-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.research-kpis,.research-summary-grid{grid-template-columns:1fr}}
 
+
+  .research-dimensions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+  .research-dimension{border:1px solid var(--line);border-radius:10px;padding:9px;background:#0a1d35}
+  .research-dimension span{display:block;color:var(--muted);font-size:10px}
+  .research-dimension b{display:block;margin-top:3px}
+  @media(max-width:900px){.research-dimensions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:620px){.research-dimensions{grid-template-columns:1fr}}
 </style>
 </head>
 
@@ -404,7 +411,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.22</h1>
+        <h1>Marketing Control Center V2.22.1</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.21.1 підключає єдиний RFM Клієнтської бази до Marketing: КБ рахує статус → Marketing формує аудиторію → Campaign.
@@ -420,7 +427,7 @@ textarea::placeholder{
         <span class="badge">Retention V1</span>
         <span class="badge">LTV V1</span>
         <span class="badge">RFM КБ Bridge V1</span>
-        <span class="badge">Customer Research V1</span>
+        <span class="badge">Customer Research V1.1</span>
       </div>
     </div>
   </div>
@@ -5657,7 +5664,10 @@ const RESEARCH_SOURCE_TYPES = [
   ["interview","Розмова / інтерв'ю"],
   ["box_office","Каса / билетний відділ"],
   ["phone","Телефон / месенджер"],
-  ["social","Коментар / соцмережа"],
+  ["google_review","Google Reviews"],
+  ["facebook","Facebook / група / коментар"],
+  ["website_review","Сайт / публічний відгук"],
+  ["social","Інша соцмережа"],
   ["survey","Опитування"],
   ["post_event","Після події"],
   ["observation","Спостереження"],
@@ -5673,6 +5683,8 @@ const RESEARCH_SIGNAL_TYPES = [
   ["trigger","Реальний тригер"],
   ["language","Фраза покупця"],
   ["logistics","Логістика"],
+  ["product_fit","Product / Cultural Fit"],
+  ["awareness","Поінформованість / впізнаваність"],
   ["price","Ціна / цінність"],
   ["other","Інше"]
 ];
@@ -5681,6 +5693,26 @@ const RESEARCH_STRENGTHS = [
   ["single","Один факт",1],
   ["repeated","Повторюється",2],
   ["verified","Підтверджено кількома джерелами",3]
+];
+
+const RESEARCH_EVIDENCE_TYPES = [
+  ["decision","Decision — чому купив / не купив"],
+  ["experience","Experience — що сталося після відвідування"]
+];
+
+const RESEARCH_ORIGINS = [
+  ["internal","Internal — власний контакт / дані площадки"],
+  ["external","External — публічне зовнішнє джерело"]
+];
+
+const RESEARCH_SOURCE_ROLES = [
+  ["buyer","Покупець"],
+  ["visitor","Відвідувач"],
+  ["potential","Потенційний глядач"],
+  ["staff","Співробітник площадки"],
+  ["manager","Керівник / менеджмент"],
+  ["partner","Партнер / зовнішній професійний контакт"],
+  ["unknown","Невизначено"]
 ];
 
 function loadCustomerResearch(){
@@ -5782,8 +5814,12 @@ function researchSummary(notes){
   return {
     total:rows.length,
     repeated:rows.filter(n=>["repeated","verified"].includes(n.strength)).length,
-    barriers:rows.filter(n=>["barrier","risk","logistics","price"].includes(n.signal_type)).length,
+    barriers:rows.filter(n=>["barrier","risk","logistics","price","product_fit","awareness"].includes(n.signal_type)).length,
     motives:rows.filter(n=>n.signal_type==="motive").length,
+    decision:rows.filter(n=>(n.evidence_type||"decision")==="decision").length,
+    experience:rows.filter(n=>n.evidence_type==="experience").length,
+    internal:rows.filter(n=>(n.origin||"internal")==="internal").length,
+    external:rows.filter(n=>n.origin==="external").length,
     signals
   };
 }
@@ -5854,6 +5890,11 @@ function saveResearchNote(){
     source_type:String(document.getElementById("researchSource")?.value||"observation"),
     signal_type:String(document.getElementById("researchSignal")?.value||"other"),
     strength:String(document.getElementById("researchStrength")?.value||"single"),
+    evidence_type:String(document.getElementById("researchEvidenceType")?.value||"decision"),
+    origin:String(document.getElementById("researchOrigin")?.value||"internal"),
+    source_role:String(document.getElementById("researchRole")?.value||"unknown"),
+    audience_origin:String(document.getElementById("researchAudienceOrigin")?.value||"").trim(),
+    source_url:String(document.getElementById("researchSourceUrl")?.value||"").trim(),
     summary,
     quote:String(document.getElementById("researchQuote")?.value||"").trim(),
     context:String(document.getElementById("researchContext")?.value||"").trim()
@@ -5892,7 +5933,7 @@ async function applyResearchToDecisionMap(id){
 
   if(note.signal_type==="motive"){
     ctx.motiveDetail=mergeResearchEvidence(ctx.motiveDetail,evidence);
-  }else if(["barrier","risk","logistics","price"].includes(note.signal_type)){
+  }else if(["barrier","risk","logistics","price","product_fit","awareness"].includes(note.signal_type)){
     ctx.barrierDetail=mergeResearchEvidence(ctx.barrierDetail,evidence);
   }else if(note.signal_type==="alternative"){
     ctx.alternative=mergeResearchEvidence(ctx.alternative,evidence);
@@ -5955,9 +5996,14 @@ function renderResearchNoteCard(note){
 
     <div class="research-meta">
       <span class="pill">${esc(researchSourceLabel(note.source_type))}</span>
+      <span class="pill">${esc(note.evidence_type==="experience"?"Experience":"Decision")}</span>
+      <span class="pill">${esc(note.origin==="external"?"External":"Internal")}</span>
+      <span class="pill">${esc((RESEARCH_SOURCE_ROLES.find(x=>x[0]===String(note.source_role||"unknown"))||RESEARCH_SOURCE_ROLES[RESEARCH_SOURCE_ROLES.length-1])[1])}</span>
       <span class="pill">${seance?esc(seance.show||note.seance_id):"Загальний факт"}</span>
+      ${note.audience_origin?`<span class="pill">Origin: ${esc(note.audience_origin)}</span>`:""}
       ${note.segment_label?`<span class="pill">${esc(note.segment_label)}</span>`:""}
     </div>
+    ${note.source_url?`<div class="micro">Джерело: ${esc(note.source_url)}</div>`:""}
 
     ${note.quote?`<div class="research-quote">«${esc(note.quote)}»</div>`:""}
     ${note.context?`<div class="micro">${esc(note.context)}</div>`:""}
@@ -5988,7 +6034,7 @@ function renderCustomerResearchSection(){
     </div></div>
 
     <div class="research-rule">
-      <b>Правило V1:</b> без ПІБ, телефону, email та інших персональних даних. Один запис = один конкретний факт. «Один факт» не стає істиною автоматично; повторюваність підвищує вагу, а Marketing Psychology залишається окремим рішенням маркетолога.
+      <b>Правило V1.1:</b> без ПІБ, телефону, email та інших персональних даних. VA окремо фіксує Decision/Experience, Internal/External, роль джерела та Audience origin. Один запис = один конкретний факт. «Один факт» не стає істиною автоматично; повторюваність підвищує вагу, а Marketing Psychology залишається окремим рішенням маркетолога.
     </div>
 
     ${renderScopeHeader()}
@@ -6014,6 +6060,31 @@ function renderCustomerResearchSection(){
         <div class="field">
           <label>Джерело факту</label>
           <select id="researchSource">${researchFormOptions(RESEARCH_SOURCE_TYPES,edit?.source_type||"observation")}</select>
+        </div>
+
+        <div class="field">
+          <label>Тип evidence</label>
+          <select id="researchEvidenceType">${researchFormOptions(RESEARCH_EVIDENCE_TYPES,edit?.evidence_type||"decision")}</select>
+        </div>
+
+        <div class="field">
+          <label>Походження</label>
+          <select id="researchOrigin">${researchFormOptions(RESEARCH_ORIGINS,edit?.origin||"internal")}</select>
+        </div>
+
+        <div class="field">
+          <label>Роль джерела</label>
+          <select id="researchRole">${researchFormOptions(RESEARCH_SOURCE_ROLES,edit?.source_role||"unknown")}</select>
+        </div>
+
+        <div class="field">
+          <label>Audience origin — необов'язково</label>
+          <input id="researchAudienceOrigin" value="${escAttr(edit?.audience_origin||"")}" placeholder="Google Reviews, театральна FB-група, культурний network, широка міська аудиторія">
+        </div>
+
+        <div class="field">
+          <label>Посилання на публічне джерело — необов'язково</label>
+          <input id="researchSourceUrl" value="${escAttr(edit?.source_url||"")}" placeholder="Google Review / Facebook post / сайт...">
         </div>
 
         <div class="field">
@@ -6061,6 +6132,12 @@ function renderCustomerResearchSection(){
       <div class="research-kpi"><span>Мотиви</span><b>${summary.motives}</b><div class="micro">позитивні причини рішення</div></div>
     </div>
 
+    <div class="research-dimensions">
+      <div class="research-dimension"><span>Decision evidence</span><b>${summary.decision}</b></div>
+      <div class="research-dimension"><span>Experience evidence</span><b>${summary.experience}</b></div>
+      <div class="research-dimension"><span>Internal</span><b>${summary.internal}</b></div>
+      <div class="research-dimension"><span>External</span><b>${summary.external}</b></div>
+    </div>
     <div class="research-insight"><b>Що каже VA:</b> ${esc(researchInsight(notes))}</div>
 
     ${signalTop.length?`<div class="research-summary-grid">
