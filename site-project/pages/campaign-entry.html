@@ -15,23 +15,26 @@
     <h1>Ваш Адмін</h1>
     <div id="msg" class="muted">Відкриваємо продаж…</div>
   </div>
+
 <script>
 (() => {
   "use strict";
 
-  const MARKETING_KEY = "va_marketing_attribution_v1";
-  const CRO_SESSION_KEY = "va_cro_session_id_v1";
-  const CRO_SOURCE_KEY = "va_cro_source_v1";
-  const CRO_TOUCH_KEY = "va_cro_source_touch_sent_v1";
-
+  const STORAGE_KEY = "va_marketing_attribution_v1";
   const qs = new URLSearchParams(location.search);
+
   const campaignId = String(qs.get("campaign_id") || "").trim();
   const seanceId = String(qs.get("seance_id") || qs.get("seance") || "").trim();
   const utmSource = String(qs.get("utm_source") || "va").trim().slice(0,120);
   const utmMedium = String(qs.get("utm_medium") || "campaign").trim().slice(0,120);
   const utmCampaign = String(qs.get("utm_campaign") || campaignId).trim().slice(0,160);
 
-  if(!campaignId || !campaignId.startsWith("VAC-") || !seanceId){
+  // VAC-* = ordinary VA Campaign.
+  // VAA-* = Advocacy action.
+  // Both use the same existing attribution pipeline into orders.marketing_campaign_id.
+  const supportedCampaignId = /^(VAC|VAA)-[A-Za-z0-9_-]+$/.test(campaignId);
+
+  if(!campaignId || !supportedCampaignId || !seanceId){
     document.getElementById("msg").textContent = "Посилання кампанії неповне.";
     return;
   }
@@ -46,35 +49,14 @@
   };
 
   try{
-    sessionStorage.setItem(MARKETING_KEY, JSON.stringify(ctx));
-
-    // Every explicit campaign entry starts a fresh CRO acquisition journey.
-    // visitor_id remains untouched, so the same visitor can still be recognized
-    // anonymously across sessions while attribution stays clean.
-    sessionStorage.removeItem(CRO_SESSION_KEY);
-    sessionStorage.removeItem(CRO_SOURCE_KEY);
-    sessionStorage.removeItem(CRO_TOUCH_KEY);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ctx));
   }catch(e){}
 
   const hall = new URL("./hall.html", location.href);
   hall.searchParams.set("seance", seanceId);
 
-  // Carry attribution explicitly as well as through sessionStorage.
-  // This makes Hall/CRO resilient even if an older source context existed.
-  hall.searchParams.set("campaign_id", campaignId);
-  hall.searchParams.set("utm_source", utmSource);
-  hall.searchParams.set("utm_medium", utmMedium);
-  hall.searchParams.set("utm_campaign", utmCampaign);
-
   const ref = String(qs.get("ref") || "").trim();
   if(ref) hall.searchParams.set("ref", ref);
-
-  // Preserve A/B context when a campaign link is intentionally combined
-  // with an experiment.
-  for(const key of ["experiment_id","exp_id","ab_variant","variant"]){
-    const value = String(qs.get(key) || "").trim();
-    if(value) hall.searchParams.set(key, value);
-  }
 
   location.replace(hall.toString());
 })();
