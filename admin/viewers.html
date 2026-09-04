@@ -5,7 +5,7 @@
   <title>Клієнтська база V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../shared/va-client-rfm.js?v=1.0.0"></script> 
+  <script src="../shared/va-client-rfm.js?v=1.0.1"></script> 
 
   <style>
     body {
@@ -1105,7 +1105,7 @@ document.getElementById("viewerStatus").innerHTML = `
     <h3>Статус</h3>
     <div class="viewer-line"><b>Статус:</b> ${status}</div>
     <div class="viewer-line"><b>RFM:</b> ${client.rfmSegment} (${client.rfmTitle})</div>
-    <div class="viewer-line"><b>Днів після візиту:</b> ${client.daysFromVisit}</div>
+    <div class="viewer-line"><b>${client.recencyBasis === "purchase" ? "Днів після покупки" : "Днів після візиту"}:</b> ${client.daysRecency}</div>
   </div>
 
   <div class="viewer-card">
