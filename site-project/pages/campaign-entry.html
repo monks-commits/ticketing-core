@@ -18,7 +18,12 @@
 <script>
 (() => {
   "use strict";
-  const STORAGE_KEY = "va_marketing_attribution_v1";
+
+  const MARKETING_KEY = "va_marketing_attribution_v1";
+  const CRO_SESSION_KEY = "va_cro_session_id_v1";
+  const CRO_SOURCE_KEY = "va_cro_source_v1";
+  const CRO_TOUCH_KEY = "va_cro_source_touch_sent_v1";
+
   const qs = new URLSearchParams(location.search);
   const campaignId = String(qs.get("campaign_id") || "").trim();
   const seanceId = String(qs.get("seance_id") || qs.get("seance") || "").trim();
@@ -40,12 +45,37 @@
     captured_at: new Date().toISOString()
   };
 
-  try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ctx)); }catch(e){}
+  try{
+    sessionStorage.setItem(MARKETING_KEY, JSON.stringify(ctx));
+
+    // Every explicit campaign entry starts a fresh CRO acquisition journey.
+    // visitor_id remains untouched, so the same visitor can still be recognized
+    // anonymously across sessions while attribution stays clean.
+    sessionStorage.removeItem(CRO_SESSION_KEY);
+    sessionStorage.removeItem(CRO_SOURCE_KEY);
+    sessionStorage.removeItem(CRO_TOUCH_KEY);
+  }catch(e){}
 
   const hall = new URL("./hall.html", location.href);
   hall.searchParams.set("seance", seanceId);
+
+  // Carry attribution explicitly as well as through sessionStorage.
+  // This makes Hall/CRO resilient even if an older source context existed.
+  hall.searchParams.set("campaign_id", campaignId);
+  hall.searchParams.set("utm_source", utmSource);
+  hall.searchParams.set("utm_medium", utmMedium);
+  hall.searchParams.set("utm_campaign", utmCampaign);
+
   const ref = String(qs.get("ref") || "").trim();
   if(ref) hall.searchParams.set("ref", ref);
+
+  // Preserve A/B context when a campaign link is intentionally combined
+  // with an experiment.
+  for(const key of ["experiment_id","exp_id","ab_variant","variant"]){
+    const value = String(qs.get(key) || "").trim();
+    if(value) hall.searchParams.set(key, value);
+  }
+
   location.replace(hall.toString());
 })();
 </script>
