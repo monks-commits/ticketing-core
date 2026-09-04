@@ -467,10 +467,14 @@ const refCode =
 
 const MARKETING_ATTRIBUTION_STORAGE_KEY = "va_marketing_attribution_v1";
 
+function isSupportedMarketingAttributionId(value){
+  return /^(VAC|VAA)-[A-Za-z0-9_-]+$/.test(String(value || "").trim());
+}
+
 function readMarketingAttribution(){
   const fromUrlCampaign = String(qs.get("campaign_id") || "").trim();
   const fromUrlSeance = String(qs.get("seance") || "").trim();
-  if(fromUrlCampaign && fromUrlCampaign.startsWith("VAC-")){
+  if(fromUrlCampaign && isSupportedMarketingAttributionId(fromUrlCampaign)){
     return {
       campaign_id: fromUrlCampaign,
       seance_id: fromUrlSeance,
@@ -483,7 +487,7 @@ function readMarketingAttribution(){
     const raw = sessionStorage.getItem(MARKETING_ATTRIBUTION_STORAGE_KEY);
     const x = raw ? JSON.parse(raw) : null;
     if(!x || typeof x !== "object") return null;
-    if(!String(x.campaign_id || "").startsWith("VAC-")) return null;
+    if(!isSupportedMarketingAttributionId(x.campaign_id)) return null;
     return x;
   }catch(e){ return null; }
 }
