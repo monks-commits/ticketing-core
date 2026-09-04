@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.17.1 — Psychology + Offer + CRO + A/B + Paid Acquisition V1.1</title>
+  <title>VA Marketing V2.18 — Campaign Types + Psychology + CRO + A/B + Paid Acquisition</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -311,7 +311,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.17.1</h1>
+        <h1>Marketing Control Center V2.18</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.17 замикає Paid Acquisition V1: витрати з Журналу маркетингу → campaign_id → CRO → фактичний Paid → покупці, квитки, виручка, CPA, CPT і ROAS.
@@ -418,6 +418,9 @@ let PAID_ACQ_TAB = "sources";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
+  campaignType: "direct", // direct | paid
+  campaignName: "",
+  paidAudience: "",
   segmentKey: "",
   segmentLabel: "",
   audienceCount: 0,
@@ -475,6 +478,9 @@ function prepareExternalCampaign(){
   const x = externalContextForFocus();
   if(!x || !Number(x.available||0)) return;
   CAMPAIGN_DRAFT = {
+    campaignType:"direct",
+    campaignName:"",
+    paidAudience:"",
     segmentKey:"external",
     segmentLabel:`${x.operator || "Зовнішня база"}${x.source_event ? " • " + x.source_event : ""}`,
     audienceCount:Number(x.available||0),
@@ -557,7 +563,11 @@ function updateUrlContext(){
 
 function syncCampaignDraftFromEntity(c){
   if(!c) return;
+  const type = c.campaignType || (c.segmentKey === "paid" ? "paid" : "direct");
   CAMPAIGN_DRAFT = {
+    campaignType:type,
+    campaignName:c.name || "",
+    paidAudience:c.paidAudience || (type === "paid" ? (c.segmentLabel || "") : ""),
     segmentKey:c.segmentKey || "",
     segmentLabel:c.segmentLabel || "",
     audienceCount:Number(c.audienceCount || 0),
@@ -650,18 +660,76 @@ function openVAWorkspace(key){
   location.href = url.toString();
 }
 
+function campaignDraftType(){
+  return CAMPAIGN_DRAFT.campaignType === "paid" ? "paid" : "direct";
+}
+
+function campaignDraftReady(){
+  if(!getFocusSeance()) return false;
+  if(campaignDraftType() === "paid") return Boolean(String(CAMPAIGN_DRAFT.channel || "").trim());
+  return Boolean(CAMPAIGN_DRAFT.segmentKey);
+}
+
+function setCampaignType(type){
+  const active = getActiveCampaign();
+  if(active && (active.status || "draft") !== "draft"){
+    alert("Тип запущеної кампанії зафіксований. Створіть нову кампанію.");
+    return;
+  }
+  const next = type === "paid" ? "paid" : "direct";
+  CAMPAIGN_DRAFT.campaignType = next;
+  if(next === "paid"){
+    CAMPAIGN_DRAFT.segmentKey = "paid";
+    CAMPAIGN_DRAFT.segmentLabel = CAMPAIGN_DRAFT.paidAudience || "Платна аудиторія";
+    CAMPAIGN_DRAFT.audienceCount = 0;
+    CAMPAIGN_DRAFT.reachableCount = 0;
+    if(!CAMPAIGN_DRAFT.objective){
+      const s=getFocusSeance();
+      CAMPAIGN_DRAFT.objective = `Залучити нових покупців на «${s?.show || scopeTitle()}» через платний канал`;
+    }
+  }else{
+    if(CAMPAIGN_DRAFT.segmentKey === "paid"){
+      CAMPAIGN_DRAFT.segmentKey = "";
+      CAMPAIGN_DRAFT.segmentLabel = "";
+      CAMPAIGN_DRAFT.audienceCount = 0;
+      CAMPAIGN_DRAFT.reachableCount = 0;
+    }
+    CAMPAIGN_DRAFT.paidAudience = "";
+  }
+  renderCampaignsSection();
+}
+
+function setPaidCampaignSource(value){
+  CAMPAIGN_DRAFT.channel = String(value || "").trim();
+  const s=getFocusSeance();
+  if(CAMPAIGN_DRAFT.channel){
+    CAMPAIGN_DRAFT.objective = `Залучити нових покупців на «${s?.show || scopeTitle()}» через ${CAMPAIGN_DRAFT.channel}`;
+  }
+}
+
 function campaignSnapshotFromDraft(){
   const seance = getFocusSeance();
-  if(!seance || !CAMPAIGN_DRAFT.segmentKey) return null;
+  const type = campaignDraftType();
+  if(!seance) return null;
+  if(type === "direct" && !CAMPAIGN_DRAFT.segmentKey) return null;
+  if(type === "paid" && !String(CAMPAIGN_DRAFT.channel || "").trim()) return null;
+
   const passport = marketingContextStatus(seance.id);
+  const defaultName = type === "paid"
+    ? `${seance.show || "Подія"} • ${CAMPAIGN_DRAFT.channel || "Paid"}`
+    : `${seance.show || "Подія"} • ${CAMPAIGN_DRAFT.segmentLabel || "Кампанія"}`;
+  const paidAudience = String(CAMPAIGN_DRAFT.paidAudience || "").trim();
+
   return {
     seance_id: String(seance.id),
-    name: `${seance.show || "Подія"} • ${CAMPAIGN_DRAFT.segmentLabel || "Кампанія"}`,
+    campaignType:type,
+    name: String(CAMPAIGN_DRAFT.campaignName || "").trim() || defaultName,
     goal: CAMPAIGN_DRAFT.objective || "",
-    segmentKey: CAMPAIGN_DRAFT.segmentKey,
-    segmentLabel: CAMPAIGN_DRAFT.segmentLabel,
-    audienceCount: Number(CAMPAIGN_DRAFT.audienceCount || 0),
-    reachableCount: Number(CAMPAIGN_DRAFT.reachableCount || 0),
+    segmentKey: type === "paid" ? "paid" : CAMPAIGN_DRAFT.segmentKey,
+    segmentLabel: type === "paid" ? (paidAudience || "Платна аудиторія") : CAMPAIGN_DRAFT.segmentLabel,
+    paidAudience: type === "paid" ? paidAudience : "",
+    audienceCount: type === "paid" ? 0 : Number(CAMPAIGN_DRAFT.audienceCount || 0),
+    reachableCount: type === "paid" ? 0 : Number(CAMPAIGN_DRAFT.reachableCount || 0),
     channel: CAMPAIGN_DRAFT.channel || "",
     comment: CAMPAIGN_DRAFT.comment || "",
     passport: {
@@ -695,7 +763,7 @@ function campaignSnapshotFromDraft(){
 
 function saveCampaignEntity(){
   const snap = campaignSnapshotFromDraft();
-  if(!snap){ alert("Оберіть один сеанс і сегмент аудиторії."); return; }
+  if(!snap){ alert(campaignDraftType()==="paid" ? "Оберіть один сеанс і вкажіть джерело платного трафіку." : "Оберіть один сеанс і сегмент аудиторії."); return; }
   const now = new Date().toISOString();
   let campaign = getActiveCampaign();
   if(campaign && String(campaign.seance_id) === String(snap.seance_id)){
@@ -1838,6 +1906,9 @@ function prepareCampaignForSegment(key){
     : "";
 
   CAMPAIGN_DRAFT = {
+    campaignType:"direct",
+    campaignName:CAMPAIGN_DRAFT.campaignName || "",
+    paidAudience:"",
     segmentKey: segment.key,
     segmentLabel: segment.label,
     audienceCount: segment.count,
@@ -1851,12 +1922,22 @@ function prepareCampaignForSegment(key){
 }
 
 function sendCampaignDraftToJournal(){
+  if(!campaignDraftReady()){
+    alert(campaignDraftType()==="paid" ? "Спочатку вкажіть джерело платного трафіку." : "Спочатку оберіть аудиторію кампанії.");
+    return;
+  }
   openMarketingSection(5);
   const type = document.getElementById("jType");
   const channel = document.getElementById("jChannel");
   const comment = document.getElementById("jComment");
+  const active = getActiveCampaign();
+  const name = active?.name || String(CAMPAIGN_DRAFT.campaignName || "").trim();
 
-  if(type) type.value = CAMPAIGN_DRAFT.segmentLabel ? `Кампанія: ${CAMPAIGN_DRAFT.segmentLabel}` : "Маркетингова кампанія";
+  if(type){
+    type.value = campaignDraftType()==="paid"
+      ? `Paid Acquisition${name ? ": " + name : ""}`
+      : (CAMPAIGN_DRAFT.segmentLabel ? `Кампанія: ${CAMPAIGN_DRAFT.segmentLabel}` : "Маркетингова кампанія");
+  }
   if(channel) channel.value = CAMPAIGN_DRAFT.channel || "";
   if(comment){
     const focusSeance = getFocusSeance();
@@ -1864,19 +1945,25 @@ function sendCampaignDraftToJournal(){
     const contentContext = passport?.ctx?.corePromise
       ? `Контекст: ${passport.ctx.corePromise}${passport.ctx.tone ? ` | Тон: ${passport.ctx.tone}` : ""}`
       : "";
-    comment.value = [CAMPAIGN_DRAFT.objective, CAMPAIGN_DRAFT.comment, contentContext].filter(Boolean).join("\n");
+    const paidContext = campaignDraftType()==="paid"
+      ? `Paid source: ${CAMPAIGN_DRAFT.channel || "—"}${CAMPAIGN_DRAFT.paidAudience ? ` | Аудиторія: ${CAMPAIGN_DRAFT.paidAudience}` : ""}`
+      : "";
+    comment.value = [CAMPAIGN_DRAFT.objective, CAMPAIGN_DRAFT.comment, paidContext, contentContext].filter(Boolean).join("\n");
   }
 }
 
 function resetCampaignDraft(){
   CAMPAIGN_DRAFT = {
-    segmentKey: "",
-    segmentLabel: "",
-    audienceCount: 0,
-    reachableCount: 0,
-    channel: "",
-    objective: "",
-    comment: ""
+    campaignType:"direct",
+    campaignName:"",
+    paidAudience:"",
+    segmentKey:"",
+    segmentLabel:"",
+    audienceCount:0,
+    reachableCount:0,
+    channel:"",
+    objective:"",
+    comment:""
   };
 }
 
@@ -3054,7 +3141,7 @@ function renderCampaignCopyCard(title, body, id, subject=""){
 
 
 function campaignAudienceRecipients(campaign){
-  if(!campaign || campaign.segmentKey === "external") return [];
+  if(!campaign || campaign.segmentKey === "external" || campaign.segmentKey === "paid" || campaign.campaignType === "paid") return [];
   const normalized = campaign.segmentKey === "repeat" ? "returned" : campaign.segmentKey;
   const seg = getAudienceSegment(normalized);
   const clients = Array.isArray(seg?.clients) ? seg.clients : [];
@@ -3073,6 +3160,7 @@ function sendCampaignToServiceCommunications(){
   if(!campaign) return alert("Спочатку відкрийте або збережіть кампанію.");
   if(String(campaign.status||"draft") !== "active") return alert("Перед відправленням запустіть кампанію. Так стартовий зріз буде зафіксовано до першого листа.");
   if(!campaign.seance_id) return alert("У кампанії немає seance_id.");
+  if((campaign.campaignType || (campaign.segmentKey==="paid"?"paid":"direct")) === "paid") return alert("Paid Acquisition не передається у Службові комунікації. Використовуйте campaign-link у рекламному кабінеті.");
   if(campaign.segmentKey === "external") return alert("Зовнішню базу поки не передаємо в автоматичну розсилку. Спочатку потрібен окремий імпорт з явною згодою на контакт.");
 
   const seance = SEANCES.find(s => String(s.id) === String(campaign.seance_id));
@@ -3129,19 +3217,29 @@ function renderCampaignsSection(){
   const brief = buildMarketingBrief(s);
   const intel = getAudienceIntelligence(getScopeSeanceIds());
   const externalCtx = externalContextForFocus();
-  const selected = CAMPAIGN_DRAFT.segmentKey === "external" && externalCtx
+  const selected = campaignDraftType() === "paid"
     ? {
-        key:"external",
-        label:CAMPAIGN_DRAFT.segmentLabel || `${externalCtx.operator || "Зовнішня база"}`,
-        count:Number(externalCtx.available||0),
-        reachable:Number(externalCtx.available||0),
-        email:Number(externalCtx.email||0),
-        phone:Number(externalCtx.phone||0),
-        description:`Окремий імпорт ${externalCtx.operator || "оператора"}; виключено тих, хто вже купив поточний сеанс.`
+        key:"paid",
+        label:CAMPAIGN_DRAFT.paidAudience || "Платна аудиторія",
+        count:0,
+        reachable:0,
+        email:0,
+        phone:0,
+        description:`Платний трафік через ${CAMPAIGN_DRAFT.channel || "обране джерело"}`
       }
-    : (CAMPAIGN_DRAFT.segmentKey
-        ? getAudienceSegment(CAMPAIGN_DRAFT.segmentKey)
-        : null);
+    : (CAMPAIGN_DRAFT.segmentKey === "external" && externalCtx
+      ? {
+          key:"external",
+          label:CAMPAIGN_DRAFT.segmentLabel || `${externalCtx.operator || "Зовнішня база"}`,
+          count:Number(externalCtx.available||0),
+          reachable:Number(externalCtx.available||0),
+          email:Number(externalCtx.email||0),
+          phone:Number(externalCtx.phone||0),
+          description:`Окремий імпорт ${externalCtx.operator || "оператора"}; виключено тих, хто вже купив поточний сеанс.`
+        }
+      : (CAMPAIGN_DRAFT.segmentKey
+          ? getAudienceSegment(CAMPAIGN_DRAFT.segmentKey)
+          : null));
 
   const focusSeance = s.seances.length === 1 ? s.seances[0] : null;
   const days = focusSeance ? daysToSeance(focusSeance) : null;
@@ -3165,7 +3263,7 @@ function renderCampaignsSection(){
     ${renderExternalAudienceContext()}
 
     <div class="box campaign-card" style="margin-bottom:14px">
-      <div class="eyebrow">VA Campaign Object • V2.8.1</div>
+      <div class="eyebrow">VA Campaign Object • V2.9 • DIRECT / PAID</div>
       ${activeCampaign ? `
         <div class="context-bridge-row">
           <div>
@@ -3174,17 +3272,46 @@ function renderCampaignsSection(){
           </div>
           <div><span class="pill status-${esc(activeCampaign.status || "draft")}">${esc(campaignStatusLabel(activeCampaign.status || "draft"))}</span></div>
         </div>
-      ` : `<div class="muted">Поки це робоча чернетка. Після вибору сегмента натисніть «Зберегти як кампанію» — VA створить постійний campaign_id.</div>`}
+      ` : `<div class="muted">Поки це робоча чернетка. Оберіть тип кампанії, задайте її параметри й збережіть — VA створить постійний campaign_id.</div>`}
       <div class="toolbar">
-        <button class="btn" onclick="saveCampaignEntity()" ${(CAMPAIGN_DRAFT.segmentKey && (!activeCampaign || (activeCampaign.status || "draft") === "draft")) ? "" : "disabled"}>${activeCampaign && (activeCampaign.status || "draft") !== "draft" ? "Параметри зафіксовані" : activeCampaign ? "Оновити кампанію" : "Зберегти як кампанію"}</button>
+        <button class="btn" onclick="saveCampaignEntity()" ${(campaignDraftReady() && (!activeCampaign || (activeCampaign.status || "draft") === "draft")) ? "" : "disabled"}>${activeCampaign && (activeCampaign.status || "draft") !== "draft" ? "Параметри зафіксовані" : activeCampaign ? "Оновити кампанію" : "Зберегти як кампанію"}</button>
         <button class="btn secondary" onclick="newCampaignEntity()">Нова кампанія</button>
       </div>
       ${activeCampaign ? renderCampaignLifecycle(activeCampaign) : ""}
     </div>
 
+    <div class="box" style="margin-bottom:14px">
+      <div class="eyebrow">ТИП КАМПАНІЇ</div>
+      <h3 style="margin-bottom:6px">Звідки приходить аудиторія</h3>
+      <div class="toolbar" style="margin-bottom:12px">
+        <button class="btn small ${campaignDraftType()==="direct" ? "" : "secondary"}" onclick="setCampaignType('direct')">КБ / прямий контакт</button>
+        <button class="btn small ${campaignDraftType()==="paid" ? "" : "secondary"}" onclick="setCampaignType('paid')">💰 Платне залучення</button>
+      </div>
+      <div class="field">
+        <label>Назва кампанії</label>
+        <input value="${escAttr(CAMPAIGN_DRAFT.campaignName || activeCampaign?.name || "")}" oninput="CAMPAIGN_DRAFT.campaignName=this.value" placeholder="${campaignDraftType()==="paid" ? "Напр.: PAID TEST • Facebook Ads" : "Можна залишити порожнім — VA створить назву автоматично"}">
+      </div>
+      ${campaignDraftType()==="paid" ? `
+        <div class="passport-grid" style="margin-top:12px">
+          <div class="field">
+            <label>Джерело платного трафіку *</label>
+            <input list="paidSourceOptions" value="${escAttr(CAMPAIGN_DRAFT.channel || "")}" oninput="setPaidCampaignSource(this.value)" placeholder="Facebook Ads, Telegram Ads, Google Ads...">
+            <datalist id="paidSourceOptions">
+              <option value="Facebook Ads"><option value="Instagram Ads"><option value="Meta Ads"><option value="Google Ads"><option value="Telegram Ads"><option value="TikTok Ads"><option value="YouTube Ads">
+            </datalist>
+          </div>
+          <div class="field">
+            <label>Аудиторія реклами — необов'язково</label>
+            <input value="${escAttr(CAMPAIGN_DRAFT.paidAudience || "")}" oninput="CAMPAIGN_DRAFT.paidAudience=this.value;CAMPAIGN_DRAFT.segmentLabel=this.value||'Платна аудиторія'" placeholder="Напр.: Кривий Ріг, 25–45, інтерес до театру">
+          </div>
+        </div>
+        <div class="notice" style="margin-top:12px"><b>Правило:</b> один paid campaign_id = одне джерело з окремим бюджетом. Аудиторію КБ тут обирати не потрібно. Витрати фіксуються в Журналі, продаж доводиться campaign_id.</div>
+      ` : `<div class="micro" style="margin-top:10px">Прямі кампанії працюють з КБ VA або окремо імпортованою зовнішньою аудиторією.</div>`}
+    </div>
+
     ${renderScopeHeader()}
 
-    <div class="box" style="margin-bottom:14px">
+    ${campaignDraftType()==="direct" ? `<div class="box" style="margin-bottom:14px">
       <div class="eyebrow">ОБЕРІТЬ АУДИТОРІЮ КАМПАНІЇ</div>
       <h3 style="margin-bottom:6px">Кому показуємо саме цей сеанс</h3>
       <div class="muted" style="margin-bottom:12px">Ті, хто вже купив поточний сеанс (${intel.alreadyBought}), автоматично виключені з усіх сегментів. Сегменти можуть перетинатися.</div>
@@ -3205,23 +3332,27 @@ function renderCampaignsSection(){
         ` : ""}
       </div>
       <div class="micro">★ — рекомендація VA за наявними даними. «Вся КБ» означає всю ідентифіковану клієнтську базу, крім тих, хто вже купив цей сеанс.</div>
-    </div>
+    </div>` : ""}
 
     <div class="campaign-brief">
       <div class="box">
         <div class="eyebrow">1 • Аудиторія</div>
-        <h3>${esc(CAMPAIGN_DRAFT.segmentLabel || "Сегмент не обраний")}</h3>
-        <div class="big-value">${CAMPAIGN_DRAFT.audienceCount || 0}</div>
-        <div class="muted">потенційних глядачів • доступні контакти: ${CAMPAIGN_DRAFT.reachableCount || 0}</div>
-        <div class="toolbar">
-          <button class="btn secondary" onclick="openMarketingSection(1)">Змінити сегмент</button>
-        </div>
+        ${campaignDraftType()==="paid" ? `
+          <h3>${esc(CAMPAIGN_DRAFT.paidAudience || "Платний зовнішній трафік")}</h3>
+          <div class="big-value">${esc(CAMPAIGN_DRAFT.channel || "—")}</div>
+          <div class="muted">джерело платного залучення • КБ VA не є умовою запуску</div>
+        ` : `
+          <h3>${esc(CAMPAIGN_DRAFT.segmentLabel || "Сегмент не обраний")}</h3>
+          <div class="big-value">${CAMPAIGN_DRAFT.audienceCount || 0}</div>
+          <div class="muted">потенційних глядачів • доступні контакти: ${CAMPAIGN_DRAFT.reachableCount || 0}</div>
+          <div class="toolbar"><button class="btn secondary" onclick="openMarketingSection(1)">Змінити сегмент</button></div>
+        `}
       </div>
 
       <div class="box">
         <div class="eyebrow">2 • Задача</div>
-        <h3>${esc(CAMPAIGN_DRAFT.objective || "Спочатку оберіть аудиторію")}</h3>
-        <div class="metric-row"><span>Канал для прямого контакту</span><b>${esc(CAMPAIGN_DRAFT.channel || "—")}</b></div>
+        <h3>${esc(CAMPAIGN_DRAFT.objective || (campaignDraftType()==="paid" ? "Вкажіть джерело платного трафіку" : "Спочатку оберіть аудиторію"))}</h3>
+        <div class="metric-row"><span>${campaignDraftType()==="paid" ? "Джерело paid-трафіку" : "Канал для прямого контакту"}</span><b>${esc(CAMPAIGN_DRAFT.channel || "—")}</b></div>
         <div class="metric-row"><span>До сеансу</span><b>${days !== null ? days + " дн." : "—"}</b></div>
         <div class="metric-row"><span>Темп 7/7</span><b>${s.sales.change > 0 ? "+" : ""}${s.sales.change}%</b></div>
       </div>
@@ -3285,8 +3416,10 @@ function renderCampaignsSection(){
       <h3>Зафіксувати рішення</h3>
       <div class="muted">${esc(CAMPAIGN_DRAFT.comment || "Оберіть сегмент аудиторії — і VA збере контекст кампанії.")}</div>
       <div class="toolbar">
-        <button class="btn" onclick="sendCampaignDraftToJournal()" ${CAMPAIGN_DRAFT.segmentKey ? "" : "disabled"}>Передати в журнал маркетингу</button>
-        <button class="btn" onclick="sendCampaignToServiceCommunications()" ${activeCampaign && String(activeCampaign.status||"draft")==="active" ? "" : "disabled"}>✉ Передати в комунікації</button>
+        <button class="btn" onclick="sendCampaignDraftToJournal()" ${campaignDraftReady() ? "" : "disabled"}>Передати в журнал маркетингу</button>
+        ${campaignDraftType()==="paid"
+          ? (activeCampaign ? `<button class="btn secondary" onclick="copyCampaignAttributionLink('${escAttr(activeCampaign.id)}')">Копіювати campaign-link</button>` : "")
+          : `<button class="btn" onclick="sendCampaignToServiceCommunications()" ${activeCampaign && String(activeCampaign.status||"draft")==="active" ? "" : "disabled"}>✉ Передати в комунікації</button>`}
         <button class="btn secondary" onclick="openMarketingSection(0)">Назад у Control Center</button>
       </div>
     </div>
@@ -3300,7 +3433,7 @@ function renderCampaignsSection(){
             <div class="campaign-row ${String(c.id) === String(ACTIVE_CAMPAIGN_ID) ? "active" : ""}">
               <div><b>${esc(c.name || "Кампанія")}</b><div class="micro campaign-id">${esc(c.id)}</div></div>
               <div><span class="pill status-${esc(c.status || "draft")}">${esc(campaignStatusLabel(c.status || "draft"))}</span></div>
-              <div class="micro">${esc(c.segmentLabel || "—")} • ${Number(c.audienceCount || 0)} ос.</div>
+              <div class="micro">${(c.campaignType || (c.segmentKey==="paid"?"paid":"direct"))==="paid" ? `💰 ${esc(c.channel || "джерело не вказано")}` : `${esc(c.segmentLabel || "—")} • ${Number(c.audienceCount || 0)} ос.`}</div>
               <div><button class="btn secondary small" onclick="openCampaignEntity('${escAttr(c.id)}')">Відкрити</button></div>
             </div>
           `).join("")}
@@ -3309,7 +3442,7 @@ function renderCampaignsSection(){
     </div>
 
     <div class="notice">
-      <b>Що вже замкнуто:</b> стан сеансу → маркетинговий паспорт → релевантна аудиторія → виключення тих, хто вже купив → вибір сегмента → змістова основа кампанії → журнал дії.
+      <b>Що вже замкнуто:</b> стан сеансу → тип кампанії (прямий контакт / paid) → campaign_id → змістова основа → журнал дії → атрибуція результату.
       У V2.10 lifecycle, Attribution V1 і міст у «Службові комунікації» збережені. Додано Campaign Result V1: часовий приріст, пряма атрибуція, Email-виконання, бюджет і доказовий підсумок, який передається директору.
     </div>
   `;
