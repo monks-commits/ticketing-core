@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.18 — Campaign Types + Psychology + CRO + A/B + Paid Acquisition</title>
+  <title>VA Marketing V2.18.1 — Campaign Types + Psychology + CRO + A/B + Paid Acquisition</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -311,7 +311,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.18</h1>
+        <h1>Marketing Control Center V2.18.1</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.17 замикає Paid Acquisition V1: витрати з Журналу маркетингу → campaign_id → CRO → фактичний Paid → покупці, квитки, виручка, CPA, CPT і ROAS.
@@ -705,6 +705,8 @@ function setPaidCampaignSource(value){
   if(CAMPAIGN_DRAFT.channel){
     CAMPAIGN_DRAFT.objective = `Залучити нових покупців на «${s?.show || scopeTitle()}» через ${CAMPAIGN_DRAFT.channel}`;
   }
+  const live = document.getElementById("paidSourceLive");
+  if(live) live.textContent = CAMPAIGN_DRAFT.channel || "—";
 }
 
 function campaignSnapshotFromDraft(){
@@ -3274,7 +3276,7 @@ function renderCampaignsSection(){
         </div>
       ` : `<div class="muted">Поки це робоча чернетка. Оберіть тип кампанії, задайте її параметри й збережіть — VA створить постійний campaign_id.</div>`}
       <div class="toolbar">
-        <button class="btn" onclick="saveCampaignEntity()" ${(campaignDraftReady() && (!activeCampaign || (activeCampaign.status || "draft") === "draft")) ? "" : "disabled"}>${activeCampaign && (activeCampaign.status || "draft") !== "draft" ? "Параметри зафіксовані" : activeCampaign ? "Оновити кампанію" : "Зберегти як кампанію"}</button>
+        <button class="btn" onclick="saveCampaignEntity()" ${activeCampaign && (activeCampaign.status || "draft") !== "draft" ? "disabled" : ""}>${activeCampaign && (activeCampaign.status || "draft") !== "draft" ? "Параметри зафіксовані" : activeCampaign ? "Оновити кампанію" : "Зберегти як кампанію"}</button>
         <button class="btn secondary" onclick="newCampaignEntity()">Нова кампанія</button>
       </div>
       ${activeCampaign ? renderCampaignLifecycle(activeCampaign) : ""}
@@ -3339,7 +3341,7 @@ function renderCampaignsSection(){
         <div class="eyebrow">1 • Аудиторія</div>
         ${campaignDraftType()==="paid" ? `
           <h3>${esc(CAMPAIGN_DRAFT.paidAudience || "Платний зовнішній трафік")}</h3>
-          <div class="big-value">${esc(CAMPAIGN_DRAFT.channel || "—")}</div>
+          <div class="big-value" id="paidSourceLive">${esc(CAMPAIGN_DRAFT.channel || "—")}</div>
           <div class="muted">джерело платного залучення • КБ VA не є умовою запуску</div>
         ` : `
           <h3>${esc(CAMPAIGN_DRAFT.segmentLabel || "Сегмент не обраний")}</h3>
