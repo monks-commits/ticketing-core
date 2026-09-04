@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.22.1 — Customer Research V1.1 + KB RFM + LTV + Retention</title>
+  <title>VA Marketing V2.23 — Marketing Plan + Customer Research + RFM + LTV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -401,6 +401,35 @@ textarea::placeholder{
   .research-dimension b{display:block;margin-top:3px}
   @media(max-width:900px){.research-dimensions{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.research-dimensions{grid-template-columns:1fr}}
+
+  /* ===== VA Marketing Plan V1 ===== */
+  .plan-rule{padding:12px 14px;border-radius:12px;border:1px solid rgba(96,165,250,.42);background:rgba(59,130,246,.08);margin:12px 0}
+  .plan-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:14px 0}
+  .plan-kpi{background:#fff;color:#111827;border:1px solid var(--line);border-radius:14px;padding:13px}
+  .plan-kpi span{display:block;color:#64748b;font-size:11px;margin-bottom:5px}
+  .plan-kpi b{display:block;color:#0f172a;font-size:23px;line-height:1.1}
+  .plan-kpi .micro{color:#64748b;margin-top:5px}
+  .plan-buckets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+  .plan-bucket{border:1px solid var(--line);border-radius:16px;padding:14px;background:#0a1d35}
+  .plan-item{border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;margin-top:10px;background:rgba(255,255,255,.02)}
+  .plan-item.overdue{border-color:rgba(239,68,68,.55)}
+  .plan-item.today{border-color:rgba(245,158,11,.55)}
+  .plan-item.done{opacity:.72}
+  .plan-item-title{font-weight:900;font-size:16px}
+  .plan-item-meta{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+  .plan-item-note{margin-top:8px;color:var(--muted)}
+  .plan-calendar-table{overflow-x:auto}
+  .plan-calendar-table table{min-width:1200px}
+  .plan-insight{padding:14px 16px;border-radius:14px;border:1px solid #93c5fd;background:#eff6ff;color:#1e3a8a;margin:14px 0;line-height:1.45}
+  .plan-empty{border:1px dashed var(--line);border-radius:12px;padding:14px;color:var(--muted)}
+  .plan-status-planned{background:#172554;color:#bfdbfe}
+  .plan-status-progress{background:#78350f;color:#fde68a}
+  .plan-status-done{background:#14532d;color:#bbf7d0}
+  .plan-status-cancelled{background:#3f3f46;color:#d4d4d8}
+  @media(max-width:1050px){.plan-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:850px){.plan-buckets{grid-template-columns:1fr}}
+  @media(max-width:620px){.plan-kpis{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 
@@ -411,7 +440,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.22.1</h1>
+        <h1>Marketing Control Center V2.23</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.21.1 підключає єдиний RFM Клієнтської бази до Marketing: КБ рахує статус → Marketing формує аудиторію → Campaign.
@@ -428,6 +457,7 @@ textarea::placeholder{
         <span class="badge">LTV V1</span>
         <span class="badge">RFM КБ Bridge V1</span>
         <span class="badge">Customer Research V1.1</span>
+        <span class="badge">Marketing Plan V1</span>
       </div>
     </div>
   </div>
@@ -541,6 +571,12 @@ const CUSTOMER_RESEARCH_STORAGE_KEY = "va_marketing_customer_research_v1";
 let CUSTOMER_RESEARCH = [];
 let RESEARCH_EDIT_ID = "";
 let RESEARCH_FILTER = "focus";
+
+const MARKETING_PLAN_STORAGE_KEY = "va_marketing_plan_v1";
+let MARKETING_PLAN = [];
+let PLAN_EDIT_ID = "";
+let PLAN_FILTER = "active";
+let PLAN_JOURNAL_PENDING_ID = "";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
@@ -1447,7 +1483,8 @@ const TOOLS = [
   ["🔁 Retention / Повторні продажі", "Хто повернувся на інший сеанс, коли і скільки повторної виручки приніс", "Утримання"],
   ["💎 LTV / Цінність покупця", "Скільки фактичної виручки приносить залучений покупець за доступний горизонт", "Економіка"],
   ["🧭 RFM КБ → Campaign", "Готовий RFM із Клієнтської бази: статус покупця → аудиторія конкретного сеансу → Campaign", "Дія"],
-  ["🔎 Customer Research / Голос покупця", "Фактичні мотиви, бар'єри, фрази та причини рішення → Decision Map", "Дослідження"]
+  ["🔎 Customer Research / Голос покупця", "Фактичні мотиви, бар'єри, фрази та причини рішення → Decision Map", "Дослідження"],
+  ["🗓️ Marketing Plan / Календар дій", "Що, для якого сеансу, коли, кому, через який канал і коли перевірити результат", "План"]
 ];
 
 function esc(v){
@@ -1565,6 +1602,7 @@ function openMarketingSection(index){
   if(index === 12) return renderLTVSection();
   if(index === 13) return renderKBRFMSection();
   if(index === 14) return renderCustomerResearchSection();
+  if(index === 15) return renderMarketingPlanSection();
 }
 
 function buildClients(orders, tickets, seances){
@@ -4137,6 +4175,11 @@ async function saveJournalEntry(){
 
   JOURNAL = JOURNAL.concat(data || []);
 
+  if(PLAN_JOURNAL_PENDING_ID){
+    completePlanFromJournal(PLAN_JOURNAL_PENDING_ID, data || []);
+    PLAN_JOURNAL_PENDING_ID="";
+  }
+
   const campaign = getActiveCampaign();
   if(campaign && Array.isArray(data)){
     const ids = data.map(x => x?.id).filter(Boolean).map(String);
@@ -6157,6 +6200,551 @@ function renderCustomerResearchSection(){
 }
 
 
+
+// ===== VA Marketing Plan V1 =====
+// Plan = future intent. Journal = completed factual action.
+// A plan item becomes "done" only after the user saves it into Marketing Journal.
+
+const PLAN_ACTION_TYPES = [
+  ["research","Research / збір фактів"],
+  ["campaign","Campaign / direct"],
+  ["content","Контент / креатив"],
+  ["communication","Комунікація / розсилка"],
+  ["paid","Paid Acquisition"],
+  ["ab","A/B експеримент"],
+  ["partnership","Партнерство / зовнішній канал"],
+  ["other","Інше"]
+];
+
+const PLAN_STATUSES = [
+  ["planned","Заплановано"],
+  ["progress","В роботі"],
+  ["done","Виконано"],
+  ["cancelled","Скасовано"]
+];
+
+function loadMarketingPlan(){
+  try{
+    const raw=localStorage.getItem(MARKETING_PLAN_STORAGE_KEY);
+    const parsed=raw?JSON.parse(raw):[];
+    MARKETING_PLAN=Array.isArray(parsed)?parsed:[];
+  }catch(e){
+    console.warn("Marketing Plan load",e);
+    MARKETING_PLAN=[];
+  }
+}
+
+function saveMarketingPlanLocal(){
+  try{
+    localStorage.setItem(MARKETING_PLAN_STORAGE_KEY,JSON.stringify(MARKETING_PLAN));
+  }catch(e){
+    console.warn("Marketing Plan save",e);
+  }
+}
+
+function makePlanId(){
+  return `VAP-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+}
+
+function planActionLabel(key){
+  return PLAN_ACTION_TYPES.find(x=>x[0]===String(key||""))?.[1] || "Інше";
+}
+
+function planStatusLabel(key){
+  return PLAN_STATUSES.find(x=>x[0]===String(key||""))?.[1] || "Заплановано";
+}
+
+function planDateOnly(value){
+  if(!value) return "";
+  const d=new Date(`${String(value).slice(0,10)}T12:00:00`);
+  return Number.isFinite(d.getTime()) ? d.toISOString().slice(0,10) : "";
+}
+
+function planToday(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function planAddDays(dateStr,days){
+  const d=new Date(`${dateStr}T12:00:00`);
+  d.setDate(d.getDate()+Number(days||0));
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function planDefaultActionDate(){
+  const focus=getFocusSeance();
+  if(!focus?.date) return planToday();
+  const today=planToday();
+  const eventDate=String(focus.date).slice(0,10);
+  // Default to today, but never after the event date.
+  return eventDate < today ? today : today;
+}
+
+function planDefaultControlDate(actionDate){
+  const focus=getFocusSeance();
+  const candidate=planAddDays(actionDate||planToday(),3);
+  if(focus?.date){
+    const eventDate=String(focus.date).slice(0,10);
+    return candidate>eventDate ? eventDate : candidate;
+  }
+  return candidate;
+}
+
+function planCampaignById(id){
+  const key=String(id||"");
+  return CAMPAIGNS.find(c=>String(c.id||"")===key) || null;
+}
+
+function planSeanceById(id){
+  const key=String(id||"");
+  return SEANCES.find(s=>String(s.id||"")===key) || null;
+}
+
+function planCampaignOptions(current){
+  const rows=CAMPAIGNS
+    .slice()
+    .sort((a,b)=>new Date(b.updated_at||b.created_at||0)-new Date(a.updated_at||a.created_at||0));
+  return `<option value="">Без прив'язаної Campaign</option>` + rows.map(c=>
+    `<option value="${escAttr(c.id)}" ${String(current||"")===String(c.id)?"selected":""}>${esc(c.name||c.id)} • ${esc(c.status||"draft")}</option>`
+  ).join("");
+}
+
+function planSeanceOptions(current){
+  const rows=SEANCES
+    .slice()
+    .sort((a,b)=>new Date(`${a.date||"2999-12-31"}T${String(a.time||"23:59").slice(0,5)}`)-new Date(`${b.date||"2999-12-31"}T${String(b.time||"23:59").slice(0,5)}`));
+  return `<option value="">Загальна дія / без сеансу</option>` + rows.map(s=>
+    `<option value="${escAttr(s.id)}" ${String(current||"")===String(s.id)?"selected":""}>${esc(s.show||s.id)} • ${esc(fmtDate(s.date))} ${esc(String(s.time||"").slice(0,5))}</option>`
+  ).join("");
+}
+
+function getPlanEditItem(){
+  return MARKETING_PLAN.find(x=>String(x.id)===String(PLAN_EDIT_ID)) || null;
+}
+
+function planScopeRows(){
+  const today=planToday();
+  let rows=MARKETING_PLAN.slice();
+
+  if(PLAN_FILTER==="focus"){
+    const focus=getFocusSeance();
+    const sid=focus?String(focus.id):"";
+    rows=rows.filter(x=>sid && String(x.seance_id||"")===sid);
+  }else if(PLAN_FILTER==="active"){
+    rows=rows.filter(x=>!["done","cancelled"].includes(String(x.status||"planned")));
+  }else if(PLAN_FILTER==="done"){
+    rows=rows.filter(x=>String(x.status||"planned")==="done");
+  }
+
+  return rows.sort((a,b)=>{
+    const ad=String(a.action_date||"9999-12-31");
+    const bd=String(b.action_date||"9999-12-31");
+    return ad.localeCompare(bd) || new Date(a.created_at||0)-new Date(b.created_at||0);
+  });
+}
+
+function planBuckets(){
+  const today=planToday();
+  const next7=planAddDays(today,7);
+  const active=MARKETING_PLAN.filter(x=>!["done","cancelled"].includes(String(x.status||"planned")));
+
+  return {
+    overdue:active.filter(x=>x.action_date && String(x.action_date)<today),
+    today:active.filter(x=>String(x.action_date||"")===today),
+    next7:active.filter(x=>x.action_date && String(x.action_date)>today && String(x.action_date)<=next7),
+    later:active.filter(x=>!x.action_date || String(x.action_date)>next7)
+  };
+}
+
+function planStats(){
+  const today=planToday();
+  const next7=planAddDays(today,7);
+  const active=MARKETING_PLAN.filter(x=>!["done","cancelled"].includes(String(x.status||"planned")));
+  const overdue=active.filter(x=>x.action_date && String(x.action_date)<today).length;
+  const next=active.filter(x=>x.action_date && String(x.action_date)>=today && String(x.action_date)<=next7).length;
+  const plannedBudget=active.reduce((s,x)=>s+Math.max(0,Number(x.budget||0)),0);
+  const controls=active.filter(x=>x.control_date && String(x.control_date)<=next7).length;
+  return {active:active.length,overdue,next,plannedBudget,controls};
+}
+
+function planInsight(){
+  const s=planStats();
+  if(!MARKETING_PLAN.length){
+    return "План порожній. Додайте першу конкретну маркетингову дію; після виконання вона повинна перейти в Журнал як факт.";
+  }
+  if(s.overdue){
+    return `Є прострочені дії: ${s.overdue}. Спочатку вирішіть їх — виконати, перенести або скасувати. Плановий активний бюджет зараз ${Number(s.plannedBudget).toLocaleString("uk-UA")} грн.`;
+  }
+  if(s.next){
+    return `На найближчі 7 днів заплановано ${s.next} дій. Активний плановий бюджет — ${Number(s.plannedBudget).toLocaleString("uk-UA")} грн. Після виконання переносимо дію в Журнал і тільки тоді вважаємо її фактом.`;
+  }
+  return `Активних дій: ${s.active}. На найближчі 7 днів нічого не заплановано; перевірте, чи всі майбутні сеанси мають наступний маркетинговий крок.`;
+}
+
+function savePlanItem(){
+  const title=String(document.getElementById("planTitle")?.value||"").trim();
+  if(!title){
+    alert("Вкажіть конкретну маркетингову дію.");
+    return;
+  }
+
+  const now=new Date().toISOString();
+  const existing=getPlanEditItem();
+  const payload={
+    id:PLAN_EDIT_ID || makePlanId(),
+    created_at:existing?.created_at || now,
+    updated_at:now,
+    seance_id:String(document.getElementById("planSeance")?.value||""),
+    campaign_id:String(document.getElementById("planCampaign")?.value||""),
+    action_date:String(document.getElementById("planActionDate")?.value||""),
+    control_date:String(document.getElementById("planControlDate")?.value||""),
+    action_type:String(document.getElementById("planActionType")?.value||"other"),
+    title,
+    audience:String(document.getElementById("planAudience")?.value||"").trim(),
+    channel:String(document.getElementById("planChannel")?.value||"").trim(),
+    budget:Math.max(0,Number(document.getElementById("planBudget")?.value||0)),
+    metric:String(document.getElementById("planMetric")?.value||"").trim(),
+    target:String(document.getElementById("planTarget")?.value||"").trim(),
+    note:String(document.getElementById("planNote")?.value||"").trim(),
+    status:String(document.getElementById("planStatus")?.value||"planned"),
+    journal_ids:Array.isArray(existing?.journal_ids)?existing.journal_ids:[]
+  };
+
+  const idx=MARKETING_PLAN.findIndex(x=>String(x.id)===String(payload.id));
+  if(idx>=0) MARKETING_PLAN[idx]=payload;
+  else MARKETING_PLAN.push(payload);
+
+  saveMarketingPlanLocal();
+  PLAN_EDIT_ID="";
+  renderMarketingPlanSection();
+}
+
+function editPlanItem(id){
+  PLAN_EDIT_ID=String(id||"");
+  renderMarketingPlanSection();
+  setTimeout(()=>document.getElementById("planTitle")?.focus(),0);
+}
+
+function deletePlanItem(id){
+  const item=MARKETING_PLAN.find(x=>String(x.id)===String(id));
+  if(!item) return;
+  if(!confirm("Видалити цю планову дію?")) return;
+  MARKETING_PLAN=MARKETING_PLAN.filter(x=>String(x.id)!==String(id));
+  saveMarketingPlanLocal();
+  if(PLAN_EDIT_ID===String(id)) PLAN_EDIT_ID="";
+  renderMarketingPlanSection();
+}
+
+function clearPlanForm(){
+  PLAN_EDIT_ID="";
+  renderMarketingPlanSection();
+}
+
+function setPlanStatus(id,status){
+  const item=MARKETING_PLAN.find(x=>String(x.id)===String(id));
+  if(!item) return;
+  item.status=String(status);
+  item.updated_at=new Date().toISOString();
+  saveMarketingPlanLocal();
+  renderMarketingPlanSection();
+}
+
+function openPlanCampaign(id){
+  const item=MARKETING_PLAN.find(x=>String(x.id)===String(id));
+  if(!item) return;
+
+  if(item.seance_id && SEANCES.some(s=>String(s.id)===String(item.seance_id))){
+    CURRENT_SEANCE_IDS=[String(item.seance_id)];
+  }
+
+  if(item.campaign_id){
+    const c=planCampaignById(item.campaign_id);
+    if(c){
+      ACTIVE_CAMPAIGN_ID=String(c.id);
+      syncCampaignDraftFromEntity(c);
+    }
+  }
+
+  updateUrlContext();
+  renderContextBridge();
+  openMarketingSection(3);
+}
+
+function sendPlanToJournal(id){
+  const item=MARKETING_PLAN.find(x=>String(x.id)===String(id));
+  if(!item) return;
+
+  if(!item.seance_id){
+    alert("Щоб зафіксувати виконання в Журналі, планова дія повинна бути прив'язана до конкретного сеансу.");
+    return;
+  }
+
+  if(!SEANCES.some(s=>String(s.id)===String(item.seance_id))){
+    alert("Сеанс планової дії більше не знайдено.");
+    return;
+  }
+
+  CURRENT_SEANCE_IDS=[String(item.seance_id)];
+
+  if(item.campaign_id){
+    const c=planCampaignById(item.campaign_id);
+    if(c){
+      ACTIVE_CAMPAIGN_ID=String(c.id);
+      syncCampaignDraftFromEntity(c);
+    }
+  }
+
+  PLAN_JOURNAL_PENDING_ID=String(item.id);
+  item.status="progress";
+  item.updated_at=new Date().toISOString();
+  saveMarketingPlanLocal();
+
+  updateUrlContext();
+  renderContextBridge();
+  openMarketingSection(5);
+
+  const date=document.getElementById("jDate");
+  const type=document.getElementById("jType");
+  const channel=document.getElementById("jChannel");
+  const budget=document.getElementById("jBudget");
+  const comment=document.getElementById("jComment");
+  const result=document.getElementById("jResult");
+
+  if(date) date.value=item.action_date || planToday();
+  if(type) type.value=`${planActionLabel(item.action_type)}: ${item.title}`;
+  if(channel) channel.value=item.channel || "";
+  if(budget) budget.value=Number(item.budget||0);
+  if(comment){
+    comment.value=[
+      item.audience ? `Аудиторія: ${item.audience}` : "",
+      item.metric ? `Контроль: ${item.metric}${item.target?` → ${item.target}`:""}` : "",
+      item.note || "",
+      `План: ${item.id}`
+    ].filter(Boolean).join("\n");
+  }
+  if(result) result.value="";
+
+  setTimeout(()=>type?.focus(),0);
+}
+
+function completePlanFromJournal(planId,journalRows){
+  const item=MARKETING_PLAN.find(x=>String(x.id)===String(planId));
+  if(!item) return;
+  item.status="done";
+  item.completed_at=new Date().toISOString();
+  item.updated_at=item.completed_at;
+  const ids=(journalRows||[]).map(x=>x?.id).filter(Boolean).map(String);
+  item.journal_ids=Array.from(new Set([...(item.journal_ids||[]).map(String),...ids]));
+  saveMarketingPlanLocal();
+}
+
+function planItemHtml(item){
+  const seance=planSeanceById(item.seance_id);
+  const campaign=planCampaignById(item.campaign_id);
+  const today=planToday();
+  const cssStatus=item.status==="done"?"done":item.action_date<today && !["done","cancelled"].includes(item.status)?"overdue":item.action_date===today?"today":"";
+  const statusClass=`plan-status-${escAttr(item.status||"planned")}`;
+
+  return `<div class="plan-item ${cssStatus}">
+    <div class="context-bridge-row">
+      <div>
+        <div class="eyebrow">${esc(planActionLabel(item.action_type))}</div>
+        <div class="plan-item-title">${esc(item.title)}</div>
+      </div>
+      <span class="pill ${statusClass}">${esc(planStatusLabel(item.status))}</span>
+    </div>
+
+    <div class="plan-item-meta">
+      <span class="pill">Дія: ${esc(item.action_date||"—")}</span>
+      ${item.control_date?`<span class="pill">Контроль: ${esc(item.control_date)}</span>`:""}
+      <span class="pill">${seance?esc(seance.show||item.seance_id):"Загальна дія"}</span>
+      ${item.channel?`<span class="pill">${esc(item.channel)}</span>`:""}
+      ${Number(item.budget||0)>0?`<span class="pill">${Number(item.budget).toLocaleString("uk-UA")} грн</span>`:""}
+    </div>
+
+    ${item.audience?`<div class="metric-row"><span>Аудиторія</span><b>${esc(item.audience)}</b></div>`:""}
+    ${item.metric?`<div class="metric-row"><span>Що перевіряємо</span><b>${esc(item.metric)}${item.target?` → ${esc(item.target)}`:""}</b></div>`:""}
+    ${campaign?`<div class="micro">Campaign: <span class="campaign-id">${esc(campaign.id)}</span> • ${esc(campaign.name||"")}</div>`:""}
+    ${item.note?`<div class="plan-item-note">${esc(item.note)}</div>`:""}
+
+    <div class="toolbar" style="margin-bottom:0">
+      ${item.status==="planned"?`<button class="btn small secondary" onclick="setPlanStatus('${escAttr(item.id)}','progress')">В роботу</button>`:""}
+      ${!["done","cancelled"].includes(item.status)?`<button class="btn small" onclick="sendPlanToJournal('${escAttr(item.id)}')" ${item.seance_id?"":"disabled"}>→ Виконано / у Журнал</button>`:""}
+      <button class="btn small secondary" onclick="openPlanCampaign('${escAttr(item.id)}')">→ Campaign</button>
+      <button class="btn small secondary" onclick="editPlanItem('${escAttr(item.id)}')">Редагувати</button>
+      ${!["done","cancelled"].includes(item.status)?`<button class="btn small secondary" onclick="setPlanStatus('${escAttr(item.id)}','cancelled')">Скасувати</button>`:""}
+      <button class="btn small secondary" onclick="deletePlanItem('${escAttr(item.id)}')">Видалити</button>
+    </div>
+  </div>`;
+}
+
+function planBucketHtml(title,rows,empty){
+  return `<div class="plan-bucket">
+    <div class="context-bridge-row"><h3>${esc(title)}</h3><span class="pill">${rows.length}</span></div>
+    ${rows.length?rows.map(planItemHtml).join(""):`<div class="plan-empty">${esc(empty)}</div>`}
+  </div>`;
+}
+
+function renderMarketingPlanSection(){
+  const panel=document.getElementById("activeSectionPanel");
+  const edit=getPlanEditItem();
+  const focus=getFocusSeance();
+  const activeCampaign=getActiveCampaign();
+  const today=planToday();
+  const defaultAction=edit?.action_date || planDefaultActionDate();
+  const defaultControl=edit?.control_date || planDefaultControlDate(defaultAction);
+  const buckets=planBuckets();
+  const stats=planStats();
+  const rows=planScopeRows();
+
+  panel.innerHTML=`
+    <div class="section-caption"><div>
+      <div class="eyebrow">MARKETING PLAN V1 • FUTURE WORK</div>
+      <h2>🗓️ Що і коли робити</h2>
+      <div class="muted">Plan — це майбутня дія. Journal — факт того, що реально зроблено. VA не змішує намір і результат.</div>
+    </div></div>
+
+    <div class="plan-rule"><b>Правило:</b> одна планова дія = один конкретний крок з датою виконання та, бажано, датою контролю. Після фактичного виконання натискаємо «→ Виконано / у Журнал», перевіряємо запис і зберігаємо його — тільки тоді Plan позначає дію виконаною.</div>
+
+    ${renderScopeHeader()}
+
+    <div class="box">
+      <div class="eyebrow">${edit?"РЕДАГУВАННЯ ПЛАНУ":"ДОДАТИ ПЛАНОВУ ДІЮ"}</div>
+      <h3>${focus?esc(focus.show||focus.id):"Маркетингова робота"}</h3>
+
+      <div class="passport-grid">
+        <div class="field">
+          <label>Сеанс / контекст</label>
+          <select id="planSeance">${planSeanceOptions(edit?.seance_id || focus?.id || "")}</select>
+        </div>
+
+        <div class="field">
+          <label>Прив'язана Campaign — необов'язково</label>
+          <select id="planCampaign">${planCampaignOptions(edit?.campaign_id || activeCampaign?.id || "")}</select>
+        </div>
+
+        <div class="field">
+          <label>Тип дії</label>
+          <select id="planActionType">${researchFormOptions(PLAN_ACTION_TYPES,edit?.action_type||"campaign")}</select>
+        </div>
+
+        <div class="field">
+          <label>Статус</label>
+          <select id="planStatus">${researchFormOptions(PLAN_STATUSES,edit?.status||"planned")}</select>
+        </div>
+
+        <div class="field">
+          <label>Дата дії *</label>
+          <input id="planActionDate" type="date" value="${escAttr(defaultAction)}">
+        </div>
+
+        <div class="field">
+          <label>Дата контролю</label>
+          <input id="planControlDate" type="date" value="${escAttr(defaultControl)}">
+        </div>
+
+        <div class="field">
+          <label>Канал</label>
+          <input id="planChannel" value="${escAttr(edit?.channel || activeCampaign?.channel || "")}" placeholder="Email, Facebook Ads, Telegram, офлайн...">
+        </div>
+
+        <div class="field">
+          <label>Плановий бюджет</label>
+          <input id="planBudget" type="number" min="0" step="0.01" value="${escAttr(edit?.budget ?? activeCampaign?.budget ?? 0)}">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Конкретна дія *</label>
+        <input id="planTitle" value="${escAttr(edit?.title||"")}" placeholder="Напр.: Запустити email-кампанію для RFM КБ • Новий">
+      </div>
+
+      <div class="field">
+        <label>Аудиторія</label>
+        <input id="planAudience" value="${escAttr(edit?.audience || activeCampaign?.segmentLabel || CAMPAIGN_DRAFT.segmentLabel || CAMPAIGN_DRAFT.paidAudience || "")}" placeholder="Кому саме">
+      </div>
+
+      <div class="passport-grid">
+        <div class="field">
+          <label>Що перевіряємо</label>
+          <input id="planMetric" value="${escAttr(edit?.metric||"")}" placeholder="Paid, Hall→Paid, CPA, заповнення, відповіді...">
+        </div>
+        <div class="field">
+          <label>Орієнтир / ціль</label>
+          <input id="planTarget" value="${escAttr(edit?.target||"")}" placeholder="Напр.: 5 Paid, CPA ≤ 120 грн, +10 квитків">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Примітка</label>
+        <textarea id="planNote" placeholder="Що важливо не забути, від чого залежить дія, що перевірити на контрольну дату.">${esc(edit?.note||"")}</textarea>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn" onclick="savePlanItem()">${edit?"Оновити план":"Зберегти в план"}</button>
+        ${edit?`<button class="btn secondary" onclick="clearPlanForm()">Скасувати редагування</button>`:""}
+      </div>
+    </div>
+
+    <div class="plan-kpis">
+      <div class="plan-kpi"><span>Активні дії</span><b>${stats.active}</b><div class="micro">ще не завершені</div></div>
+      <div class="plan-kpi"><span>Прострочено</span><b>${stats.overdue}</b><div class="micro">потребують рішення</div></div>
+      <div class="plan-kpi"><span>Найближчі 7 днів</span><b>${stats.next}</b><div class="micro">до виконання</div></div>
+      <div class="plan-kpi"><span>Плановий бюджет</span><b>${Number(stats.plannedBudget).toLocaleString("uk-UA")} грн</b><div class="micro">активні дії</div></div>
+      <div class="plan-kpi"><span>Контроль ≤ 7 днів</span><b>${stats.controls}</b><div class="micro">дати перевірки</div></div>
+    </div>
+
+    <div class="plan-insight"><b>Що каже VA:</b> ${esc(planInsight())}</div>
+
+    <div class="plan-buckets">
+      ${planBucketHtml("🔴 Прострочено",buckets.overdue,"Прострочених дій немає.")}
+      ${planBucketHtml("🟠 Сьогодні",buckets.today,"На сьогодні нічого не заплановано.")}
+      ${planBucketHtml("🟢 Наступні 7 днів",buckets.next7,"На найближчі 7 днів немає дій.")}
+      ${planBucketHtml("🔵 Пізніше",buckets.later,"Пізніших дій немає.")}
+    </div>
+
+    <div class="toolbar" style="margin:14px 0">
+      <button class="btn small ${PLAN_FILTER==="active"?"":"secondary"}" onclick="PLAN_FILTER='active';renderMarketingPlanSection()">Активні</button>
+      <button class="btn small ${PLAN_FILTER==="focus"?"":"secondary"}" onclick="PLAN_FILTER='focus';renderMarketingPlanSection()">Поточний сеанс</button>
+      <button class="btn small ${PLAN_FILTER==="all"?"":"secondary"}" onclick="PLAN_FILTER='all';renderMarketingPlanSection()">Усі</button>
+      <button class="btn small ${PLAN_FILTER==="done"?"":"secondary"}" onclick="PLAN_FILTER='done';renderMarketingPlanSection()">Виконані</button>
+    </div>
+
+    <div class="box">
+      <div class="section-caption"><div><div class="eyebrow">PLAN REGISTER</div><h3>Реєстр планових дій</h3></div><div class="micro">${rows.length} записів</div></div>
+      <div class="plan-calendar-table"><table>
+        <thead><tr>
+          <th>Дата</th><th>Контроль</th><th>Сеанс</th><th>Дія</th><th>Аудиторія</th><th>Канал</th><th>Бюджет</th><th>Метрика / ціль</th><th>Статус</th>
+        </tr></thead>
+        <tbody>${rows.length?rows.map(x=>{
+          const s=planSeanceById(x.seance_id);
+          return `<tr>
+            <td>${esc(x.action_date||"—")}</td>
+            <td>${esc(x.control_date||"—")}</td>
+            <td>${s?esc(s.show||x.seance_id):"Загальна"}</td>
+            <td><b>${esc(x.title)}</b><br><span class="micro">${esc(planActionLabel(x.action_type))}</span></td>
+            <td>${esc(x.audience||"—")}</td>
+            <td>${esc(x.channel||"—")}</td>
+            <td>${Number(x.budget||0).toLocaleString("uk-UA")} грн</td>
+            <td>${esc(x.metric||"—")}${x.target?` → ${esc(x.target)}`:""}</td>
+            <td>${esc(planStatusLabel(x.status))}</td>
+          </tr>`;
+        }).join(""):`<tr><td colspan="9" class="muted">У вибірці немає планових дій.</td></tr>`}</tbody>
+      </table></div>
+    </div>
+
+    <div class="micro" style="margin-top:10px">
+      Marketing Plan V1 зберігається локально в браузері, як робочий план. Факт виконання живе тільки в Supabase Marketing Journal. Це навмисне розділення «планували» і «зробили».
+    </div>`;
+}
+
+
 // ===== VA Marketing CRO Dashboard V1 =====
 
 function croPeriodFromIso(){
@@ -6504,6 +7092,7 @@ function renderCROSection(){
 async function boot(){
   loadABExperiments();
   loadCustomerResearch();
+  loadMarketingPlan();
   buildTools();
   initMarketingSections();
   loadLocalMarketingContexts();
