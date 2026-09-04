@@ -2,11 +2,12 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.20 — LTV + Retention + Campaign Types + CRO + A/B + Paid Acquisition</title>
+  <title>VA Marketing V2.21.1 — KB RFM Bridge + LTV + Retention + CRO + Paid Acquisition</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
   <script src="../shared/marketing-knowledge-base.js?v=2.0.1-20260902"></script>
+  <script src="../shared/va-client-rfm.js?v=1.0.0"></script>
 
   <style>
     body{margin:0;font-family:Arial,sans-serif;background:#071a35;color:#fff}
@@ -349,6 +350,28 @@ textarea::placeholder{
   @media(max-width:1050px){.ltv-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.ltv-kpis{grid-template-columns:1fr}.ltv-controls select{min-width:100%}}
 
+
+  /* ===== VA Marketing ↔ KB RFM Bridge V1 ===== */
+  .rfm-kb-rule{padding:12px 14px;border-radius:12px;border:1px solid rgba(45,212,191,.42);background:rgba(20,184,166,.08);margin:12px 0}
+  .rfm-kb-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+  .rfm-kb-kpi{background:#fff;color:#111827;border:1px solid var(--line);border-radius:14px;padding:13px}
+  .rfm-kb-kpi span{display:block;color:#64748b;font-size:11px;margin-bottom:5px}
+  .rfm-kb-kpi b{display:block;color:#0f172a;font-size:24px;line-height:1.1}
+  .rfm-kb-kpi .micro{color:#64748b;margin-top:5px}
+  .rfm-kb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+  .rfm-kb-card{border:1px solid var(--line);border-radius:16px;padding:15px;background:#0a1d35}
+  .rfm-kb-card h3{margin:0 0 6px}
+  .rfm-kb-card .rfm-count{font-size:30px;font-weight:900;margin:8px 0 4px}
+  .rfm-kb-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+  .rfm-kb-stat{border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px}
+  .rfm-kb-stat span{display:block;color:var(--muted);font-size:10px}
+  .rfm-kb-stat b{display:block;margin-top:3px}
+  .rfm-kb-insight{padding:14px 16px;border-radius:14px;border:1px solid #5eead4;background:#f0fdfa;color:#134e4a;margin:14px 0;line-height:1.45}
+  .rfm-kb-table{overflow-x:auto}
+  .rfm-kb-table table{min-width:1100px}
+  @media(max-width:950px){.rfm-kb-grid{grid-template-columns:1fr}.rfm-kb-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:620px){.rfm-kb-kpis{grid-template-columns:1fr}.rfm-kb-stats{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -359,10 +382,10 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.20</h1>
+        <h1>Marketing Control Center V2.21.1</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
-          V2.20 додає LTV V1: перша покупка → фактична цінність покупця за весь доступний горизонт → порівняння джерел і міст до CAC.
+          V2.21.1 підключає єдиний RFM Клієнтської бази до Marketing: КБ рахує статус → Marketing формує аудиторію → Campaign.
         </div>
       </div>
       <div class="hero-badges">
@@ -374,6 +397,7 @@ textarea::placeholder{
         <span class="badge">Paid Acquisition V1</span>
         <span class="badge">Retention V1</span>
         <span class="badge">LTV V1</span>
+        <span class="badge">RFM КБ Bridge V1</span>
       </div>
     </div>
   </div>
@@ -479,6 +503,9 @@ let LTV_SCOPE = "all";
 let LTV_TAB = "sources";
 let LTV_BUSY = false;
 let LTV_ERROR = "";
+
+let RFM_BUSY = false;
+let RFM_ERROR = "";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
@@ -884,9 +911,9 @@ function campaignMetricSnapshot(campaign){
   const audience = getScopeAudienceStats([sid]);
   const intel = getAudienceIntelligence([sid]);
   const normalizedKey = campaign.segmentKey === "repeat" ? "returned" : campaign.segmentKey;
-  const liveSegment = normalizedKey === "external"
+  const liveSegment = (normalizedKey === "external" || normalizedKey === "paid")
     ? null
-    : (intel.segments.find(x => x.key === normalizedKey) || null);
+    : getAudienceSegment(normalizedKey);
 
   return {
     captured_at: new Date().toISOString(),
@@ -1383,7 +1410,8 @@ const TOOLS = [
   ["⚗️ A/B експерименти", "Рандомно порівнюємо два варіанти і міряємо реальну оплату", "Експеримент"],
   ["💰 Paid Acquisition", "Витрати → трафік → Paid → виручка → CPA / CPT / ROAS", "Реклама"],
   ["🔁 Retention / Повторні продажі", "Хто повернувся на інший сеанс, коли і скільки повторної виручки приніс", "Утримання"],
-  ["💎 LTV / Цінність покупця", "Скільки фактичної виручки приносить залучений покупець за доступний горизонт", "Економіка"]
+  ["💎 LTV / Цінність покупця", "Скільки фактичної виручки приносить залучений покупець за доступний горизонт", "Економіка"],
+  ["🧭 RFM КБ → Campaign", "Готовий RFM із Клієнтської бази: статус покупця → аудиторія конкретного сеансу → Campaign", "Дія"]
 ];
 
 function esc(v){
@@ -1499,6 +1527,7 @@ function openMarketingSection(index){
   if(index === 10) return renderPaidAcquisitionSection();
   if(index === 11) return renderRetentionSection();
   if(index === 12) return renderLTVSection();
+  if(index === 13) return renderKBRFMSection();
 }
 
 function buildClients(orders, tickets, seances){
@@ -1570,11 +1599,23 @@ function buildClients(orders, tickets, seances){
     const lastActivityAt = c.lastVisit || c.lastOrderAt || null;
     const days = lastActivityAt ? Math.floor((Date.now() - new Date(lastActivityAt)) / 86400000) : 9999;
     const favGenre = topValue(c.events, "genre");
+
+    if(!window.VAClientRFM){
+      throw new Error("VAClientRFM не завантажено.");
+    }
+
+    const kbRfm = window.VAClientRFM.calculate({
+      lastVisit:c.lastVisit,
+      visited:c.visited,
+      totalAmount:c.total
+    });
+
     return {
       ...c,
       lastActivityAt,
       days,
       favGenre,
+      ...kbRfm,
       isVip: c.orders >= 10 || c.visited >= 5,
       isLost: days >= 90,
       isRegular: c.orders >= 5 || c.visited >= 5,
@@ -1939,8 +1980,13 @@ function getAudienceIntelligence(seanceIds){
 }
 
 function getAudienceSegment(key){
+  const normalized = key === "repeat" ? "returned" : String(key || "");
+
+  if(normalized.startsWith("rfm:")){
+    return getKBRFMCampaignSegment(normalized.slice(4));
+  }
+
   const intel = getAudienceIntelligence(getScopeSeanceIds());
-  const normalized = key === "repeat" ? "returned" : key;
   const found = intel.segments.find(s => s.key === normalized) || null;
   if(!found) return null;
   // Backward compatibility for campaigns saved in V2.4–V2.6.
@@ -5317,6 +5363,254 @@ function renderLTVSection(){
     <div class="micro" style="margin-top:10px">
       Джерело цінності фіксується за <b>campaign_id першого paid-order</b>, як у Retention. Для фіксованих горизонтів 30/90/180 днів VA включає у порівняння лише покупців, які вже прожили весь обраний строк.
       Додаткова виручка LTV включає всі наступні paid-orders, навіть якщо це ще одне замовлення на той самий сеанс; це відрізняється від Retention, де поверненням вважається лише інший seance_id.
+    </div>`;
+}
+
+
+
+// ===== VA Marketing ↔ KB RFM Bridge V1 =====
+// IMPORTANT: Marketing DOES NOT invent or recalculate another RFM model.
+// CLIENTS receive rfmSegment/rfmTitle from shared/va-client-rfm.js,
+// the same source used by admin/viewers.html.
+
+const KB_RFM_ACTIONS = [
+  {key:"VIP",icon:"👑",priority:80,action:"Прем'єри, ранній доступ, сильна персональна пропозиція без масової знижки."},
+  {key:"Постійний",icon:"💙",priority:75,action:"Наступний релевантний сеанс, серія подій, персональна рекомендація."},
+  {key:"Новий",icon:"🌱",priority:90,action:"Довести до другої покупки, поки контакт із VA ще свіжий."},
+  {key:"Активний",icon:"🎟️",priority:50,action:"Підбирати релевантні події за жанром та історією покупок."},
+  {key:"Остигає",icon:"🟡",priority:85,action:"Дати конкретний привід повернутися до того, як інтерес згасне."},
+  {key:"Засинає",icon:"🟠",priority:95,action:"Сильний привід повернення: знайомий жанр, сильна подія, персональний аргумент."},
+  {key:"Під ризиком",icon:"⚠️",priority:100,action:"Win-back кампанія для колишньої активної аудиторії."},
+  {key:"Втрачений",icon:"🌙",priority:70,action:"Обережна реактивація; не витрачати дорогий контакт без сильного приводу."}
+];
+
+function kbRfmMeta(title){
+  return KB_RFM_ACTIONS.find(x=>x.key===String(title||"")) || {
+    key:String(title||"Активний"),icon:"•",priority:0,action:"Релевантна маркетингова дія."
+  };
+}
+
+function kbRfmRows(){
+  return CLIENTS.filter(c=>!isTechnicalMarketingClient(c) && c.rfmTitle && c.rfmSegment);
+}
+
+function kbRfmSegmentSummary(title){
+  const clients=kbRfmRows().filter(c=>String(c.rfmTitle)===String(title));
+  const reachable=clients.filter(c=>c.hasEmail||c.hasPhone).length;
+  const revenue=clients.reduce((s,c)=>s+Number(c.monetary||c.total||0),0);
+  const avgValue=clients.length ? revenue/clients.length : 0;
+  const avgVisits=clients.length ? clients.reduce((s,c)=>s+Number(c.frequency||0),0)/clients.length : null;
+  const avgRecency=clients.length ? clients.reduce((s,c)=>s+Number(c.daysFromVisit||0),0)/clients.length : null;
+
+  return {
+    ...kbRfmMeta(title),
+    title,
+    clients,
+    count:clients.length,
+    reachable,
+    revenue,
+    avgValue,
+    avgVisits,
+    avgRecency
+  };
+}
+
+function kbRfmAllSegments(){
+  return KB_RFM_ACTIONS.map(x=>kbRfmSegmentSummary(x.key));
+}
+
+function getKBRFMCampaignSegment(title){
+  const full=kbRfmSegmentSummary(title);
+  const alreadyBought=buyerKeysForSeances(getScopeSeanceIds());
+  const clients=full.clients.filter(c=>!alreadyBought.has(c.key));
+
+  return {
+    key:`rfm:${full.title}`,
+    label:`RFM КБ • ${full.title}`,
+    description:`RFM ${full.title}. ${full.action}`,
+    clients,
+    count:clients.length,
+    reachable:clients.filter(c=>c.hasEmail||c.hasPhone).length,
+    email:clients.filter(c=>c.hasEmail).length,
+    phone:clients.filter(c=>c.hasPhone).length,
+    rfmTitle:full.title
+  };
+}
+
+function prepareCampaignFromKBRFM(title){
+  const focus=getFocusSeance();
+  if(!focus){
+    alert("Спочатку оберіть один конкретний сеанс.");
+    return;
+  }
+
+  const seg=getKBRFMCampaignSegment(title);
+  if(!seg || !seg.count){
+    alert("У цьому RFM-сегменті немає покупців, доступних для поточного сеансу.");
+    return;
+  }
+
+  const meta=kbRfmMeta(title);
+  ACTIVE_CAMPAIGN_ID="";
+  CAMPAIGN_DRAFT={
+    campaignType:"direct",
+    campaignName:`${focus.show||"Подія"} • ${title}`,
+    paidAudience:"",
+    segmentKey:`rfm:${title}`,
+    segmentLabel:`RFM КБ • ${title}`,
+    audienceCount:seg.count,
+    reachableCount:seg.reachable,
+    channel:chooseCampaignChannel(seg),
+    objective:`Запросити сегмент «${title}» на «${focus.show||"сеанс"}»`,
+    comment:`Джерело сегмента — RFM Клієнтської бази. Код/статус не перераховується Marketing. ${meta.action}`
+  };
+
+  updateUrlContext();
+  renderContextBridge();
+  openMarketingSection(3);
+}
+
+function kbRfmAvailableForFocus(summary){
+  const alreadyBought=buyerKeysForSeances(getScopeSeanceIds());
+  const clients=summary.clients.filter(c=>!alreadyBought.has(c.key));
+  return {
+    count:clients.length,
+    reachable:clients.filter(c=>c.hasEmail||c.hasPhone).length
+  };
+}
+
+function kbRfmInsight(){
+  const all=kbRfmAllSegments();
+  const focus=getFocusSeance();
+
+  if(!kbRfmRows().length) return "Поки немає покупців з розрахованим RFM у Клієнтській базі.";
+
+  if(!focus){
+    const largest=all.slice().sort((a,b)=>b.count-a.count)[0];
+    return `RFM КБ підключено. Найбільший сегмент зараз — ${largest?.title||"—"} (${largest?.count||0}). Оберіть один сеанс, щоб VA виключив тих, хто вже купив його, і підготував Campaign.`;
+  }
+
+  const candidates=all
+    .map(s=>({...s,available:kbRfmAvailableForFocus(s)}))
+    .filter(s=>s.available.reachable>0)
+    .sort((a,b)=>b.priority-a.priority || b.available.reachable-a.available.reachable);
+
+  if(!candidates.length){
+    return `Для «${focus.show||"поточного сеансу"}» зараз немає доступних контактів у RFM-сегментах після виключення тих, хто вже купив цей сеанс.`;
+  }
+
+  const best=candidates[0];
+  return `Для «${focus.show||"поточного сеансу"}» найпріоритетніший готовий RFM-сегмент КБ зараз — «${best.title}»: доступно ${best.available.count}, з контактами ${best.available.reachable}.`;
+}
+
+async function reloadKBRFM(){
+  RFM_BUSY=true;
+  RFM_ERROR="";
+  renderKBRFMSection();
+
+  try{
+    const [orders,tickets,seances]=await Promise.all([
+      fetchAll("orders","*"),
+      fetchAll("tickets","id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at"),
+      fetchAll("seances","id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity")
+    ]);
+
+    ORDERS=orders||[];
+    TICKETS=tickets||[];
+    SEANCES=seances||[];
+    buildClients(ORDERS,TICKETS,SEANCES);
+  }catch(e){
+    console.error("KB RFM refresh",e);
+    RFM_ERROR=String(e?.message||e||"Не вдалося оновити RFM.");
+  }finally{
+    RFM_BUSY=false;
+    renderContextBridge();
+    renderKBRFMSection();
+  }
+}
+
+function kbRfmCard(summary){
+  const focus=getFocusSeance();
+  const a=kbRfmAvailableForFocus(summary);
+  return `<div class="rfm-kb-card">
+    <div class="context-bridge-row">
+      <div>
+        <div class="eyebrow">${esc(summary.icon)} RFM КБ</div>
+        <h3>${esc(summary.title)}</h3>
+      </div>
+      <span class="pill">${summary.count}</span>
+    </div>
+
+    <div class="rfm-count">${summary.count}</div>
+    <div class="micro">
+      у КБ • доступно для вибраного сеансу: <b>${a.count}</b> • контактних: <b>${a.reachable}</b>
+    </div>
+
+    <div class="rfm-kb-stats">
+      <div class="rfm-kb-stat"><span>Сер. фактична сума</span><b>${ltvMoney(summary.avgValue)}</b></div>
+      <div class="rfm-kb-stat"><span>Сер. відвідано</span><b>${summary.avgVisits==null?"—":summary.avgVisits.toFixed(1)}</b></div>
+      <div class="rfm-kb-stat"><span>Днів після візиту</span><b>${summary.avgRecency==null?"—":Math.round(summary.avgRecency)}</b></div>
+    </div>
+
+    <div class="notice" style="margin:10px 0"><b>Маркетингова дія:</b> ${esc(summary.action)}</div>
+    <button class="btn secondary" onclick="prepareCampaignFromKBRFM('${escAttr(summary.title)}')" ${(!focus||!a.count)?"disabled":""}>→ Передати в Campaign</button>
+  </div>`;
+}
+
+function renderKBRFMSection(){
+  const panel=document.getElementById("activeSectionPanel");
+  const rows=kbRfmRows();
+  const segments=kbRfmAllSegments();
+  const reachable=rows.filter(c=>c.hasEmail||c.hasPhone).length;
+  const value=rows.reduce((s,c)=>s+Number(c.monetary||c.total||0),0);
+
+  panel.innerHTML=`
+    <div class="section-caption"><div>
+      <div class="eyebrow">RFM КБ BRIDGE V1</div>
+      <h2>🧭 RFM Клієнтської бази → Marketing → Campaign</h2>
+      <div class="muted">Marketing <b>не має власної формули RFM</b>. Код 531, статус «Постійний» та інші RFM-статуси беруться з того самого shared-розрахунку, який використовує Клієнтська база.</div>
+    </div></div>
+
+    <div class="rfm-kb-rule"><b>Єдине джерело істини:</b> shared/va-client-rfm.js. КБ формує RFM-код і статус. Marketing лише групує готові статуси, виключає тих, хто вже купив поточний сеанс, і передає вибрану аудиторію в Campaign.</div>
+
+    ${RFM_ERROR?`<div class="notice bad"><b>RFM недоступний.</b> ${esc(RFM_ERROR)}</div>`:""}
+    <div class="toolbar"><button class="btn" onclick="reloadKBRFM()" ${RFM_BUSY?"disabled":""}>${RFM_BUSY?"Оновлення…":"Оновити RFM КБ"}</button></div>
+
+    ${renderScopeHeader()}
+
+    <div class="rfm-kb-kpis">
+      <div class="rfm-kb-kpi"><span>Покупці з RFM</span><b>${rows.length}</b><div class="micro">готові статуси КБ</div></div>
+      <div class="rfm-kb-kpi"><span>Доступні контакти</span><b>${reachable}</b><div class="micro">email або телефон</div></div>
+      <div class="rfm-kb-kpi"><span>Фактична сума бази</span><b>${ltvMoney(value)}</b><div class="micro">paid-orders цих покупців</div></div>
+      <div class="rfm-kb-kpi"><span>Формула</span><b>${esc(window.VAClientRFM?.VERSION||"—")}</b><div class="micro">shared source</div></div>
+    </div>
+
+    <div class="rfm-kb-insight"><b>Що каже VA:</b> ${esc(kbRfmInsight())}</div>
+
+    <div class="rfm-kb-grid">${segments.map(kbRfmCard).join("")}</div>
+
+    <div class="box">
+      <div class="section-caption"><div><div class="eyebrow">RFM КБ • STATUS MAP</div><h3>Карта готових статусів</h3></div></div>
+      <div class="rfm-kb-table"><table>
+        <thead><tr><th>Статус КБ</th><th>Покупці</th><th>Контактні</th><th>Доступно для сеансу</th><th>Сер. сума</th><th>Сер. відвідано</th><th>Сер. днів після візиту</th><th>Наступний крок</th></tr></thead>
+        <tbody>${segments.map(s=>{
+          const a=kbRfmAvailableForFocus(s);
+          return `<tr>
+            <td><b>${esc(s.icon)} ${esc(s.title)}</b></td>
+            <td>${s.count}</td>
+            <td>${s.reachable}</td>
+            <td>${getFocusSeance()?a.count:"—"}</td>
+            <td>${ltvMoney(s.avgValue)}</td>
+            <td>${s.avgVisits==null?"—":s.avgVisits.toFixed(1)}</td>
+            <td>${s.avgRecency==null?"—":Math.round(s.avgRecency)}</td>
+            <td>${esc(s.action)}</td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table></div>
+    </div>
+
+    <div class="micro" style="margin-top:10px">
+      RFM відповідає <b>кому</b> діяти. Marketing Psychology / Offer відповідають <b>чому і що сказати</b>. Campaign фіксує дію, Communications доставляє, а Paid / Retention / LTV потім вимірюють результат.
     </div>`;
 }
 
