@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.21.2 — KB RFM Recency Fix + LTV + Retention + Paid Acquisition</title>
+  <title>VA Marketing V2.22 — Customer Research + KB RFM + LTV + Retention + Paid Acquisition</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -372,6 +372,28 @@ textarea::placeholder{
   @media(max-width:950px){.rfm-kb-grid{grid-template-columns:1fr}.rfm-kb-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.rfm-kb-kpis{grid-template-columns:1fr}.rfm-kb-stats{grid-template-columns:1fr}}
 
+
+  /* ===== VA Marketing Customer Research V1 ===== */
+  .research-rule{padding:12px 14px;border-radius:12px;border:1px solid rgba(251,191,36,.42);background:rgba(245,158,11,.08);margin:12px 0}
+  .research-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+  .research-kpi{background:#fff;color:#111827;border:1px solid var(--line);border-radius:14px;padding:13px}
+  .research-kpi span{display:block;color:#64748b;font-size:11px;margin-bottom:5px}
+  .research-kpi b{display:block;color:#0f172a;font-size:24px;line-height:1.1}
+  .research-kpi .micro{color:#64748b;margin-top:5px}
+  .research-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+  .research-note{border:1px solid var(--line);border-radius:14px;padding:14px;background:#0a1d35}
+  .research-note h4{margin:0 0 6px;font-size:16px}
+  .research-meta{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+  .research-quote{border-left:3px solid #f59e0b;padding:8px 10px;margin:10px 0;background:rgba(245,158,11,.06);font-style:italic}
+  .research-insight{padding:14px 16px;border-radius:14px;border:1px solid #fcd34d;background:#fffbeb;color:#78350f;margin:14px 0;line-height:1.45}
+  .research-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+  .research-signal{border:1px solid var(--line);border-radius:12px;padding:11px;background:#0a1d35}
+  .research-signal span{color:var(--muted);font-size:11px}
+  .research-signal b{display:block;margin-top:4px}
+  .research-campaign-box{border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.05);border-radius:12px;padding:12px 14px;margin:12px 0}
+  @media(max-width:950px){.research-grid{grid-template-columns:1fr}.research-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:620px){.research-kpis,.research-summary-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -382,7 +404,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.21.2</h1>
+        <h1>Marketing Control Center V2.22</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.21.1 підключає єдиний RFM Клієнтської бази до Marketing: КБ рахує статус → Marketing формує аудиторію → Campaign.
@@ -398,6 +420,7 @@ textarea::placeholder{
         <span class="badge">Retention V1</span>
         <span class="badge">LTV V1</span>
         <span class="badge">RFM КБ Bridge V1</span>
+        <span class="badge">Customer Research V1</span>
       </div>
     </div>
   </div>
@@ -506,6 +529,11 @@ let LTV_ERROR = "";
 
 let RFM_BUSY = false;
 let RFM_ERROR = "";
+
+const CUSTOMER_RESEARCH_STORAGE_KEY = "va_marketing_customer_research_v1";
+let CUSTOMER_RESEARCH = [];
+let RESEARCH_EDIT_ID = "";
+let RESEARCH_FILTER = "focus";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
@@ -1411,7 +1439,8 @@ const TOOLS = [
   ["💰 Paid Acquisition", "Витрати → трафік → Paid → виручка → CPA / CPT / ROAS", "Реклама"],
   ["🔁 Retention / Повторні продажі", "Хто повернувся на інший сеанс, коли і скільки повторної виручки приніс", "Утримання"],
   ["💎 LTV / Цінність покупця", "Скільки фактичної виручки приносить залучений покупець за доступний горизонт", "Економіка"],
-  ["🧭 RFM КБ → Campaign", "Готовий RFM із Клієнтської бази: статус покупця → аудиторія конкретного сеансу → Campaign", "Дія"]
+  ["🧭 RFM КБ → Campaign", "Готовий RFM із Клієнтської бази: статус покупця → аудиторія конкретного сеансу → Campaign", "Дія"],
+  ["🔎 Customer Research / Голос покупця", "Фактичні мотиви, бар'єри, фрази та причини рішення → Decision Map", "Дослідження"]
 ];
 
 function esc(v){
@@ -1528,6 +1557,7 @@ function openMarketingSection(index){
   if(index === 11) return renderRetentionSection();
   if(index === 12) return renderLTVSection();
   if(index === 13) return renderKBRFMSection();
+  if(index === 14) return renderCustomerResearchSection();
 }
 
 function buildClients(orders, tickets, seances){
@@ -3380,7 +3410,7 @@ function renderCampaignsSection(){
     ${renderExternalAudienceContext()}
 
     <div class="box campaign-card" style="margin-bottom:14px">
-      <div class="eyebrow">VA Campaign Object • V2.9 • DIRECT / PAID</div>
+      <div class="eyebrow">VA Campaign Object • V2.11 • DIRECT / PAID + RFM + RESEARCH</div>
       ${activeCampaign ? `
         <div class="context-bridge-row">
           <div>
@@ -3497,6 +3527,7 @@ function renderCampaignsSection(){
       <div class="eyebrow">5 • Що говорити</div>
       <h3>Змістова основа кампанії</h3>
       ${focusSeance ? `
+        ${researchCampaignEvidenceHtml(focusSeance,selected)}
         <div class="passport-grid">
           <div>
             <div class="metric-row"><span>Готовність паспорта</span><b>${passport.completeness}%</b></div>
@@ -5616,6 +5647,439 @@ function renderKBRFMSection(){
 }
 
 
+
+// ===== VA Marketing Customer Research V1 =====
+// V1 stores anonymized qualitative evidence locally in the current browser.
+// No PII: do not store names, phones, emails or other direct identifiers.
+// Research does not "decide" Psychology. It supplies observed evidence to Decision Map.
+
+const RESEARCH_SOURCE_TYPES = [
+  ["interview","Розмова / інтерв'ю"],
+  ["box_office","Каса / билетний відділ"],
+  ["phone","Телефон / месенджер"],
+  ["social","Коментар / соцмережа"],
+  ["survey","Опитування"],
+  ["post_event","Після події"],
+  ["observation","Спостереження"],
+  ["other","Інше"]
+];
+
+const RESEARCH_SIGNAL_TYPES = [
+  ["motive","Мотив"],
+  ["barrier","Бар'єр"],
+  ["risk","Ризик / страх"],
+  ["alternative","Альтернатива"],
+  ["proof","Доказ, якому вірять"],
+  ["trigger","Реальний тригер"],
+  ["language","Фраза покупця"],
+  ["logistics","Логістика"],
+  ["price","Ціна / цінність"],
+  ["other","Інше"]
+];
+
+const RESEARCH_STRENGTHS = [
+  ["single","Один факт",1],
+  ["repeated","Повторюється",2],
+  ["verified","Підтверджено кількома джерелами",3]
+];
+
+function loadCustomerResearch(){
+  try{
+    const raw=localStorage.getItem(CUSTOMER_RESEARCH_STORAGE_KEY);
+    const parsed=raw?JSON.parse(raw):[];
+    CUSTOMER_RESEARCH=Array.isArray(parsed)?parsed:[];
+  }catch(e){
+    console.warn("Customer Research load",e);
+    CUSTOMER_RESEARCH=[];
+  }
+}
+
+function saveCustomerResearchLocal(){
+  try{
+    localStorage.setItem(CUSTOMER_RESEARCH_STORAGE_KEY,JSON.stringify(CUSTOMER_RESEARCH));
+  }catch(e){
+    console.warn("Customer Research save",e);
+  }
+}
+
+function makeResearchId(){
+  return `VAR-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+}
+
+function researchSourceLabel(key){
+  return RESEARCH_SOURCE_TYPES.find(x=>x[0]===String(key||""))?.[1] || "Інше";
+}
+
+function researchSignalLabel(key){
+  return RESEARCH_SIGNAL_TYPES.find(x=>x[0]===String(key||""))?.[1] || "Інше";
+}
+
+function researchStrengthMeta(key){
+  const row=RESEARCH_STRENGTHS.find(x=>x[0]===String(key||"")) || RESEARCH_STRENGTHS[0];
+  return {key:row[0],label:row[1],weight:row[2]};
+}
+
+function researchCurrentAudience(){
+  const active=getActiveCampaign();
+  if(active?.segmentLabel) return active.segmentLabel;
+  if(CAMPAIGN_DRAFT.segmentLabel) return CAMPAIGN_DRAFT.segmentLabel;
+  if(CAMPAIGN_DRAFT.paidAudience) return CAMPAIGN_DRAFT.paidAudience;
+  return "";
+}
+
+function researchVisibleNotes(){
+  const focus=getFocusSeance();
+  const sid=focus?String(focus.id):"";
+
+  if(RESEARCH_FILTER==="all") return CUSTOMER_RESEARCH.slice();
+
+  if(RESEARCH_FILTER==="general"){
+    return CUSTOMER_RESEARCH.filter(n=>!n.seance_id);
+  }
+
+  if(!sid) return CUSTOMER_RESEARCH.filter(n=>!n.seance_id);
+  return CUSTOMER_RESEARCH.filter(n=>!n.seance_id || String(n.seance_id)===sid);
+}
+
+function researchRelevantNotes(seanceId="",segmentLabel=""){
+  const sid=String(seanceId||"");
+  const seg=String(segmentLabel||"").trim().toLowerCase();
+
+  return CUSTOMER_RESEARCH
+    .filter(n=>!n.seance_id || !sid || String(n.seance_id)===sid)
+    .map(n=>{
+      const noteSeg=String(n.segment_label||"").trim().toLowerCase();
+      const segmentMatch=!!(seg && noteSeg && (seg===noteSeg || seg.includes(noteSeg) || noteSeg.includes(seg)));
+      const scopeScore=n.seance_id && sid && String(n.seance_id)===sid ? 2 : 1;
+      return {...n,_segmentMatch:segmentMatch,_scopeScore:scopeScore};
+    })
+    .sort((a,b)=>{
+      const aw=researchStrengthMeta(a.strength).weight;
+      const bw=researchStrengthMeta(b.strength).weight;
+      return Number(b._segmentMatch)-Number(a._segmentMatch)
+        || b._scopeScore-a._scopeScore
+        || bw-aw
+        || new Date(b.created_at||0)-new Date(a.created_at||0);
+    });
+}
+
+function researchSummary(notes){
+  const rows=Array.isArray(notes)?notes:[];
+  const bySignal=new Map();
+
+  for(const n of rows){
+    const key=String(n.signal_type||"other");
+    const meta=researchStrengthMeta(n.strength);
+    if(!bySignal.has(key)) bySignal.set(key,{key,count:0,weight:0});
+    const x=bySignal.get(key);
+    x.count++;
+    x.weight+=meta.weight;
+  }
+
+  const signals=[...bySignal.values()]
+    .sort((a,b)=>b.weight-a.weight || b.count-a.count);
+
+  return {
+    total:rows.length,
+    repeated:rows.filter(n=>["repeated","verified"].includes(n.strength)).length,
+    barriers:rows.filter(n=>["barrier","risk","logistics","price"].includes(n.signal_type)).length,
+    motives:rows.filter(n=>n.signal_type==="motive").length,
+    signals
+  };
+}
+
+function researchInsight(notes){
+  const s=researchSummary(notes);
+  if(!s.total){
+    return "Для поточного контексту ще немає зафіксованих фактів від покупців. Psychology працюватиме як гіпотеза, доки не з'являться спостереження.";
+  }
+
+  const top=s.signals[0];
+  const topLabel=top?researchSignalLabel(top.key):"—";
+  if(s.repeated){
+    return `Є ${s.total} факт(и), з них ${s.repeated} повторюються або підтверджені кількома джерелами. Найсильніший тип сигналу зараз — «${topLabel}». Це вже можна використовувати як evidence для Decision Map, але не як автоматичний висновок.`;
+  }
+
+  return `Є ${s.total} одиничних факт(и). Найчастіше зустрічається «${topLabel}». Поки це спостереження, а не підтверджений патерн.`;
+}
+
+function researchFormOptions(rows,current){
+  return rows.map(x=>`<option value="${escAttr(x[0])}" ${String(current||"")===String(x[0])?"selected":""}>${esc(x[1])}</option>`).join("");
+}
+
+function getResearchEditNote(){
+  return CUSTOMER_RESEARCH.find(n=>String(n.id)===String(RESEARCH_EDIT_ID)) || null;
+}
+
+function clearResearchForm(){
+  RESEARCH_EDIT_ID="";
+  renderCustomerResearchSection();
+}
+
+function editResearchNote(id){
+  RESEARCH_EDIT_ID=String(id||"");
+  renderCustomerResearchSection();
+  setTimeout(()=>document.getElementById("researchSummary")?.focus(),0);
+}
+
+function deleteResearchNote(id){
+  const note=CUSTOMER_RESEARCH.find(n=>String(n.id)===String(id));
+  if(!note) return;
+  if(!confirm("Видалити цей дослідницький факт?")) return;
+  CUSTOMER_RESEARCH=CUSTOMER_RESEARCH.filter(n=>String(n.id)!==String(id));
+  saveCustomerResearchLocal();
+  if(RESEARCH_EDIT_ID===String(id)) RESEARCH_EDIT_ID="";
+  renderCustomerResearchSection();
+  if(ACTIVE_SECTION===3) renderCampaignsSection();
+}
+
+function saveResearchNote(){
+  const summary=String(document.getElementById("researchSummary")?.value||"").trim();
+  if(!summary){
+    alert("Зафіксуйте сам факт: що саме сказав або зробив покупець.");
+    return;
+  }
+
+  const focus=getFocusSeance();
+  const scope=String(document.getElementById("researchScope")?.value||"focus");
+  const now=new Date().toISOString();
+
+  const payload={
+    id:RESEARCH_EDIT_ID || makeResearchId(),
+    created_at:getResearchEditNote()?.created_at || now,
+    updated_at:now,
+    seance_id:scope==="focus" && focus ? String(focus.id) : "",
+    campaign_id:String(getActiveCampaign()?.id||""),
+    segment_label:String(document.getElementById("researchSegment")?.value||"").trim(),
+    source_type:String(document.getElementById("researchSource")?.value||"observation"),
+    signal_type:String(document.getElementById("researchSignal")?.value||"other"),
+    strength:String(document.getElementById("researchStrength")?.value||"single"),
+    summary,
+    quote:String(document.getElementById("researchQuote")?.value||"").trim(),
+    context:String(document.getElementById("researchContext")?.value||"").trim()
+  };
+
+  const idx=CUSTOMER_RESEARCH.findIndex(n=>String(n.id)===String(payload.id));
+  if(idx>=0) CUSTOMER_RESEARCH[idx]=payload;
+  else CUSTOMER_RESEARCH.unshift(payload);
+
+  saveCustomerResearchLocal();
+  RESEARCH_EDIT_ID="";
+  renderCustomerResearchSection();
+}
+
+function mergeResearchEvidence(existing,addition){
+  const a=String(existing||"").trim();
+  const b=String(addition||"").trim();
+  if(!b) return a;
+  if(a.includes(b)) return a;
+  return a ? `${a}\n• ${b}` : `• ${b}`;
+}
+
+async function applyResearchToDecisionMap(id){
+  const note=CUSTOMER_RESEARCH.find(n=>String(n.id)===String(id));
+  const focus=getFocusSeance();
+  if(!note || !focus) return;
+
+  if(note.seance_id && String(note.seance_id)!==String(focus.id)){
+    alert("Цей факт прив'язаний до іншого сеансу. Спочатку відкрийте його у фокусі.");
+    return;
+  }
+
+  const sid=String(focus.id);
+  const ctx={...emptyMarketingContext(),...(MARKETING_CONTEXTS[sid]||{})};
+  const evidence=`${researchSignalLabel(note.signal_type)}: ${note.summary}${note.quote?` | «${note.quote}»`:""}`;
+
+  if(note.signal_type==="motive"){
+    ctx.motiveDetail=mergeResearchEvidence(ctx.motiveDetail,evidence);
+  }else if(["barrier","risk","logistics","price"].includes(note.signal_type)){
+    ctx.barrierDetail=mergeResearchEvidence(ctx.barrierDetail,evidence);
+  }else if(note.signal_type==="alternative"){
+    ctx.alternative=mergeResearchEvidence(ctx.alternative,evidence);
+  }else if(note.signal_type==="proof"){
+    ctx.proofDetail=mergeResearchEvidence(ctx.proofDetail,evidence);
+  }else if(note.signal_type==="trigger"){
+    ctx.triggerDetail=mergeResearchEvidence(ctx.triggerDetail,evidence);
+  }else{
+    ctx.notes=mergeResearchEvidence(ctx.notes,evidence);
+  }
+
+  if((ctx.evidenceLevel||"hypothesis")==="hypothesis"){
+    ctx.evidenceLevel="observed";
+  }
+
+  await persistMarketingContextObject(
+    sid,
+    ctx,
+    `Research-факт додано до Decision Map (${researchSignalLabel(note.signal_type)}).`
+  );
+  openMarketingSection(7);
+}
+
+function researchCampaignEvidenceHtml(seance,selected){
+  if(!seance) return "";
+  const segmentLabel=selected?.label || CAMPAIGN_DRAFT.segmentLabel || CAMPAIGN_DRAFT.paidAudience || "";
+  const notes=researchRelevantNotes(seance.id,segmentLabel);
+  const s=researchSummary(notes);
+
+  if(!notes.length){
+    return `<div class="research-campaign-box">
+      <b>🔎 Customer Research:</b> для цього сеансу / сегмента ще немає зафіксованих фактів.
+      <div class="micro" style="margin-top:5px">Decision Map зараз спирається на гіпотезу та системні дані VA.</div>
+      <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openMarketingSection(14)">Додати факти покупців</button></div>
+    </div>`;
+  }
+
+  return `<div class="research-campaign-box">
+    <b>🔎 Customer Research:</b> ${s.total} факт(и) • повторюються/підтверджені: ${s.repeated}.
+    <div class="micro" style="margin:6px 0 8px">Найрелевантніші сигнали:</div>
+    ${notes.slice(0,3).map(n=>`<div class="metric-row"><span>${esc(researchSignalLabel(n.signal_type))}</span><b>${esc(n.summary)}</b></div>`).join("")}
+    <div class="toolbar" style="margin-bottom:0"><button class="btn small secondary" onclick="openMarketingSection(14)">Відкрити Research</button></div>
+  </div>`;
+}
+
+function renderResearchNoteCard(note){
+  const focus=getFocusSeance();
+  const seance=note.seance_id ? SEANCES.find(s=>String(s.id)===String(note.seance_id)) : null;
+  const canApply=!!focus && (!note.seance_id || String(note.seance_id)===String(focus.id));
+  const strength=researchStrengthMeta(note.strength);
+
+  return `<div class="research-note">
+    <div class="context-bridge-row">
+      <div>
+        <div class="eyebrow">${esc(researchSignalLabel(note.signal_type))}</div>
+        <h4>${esc(note.summary)}</h4>
+      </div>
+      <span class="pill ${note.strength==="verified"?"good":note.strength==="repeated"?"warn":""}">${esc(strength.label)}</span>
+    </div>
+
+    <div class="research-meta">
+      <span class="pill">${esc(researchSourceLabel(note.source_type))}</span>
+      <span class="pill">${seance?esc(seance.show||note.seance_id):"Загальний факт"}</span>
+      ${note.segment_label?`<span class="pill">${esc(note.segment_label)}</span>`:""}
+    </div>
+
+    ${note.quote?`<div class="research-quote">«${esc(note.quote)}»</div>`:""}
+    ${note.context?`<div class="micro">${esc(note.context)}</div>`:""}
+
+    <div class="toolbar" style="margin-bottom:0">
+      <button class="btn small" onclick="applyResearchToDecisionMap('${escAttr(note.id)}')" ${canApply?"":"disabled"}>→ У Decision Map</button>
+      <button class="btn small secondary" onclick="editResearchNote('${escAttr(note.id)}')">Редагувати</button>
+      <button class="btn small secondary" onclick="deleteResearchNote('${escAttr(note.id)}')">Видалити</button>
+    </div>
+  </div>`;
+}
+
+function renderCustomerResearchSection(){
+  const panel=document.getElementById("activeSectionPanel");
+  const focus=getFocusSeance();
+  const edit=getResearchEditNote();
+  const notes=researchVisibleNotes();
+  const summary=researchSummary(notes);
+  const currentAudience=edit?.segment_label || researchCurrentAudience();
+
+  const signalTop=summary.signals.slice(0,3);
+
+  panel.innerHTML=`
+    <div class="section-caption"><div>
+      <div class="eyebrow">CUSTOMER RESEARCH V1 • EVIDENCE LAYER</div>
+      <h2>🔎 Голос покупця: чому купив або не купив</h2>
+      <div class="muted">Тут зберігаємо не «думку маркетолога», а фактичні спостереження: слова покупця, повторювані бар'єри, мотиви, альтернативи, логістику, цінові аргументи та докази, яким він довіряє.</div>
+    </div></div>
+
+    <div class="research-rule">
+      <b>Правило V1:</b> без ПІБ, телефону, email та інших персональних даних. Один запис = один конкретний факт. «Один факт» не стає істиною автоматично; повторюваність підвищує вагу, а Marketing Psychology залишається окремим рішенням маркетолога.
+    </div>
+
+    ${renderScopeHeader()}
+
+    <div class="box" style="margin-bottom:14px">
+      <div class="eyebrow">${edit?"РЕДАГУВАННЯ ФАКТУ":"ДОДАТИ ФАКТ"}</div>
+      <h3>${focus?esc(focus.show||"Поточний сеанс"):"Загальне дослідження"}</h3>
+
+      <div class="passport-grid">
+        <div class="field">
+          <label>Прив'язка</label>
+          <select id="researchScope">
+            <option value="focus" ${edit?.seance_id || (!edit&&focus) ? "selected" : ""} ${focus?"":"disabled"}>Поточний сеанс${focus?` • ${esc(focus.show||focus.id)}`:""}</option>
+            <option value="general" ${edit&&!edit.seance_id ? "selected" : ""}>Загальний факт / для майбутніх кампаній</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Сегмент / аудиторія — необов'язково</label>
+          <input id="researchSegment" value="${escAttr(currentAudience||"")}" placeholder="Напр.: RFM КБ • Новий, постійні, платна аудиторія...">
+        </div>
+
+        <div class="field">
+          <label>Джерело факту</label>
+          <select id="researchSource">${researchFormOptions(RESEARCH_SOURCE_TYPES,edit?.source_type||"observation")}</select>
+        </div>
+
+        <div class="field">
+          <label>Що саме це пояснює</label>
+          <select id="researchSignal">${researchFormOptions(RESEARCH_SIGNAL_TYPES,edit?.signal_type||"barrier")}</select>
+        </div>
+
+        <div class="field">
+          <label>Сила evidence</label>
+          <select id="researchStrength">${researchFormOptions(RESEARCH_STRENGTHS,edit?.strength||"single")}</select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Факт *</label>
+        <textarea id="researchSummary" placeholder="Напр.: після вечірньої вистави людина не купує, бо не знає, як дістатися до центру після 21:00">${esc(edit?.summary||"")}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Точна фраза покупця — необов'язково, без персональних даних</label>
+        <textarea id="researchQuote" placeholder="Напр.: «Я б пішла, але після вистави звідси нічим їхати»">${esc(edit?.quote||"")}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Контекст — необов'язково</label>
+        <textarea id="researchContext" placeholder="Де почули / за яких умов / що було перед цим. Не записуйте ПІБ, телефон або email.">${esc(edit?.context||"")}</textarea>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn" onclick="saveResearchNote()">${edit?"Оновити факт":"Зберегти факт"}</button>
+        ${edit?`<button class="btn secondary" onclick="clearResearchForm()">Скасувати редагування</button>`:""}
+      </div>
+    </div>
+
+    <div class="toolbar" style="margin-bottom:12px">
+      <button class="btn small ${RESEARCH_FILTER==="focus"?"":"secondary"}" onclick="RESEARCH_FILTER='focus';renderCustomerResearchSection()">Поточний контекст</button>
+      <button class="btn small ${RESEARCH_FILTER==="general"?"":"secondary"}" onclick="RESEARCH_FILTER='general';renderCustomerResearchSection()">Загальні</button>
+      <button class="btn small ${RESEARCH_FILTER==="all"?"":"secondary"}" onclick="RESEARCH_FILTER='all';renderCustomerResearchSection()">Уся історія</button>
+    </div>
+
+    <div class="research-kpis">
+      <div class="research-kpi"><span>Факти у вибірці</span><b>${summary.total}</b><div class="micro">анонімізовані записи</div></div>
+      <div class="research-kpi"><span>Повторюються / підтверджені</span><b>${summary.repeated}</b><div class="micro">сильніший evidence</div></div>
+      <div class="research-kpi"><span>Бар'єри / ризики</span><b>${summary.barriers}</b><div class="micro">включно з логістикою та ціною</div></div>
+      <div class="research-kpi"><span>Мотиви</span><b>${summary.motives}</b><div class="micro">позитивні причини рішення</div></div>
+    </div>
+
+    <div class="research-insight"><b>Що каже VA:</b> ${esc(researchInsight(notes))}</div>
+
+    ${signalTop.length?`<div class="research-summary-grid">
+      ${signalTop.map(x=>`<div class="research-signal"><span>${esc(researchSignalLabel(x.key))}</span><b>${x.count} факт(и) • вага ${x.weight}</b></div>`).join("")}
+    </div>`:""}
+
+    <div class="section-caption" style="margin-top:14px"><div><div class="eyebrow">RESEARCH LOG</div><h3>Фактичні спостереження</h3></div></div>
+
+    ${notes.length
+      ? `<div class="research-grid">${notes.map(renderResearchNoteCard).join("")}</div>`
+      : `<div class="notice">У цій вибірці поки немає Research-фактів.</div>`
+    }
+
+    <div class="micro" style="margin-top:12px">
+      «→ У Decision Map» не вибирає за вас категорію мотиву/бар'єра. VA додає фактичний текст у відповідне поле деталей та переводить evidence з «Гіпотеза» у «Є спостереження». Перевірка кампанією залишається окремим наступним кроком.
+    </div>`;
+}
+
+
 // ===== VA Marketing CRO Dashboard V1 =====
 
 function croPeriodFromIso(){
@@ -5962,6 +6426,7 @@ function renderCROSection(){
 
 async function boot(){
   loadABExperiments();
+  loadCustomerResearch();
   buildTools();
   initMarketingSections();
   loadLocalMarketingContexts();
