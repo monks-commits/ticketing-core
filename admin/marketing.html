@@ -2,12 +2,12 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.21.1 — KB RFM Bridge + LTV + Retention + CRO + Paid Acquisition</title>
+  <title>VA Marketing V2.21.2 — KB RFM Recency Fix + LTV + Retention + Paid Acquisition</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
   <script src="../shared/marketing-knowledge-base.js?v=2.0.1-20260902"></script>
-  <script src="../shared/va-client-rfm.js?v=1.0.0"></script>
+  <script src="../shared/va-client-rfm.js?v=1.0.1"></script>
 
   <style>
     body{margin:0;font-family:Arial,sans-serif;background:#071a35;color:#fff}
@@ -382,7 +382,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.21.1</h1>
+        <h1>Marketing Control Center V2.21.2</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.21.1 підключає єдиний RFM Клієнтської бази до Marketing: КБ рахує статус → Marketing формує аудиторію → Campaign.
@@ -1606,6 +1606,7 @@ function buildClients(orders, tickets, seances){
 
     const kbRfm = window.VAClientRFM.calculate({
       lastVisit:c.lastVisit,
+      lastOrderAt:c.lastOrderAt,
       visited:c.visited,
       totalAmount:c.total
     });
@@ -5400,7 +5401,7 @@ function kbRfmSegmentSummary(title){
   const revenue=clients.reduce((s,c)=>s+Number(c.monetary||c.total||0),0);
   const avgValue=clients.length ? revenue/clients.length : 0;
   const avgVisits=clients.length ? clients.reduce((s,c)=>s+Number(c.frequency||0),0)/clients.length : null;
-  const avgRecency=clients.length ? clients.reduce((s,c)=>s+Number(c.daysFromVisit||0),0)/clients.length : null;
+  const avgRecency=clients.length ? clients.reduce((s,c)=>s+Number(c.daysRecency||0),0)/clients.length : null;
 
   return {
     ...kbRfmMeta(title),
@@ -5549,7 +5550,7 @@ function kbRfmCard(summary){
     <div class="rfm-kb-stats">
       <div class="rfm-kb-stat"><span>Сер. фактична сума</span><b>${ltvMoney(summary.avgValue)}</b></div>
       <div class="rfm-kb-stat"><span>Сер. відвідано</span><b>${summary.avgVisits==null?"—":summary.avgVisits.toFixed(1)}</b></div>
-      <div class="rfm-kb-stat"><span>Днів після візиту</span><b>${summary.avgRecency==null?"—":Math.round(summary.avgRecency)}</b></div>
+      <div class="rfm-kb-stat"><span>Днів після RFM-активності</span><b>${summary.avgRecency==null?"—":Math.round(summary.avgRecency)}</b></div>
     </div>
 
     <div class="notice" style="margin:10px 0"><b>Маркетингова дія:</b> ${esc(summary.action)}</div>
@@ -5571,7 +5572,7 @@ function renderKBRFMSection(){
       <div class="muted">Marketing <b>не має власної формули RFM</b>. Код 531, статус «Постійний» та інші RFM-статуси беруться з того самого shared-розрахунку, який використовує Клієнтська база.</div>
     </div></div>
 
-    <div class="rfm-kb-rule"><b>Єдине джерело істини:</b> shared/va-client-rfm.js. КБ формує RFM-код і статус. Marketing лише групує готові статуси, виключає тих, хто вже купив поточний сеанс, і передає вибрану аудиторію в Campaign.</div>
+    <div class="rfm-kb-rule"><b>Єдине джерело істини:</b> shared/va-client-rfm.js. КБ формує RFM-код і статус. Для R використовується останній фактичний візит; якщо людина ще жодного разу не проходила сканер — остання paid-покупка. Marketing лише групує готові статуси, виключає тих, хто вже купив поточний сеанс, і передає аудиторію в Campaign.</div>
 
     ${RFM_ERROR?`<div class="notice bad"><b>RFM недоступний.</b> ${esc(RFM_ERROR)}</div>`:""}
     <div class="toolbar"><button class="btn" onclick="reloadKBRFM()" ${RFM_BUSY?"disabled":""}>${RFM_BUSY?"Оновлення…":"Оновити RFM КБ"}</button></div>
@@ -5592,7 +5593,7 @@ function renderKBRFMSection(){
     <div class="box">
       <div class="section-caption"><div><div class="eyebrow">RFM КБ • STATUS MAP</div><h3>Карта готових статусів</h3></div></div>
       <div class="rfm-kb-table"><table>
-        <thead><tr><th>Статус КБ</th><th>Покупці</th><th>Контактні</th><th>Доступно для сеансу</th><th>Сер. сума</th><th>Сер. відвідано</th><th>Сер. днів після візиту</th><th>Наступний крок</th></tr></thead>
+        <thead><tr><th>Статус КБ</th><th>Покупці</th><th>Контактні</th><th>Доступно для сеансу</th><th>Сер. сума</th><th>Сер. відвідано</th><th>Сер. днів після RFM-активності</th><th>Наступний крок</th></tr></thead>
         <tbody>${segments.map(s=>{
           const a=kbRfmAvailableForFocus(s);
           return `<tr>
