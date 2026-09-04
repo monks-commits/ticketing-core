@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.23 — Marketing Plan + Customer Research + RFM + LTV</title>
+  <title>VA Marketing V2.24 — Advocacy + Marketing Plan + Research + RFM + LTV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -430,6 +430,30 @@ textarea::placeholder{
   @media(max-width:850px){.plan-buckets{grid-template-columns:1fr}}
   @media(max-width:620px){.plan-kpis{grid-template-columns:1fr 1fr}}
 
+
+  /* ===== VA Marketing Advocacy V1 ===== */
+  .adv-rule{padding:12px 14px;border-radius:12px;border:1px solid rgba(244,114,182,.42);background:rgba(236,72,153,.08);margin:12px 0}
+  .adv-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:14px 0}
+  .adv-kpi{background:#fff;color:#111827;border:1px solid var(--line);border-radius:14px;padding:13px}
+  .adv-kpi span{display:block;color:#64748b;font-size:11px;margin-bottom:5px}
+  .adv-kpi b{display:block;color:#0f172a;font-size:23px;line-height:1.1}
+  .adv-kpi .micro{color:#64748b;margin-top:5px}
+  .adv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+  .adv-card{border:1px solid var(--line);border-radius:16px;padding:14px;background:#0a1d35}
+  .adv-card h3{margin:0 0 6px}
+  .adv-candidate{border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px;margin-top:9px;background:rgba(255,255,255,.02)}
+  .adv-link{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid var(--line);border-radius:10px;padding:9px;background:#061427;margin:8px 0}
+  .adv-insight{padding:14px 16px;border-radius:14px;border:1px solid #f9a8d4;background:#fdf2f8;color:#831843;margin:14px 0;line-height:1.45}
+  .adv-table-wrap{overflow-x:auto}
+  .adv-table-wrap table{min-width:1180px}
+  .adv-status-draft{background:#334155;color:#e2e8f0}
+  .adv-status-active{background:#1d4ed8;color:#dbeafe}
+  .adv-status-done{background:#166534;color:#dcfce7}
+  .adv-status-cancelled{background:#3f3f46;color:#d4d4d8}
+  @media(max-width:1050px){.adv-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:850px){.adv-grid{grid-template-columns:1fr}}
+  @media(max-width:620px){.adv-kpis{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 
@@ -440,7 +464,7 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.23</h1>
+        <h1>Marketing Control Center V2.24</h1>
         <div class="muted">
           Робоче місце маркетолога: факт → діагноз → дія → результат.
           V2.21.1 підключає єдиний RFM Клієнтської бази до Marketing: КБ рахує статус → Marketing формує аудиторію → Campaign.
@@ -458,6 +482,7 @@ textarea::placeholder{
         <span class="badge">RFM КБ Bridge V1</span>
         <span class="badge">Customer Research V1.1</span>
         <span class="badge">Marketing Plan V1</span>
+        <span class="badge">Advocacy V1</span>
       </div>
     </div>
   </div>
@@ -577,6 +602,11 @@ let MARKETING_PLAN = [];
 let PLAN_EDIT_ID = "";
 let PLAN_FILTER = "active";
 let PLAN_JOURNAL_PENDING_ID = "";
+
+const ADVOCACY_STORAGE_KEY = "va_marketing_advocacy_v1";
+let ADVOCACY_ACTIONS = [];
+let ADVOCACY_EDIT_ID = "";
+let ADVOCACY_FILTER = "active";
 
 const MARKETING_CONTEXT_STORAGE_KEY = "va_marketing_seance_context_v22";
 let CAMPAIGN_DRAFT = {
@@ -1484,7 +1514,8 @@ const TOOLS = [
   ["💎 LTV / Цінність покупця", "Скільки фактичної виручки приносить залучений покупець за доступний горизонт", "Економіка"],
   ["🧭 RFM КБ → Campaign", "Готовий RFM із Клієнтської бази: статус покупця → аудиторія конкретного сеансу → Campaign", "Дія"],
   ["🔎 Customer Research / Голос покупця", "Фактичні мотиви, бар'єри, фрази та причини рішення → Decision Map", "Дослідження"],
-  ["🗓️ Marketing Plan / Календар дій", "Що, для якого сеансу, коли, кому, через який канал і коли перевірити результат", "План"]
+  ["🗓️ Marketing Plan / Календар дій", "Що, для якого сеансу, коли, кому, через який канал і коли перевірити результат", "План"],
+  ["📣 Advocacy / Рекомендації покупців", "Відгук, рекомендація, запрошення друга та окремий advocacy-link з фактичною атрибуцією Paid", "Органіка"]
 ];
 
 function esc(v){
@@ -1603,6 +1634,7 @@ function openMarketingSection(index){
   if(index === 13) return renderKBRFMSection();
   if(index === 14) return renderCustomerResearchSection();
   if(index === 15) return renderMarketingPlanSection();
+  if(index === 16) return renderAdvocacySection();
 }
 
 function buildClients(orders, tickets, seances){
@@ -4710,6 +4742,16 @@ function retentionAcquisition(firstOrder){
     };
   }
 
+  const advocacy=campaignId ? advocacyActionById(campaignId) : null;
+  if(advocacy){
+    return {
+      campaign_id:campaignId,
+      campaign_name:advocacy.title || campaignId,
+      source:`Advocacy • ${advocacyTypeLabel(advocacy.action_type)}`,
+      paid:false
+    };
+  }
+
   if(campaignId){
     return {
       campaign_id:campaignId,
@@ -6745,6 +6787,511 @@ function renderMarketingPlanSection(){
 }
 
 
+
+// ===== VA Marketing Advocacy V1 =====
+// Advocacy is NOT partner Referral.
+// Referral = external partner + commission.
+// Advocacy = existing audience voluntarily reviews/recommends/shares, with no commission by default.
+// For share/invite actions VA uses the existing campaign_id attribution pipe,
+// but the public link contains only an opaque Advocacy ID, never buyer PII.
+
+const ADVOCACY_TYPES = [
+  ["review","Попросити відгук"],
+  ["share","Поділитися подією"],
+  ["invite","Запросити друга"],
+  ["testimonial","Дозвіл на відгук / цитату"]
+];
+
+const ADVOCACY_STATUSES = [
+  ["draft","Чернетка"],
+  ["active","Запущено"],
+  ["done","Завершено"],
+  ["cancelled","Скасовано"]
+];
+
+function loadAdvocacy(){
+  try{
+    const raw=localStorage.getItem(ADVOCACY_STORAGE_KEY);
+    const parsed=raw?JSON.parse(raw):[];
+    ADVOCACY_ACTIONS=Array.isArray(parsed)?parsed:[];
+  }catch(e){
+    console.warn("Advocacy load",e);
+    ADVOCACY_ACTIONS=[];
+  }
+}
+
+function saveAdvocacyLocal(){
+  try{
+    localStorage.setItem(ADVOCACY_STORAGE_KEY,JSON.stringify(ADVOCACY_ACTIONS));
+  }catch(e){
+    console.warn("Advocacy save",e);
+  }
+}
+
+function makeAdvocacyId(){
+  return `VAA-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+}
+
+function advocacyTypeLabel(key){
+  return ADVOCACY_TYPES.find(x=>x[0]===String(key||""))?.[1] || "Advocacy";
+}
+
+function advocacyStatusLabel(key){
+  return ADVOCACY_STATUSES.find(x=>x[0]===String(key||""))?.[1] || "Чернетка";
+}
+
+function advocacyActionById(id){
+  return ADVOCACY_ACTIONS.find(x=>String(x.id)===String(id)) || null;
+}
+
+function advocacyCandidateByKey(key){
+  return CLIENTS.find(c=>String(c.key)===String(key)) || null;
+}
+
+function advocacyCandidates(){
+  const priorities={"VIP":100,"Постійний":90,"Активний":70,"Новий":60,"Остигає":45,"Засинає":30,"Під ризиком":20,"Втрачений":10};
+  return CLIENTS
+    .filter(c=>!isTechnicalMarketingClient(c))
+    .filter(c=>Number(c.visited||0)>0)
+    .filter(c=>c.hasEmail||c.hasPhone)
+    .sort((a,b)=>{
+      const ap=priorities[String(a.rfmTitle||"")]||0;
+      const bp=priorities[String(b.rfmTitle||"")]||0;
+      return bp-ap || Number(b.visited||0)-Number(a.visited||0) || Number(b.total||0)-Number(a.total||0);
+    });
+}
+
+function advocacyCandidateOptions(current){
+  const rows=advocacyCandidates();
+  return `<option value="">Оберіть покупця з фактичним відвідуванням</option>` + rows.map(c=>{
+    const contact=c.email || c.phone || "";
+    return `<option value="${escAttr(c.key)}" ${String(current||"")===String(c.key)?"selected":""}>${esc(c.name||"Без імені")} • ${esc(c.rfmTitle||"—")} • відвідано ${Number(c.visited||0)} • ${esc(contact)}</option>`;
+  }).join("");
+}
+
+function advocacySeanceOptions(current){
+  const rows=SEANCES
+    .slice()
+    .sort((a,b)=>new Date(`${a.date||"2999-12-31"}T${String(a.time||"23:59").slice(0,5)}`)-new Date(`${b.date||"2999-12-31"}T${String(b.time||"23:59").slice(0,5)}`));
+  return `<option value="">Без конкретного сеансу</option>` + rows.map(s=>
+    `<option value="${escAttr(s.id)}" ${String(current||"")===String(s.id)?"selected":""}>${esc(s.show||s.id)} • ${esc(fmtDate(s.date))} ${esc(String(s.time||"").slice(0,5))}</option>`
+  ).join("");
+}
+
+function advocacyAttributionLink(action){
+  if(!action?.id || !action?.seance_id) return "";
+  try{
+    const url=new URL("../site-project/pages/campaign-entry.html",location.href);
+    url.searchParams.set("campaign_id",String(action.id));
+    url.searchParams.set("seance_id",String(action.seance_id));
+    url.searchParams.set("utm_source","advocacy");
+    url.searchParams.set("utm_medium",action.action_type==="review"?"review":"word_of_mouth");
+    url.searchParams.set("utm_campaign",String(action.id));
+    return url.toString();
+  }catch(e){
+    return "";
+  }
+}
+
+async function copyAdvocacyLink(id){
+  const action=advocacyActionById(id);
+  const url=advocacyAttributionLink(action);
+  if(!url) return;
+  try{
+    await navigator.clipboard.writeText(url);
+    alert("Advocacy-link скопійовано.");
+  }catch(e){
+    window.prompt("Скопіюйте advocacy-link:",url);
+  }
+}
+
+function advocacyMetrics(action){
+  if(!action?.id) return {orders:0,buyers:0,tickets:0,revenue:0,advocateSelfOrders:0};
+  const paidStatuses=new Set(["paid","success","completed","approved"]);
+  const startedAt=action.started_at ? new Date(action.started_at).getTime() : null;
+  const completedAt=action.completed_at ? new Date(action.completed_at).getTime() : null;
+
+  const rows=ORDERS.filter(o=>{
+    if(String(o.marketing_campaign_id||"")!==String(action.id)) return false;
+    if(o.status && !paidStatuses.has(String(o.status).toLowerCase())) return false;
+    if(startedAt){
+      const stamp=new Date(o.marketing_attributed_at||o.created_at||0).getTime();
+      if(!Number.isFinite(stamp) || stamp<startedAt) return false;
+      if(completedAt && stamp>completedAt) return false;
+    }
+    return true;
+  });
+
+  const advocateKey=String(action.advocate_key||"");
+  const externalRows=rows.filter(o=>String(normKey(o))!==advocateKey);
+  const selfRows=rows.filter(o=>String(normKey(o))===advocateKey);
+  const orderIds=new Set(externalRows.map(o=>String(o.order_id||o.id||"")).filter(Boolean));
+  const buyers=new Set(externalRows.map(o=>normKey(o)).filter(Boolean));
+  const tickets=TICKETS.filter(t=>orderIds.has(String(t.order_id||"")));
+
+  return {
+    orders:externalRows.length,
+    buyers:buyers.size,
+    tickets:tickets.length,
+    revenue:externalRows.reduce((s,o)=>s+Number(o.amount||0),0),
+    advocateSelfOrders:selfRows.length
+  };
+}
+
+function advocacySummary(){
+  const active=ADVOCACY_ACTIONS.filter(x=>String(x.status||"draft")==="active");
+  const linkActions=ADVOCACY_ACTIONS.filter(x=>["share","invite"].includes(String(x.action_type||"")));
+  const metrics=linkActions.map(x=>advocacyMetrics(x));
+  const buyers=metrics.reduce((s,m)=>s+m.buyers,0);
+  const tickets=metrics.reduce((s,m)=>s+m.tickets,0);
+  const revenue=metrics.reduce((s,m)=>s+m.revenue,0);
+  const reviews=ADVOCACY_ACTIONS.filter(x=>String(x.action_type)==="review" && String(x.status)==="done" && (x.outcome_url||x.outcome_text)).length;
+  const successfulAdvocates=linkActions.filter(x=>advocacyMetrics(x).buyers>0).length;
+  return {
+    candidates:advocacyCandidates().length,
+    active:active.length,
+    buyers,
+    tickets,
+    revenue,
+    reviews,
+    successfulAdvocates
+  };
+}
+
+function advocacyInsight(){
+  const s=advocacySummary();
+  if(!ADVOCACY_ACTIONS.length){
+    return `Є ${s.candidates} покупців з фактичним відвідуванням і доступним контактом. Це лише кандидати на запит — VA не робить висновок, що вони задоволені або готові рекомендувати.`;
+  }
+  if(s.buyers>0){
+    return `Advocacy вже привів ${s.buyers} нових покупців за персональними advocacy-link, ${s.tickets} квитків і ${Number(s.revenue).toLocaleString("uk-UA")} грн прямої виручки. Це органічна рекомендація, не партнерська комісія.`;
+  }
+  if(s.active){
+    return `Активних advocacy-дій: ${s.active}. Прямих покупок через advocacy-link поки немає. Для відгуків результат фіксується окремо URL/текстом, а для share/invite — фактичним campaign_id у paid order.`;
+  }
+  return `Advocacy-дії вже створені, але активних зараз немає. Наступний крок — запустити конкретний запит або зафіксувати його результат.`;
+}
+
+function getAdvocacyEditAction(){
+  return advocacyActionById(ADVOCACY_EDIT_ID);
+}
+
+function saveAdvocacyAction(){
+  const advocateKey=String(document.getElementById("advCandidate")?.value||"");
+  const type=String(document.getElementById("advType")?.value||"share");
+  const seanceId=String(document.getElementById("advSeance")?.value||"");
+  const channel=String(document.getElementById("advChannel")?.value||"").trim();
+  const title=String(document.getElementById("advTitle")?.value||"").trim();
+  const message=String(document.getElementById("advMessage")?.value||"").trim();
+
+  if(!advocateKey){
+    alert("Оберіть покупця з фактичним відвідуванням.");
+    return;
+  }
+  if(["share","invite"].includes(type) && !seanceId){
+    alert("Для рекомендації / запрошення друга потрібен конкретний сеанс.");
+    return;
+  }
+
+  const client=advocacyCandidateByKey(advocateKey);
+  if(!client){
+    alert("Покупця не знайдено у поточній КБ.");
+    return;
+  }
+
+  const now=new Date().toISOString();
+  const existing=getAdvocacyEditAction();
+  const payload={
+    id:ADVOCACY_EDIT_ID || makeAdvocacyId(),
+    created_at:existing?.created_at || now,
+    updated_at:now,
+    started_at:existing?.started_at || null,
+    completed_at:existing?.completed_at || null,
+    status:String(document.getElementById("advStatus")?.value||"draft"),
+    action_type:type,
+    advocate_key:advocateKey,
+    advocate_label:client.name||"Без імені",
+    advocate_rfm:client.rfmTitle||"",
+    seance_id:seanceId,
+    channel,
+    title:title || advocacyTypeLabel(type),
+    message,
+    destination_url:String(document.getElementById("advDestinationUrl")?.value||"").trim(),
+    outcome_url:String(document.getElementById("advOutcomeUrl")?.value||"").trim(),
+    outcome_text:String(document.getElementById("advOutcomeText")?.value||"").trim()
+  };
+
+  if(payload.status==="active" && !payload.started_at) payload.started_at=now;
+  if(payload.status==="done" && !payload.completed_at) payload.completed_at=now;
+
+  const idx=ADVOCACY_ACTIONS.findIndex(x=>String(x.id)===String(payload.id));
+  if(idx>=0) ADVOCACY_ACTIONS[idx]=payload;
+  else ADVOCACY_ACTIONS.unshift(payload);
+
+  saveAdvocacyLocal();
+  ADVOCACY_EDIT_ID="";
+  renderAdvocacySection();
+}
+
+function editAdvocacyAction(id){
+  ADVOCACY_EDIT_ID=String(id||"");
+  renderAdvocacySection();
+}
+
+function deleteAdvocacyAction(id){
+  const x=advocacyActionById(id);
+  if(!x) return;
+  if(!confirm("Видалити advocacy-дію?")) return;
+  ADVOCACY_ACTIONS=ADVOCACY_ACTIONS.filter(a=>String(a.id)!==String(id));
+  saveAdvocacyLocal();
+  if(ADVOCACY_EDIT_ID===String(id)) ADVOCACY_EDIT_ID="";
+  renderAdvocacySection();
+}
+
+function clearAdvocacyForm(){
+  ADVOCACY_EDIT_ID="";
+  renderAdvocacySection();
+}
+
+function setAdvocacyStatus(id,status){
+  const x=advocacyActionById(id);
+  if(!x) return;
+  const now=new Date().toISOString();
+  x.status=String(status);
+  if(status==="active" && !x.started_at) x.started_at=now;
+  if(status==="done" && !x.completed_at) x.completed_at=now;
+  x.updated_at=now;
+  saveAdvocacyLocal();
+  renderAdvocacySection();
+}
+
+function copyAdvocacyContact(id){
+  const x=advocacyActionById(id);
+  if(!x) return;
+  const c=advocacyCandidateByKey(x.advocate_key);
+  const value=c?.email || c?.phone || "";
+  if(!value) return;
+  navigator.clipboard?.writeText(value).then(()=>alert("Контакт скопійовано.")).catch(()=>window.prompt("Контакт:",value));
+}
+
+function saveAdvocacyOutcomeToResearch(id){
+  const x=advocacyActionById(id);
+  if(!x) return;
+  const text=String(x.outcome_text||"").trim();
+  const url=String(x.outcome_url||"").trim();
+  if(!text && !url){
+    alert("Спочатку зафіксуйте текст або URL фактичного відгуку.");
+    return;
+  }
+
+  const now=new Date().toISOString();
+  CUSTOMER_RESEARCH.unshift({
+    id:makeResearchId(),
+    created_at:now,
+    updated_at:now,
+    seance_id:String(x.seance_id||""),
+    campaign_id:"",
+    segment_label:"Advocacy",
+    source_type:url ? "google_review" : "post_event",
+    signal_type:"proof",
+    strength:"single",
+    evidence_type:"experience",
+    origin:url ? "external" : "internal",
+    source_role:"visitor",
+    audience_origin:"Advocacy",
+    source_url:url,
+    summary:text || "Опублікований відгук після advocacy-запиту.",
+    quote:text,
+    context:`Advocacy ID: ${x.id}`
+  });
+  saveCustomerResearchLocal();
+  alert("Факт додано в Customer Research.");
+}
+
+function advocacyFilterRows(){
+  let rows=ADVOCACY_ACTIONS.slice();
+  if(ADVOCACY_FILTER==="active") rows=rows.filter(x=>["draft","active"].includes(String(x.status||"draft")));
+  else if(ADVOCACY_FILTER==="done") rows=rows.filter(x=>String(x.status)==="done");
+  else if(ADVOCACY_FILTER==="reviews") rows=rows.filter(x=>String(x.action_type)==="review");
+  else if(ADVOCACY_FILTER==="links") rows=rows.filter(x=>["share","invite"].includes(String(x.action_type)));
+  return rows.sort((a,b)=>new Date(b.updated_at||b.created_at||0)-new Date(a.updated_at||a.created_at||0));
+}
+
+function advocacyActionCard(x){
+  const client=advocacyCandidateByKey(x.advocate_key);
+  const seance=planSeanceById(x.seance_id);
+  const m=advocacyMetrics(x);
+  const link=advocacyAttributionLink(x);
+  const statusClass=`adv-status-${escAttr(x.status||"draft")}`;
+  return `<div class="adv-card">
+    <div class="context-bridge-row">
+      <div>
+        <div class="eyebrow">${esc(advocacyTypeLabel(x.action_type))}</div>
+        <h3>${esc(x.advocate_label||client?.name||"Покупець")}</h3>
+      </div>
+      <span class="pill ${statusClass}">${esc(advocacyStatusLabel(x.status))}</span>
+    </div>
+
+    <div class="adv-item-meta">
+      <span class="pill">RFM: ${esc(x.advocate_rfm||client?.rfmTitle||"—")}</span>
+      <span class="pill">Відвідано: ${Number(client?.visited||0)}</span>
+      ${seance?`<span class="pill">${esc(seance.show||x.seance_id)}</span>`:""}
+      ${x.channel?`<span class="pill">${esc(x.channel)}</span>`:""}
+    </div>
+
+    ${x.message?`<div class="plan-item-note">${esc(x.message)}</div>`:""}
+
+    ${["share","invite"].includes(x.action_type) && link ? `
+      <div class="adv-link">${esc(link)}</div>
+      <div class="metric-row"><span>Приведені покупці</span><b>${m.buyers}</b></div>
+      <div class="metric-row"><span>Квитки / виручка</span><b>${m.tickets} / ${Number(m.revenue).toLocaleString("uk-UA")} грн</b></div>
+      ${m.advocateSelfOrders?`<div class="micro">Власні покупки цього advocate через його link не зараховано як рекомендацію: ${m.advocateSelfOrders}.</div>`:""}
+    `:""}
+
+    ${x.action_type==="review" ? `
+      <div class="metric-row"><span>Місце відгуку</span><b>${esc(x.destination_url||"—")}</b></div>
+      <div class="metric-row"><span>Фактичний результат</span><b>${esc(x.outcome_url||x.outcome_text||"—")}</b></div>
+    `:""}
+
+    <div class="toolbar" style="margin-bottom:0">
+      ${x.status==="draft"?`<button class="btn small" onclick="setAdvocacyStatus('${escAttr(x.id)}','active')">Запустити</button>`:""}
+      ${["share","invite"].includes(x.action_type) && link?`<button class="btn small secondary" onclick="copyAdvocacyLink('${escAttr(x.id)}')">Копіювати link</button>`:""}
+      <button class="btn small secondary" onclick="copyAdvocacyContact('${escAttr(x.id)}')">Контакт</button>
+      ${x.status==="active"?`<button class="btn small secondary" onclick="setAdvocacyStatus('${escAttr(x.id)}','done')">Завершити</button>`:""}
+      ${x.action_type==="review" && (x.outcome_url||x.outcome_text)?`<button class="btn small secondary" onclick="saveAdvocacyOutcomeToResearch('${escAttr(x.id)}')">→ Research</button>`:""}
+      <button class="btn small secondary" onclick="editAdvocacyAction('${escAttr(x.id)}')">Редагувати</button>
+      <button class="btn small secondary" onclick="deleteAdvocacyAction('${escAttr(x.id)}')">Видалити</button>
+    </div>
+  </div>`;
+}
+
+function renderAdvocacySection(){
+  const panel=document.getElementById("activeSectionPanel");
+  const edit=getAdvocacyEditAction();
+  const focus=getFocusSeance();
+  const candidates=advocacyCandidates();
+  const s=advocacySummary();
+  const rows=advocacyFilterRows();
+
+  panel.innerHTML=`
+    <div class="section-caption"><div>
+      <div class="eyebrow">ADVOCACY V1 • CUSTOMER-LED GROWTH</div>
+      <h2>📣 Коли покупець рекомендує театр іншому</h2>
+      <div class="muted">Advocacy — це відгук, добровільна рекомендація, share або запрошення друга. Це <b>не Referral</b>: партнерської комісії тут немає.</div>
+    </div></div>
+
+    <div class="adv-rule"><b>Правило:</b> VA не називає людину advocate лише тому, що вона купувала часто. Для запиту кандидат повинен мати хоча б одне фактичне відвідування. Реальна advocacy-поведінка доводиться або опублікованим відгуком, або покупкою іншої людини через персональний advocacy-link.</div>
+
+    ${renderScopeHeader()}
+
+    <div class="adv-kpis">
+      <div class="adv-kpi"><span>Кандидати для запиту</span><b>${s.candidates}</b><div class="micro">відвідували + є контакт</div></div>
+      <div class="adv-kpi"><span>Активні advocacy</span><b>${s.active}</b><div class="micro">запущені дії</div></div>
+      <div class="adv-kpi"><span>Приведені покупці</span><b>${s.buyers}</b><div class="micro">не сам advocate</div></div>
+      <div class="adv-kpi"><span>Квитки / виручка</span><b>${s.tickets} / ${Number(s.revenue).toLocaleString("uk-UA")} грн</b><div class="micro">по advocacy-link</div></div>
+      <div class="adv-kpi"><span>Зафіксовані відгуки</span><b>${s.reviews}</b><div class="micro">URL або текст</div></div>
+    </div>
+
+    <div class="adv-insight"><b>Що каже VA:</b> ${esc(advocacyInsight())}</div>
+
+    <div class="box">
+      <div class="eyebrow">${edit?"РЕДАГУВАННЯ ADVOCACY":"НОВА ADVOCACY-ДІЯ"}</div>
+      <h3>${focus?esc(focus.show||focus.id):"Рекомендація / відгук"}</h3>
+
+      <div class="passport-grid">
+        <div class="field">
+          <label>Покупець *</label>
+          <select id="advCandidate">${advocacyCandidateOptions(edit?.advocate_key||"")}</select>
+        </div>
+
+        <div class="field">
+          <label>Тип advocacy</label>
+          <select id="advType">${researchFormOptions(ADVOCACY_TYPES,edit?.action_type||"share")}</select>
+        </div>
+
+        <div class="field">
+          <label>Сеанс</label>
+          <select id="advSeance">${advocacySeanceOptions(edit?.seance_id || focus?.id || "")}</select>
+        </div>
+
+        <div class="field">
+          <label>Статус</label>
+          <select id="advStatus">${researchFormOptions(ADVOCACY_STATUSES,edit?.status||"draft")}</select>
+        </div>
+
+        <div class="field">
+          <label>Канал контакту</label>
+          <input id="advChannel" value="${escAttr(edit?.channel||"")}" placeholder="Email, Viber, Telegram, особисто...">
+        </div>
+
+        <div class="field">
+          <label>Назва / коротко</label>
+          <input id="advTitle" value="${escAttr(edit?.title||"")}" placeholder="Напр.: Попросити поділитися ХЕМ з другом">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Текст звернення / примітка</label>
+        <textarea id="advMessage" placeholder="Що саме просимо. Без примусової «похвали»: відгук має бути добровільним.">${esc(edit?.message||"")}</textarea>
+      </div>
+
+      <div class="passport-grid">
+        <div class="field">
+          <label>Куди залишити відгук — для Review</label>
+          <input id="advDestinationUrl" value="${escAttr(edit?.destination_url||"")}" placeholder="Google Reviews / Facebook / сайт">
+        </div>
+
+        <div class="field">
+          <label>URL фактичного відгуку</label>
+          <input id="advOutcomeUrl" value="${escAttr(edit?.outcome_url||"")}" placeholder="Після публікації">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Фактичний текст / результат</label>
+        <textarea id="advOutcomeText" placeholder="Напр.: короткий текст опублікованого відгуку або факт, що людина поділилася.">${esc(edit?.outcome_text||"")}</textarea>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn" onclick="saveAdvocacyAction()">${edit?"Оновити advocacy":"Зберегти advocacy"}</button>
+        ${edit?`<button class="btn secondary" onclick="clearAdvocacyForm()">Скасувати редагування</button>`:""}
+      </div>
+    </div>
+
+    <div class="box" style="margin-top:14px">
+      <div class="section-caption"><div><div class="eyebrow">CANDIDATES</div><h3>Кого можна попросити — але не називати advocate заздалегідь</h3></div><div class="micro">${candidates.length}</div></div>
+      ${candidates.length ? candidates.slice(0,12).map(c=>`<div class="adv-candidate">
+        <div class="context-bridge-row">
+          <div><b>${esc(c.name||"Без імені")}</b><div class="micro">${esc(c.email||c.phone||"")}</div></div>
+          <span class="pill">${esc(c.rfmSegment||"")} ${esc(c.rfmTitle||"")}</span>
+        </div>
+        <div class="research-meta">
+          <span class="pill">Відвідано ${Number(c.visited||0)}</span>
+          <span class="pill">Квитків ${Number(c.tickets||0)}</span>
+          <span class="pill">Сума ${Number(c.total||0).toLocaleString("uk-UA")} грн</span>
+          <span class="pill">${Number(c.daysRecency||0)} дн. RFM-активності</span>
+        </div>
+      </div>`).join("") : `<div class="notice">Немає покупців з фактичним відвідуванням і доступним контактом.</div>`}
+    </div>
+
+    <div class="toolbar" style="margin:14px 0">
+      <button class="btn small ${ADVOCACY_FILTER==="active"?"":"secondary"}" onclick="ADVOCACY_FILTER='active';renderAdvocacySection()">Активні</button>
+      <button class="btn small ${ADVOCACY_FILTER==="links"?"":"secondary"}" onclick="ADVOCACY_FILTER='links';renderAdvocacySection()">Share / Invite</button>
+      <button class="btn small ${ADVOCACY_FILTER==="reviews"?"":"secondary"}" onclick="ADVOCACY_FILTER='reviews';renderAdvocacySection()">Reviews</button>
+      <button class="btn small ${ADVOCACY_FILTER==="done"?"":"secondary"}" onclick="ADVOCACY_FILTER='done';renderAdvocacySection()">Завершені</button>
+      <button class="btn small ${ADVOCACY_FILTER==="all"?"":"secondary"}" onclick="ADVOCACY_FILTER='all';renderAdvocacySection()">Усі</button>
+    </div>
+
+    <div class="section-caption"><div><div class="eyebrow">ADVOCACY REGISTER</div><h3>Дії та фактичний результат</h3></div><div class="micro">${rows.length} записів</div></div>
+    ${rows.length ? `<div class="adv-grid">${rows.map(advocacyActionCard).join("")}</div>` : `<div class="notice">У вибірці ще немає advocacy-дій.</div>`}
+
+    <div class="micro" style="margin-top:12px">
+      Для Share / Invite кожна дія отримує власний непрозорий ID виду VAA-... і використовує вже існуючий VA campaign-entry. У Paid order записується цей campaign_id, тому VA може довести покупку без нового checkout або нового payment flow.
+      Якщо advocacy-link використав сам advocate, його власний order не зараховується як «приведений покупець».
+    </div>`;
+}
+
+
 // ===== VA Marketing CRO Dashboard V1 =====
 
 function croPeriodFromIso(){
@@ -7093,6 +7640,7 @@ async function boot(){
   loadABExperiments();
   loadCustomerResearch();
   loadMarketingPlan();
+  loadAdvocacy();
   buildTools();
   initMarketingSections();
   loadLocalMarketingContexts();
