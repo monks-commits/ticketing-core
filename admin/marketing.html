@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.24 — Advocacy + Marketing Plan + Research + RFM + LTV</title>
+  <title>VA Marketing V2.25 — Marketing Operating Loop V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -454,6 +454,48 @@ textarea::placeholder{
   @media(max-width:850px){.adv-grid{grid-template-columns:1fr}}
   @media(max-width:620px){.adv-kpis{grid-template-columns:1fr 1fr}}
 
+
+  /* ===== VA Marketing Operating Loop V1 ===== */
+  .operating-loop-card{border-color:rgba(45,140,255,.38);background:linear-gradient(180deg,rgba(45,140,255,.07),rgba(7,26,53,.96))}
+  .loop-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+  .loop-title{font-size:25px;font-weight:900;margin:3px 0}
+  .loop-head-note{max-width:760px;color:var(--muted);line-height:1.45}
+  .loop-state{min-width:260px;border:1px solid rgba(45,140,255,.32);background:#071a32;border-radius:14px;padding:12px}
+  .loop-state span{display:block;color:#8fb4df;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .loop-state b{display:block;font-size:16px;margin:4px 0 8px}
+  .loop-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0 14px}
+  .loop-summary-cell{background:#081a31;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:10px}
+  .loop-summary-cell span{display:block;color:#8fa8c6;font-size:10px;margin-bottom:4px}
+  .loop-summary-cell b{display:block;font-size:18px}
+  .loop-flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}
+  .loop-step{position:relative;border:1px solid rgba(255,255,255,.10);background:#091b33;border-radius:14px;padding:11px;min-height:128px;cursor:pointer;transition:.15s ease}
+  .loop-step:hover{transform:translateY(-1px);border-color:rgba(141,194,255,.45)}
+  .loop-step.done{border-color:rgba(46,204,113,.42);background:linear-gradient(180deg,rgba(46,204,113,.07),#091b33)}
+  .loop-step.action{border-color:rgba(245,158,11,.58);background:linear-gradient(180deg,rgba(245,158,11,.08),#091b33)}
+  .loop-step.live{border-color:rgba(45,140,255,.65);background:linear-gradient(180deg,rgba(45,140,255,.10),#091b33)}
+  .loop-step.wait{border-color:rgba(148,163,184,.28)}
+  .loop-step.locked{opacity:.58}
+  .loop-number{width:25px;height:25px;border-radius:999px;display:grid;place-items:center;background:#17365d;color:#cfe3ff;font-weight:900;font-size:11px;margin-bottom:8px}
+  .loop-step.done .loop-number{background:#155c3b;color:#d8ffeb}
+  .loop-step.action .loop-number{background:#744b0b;color:#fff1bf}
+  .loop-step.live .loop-number{background:#1769c9;color:#fff}
+  .loop-step-title{font-weight:900;font-size:14px;line-height:1.25;margin-bottom:5px}
+  .loop-step-value{font-size:13px;color:#d9e8fb;line-height:1.35}
+  .loop-step-note{font-size:10px;color:#7f9bbb;line-height:1.35;margin-top:7px}
+  .loop-step-status{display:inline-block;margin-top:8px;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800;background:#203a5e;color:#d7e9ff}
+  .loop-step.done .loop-step-status{background:#155c3b;color:#d8ffeb}
+  .loop-step.action .loop-step-status{background:#744b0b;color:#fff1bf}
+  .loop-step.live .loop-step-status{background:#1769c9;color:#fff}
+  .loop-next{margin-top:14px;border:1px solid rgba(245,158,11,.48);background:#181e27;border-radius:14px;padding:13px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .loop-next b{font-size:16px}
+  .loop-next-text{color:#dce8f8;margin-top:4px}
+  .loop-paths{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .loop-path-btn{border:1px solid rgba(255,255,255,.12);background:#102744;color:#dce9fb;border-radius:9px;padding:7px 9px;cursor:pointer;font-size:11px;font-weight:800}
+  .loop-path-btn:hover{border-color:#2d8cff}
+  @media(max-width:1180px){.loop-flow{grid-template-columns:repeat(4,minmax(0,1fr))}.loop-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:820px){.loop-flow{grid-template-columns:repeat(2,minmax(0,1fr))}.loop-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:520px){.loop-flow,.loop-summary{grid-template-columns:1fr}}
+
 </style>
 </head>
 
@@ -464,10 +506,10 @@ textarea::placeholder{
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
-        <h1>Marketing Control Center V2.24</h1>
+        <h1>Marketing Control Center V2.25</h1>
         <div class="muted">
-          Робоче місце маркетолога: факт → діагноз → дія → результат.
-          V2.21.1 підключає єдиний RFM Клієнтської бази до Marketing: КБ рахує статус → Marketing формує аудиторію → Campaign.
+          Робоче місце маркетолога: факт → дослідження → аудиторія → рішення → дія → Paid → Retention/LTV → Advocacy → нове знання.
+          Operating Loop V1 не створює нових функцій — він з'єднує вже перевірені модулі VA в один робочий цикл.
         </div>
       </div>
       <div class="hero-badges">
@@ -483,6 +525,7 @@ textarea::placeholder{
         <span class="badge">Customer Research V1.1</span>
         <span class="badge">Marketing Plan V1</span>
         <span class="badge">Advocacy V1</span>
+        <span class="badge">Operating Loop V1</span>
       </div>
     </div>
   </div>
@@ -505,14 +548,8 @@ textarea::placeholder{
     </div>
   </div>
 
-  <div class="card">
-    <h2>Замкнутий цикл VA</h2>
-    <div class="grid">
-      <div class="box"><span>1. Факт</span><b>Продаж / Квиток / Прохід</b></div>
-      <div class="box"><span>2. Аналіз</span><b>Темп / Аудиторія / Канал</b></div>
-      <div class="box"><span>3. Рішення</span><b>Що робити зараз</b></div>
-      <div class="box"><span>4. Пам'ять</span><b>Дія → Результат</b></div>
-    </div>
+  <div class="card operating-loop-card" id="marketingOperatingLoop">
+    <div class="muted">Marketing Operating Loop завантажується…</div>
   </div>
 
   <div class="card">
@@ -724,6 +761,7 @@ function loadLocalCampaigns(){
 function saveLocalCampaigns(){
   try{ localStorage.setItem(CAMPAIGN_STORAGE_KEY, JSON.stringify(CAMPAIGNS)); }
   catch(e){ console.warn("VA campaigns local save", e); }
+  renderOperatingLoop();
 }
 
 function makeCampaignId(){
@@ -825,6 +863,7 @@ function renderContextBridge(){
   if(ext){
     strip.insertAdjacentHTML("beforeend", `<span class="campaign-chip"><b>Зовнішня база:</b> ${esc(ext.operator || "імпорт")} • доступно ${Number(ext.available||0)}</span>`);
   }
+  renderOperatingLoop();
 }
 
 function persistWorkspaceContext(target = "marketing"){
@@ -1497,6 +1536,379 @@ function selectedSeanceCampaigns(){
 } 
   
 let ACTIVE_SECTION = 0;
+
+
+// ===== VA MARKETING OPERATING LOOP V1 =====
+// Orchestration only: the Loop reads existing modules and routes to them.
+
+function loopPaidStatuses(){
+  return new Set(["paid","success","completed","approved"]);
+}
+
+function loopPaidOrdersForCampaign(campaignId){
+  const cid=String(campaignId||"").trim();
+  if(!cid) return [];
+  const paid=loopPaidStatuses();
+  return ORDERS.filter(o=>
+    String(o.marketing_campaign_id||"").trim()===cid &&
+    paid.has(String(o.status||"").toLowerCase())
+  );
+}
+
+function loopTicketsForOrders(orders){
+  const ids=new Set((orders||[]).map(o=>String(o.order_id||o.id||"")).filter(Boolean));
+  return TICKETS.filter(t=>ids.has(String(t.order_id||"")));
+}
+
+function loopCampaignSpend(campaign){
+  if(!campaign) return 0;
+  const journalIds=new Set((campaign.journalIds||[]).map(String));
+  const linked=JOURNAL.filter(j=>journalIds.has(String(j.id||"")));
+  if(linked.length){
+    return linked.reduce((s,j)=>s+Math.max(0,Number(j.budget||0)),0);
+  }
+  return Math.max(0,Number(campaign.budget||0));
+}
+
+function loopResearchRows(seanceId){
+  const sid=String(seanceId||"");
+  return CUSTOMER_RESEARCH.filter(x=>String(x.seance_id||"")===sid);
+}
+
+function loopPlanRows(seanceId){
+  const sid=String(seanceId||"");
+  return MARKETING_PLAN.filter(x=>String(x.seance_id||"")===sid);
+}
+
+function loopJournalRows(seanceId,campaign){
+  const sid=String(seanceId||"");
+  const campaignIds=new Set((campaign?.journalIds||[]).map(String));
+  return JOURNAL.filter(j=>{
+    if(String(j.seance_id||"")!==sid) return false;
+    if(!campaignIds.size) return true;
+    return campaignIds.has(String(j.id||""));
+  });
+}
+
+function loopServiceRows(seanceId){
+  const sid=String(seanceId||"");
+  return SERVICE_MESSAGES.filter(x=>String(x.seance_id||"")===sid);
+}
+
+function loopCampaignRetention(campaignId){
+  const cid=String(campaignId||"");
+  if(!cid) return {acquired:0,returned:0,repeatRevenue:0,realizedRevenue:0,ltv:null};
+  const buyers=retentionBuyerJourneys().filter(b=>String(b.acquisition?.campaign_id||"")===cid);
+  let returned=0, repeatRevenue=0, realizedRevenue=0;
+  for(const b of buyers){
+    const other=b.orders.filter(o=>String(o.seance_id||"")!==String(b.firstSeance||""));
+    if(other.length) returned++;
+    repeatRevenue+=other.reduce((s,o)=>s+Number(o.amount||0),0);
+    realizedRevenue+=Number(b.totalRevenue||0);
+  }
+  return {
+    acquired:buyers.length,
+    returned,
+    repeatRevenue,
+    realizedRevenue,
+    ltv:buyers.length ? realizedRevenue/buyers.length : null
+  };
+}
+
+function loopAdvocacyForSeance(seanceId){
+  const sid=String(seanceId||"");
+  const actions=ADVOCACY_ACTIONS.filter(x=>String(x.seance_id||"")===sid);
+  const metrics=actions.map(a=>advocacyMetrics(a));
+  return {
+    actions:actions.length,
+    active:actions.filter(a=>String(a.status||"draft")==="active").length,
+    buyers:metrics.reduce((s,m)=>s+Number(m.buyers||0),0),
+    tickets:metrics.reduce((s,m)=>s+Number(m.tickets||0),0),
+    revenue:metrics.reduce((s,m)=>s+Number(m.revenue||0),0)
+  };
+}
+
+function loopStatusText(kind){
+  return kind==="done" ? "Є доказ"
+    : kind==="live" ? "Працює"
+    : kind==="action" ? "Потрібна дія"
+    : kind==="wait" ? "Спостерігати"
+    : "Немає контексту";
+}
+
+function loopOpenSection(section){
+  openMarketingSection(Number(section));
+  setTimeout(()=>document.getElementById("activeSectionPanel")?.scrollIntoView({behavior:"smooth",block:"start"}),50);
+}
+
+function loopOpenReferral(){
+  persistWorkspaceContext("marketing");
+  try{
+    const url=new URL("referral-dashboard.html",location.href);
+    const s=getFocusSeance();
+    if(s) url.searchParams.set("seance_id",String(s.id));
+    window.open(url.toString(),"_blank","noopener");
+  }catch(e){
+    window.open("referral-dashboard.html","_blank","noopener");
+  }
+}
+
+function loopOpenCommunications(){
+  persistWorkspaceContext("marketing");
+  try{
+    const url=new URL("service-communications.html",location.href);
+    const s=getFocusSeance();
+    const c=getActiveCampaign();
+    if(s) url.searchParams.set("seance_id",String(s.id));
+    if(c) url.searchParams.set("campaign_id",String(c.id));
+    location.href=url.toString();
+  }catch(e){
+    location.href="service-communications.html";
+  }
+}
+
+function loopStageHtml(step){
+  const click=step.onclick || `loopOpenSection(${Number(step.section)})`;
+  return `<div class="loop-step ${escAttr(step.kind)}" onclick="${click}">
+    <div class="loop-number">${esc(step.number)}</div>
+    <div class="loop-step-title">${esc(step.title)}</div>
+    <div class="loop-step-value">${esc(step.value)}</div>
+    <div class="loop-step-note">${esc(step.note||"")}</div>
+    <span class="loop-step-status">${esc(loopStatusText(step.kind))}</span>
+    ${step.paths?.length ? `<div class="loop-paths">${step.paths.map(p=>`<button class="loop-path-btn" onclick="event.stopPropagation();${p.onclick}">${esc(p.label)}</button>`).join("")}</div>`:""}
+  </div>`;
+}
+
+function operatingLoopModel(){
+  const s=getFocusSeance();
+  if(!s){
+    return {
+      seance:null,
+      campaign:null,
+      stages:[],
+      next:{section:0,title:"Оберіть один сеанс",text:"Operating Loop працює лише в конкретному контексті сеансу."}
+    };
+  }
+
+  const sid=String(s.id);
+  const c=getActiveCampaign();
+  const stats=getSeanceStats(sid);
+  const capacity=Number(s.capacity||0);
+  const fill=capacity>0 ? Math.round((Number(stats.sold||0)/capacity)*100) : null;
+
+  const research=loopResearchRows(sid);
+  const researchStrong=research.filter(x=>["repeated","verified"].includes(String(x.strength||""))).length;
+
+  const ctxStatus=marketingContextStatus(sid);
+  const psych=psychologyContextStatus(ctxStatus.ctx);
+
+  const hasAudience=!!(
+    String(c?.segmentLabel||"").trim() ||
+    String(CAMPAIGN_DRAFT?.segmentLabel||"").trim() ||
+    String(CAMPAIGN_DRAFT?.paidAudience||"").trim()
+  );
+
+  const planRows=loopPlanRows(sid);
+  const planActive=planRows.filter(x=>!["done","cancelled"].includes(String(x.status||"planned"))).length;
+  const planDone=planRows.filter(x=>String(x.status||"planned")==="done").length;
+
+  const journalRows=loopJournalRows(sid,c);
+  const serviceRows=loopServiceRows(sid);
+  const serviceSent=serviceRows.filter(x=>["sent","done","completed"].includes(String(x.status||"").toLowerCase())).length;
+  const executionCount=journalRows.length + serviceSent;
+
+  const paidOrders=c ? loopPaidOrdersForCampaign(c.id) : [];
+  const paidTickets=loopTicketsForOrders(paidOrders);
+  const paidRevenue=paidOrders.reduce((sum,o)=>sum+Number(o.amount||0),0);
+  const spend=loopCampaignSpend(c);
+  const roas=spend>0 ? paidRevenue/spend : null;
+
+  const retention=c ? loopCampaignRetention(c.id) : {acquired:0,returned:0,repeatRevenue:0,realizedRevenue:0,ltv:null};
+  const adv=loopAdvocacyForSeance(sid);
+
+  const checked=TICKETS.filter(t=>String(t.seance_id||"")===sid && t.checked_in_at).length;
+
+  const stages=[
+    {
+      number:"01",title:"Факт / діагноз",section:0,
+      kind:"done",
+      value:`Продано ${Number(stats.sold||0)}${fill!=null?` • заповнення ${fill}%`:""}`,
+      note:`Прохід ${checked} • виручка ${Number(stats.sum||0).toLocaleString("uk-UA")} грн`
+    },
+    {
+      number:"02",title:"Customer Research",section:14,
+      kind:research.length ? "done" : "action",
+      value:research.length ? `${research.length} фактів • сильних ${researchStrong}` : "Фактів для цього сеансу ще немає",
+      note:"Decision / Experience → мотиви, бар'єри, мова покупця"
+    },
+    {
+      number:"03",title:"Аудиторія / RFM",section:13,
+      kind:hasAudience ? "done" : "action",
+      value:hasAudience ? (c?.segmentLabel || CAMPAIGN_DRAFT.segmentLabel || CAMPAIGN_DRAFT.paidAudience) : "Цільову аудиторію ще не зафіксовано",
+      note:"КБ визначає кого; Marketing не дублює RFM",
+      paths:[
+        {label:"RFM КБ",onclick:"loopOpenSection(13)"},
+        {label:"Усі аудиторії",onclick:"loopOpenSection(1)"}
+      ]
+    },
+    {
+      number:"04",title:"Psychology / Offer",section:7,
+      kind:psych.ready ? "done" : "action",
+      value:psych.ready ? `Decision Map готова • ${psych.completeness}%` : `Decision Map ${psych.completeness}%`,
+      note:psych.ready ? (buildOfferBridge(ctxStatus.ctx).hypothesis || "Гіпотеза зафіксована") : "Один головний бар'єр → відповідь → доказ → CTA"
+    },
+    {
+      number:"05",title:"Campaign",section:3,
+      kind:c ? (String(c.status||"draft")==="active" ? "live" : String(c.status)==="done" ? "done" : "action") : "action",
+      value:c ? `${c.name||c.id} • ${campaignStatusLabel(c.status||"draft")}` : "Campaign ще не створена",
+      note:c ? `${c.channel||"Канал не задано"} • ${c.segmentLabel||"аудиторія не задана"}` : "Фіксує кому, що, канал і campaign_id"
+    },
+    {
+      number:"06",title:"Marketing Plan",section:15,
+      kind:planActive ? "live" : planDone ? "done" : "action",
+      value:planActive ? `Активних дій ${planActive}` : planDone ? `Виконано ${planDone}` : "Планових дій немає",
+      note:"Коли робимо → коли контролюємо → яка метрика"
+    },
+    {
+      number:"07",title:"Виконання / залучення",section:5,
+      kind:executionCount ? "done" : (c?.status==="active" ? "action" : "wait"),
+      value:`Journal ${journalRows.length} • Communications ${serviceSent}`,
+      note:"Факт виконання, Direct, Paid, Referral та інші канали",
+      paths:[
+        {label:"Journal",onclick:"loopOpenSection(5)"},
+        {label:"Communications",onclick:"loopOpenCommunications()"},
+        {label:"Paid",onclick:"loopOpenSection(10)"},
+        {label:"Referral",onclick:"loopOpenReferral()"}
+      ]
+    },
+    {
+      number:"08",title:"CRO / A-B",section:8,
+      kind:paidOrders.length ? "done" : executionCount ? "action" : "wait",
+      value:c ? `Paid-заказів ${paidOrders.length} • квитків ${paidTickets.length}` : "Немає campaign_id для вимірювання",
+      note:"Де губимо покупця і що реально змінює Paid",
+      paths:[
+        {label:"CRO",onclick:"loopOpenSection(8)"},
+        {label:"A/B",onclick:"loopOpenSection(9)"}
+      ]
+    },
+    {
+      number:"09",title:"Paid / економіка",section:c?.campaignType==="paid" ? 10 : 6,
+      kind:paidOrders.length ? "done" : c ? "wait" : "locked",
+      value:`${paidOrders.length} orders • ${Number(paidRevenue).toLocaleString("uk-UA")} грн${spend>0?` • ROAS ${Number(roas||0).toFixed(2)}×`:""}`,
+      note:spend>0 ? `Витрати ${Number(spend).toLocaleString("uk-UA")} грн` : "Результат доводиться paid order, не кліком"
+    },
+    {
+      number:"10",title:"Retention / LTV",section:11,
+      kind:retention.acquired ? (retention.returned ? "done" : "wait") : "wait",
+      value:retention.acquired ? `Залучено ${retention.acquired} • повернулись ${retention.returned}` : "Ще немає когорти цієї Campaign",
+      note:retention.ltv!=null ? `Realized LTV ${Number(retention.ltv).toLocaleString("uk-UA",{maximumFractionDigits:2})} грн` : "Перша покупка — лише початок цінності",
+      paths:[
+        {label:"Retention",onclick:"loopOpenSection(11)"},
+        {label:"LTV",onclick:"loopOpenSection(12)"}
+      ]
+    },
+    {
+      number:"11",title:"Advocacy",section:16,
+      kind:adv.buyers ? "done" : adv.active ? "live" : checked ? "action" : "wait",
+      value:`Дій ${adv.actions} • приведено ${adv.buyers} • ${adv.tickets} квитків`,
+      note:checked ? "Після реального відвідування можна просити відгук / рекомендацію" : "До фактичного відвідування не називаємо покупця advocate"
+    },
+    {
+      number:"12",title:"Нове знання → цикл",section:14,
+      kind:(research.length && journalRows.length) ? "done" : "wait",
+      value:`Research ${research.length} • Journal ${journalRows.length}`,
+      note:"Результат стає новим evidence і запускає наступне рішення"
+    }
+  ];
+
+  let next;
+  if(!research.length){
+    next={section:14,title:"Почати з факту, а не з реклами",text:"Для цього сеансу немає Customer Research. Зафіксуйте хоча б один реальний мотив, бар'єр, питання або зовнішній evidence."};
+  }else if(!hasAudience){
+    next={section:13,title:"Визначити, кому саме показуємо",text:"Research уже є. Наступний крок — вибрати конкретну аудиторію з КБ/RFM або окремий paid/external контур."};
+  }else if(!psych.ready){
+    next={section:7,title:"Перетворити знання на пропозицію",text:"Аудиторія визначена, але Decision Map / Offer ще не готові. Зафіксуйте один головний бар'єр і спосіб його зняти."};
+  }else if(!c){
+    next={section:3,title:"Зафіксувати рішення як Campaign",text:"Research, аудиторія й Offer уже є. Створіть Campaign — вона дасть постійний campaign_id для наскрізного доказу."};
+  }else if(String(c.status||"draft")==="draft"){
+    next={section:3,title:"Запустити Campaign",text:"Campaign існує, але ще є чернеткою. Перед реальним маркетинговим кроком зафіксуйте стартовий snapshot."};
+  }else if(!planActive && !planDone){
+    next={section:15,title:"Перетворити Campaign на конкретну роботу",text:"Campaign запущена, але немає планової дії з датою, каналом і метрикою."};
+  }else if(!executionCount){
+    next={section:15,title:"Виконати заплановану дію",text:"План уже є. Після реального виконання перенесіть дію в Journal — тільки факт має право впливати на аналіз."};
+  }else if(!paidOrders.length){
+    next={section:8,title:"Подивитися, де зупиняється шлях до Paid",text:"Дія вже виконана, але прямого Paid цієї Campaign поки немає. Перевірте CRO, а зміну пропозиції — через A/B."};
+  }else if(retention.acquired && !retention.returned){
+    next={section:11,title:"Не зупинятися на першій покупці",text:"Paid уже доведений. Тепер VA спостерігає, чи повернеться залучений покупець на інший сеанс і який LTV він сформує."};
+  }else if(checked && !adv.actions){
+    next={section:16,title:"Перевірити Advocacy після реального відвідування",text:"Є фактичні відвідування. Можна обережно запросити відгук або рекомендацію й окремо виміряти результат."};
+  }else{
+    next={section:14,title:"Цикл завершив оборот — повертаємо результат у знання",text:"Продажі, дії та післяпродажна поведінка вже дають нові факти. Зафіксуйте evidence і сформуйте наступне рішення."};
+  }
+
+  return {seance:s,campaign:c,stats,fill,research,planActive,journalRows,paidOrders,paidTickets,paidRevenue,retention,adv,stages,next};
+}
+
+function renderOperatingLoop(){
+  const root=document.getElementById("marketingOperatingLoop");
+  if(!root) return;
+  const m=operatingLoopModel();
+
+  if(!m.seance){
+    root.innerHTML=`
+      <div class="loop-head">
+        <div>
+          <div class="eyebrow">MARKETING OPERATING LOOP V1</div>
+          <div class="loop-title">🔄 Один цикл замість набору розрізнених інструментів</div>
+          <div class="loop-head-note">Оберіть один сеанс у Control Center. Після цього VA покаже весь шлях: від факту й Research до Campaign, Paid, Retention/LTV, Advocacy та нового знання.</div>
+        </div>
+      </div>
+      <div class="loop-next">
+        <div><b>Потрібен один конкретний сеанс</b><div class="loop-next-text">Без контексту Operating Loop не робить рекомендацій.</div></div>
+        <button class="btn" onclick="loopOpenSection(0)">До Control Center</button>
+      </div>`;
+    return;
+  }
+
+  root.innerHTML=`
+    <div class="loop-head">
+      <div>
+        <div class="eyebrow">MARKETING OPERATING LOOP V1 • CLOSED LOOP</div>
+        <div class="loop-title">🔄 ${esc(m.seance.show||m.seance.id)}</div>
+        <div class="loop-head-note">Не «посилити рекламу», а пройти доказовий цикл: <b>факт → Research → аудиторія → Psychology/Offer → Campaign → Plan → виконання → CRO/Paid → Retention/LTV → Advocacy → новий факт.</b></div>
+      </div>
+      <div class="loop-state">
+        <span>Наступний крок VA</span>
+        <b>${esc(m.next.title)}</b>
+        <button class="btn small" onclick="loopOpenSection(${Number(m.next.section)})">Перейти до дії</button>
+      </div>
+    </div>
+
+    <div class="loop-summary">
+      <div class="loop-summary-cell"><span>Продано</span><b>${Number(m.stats.sold||0)}</b></div>
+      <div class="loop-summary-cell"><span>Заповнення</span><b>${m.fill==null?"—":m.fill+"%"}</b></div>
+      <div class="loop-summary-cell"><span>Research</span><b>${m.research.length}</b></div>
+      <div class="loop-summary-cell"><span>Paid цієї Campaign</span><b>${m.paidOrders.length}</b></div>
+      <div class="loop-summary-cell"><span>Повторна виручка</span><b>${Number(m.retention.repeatRevenue||0).toLocaleString("uk-UA")} грн</b></div>
+    </div>
+
+    <div class="loop-flow">
+      ${m.stages.map(loopStageHtml).join("")}
+    </div>
+
+    <div class="loop-next">
+      <div>
+        <b>${esc(m.next.title)}</b>
+        <div class="loop-next-text">${esc(m.next.text)}</div>
+      </div>
+      <button class="btn" onclick="loopOpenSection(${Number(m.next.section)})">Відкрити потрібний модуль</button>
+    </div>
+
+    <div class="micro" style="margin-top:10px">
+      Operating Loop нічого не рахує «замість» модулів. Він читає їхній уже наявний стан і показує, де ми знаходимося в циклі та який доказовий крок логічно робити далі.
+    </div>`;
+}
+
 
 const TOOLS = [
   ["📍 Control Center", "Стан продажів, сигнали, ризики та дії по сеансах", "Зараз"],
@@ -4206,6 +4618,7 @@ async function saveJournalEntry(){
   }
 
   JOURNAL = JOURNAL.concat(data || []);
+  renderOperatingLoop();
 
   if(PLAN_JOURNAL_PENDING_ID){
     completePlanFromJournal(PLAN_JOURNAL_PENDING_ID, data || []);
@@ -5817,6 +6230,7 @@ function saveCustomerResearchLocal(){
   }catch(e){
     console.warn("Customer Research save",e);
   }
+  renderOperatingLoop();
 }
 
 function makeResearchId(){
@@ -6282,6 +6696,7 @@ function saveMarketingPlanLocal(){
   }catch(e){
     console.warn("Marketing Plan save",e);
   }
+  renderOperatingLoop();
 }
 
 function makePlanId(){
@@ -6826,6 +7241,7 @@ function saveAdvocacyLocal(){
   }catch(e){
     console.warn("Advocacy save",e);
   }
+  renderOperatingLoop();
 }
 
 function makeAdvocacyId(){
