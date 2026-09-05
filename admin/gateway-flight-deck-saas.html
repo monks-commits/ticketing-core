@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="deck">
-<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.1 · READ + VA</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
+<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.2 · SEPARATE VENUE HOST</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
 <section class="instrument"><div class="lamps">
 <div class="lampbox"><div id="lampVenue" class="lamp"></div><div id="venueLampTitle" class="lamp-title">МАЙДАНЧИК</div><div id="valVenue" class="lamp-value">OFF</div></div>
 <div class="lampbox"><div id="lampGateway" class="lamp"></div><div class="lamp-title">GATEWAY</div><div id="valGateway" class="lamp-value">OFF</div></div>
@@ -21,16 +21,16 @@
 <div class="lampbox"><div id="lampHold" class="lamp"></div><div class="lamp-title">HOLD</div><div id="valHold" class="lamp-value">наступний етап</div></div>
 <div class="lampbox"><div id="lampSale" class="lamp"></div><div class="lamp-title">ПОКУПКА</div><div id="valSale" class="lamp-value">наступний етап</div></div>
 <div class="lampbox"><div id="lampReady" class="lamp"></div><div class="lamp-title">ГОТОВО</div><div id="valReady" class="lamp-value">очікування</div></div>
-</div><div class="pathbar"><div class="node"><strong id="venueNode">Майданчик</strong><span>демонстраційний прямий контур</span></div><div class="arrow">→</div><div class="node"><strong>Universal Gateway</strong><span>ізольований READ-контур</span></div><div class="arrow">→</div><div class="node"><strong>Ваш Адмін</strong><span>VA SaaS як зовнішній клієнт</span></div></div></section>
+</div><div class="pathbar"><div class="node"><strong id="venueNode">Майданчик</strong><span>окремий Venue Public Host</span></div><div class="arrow">→</div><div class="node"><strong>Universal Gateway</strong><span>ізольований READ-контур</span></div><div class="arrow">→</div><div class="node"><strong>Ваш Адмін</strong><span>VA SaaS як зовнішній клієнт</span></div></div></section>
 <section class="preflight">
 <article class="card"><div class="step"><div><h2 id="venueStepTitle">Майданчик</h2><div class="hint">Вибір уже обмежений одним майданчиком. Інші клієнти тут не відображаються.</div></div><div class="stepno">1</div></div><div class="controls"><div class="field"><label for="hallSelect">Зал</label><select id="hallSelect"><option>Завантаження…</option></select></div><div class="field"><label for="seanceSelect">Сеанс</label><select id="seanceSelect"><option>Оберіть сеанс…</option></select></div><div id="venueStatus" class="statusline">Завантаження…</div></div></article>
 <article class="card"><div class="step"><div><h2>Gateway</h2><div class="hint">Вмикаємо окремий READ-only backend і перевіряємо, що він бачить тільки цей майданчик.</div></div><div class="stepno">2</div></div><div class="controls"><button id="gatewayBtn" class="btn green big" disabled>GATEWAY ON</button><div id="gatewayStatus" class="statusline">Спочатку оберіть сеанс.</div></div></article>
 <article class="card"><div class="step"><div><h2>Ваш Адмін</h2><div class="hint">Після Gateway ONLINE виконуємо реальний READ вибраного сеансу через backend.</div></div><div class="stepno">3</div></div><div class="controls"><button id="vaBtn" class="btn green big" disabled>ПІДКЛЮЧИТИ VA</button><div id="vaStatus" class="statusline">Очікуємо Gateway.</div></div></article>
 <article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">На V2 закриваємо тільки GATEWAY + READ. HOLD і SALE навмисно ще вимкнені.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
 </section>
-<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — реальна схема вибраного сеансу. Зліва — реальна афіша VA SaaS, обмежена цим майданчиком. READ перевіряється через Gateway backend і лишається у телеметрії.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.1 · READ</div></div><div class="panes">
+<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — окремий Venue Public Host: тільки схема залу без афіші та фону. Зліва — реальна афіша VA SaaS, обмежена цим майданчиком. READ перевіряється через Gateway backend і лишається у телеметрії.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.2 · READ</div></div><div class="panes">
 <section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span></div><div class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Після GATEWAY ON → ПІДКЛЮЧИТИ VA тут відкриється реальна афіша VA SaaS тільки цього майданчика.</div><iframe id="gatewayFrame" title="VA SaaS storefront"></iframe></div></section>
-<section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • демонстраційний прямий контур</b><span id="directMeta" class="pane-meta">оберіть сеанс</span></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
+<section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • окремий Venue Public Host</b><span id="directMeta" class="pane-meta">оберіть сеанс</span></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
 </div></section>
 <div class="notice">V2 чесно залишається READ-only. Gateway уже є окремим серверним маршрутом з перевіркою <b>venue_id ↔ seance_id</b>. Якщо підставити сеанс іншого майданчика, backend повертає <b>venue_seance_mismatch</b>. HOLD/SALE не імітуються — це наступний окремий крок.</div>
 </div>
@@ -95,15 +95,24 @@ function updateReady(){
     setStatus("readyStatus","READ підтверджено. Ізоляція працює. HOLD/SALE — наступний етап.","ok");
     $("readyBadge").textContent="READ ГОТОВО";
   }else if(selected){
-    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Очікуємо Gateway і READ.");$("readyBadge").textContent="SaaS V2.1 · READ";
+    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Очікуємо Gateway і READ.");$("readyBadge").textContent="SaaS V2.2 · READ";
   }else{
-    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Оберіть сеанс.");$("readyBadge").textContent="SaaS V2.1 · READ";
+    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Оберіть сеанс.");$("readyBadge").textContent="SaaS V2.2 · READ";
   }
 }
 
 function openDirect(){
   if(!selected){$("directFrame").removeAttribute("src");$("directPlaceholder").classList.remove("hidden");$("directMeta").textContent="оберіть сеанс";setLamp("lampVenue",false);$("valVenue").textContent="OFF";resetGatewayStage();return;}
-  const u=new URL("../site-project/pages/hall.html",location.href);u.searchParams.set("seance",selected);$("directFrame").src=u.toString();$("directPlaceholder").classList.add("hidden");const s=seances.find(x=>x.id===selected);$("directMeta").textContent=s?`${s.show||s.id} • ${s.date||""} ${String(s.time||"").slice(0,5)}`:selected;setLamp("lampVenue",true);$("valVenue").textContent="ГОТОВИЙ";resetGatewayStage();
+  const u=new URL("https://monks-commits.github.io/VA-Venue-Demo-Public/venue-hall.html");
+  u.searchParams.set("venue",VENUE_ID);
+  u.searchParams.set("seance",selected);
+  $("directFrame").src=u.toString();
+  $("directPlaceholder").classList.add("hidden");
+  const s=seances.find(x=>x.id===selected);
+  $("directMeta").textContent=s?`${s.show||s.id} • ${s.date||""} ${String(s.time||"").slice(0,5)} • VENUE HOST`:`${selected} • VENUE HOST`;
+  setLamp("lampVenue",true);
+  $("valVenue").textContent="ГОТОВИЙ";
+  resetGatewayStage();
 }
 
 function storefrontUrl(){
@@ -158,7 +167,7 @@ async function connectVa(){
 async function load(){
   const allVenues=await rows("/rest/v1/venues?select=id,name,slug,default_hall&order=name.asc");venue=allVenues.find(v=>norm(v.id)===VENUE_ID);if(!venue)throw new Error("venue_not_found");
   const [allS,allP]=await Promise.all([rows("/rest/v1/seances?select=id,show,date,time,venue_id,status,active,archived&archived=eq.false&order=date.asc,time.asc"),rows("/rest/v1/seances_pricing?select=seance_id,hall,venue_id")]);seances=allS.filter(s=>norm(s.venue_id)===VENUE_ID);pricing=allP;
-  const name=venue.name||VENUE_ID;document.title=`Gateway Flight Deck — ${name}`;$("subtitle").textContent=`${name} • ізольований демонстраційний READ-контур • Universal Gateway`;$("venueLampTitle").textContent=name.toUpperCase().slice(0,18);$("venueNode").textContent=name;$("venueStepTitle").textContent=name;$("directTitle").textContent=`${name} • демонстраційний прямий контур`;
+  const name=venue.name||VENUE_ID;document.title=`Gateway Flight Deck — ${name}`;$("subtitle").textContent=`${name} • ізольований демонстраційний READ-контур • Universal Gateway`;$("venueLampTitle").textContent=name.toUpperCase().slice(0,18);$("venueNode").textContent=name;$("venueStepTitle").textContent=name;$("directTitle").textContent=`${name} • окремий Venue Public Host`;
   const halls=hallsForVenue();$("hallSelect").innerHTML='<option value="">Усі зали</option>'+halls.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join("");renderSeances();setStatus("venueStatus",`Завантажено: ${seances.length} сеанс(ів). Інші майданчики приховані.`,"ok");resetGatewayStage();
 }
 
