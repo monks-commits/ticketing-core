@@ -3,36 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gateway Flight Deck SaaS V2</title>
+<title>Gateway Flight Deck SaaS V2.4</title>
 <style>
 :root{--bg:#0b1015;--panel:#111922;--line:#283646;--text:#e8eef5;--muted:#8fa0b3;--green:#3bd177;--amber:#ffbd45;--red:#ff5e64;--blue:#54a6ff;--off:#3a4653}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}button,select{font:inherit}body{padding:18px}.deck{max-width:1680px;margin:0 auto}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px}h1{font-size:28px;margin:0 0 4px}.subtitle{color:var(--muted)}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#17212c;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}.btn:hover{background:#1d2a38}.btn:disabled{opacity:.42;cursor:not-allowed}.btn.green{background:#176b3c;border-color:#249d58}.btn.big{min-height:48px;padding:12px 18px;font-size:16px}.instrument{background:linear-gradient(180deg,#111922,#0e151d);border:1px solid #273545;border-radius:18px;padding:14px;box-shadow:inset 0 0 0 1px #0a0f14;margin-bottom:14px}.lamps{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:10px}.lampbox{border:1px solid #293846;background:#0c1218;border-radius:12px;padding:10px;text-align:center}.lamp{width:22px;height:22px;border-radius:50%;margin:0 auto 7px;background:var(--off);box-shadow:inset 0 0 0 3px #1b252f,0 0 0 1px #465565}.lamp.on{background:var(--green);box-shadow:inset 0 0 0 3px #1d4a2d,0 0 14px rgba(59,209,119,.72)}.lamp.warn{background:var(--amber);box-shadow:inset 0 0 0 3px #5c4319,0 0 14px rgba(255,189,69,.6)}.lamp-title{font-size:12px;letter-spacing:.07em;font-weight:850}.lamp-value{color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pathbar{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin-top:12px;border-top:1px solid #23303c;padding-top:12px}.node{border:1px solid var(--line);border-radius:11px;background:#121b24;padding:9px 11px;text-align:center}.node strong{display:block}.node span{font-size:12px;color:var(--muted)}.arrow{color:var(--blue);font-weight:900}.preflight{display:grid;grid-template-columns:1.25fr .8fr .8fr .9fr;gap:12px;margin-bottom:14px}.card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px}.step{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.stepno{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#263544;color:#c9d7e6;font-weight:900}.card h2{font-size:17px;margin:0}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}.controls{margin-top:12px;display:grid;gap:8px}.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field select{width:100%;min-height:42px;border:1px solid #334657;border-radius:9px;background:#0e161e;color:var(--text);padding:8px 10px}.statusline{min-height:18px;color:var(--muted);font-size:12px;line-height:1.4}.statusline.ok{color:var(--green)}.statusline.warn{color:var(--amber)}.statusline.bad{color:var(--red)}.workspace{border:1px solid #314257;background:#0d141c;border-radius:18px;overflow:hidden}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #293846;background:#111a24}.workspace-head h2{margin:0;font-size:20px}.ready-badge{border:1px solid #3b4b5b;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;color:var(--muted)}.panes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}.pane{border:1px solid #273747;border-radius:13px;background:#111922;overflow:hidden;min-width:0}.pane-head{padding:10px 12px;border-bottom:1px solid #273747;display:flex;justify-content:space-between;align-items:center;gap:8px}.pane-head b{font-size:15px}.pane-meta{font-size:11px;color:var(--muted);text-align:right}.frame-wrap{position:relative;height:650px;background:#0a0f14}.frame-wrap iframe{width:100%;height:100%;border:0;background:#fff}.frame-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:var(--muted);background:#0d141c}.frame-placeholder.hidden{display:none}.notice{margin-top:14px;border:1px solid #244f35;background:#102219;color:#9ee7b9;border-radius:14px;padding:13px 15px;font-size:12px;line-height:1.55}
-@media(max-width:1250px){.lamps{grid-template-columns:repeat(4,1fr)}.preflight{grid-template-columns:repeat(2,1fr)}.panes{grid-template-columns:1fr}.frame-wrap{height:620px}}@media(max-width:700px){body{padding:8px}.lamps{grid-template-columns:repeat(2,1fr)}.preflight{grid-template-columns:1fr}.pathbar{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}.frame-wrap{height:70vh}.top-actions{width:100%}.top-actions .btn{flex:1}}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}button,select{font:inherit}body{padding:18px}.deck{max-width:1680px;margin:0 auto}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px}h1{font-size:28px;margin:0 0 4px}.subtitle{color:var(--muted)}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#17212c;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}.btn:hover{background:#1d2a38}.btn:disabled{opacity:.42;cursor:not-allowed}.btn.green{background:#176b3c;border-color:#249d58}.btn.big{min-height:48px;padding:12px 18px;font-size:16px}.instrument{background:linear-gradient(180deg,#111922,#0e151d);border:1px solid #273545;border-radius:18px;padding:14px;box-shadow:inset 0 0 0 1px #0a0f14;margin-bottom:14px}.lamps{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:10px}.lampbox{border:1px solid #293846;background:#0c1218;border-radius:12px;padding:10px;text-align:center}.lamp{width:22px;height:22px;border-radius:50%;margin:0 auto 7px;background:var(--off);box-shadow:inset 0 0 0 3px #1b252f,0 0 0 1px #465565}.lamp.on{background:var(--green);box-shadow:inset 0 0 0 3px #1d4a2d,0 0 14px rgba(59,209,119,.72)}.lamp.warn{background:var(--amber);box-shadow:inset 0 0 0 3px #5c4319,0 0 14px rgba(255,189,69,.6)}.lamp-title{font-size:12px;letter-spacing:.07em;font-weight:850}.lamp-value{color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pathbar{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin-top:12px;border-top:1px solid #23303c;padding-top:12px}.node{border:1px solid var(--line);border-radius:11px;background:#121b24;padding:9px 11px;text-align:center}.node strong{display:block}.node span{font-size:12px;color:var(--muted)}.arrow{color:var(--blue);font-weight:900}.preflight{display:grid;grid-template-columns:1.25fr .8fr .8fr .9fr;gap:12px;margin-bottom:14px}.card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px}.step{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.stepno{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#263544;color:#c9d7e6;font-weight:900}.card h2{font-size:17px;margin:0}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}.controls{margin-top:12px;display:grid;gap:8px}.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field select{width:100%;min-height:42px;border:1px solid #334657;border-radius:9px;background:#0e161e;color:var(--text);padding:8px 10px}.statusline{min-height:18px;color:var(--muted);font-size:12px;line-height:1.4}.statusline.ok{color:var(--green)}.statusline.warn{color:var(--amber)}.statusline.bad{color:var(--red)}.workspace{border:1px solid #314257;background:#0d141c;border-radius:18px;overflow:hidden}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #293846;background:#111a24}.workspace-head h2{margin:0;font-size:20px}.ready-badge{border:1px solid #3b4b5b;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;color:var(--muted)}.panes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}.pane{border:1px solid #273747;border-radius:13px;background:#111922;overflow:hidden;min-width:0}.pane-head{padding:10px 12px;border-bottom:1px solid #273747;display:flex;justify-content:space-between;align-items:center;gap:8px}.pane-head b{font-size:15px}.pane-meta{font-size:11px;color:var(--muted);text-align:right}.pane-tools{display:flex;align-items:center;gap:7px;min-width:0}.mini-btn{border:1px solid #3b4b5b;background:#17212c;color:#dfe9f3;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}.mini-btn:hover{background:#213142}.frame-wrap{position:relative;height:clamp(720px,78vh,980px);background:#0a0f14;overscroll-behavior:contain}.frame-wrap iframe{display:block;width:100%;height:100%;border:0;background:#fff}.frame-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:var(--muted);background:#0d141c}.frame-placeholder.hidden{display:none}.notice{margin-top:14px;border:1px solid #244f35;background:#102219;color:#9ee7b9;border-radius:14px;padding:13px 15px;font-size:12px;line-height:1.55}
+@media(max-width:1250px){.lamps{grid-template-columns:repeat(4,1fr)}.preflight{grid-template-columns:repeat(2,1fr)}.panes{grid-template-columns:1fr}.frame-wrap{height:78vh}}@media(max-width:700px){body{padding:8px}.lamps{grid-template-columns:repeat(2,1fr)}.preflight{grid-template-columns:1fr}.pathbar{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}.frame-wrap{height:70vh}.top-actions{width:100%}.top-actions .btn{flex:1}}
 </style>
 </head>
 <body>
 <div class="deck">
-<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.3 · LIVE VENUE SERVER</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
+<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.4 · LIVE HOLD / SALE</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
 <section class="instrument"><div class="lamps">
 <div class="lampbox"><div id="lampVenue" class="lamp"></div><div id="venueLampTitle" class="lamp-title">МАЙДАНЧИК</div><div id="valVenue" class="lamp-value">OFF</div></div>
 <div class="lampbox"><div id="lampGateway" class="lamp"></div><div class="lamp-title">GATEWAY</div><div id="valGateway" class="lamp-value">OFF</div></div>
 <div class="lampbox"><div id="lampVa" class="lamp"></div><div class="lamp-title">VA</div><div id="valVa" class="lamp-value">ОЧІКУЄ</div></div>
 <div class="lampbox"><div id="lampRead" class="lamp"></div><div class="lamp-title">READ</div><div id="valRead" class="lamp-value">очікує</div></div>
-<div class="lampbox"><div id="lampHold" class="lamp"></div><div class="lamp-title">HOLD</div><div id="valHold" class="lamp-value">наступний етап</div></div>
-<div class="lampbox"><div id="lampSale" class="lamp"></div><div class="lamp-title">ПОКУПКА</div><div id="valSale" class="lamp-value">наступний етап</div></div>
+<div class="lampbox"><div id="lampHold" class="lamp"></div><div class="lamp-title">HOLD</div><div id="valHold" class="lamp-value">LIVE</div></div>
+<div class="lampbox"><div id="lampSale" class="lamp"></div><div class="lamp-title">ПОКУПКА</div><div id="valSale" class="lamp-value">через VA</div></div>
 <div class="lampbox"><div id="lampReady" class="lamp"></div><div class="lamp-title">ГОТОВО</div><div id="valReady" class="lamp-value">очікування</div></div>
 </div><div class="pathbar"><div class="node"><strong id="venueNode">Майданчик</strong><span>окремий Venue Public Host</span></div><div class="arrow">→</div><div class="node"><strong>Universal Gateway</strong><span>ізольований READ-контур</span></div><div class="arrow">→</div><div class="node"><strong>Ваш Адмін</strong><span>VA SaaS як зовнішній клієнт</span></div></div></section>
 <section class="preflight">
 <article class="card"><div class="step"><div><h2 id="venueStepTitle">Майданчик</h2><div class="hint">Вибір уже обмежений одним майданчиком. Інші клієнти тут не відображаються.</div></div><div class="stepno">1</div></div><div class="controls"><div class="field"><label for="hallSelect">Зал</label><select id="hallSelect"><option>Завантаження…</option></select></div><div class="field"><label for="seanceSelect">Сеанс</label><select id="seanceSelect"><option>Оберіть сеанс…</option></select></div><div id="venueStatus" class="statusline">Завантаження…</div></div></article>
 <article class="card"><div class="step"><div><h2>Gateway</h2><div class="hint">Вмикаємо окремий READ-only backend і перевіряємо, що він бачить тільки цей майданчик.</div></div><div class="stepno">2</div></div><div class="controls"><button id="gatewayBtn" class="btn green big" disabled>GATEWAY ON</button><div id="gatewayStatus" class="statusline">Спочатку оберіть сеанс.</div></div></article>
 <article class="card"><div class="step"><div><h2>Ваш Адмін</h2><div class="hint">Після Gateway ONLINE виконуємо реальний READ вибраного сеансу через backend.</div></div><div class="stepno">3</div></div><div class="controls"><button id="vaBtn" class="btn green big" disabled>ПІДКЛЮЧИТИ VA</button><div id="vaStatus" class="statusline">Очікуємо Gateway.</div></div></article>
-<article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">На V2 закриваємо тільки GATEWAY + READ. HOLD і SALE навмисно ще вимкнені.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
+<article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">Праворуч працює прямий venue-side HOLD. Продаж і LiqPay проходять штатним ланцюгом VA з відкриттям окремої вкладки.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
 </section>
-<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — окремий Venue Public Host: тільки схема залу без афіші та фону. Зліва — реальна афіша VA SaaS, обмежена цим майданчиком. READ перевіряється через Gateway backend і лишається у телеметрії.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.3 · LIVE VENUE</div></div><div class="panes">
-<section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span></div><div class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Після GATEWAY ON → ПІДКЛЮЧИТИ VA тут відкриється реальна афіша VA SaaS тільки цього майданчика.</div><iframe id="gatewayFrame" title="VA SaaS storefront"></iframe></div></section>
-<section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • окремий Venue Public Host</b><span id="directMeta" class="pane-meta">оберіть сеанс</span></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
+<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — живий Venue Public Host: схема автоматично оновлюється і вміє створювати прямий HOLD. Зліва — реальний VA SaaS. Для повної покупки відкрийте VA окремо кнопкою ↗ — без вкладеного scroll/iframe.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.4 · LIVE</div></div><div class="panes">
+<section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><div class="pane-tools"><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span><button id="openVaExternalBtn" class="mini-btn">Відкрити VA ↗</button></div></div><div class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Після GATEWAY ON → ПІДКЛЮЧИТИ VA тут відкриється реальна афіша VA SaaS тільки цього майданчика.</div><iframe id="gatewayFrame" title="VA SaaS storefront"></iframe></div></section>
+<section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • окремий Venue Public Host</b><div class="pane-tools"><span id="directMeta" class="pane-meta">оберіть сеанс</span><button id="openVenueExternalBtn" class="mini-btn">Відкрити Venue ↗</button></div></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
 </div></section>
-<div class="notice">V2 чесно залишається READ-only. Gateway уже є окремим серверним маршрутом з перевіркою <b>venue_id ↔ seance_id</b>. Якщо підставити сеанс іншого майданчика, backend повертає <b>venue_seance_mismatch</b>. HOLD/SALE не імітуються — це наступний окремий крок.</div>
+<div class="notice">V2.4: списки й READ залишаються універсальними за <b>venue_id + seance_id</b>. Правий Venue Host тепер LIVE: polling + прямий HOLD. Повну покупку виконуємо у VA в окремій вкладці, щоб не ламати checkout/LiqPay вкладеним iframe.</div>
 </div>
 <script>
 (() => {
@@ -262,6 +262,8 @@ function resetGatewayStage() {
   $("valGateway").textContent = "OFF";
   $("valVa").textContent = "ОЧІКУЄ";
   $("valRead").textContent = "очікує";
+  $("valHold").textContent = "LIVE";
+  $("valSale").textContent = "через VA";
   $("valReady").textContent = "очікування";
 
   $("gatewayBtn").textContent = "GATEWAY ON";
@@ -316,7 +318,7 @@ function updateReady() {
     );
 
     $("readyBadge").textContent =
-      "SaaS V2.3 · LIVE VENUE";
+      "SaaS V2.4 · LIVE";
   } else {
     setLamp("lampReady", false);
     $("valReady").textContent = "очікування";
@@ -327,7 +329,7 @@ function updateReady() {
     );
 
     $("readyBadge").textContent =
-      "SaaS V2.3 · LIVE VENUE";
+      "SaaS V2.4 · LIVE";
   }
 }
 
@@ -593,6 +595,63 @@ async function load() {
 
   resetGatewayStage();
 }
+
+
+function currentFrameUrl(frameId, fallback = "") {
+  const frame = $(frameId);
+  try {
+    const href = frame?.contentWindow?.location?.href || "";
+    if (href && href !== "about:blank") return href;
+  } catch (_) {}
+  return frame?.src || fallback || "";
+}
+
+function directVenueUrl() {
+  if (!selected) return "";
+  const u = new URL(
+    "https://monks-commits.github.io/VA-Venue-Demo-Public/venue-hall.html"
+  );
+  u.searchParams.set("venue", VENUE_ID);
+  u.searchParams.set("seance", selected);
+  return u.toString();
+}
+
+$("openVaExternalBtn").addEventListener("click", () => {
+  const url = currentFrameUrl("gatewayFrame", storefrontUrl());
+  if (url) window.open(url, "_blank", "noopener");
+});
+
+$("openVenueExternalBtn").addEventListener("click", () => {
+  const url = currentFrameUrl("directFrame", directVenueUrl());
+  if (url) window.open(url, "_blank", "noopener");
+});
+
+window.addEventListener("message", (event) => {
+  if (event.origin !== location.origin) return;
+
+  const d = event.data || {};
+  if (d.venue_id !== VENUE_ID || d.seance_id !== selected) return;
+
+  if (d.type === "va-venue-direct-hold") {
+    const n = Array.isArray(d.seats) ? d.seats.length : 0;
+    setLamp("lampHold", n > 0, n > 0 ? "warn" : "on");
+    $("valHold").textContent = n > 0 ? `VENUE HOLD ${n}` : "LIVE";
+  }
+
+  if (d.type === "va-venue-direct-state") {
+    const mine = Number(d?.counts?.mine || 0);
+    const held = Number(d?.counts?.hold || 0);
+    const sold = Number(d?.counts?.sold || 0);
+
+    setLamp("lampHold", (mine + held) > 0, (mine + held) > 0 ? "warn" : "on");
+    $("valHold").textContent =
+      (mine + held) > 0 ? `HOLD ${mine + held}` : "LIVE";
+
+    setLamp("lampSale", sold > 0);
+    $("valSale").textContent =
+      sold > 0 ? `SOLD ${sold}` : "через VA";
+  }
+});
 
 $("gatewayFrame").addEventListener(
   "load",
