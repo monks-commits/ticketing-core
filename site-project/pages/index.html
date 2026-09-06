@@ -597,7 +597,7 @@ const CONFIG_PATH = "../../shared/config.js";
 <script src="../../shared/gateway-client.js"></script>
 
 <script>
-console.log("INDEX FINAL VERSION");
+console.log("INDEX FINAL VERSION — VENUE FILTER FIX V2");
   
 console.log("INDEX VITRINE FILTERED VERSION");
 
@@ -938,16 +938,19 @@ async function loadGatewaySeances(){
       const previous = VENUES[venueId] || {};
 
       VENUES[venueId] = {
+        // Existing/configured VA metadata wins over legacy Gateway-client
+        // fallbacks ("Дніпровська філармонія" / "dnipro").
+        // Real Gateway metadata is still used for venues not yet known locally.
         title:
-          s.venue_name ||
-          s.venue?.name ||
           configured?.title ||
           previous.title ||
+          s.venue_name ||
+          s.venue?.name ||
           venueId,
         city:
-          s.city_code ||
           configured?.city ||
           previous.city ||
+          s.city_code ||
           CLIENT_CONFIG?.city ||
           ""
       };
@@ -1089,7 +1092,6 @@ searchInput.addEventListener("keydown", e => {
   }
 });
 
-applyUrlParams();
 async function boot(){
 
   CLIENT_CONFIG = await loadVAConfig();
@@ -1109,16 +1111,17 @@ async function boot(){
     });
   }
 
-  console.log("CLIENT CONFIG:", CLIENT_CONFIG);
+  console.log("CLIENT CONFIG:", CLIENT_CONFIG);\n  console.log("VA STOREFRONT VENUE FILTER FIX V2 active");
 
-  fillVenueSelect();
-  renderVenueCards();
-
-
-  
-  renderVenueCards();
-
+  // First populate native + Gateway venues/seances.
   await loadSeances();
+
+  // Apply ?venue=... only after VENUES is actually populated.
+  applyUrlParams();
+
+  // Final render with the correct venue and city selected.
+  renderVenueCards();
+  renderSeances();
 }
 
 boot();
