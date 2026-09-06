@@ -1,15 +1,14 @@
 /*
-  VA -> Philharmonic Gateway browser client
-  Version: 3.0-browser
+  VA -> Universal Gateway browser client
+  Version: 3.1-universal-metadata
 
   Public file. Contains NO Gateway secret.
 
   Route:
     VA storefront / VA Hall
-      -> VA Edge Function: philharmonic-gateway-client
-      -> Philharmonic Gateway
-      -> venue-connector V5
-      -> Philharmonic DB
+      -> VA Edge Function: philharmonic-gateway-client (legacy function name)
+      -> Universal Gateway / venue route
+      -> authoritative Venue Server
 
   Compatible with current VA pages:
     index.html:
@@ -32,10 +31,7 @@
   const CLIENT_URL =
     "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/philharmonic-gateway-client";
 
-  const VERSION = "3.0-browser";
-  const DEFAULT_VENUE_CODE = "filarmoniya";
-  const DEFAULT_VENUE_NAME = "Дніпровська філармонія";
-  const DEFAULT_CITY_CODE = "dnipro";
+  const VERSION = "3.1-universal-metadata";
 
   function text(value) {
     return String(value ?? "").trim();
@@ -153,8 +149,7 @@
   function normalizeSeance(row) {
     const venueCode =
       text(row?.gateway_venue_code) ||
-      text(row?.venue_id) ||
-      DEFAULT_VENUE_CODE;
+      text(row?.venue_id);
 
     return {
       ...row,
@@ -165,6 +160,8 @@
       time: text(row?.time),
       status: text(row?.status) || "published",
 
+      // venue_id is mandatory for a universal Gateway seance.
+      // Never silently turn an unknown venue into Philharmonic.
       venue_id: venueCode,
       hall_id: text(row?.hall_id),
       hall: row?.hall ?? null,
@@ -172,12 +169,16 @@
       active: true,
       gateway_source: true,
       gateway_venue_code: venueCode,
+
+      // Preserve only metadata actually returned by the Gateway/server.
+      // Storefront/config may supply a display fallback by venue_id.
       venue_name:
         text(row?.venue_name) ||
-        DEFAULT_VENUE_NAME,
+        text(row?.venue?.name),
       city_code:
         text(row?.city_code) ||
-        DEFAULT_CITY_CODE
+        text(row?.venue?.city_code) ||
+        text(row?.venue?.city)
     };
   }
 
@@ -189,7 +190,7 @@
     const seances = Array.isArray(data?.seances)
       ? data.seances
           .map(normalizeSeance)
-          .filter(item => item.id)
+          .filter(item => item.id && item.venue_id)
       : [];
 
     return {
@@ -310,6 +311,6 @@
   window.VA_GATEWAY = api;
 
   console.info(
-    `[VA Gateway] browser client ${VERSION} loaded; route = browser -> VA server -> Philharmonic Gateway`
+    `[VA Gateway] browser client ${VERSION} loaded; route = browser -> VA server -> Universal Gateway`
   );
 })();
