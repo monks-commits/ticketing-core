@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="deck">
-<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.2 · SEPARATE VENUE HOST</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
+<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.3 · LIVE VENUE SERVER</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
 <section class="instrument"><div class="lamps">
 <div class="lampbox"><div id="lampVenue" class="lamp"></div><div id="venueLampTitle" class="lamp-title">МАЙДАНЧИК</div><div id="valVenue" class="lamp-value">OFF</div></div>
 <div class="lampbox"><div id="lampGateway" class="lamp"></div><div class="lamp-title">GATEWAY</div><div id="valGateway" class="lamp-value">OFF</div></div>
@@ -28,7 +28,7 @@
 <article class="card"><div class="step"><div><h2>Ваш Адмін</h2><div class="hint">Після Gateway ONLINE виконуємо реальний READ вибраного сеансу через backend.</div></div><div class="stepno">3</div></div><div class="controls"><button id="vaBtn" class="btn green big" disabled>ПІДКЛЮЧИТИ VA</button><div id="vaStatus" class="statusline">Очікуємо Gateway.</div></div></article>
 <article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">На V2 закриваємо тільки GATEWAY + READ. HOLD і SALE навмисно ще вимкнені.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
 </section>
-<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — окремий Venue Public Host: тільки схема залу без афіші та фону. Зліва — реальна афіша VA SaaS, обмежена цим майданчиком. READ перевіряється через Gateway backend і лишається у телеметрії.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.2 · READ</div></div><div class="panes">
+<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — окремий Venue Public Host: тільки схема залу без афіші та фону. Зліва — реальна афіша VA SaaS, обмежена цим майданчиком. READ перевіряється через Gateway backend і лишається у телеметрії.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.3 · LIVE VENUE</div></div><div class="panes">
 <section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span></div><div class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Після GATEWAY ON → ПІДКЛЮЧИТИ VA тут відкриється реальна афіша VA SaaS тільки цього майданчика.</div><iframe id="gatewayFrame" title="VA SaaS storefront"></iframe></div></section>
 <section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • окремий Venue Public Host</b><span id="directMeta" class="pane-meta">оберіть сеанс</span></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
 </div></section>
@@ -37,157 +37,630 @@
 <script>
 (() => {
 "use strict";
-const SUPABASE_URL="https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_KEY="sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-const GATEWAY_URL=`${SUPABASE_URL}/functions/v1/gateway-saas-demo`;
-const VA_STOREFRONT_BASE=new URL("../site-project/pages/index.html",location.href);
-const ALIASES={"academy-ruhu":"academy","shevchenko-v2":"shevchenko","opera-test":"opera"};
-const HALL_ALIASES={academy:"academy-ruhu",shevchenko:"shevchenko-v2",opera:"opera-test"};
-const $=id=>document.getElementById(id);
-const norm=v=>ALIASES[String(v||"").trim()]||String(v||"").trim();
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const qs=new URLSearchParams(location.search);
-const VENUE_ID=norm(qs.get("venue")||sessionStorage.getItem("va-gateway-demo-venue")||"");
-let venue=null,seances=[],pricing=[],selected="",gatewayOnline=false,vaConnected=false,readOk=false,remoteSeances=[];
 
-if(!VENUE_ID){ location.replace("./gateway-saas-venues.html"); return; }
+/*
+  V2.3 — LIVE VENUE LIST
+  ВАЖНО:
+  - список площадок/залов/сеансов НЕ читается из SaaS tables;
+  - правая сторона и селектор читают Venue Demo Server напрямую;
+  - VA подключается только через Universal Gateway;
+  - внешний вид V2.2 не меняем.
+*/
 
-async function rows(path){
-  const r=await fetch(SUPABASE_URL+path,{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY},cache:"no-store"});
-  if(!r.ok)throw new Error(await r.text());
-  const d=await r.json();return Array.isArray(d)?d:[];
+const SAAS_SUPABASE_URL =
+  "https://fhusjlkneckbvnrdhbil.supabase.co";
+
+const SAAS_SUPABASE_KEY =
+  "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const VENUE_READ_URL =
+  "https://lyvdrqilglqwkmajmbai.supabase.co/functions/v1/venue-demo-read";
+
+const GATEWAY_URL =
+  `${SAAS_SUPABASE_URL}/functions/v1/gateway-saas-universal`;
+
+const VA_STOREFRONT_BASE =
+  new URL("../site-project/pages/index.html", location.href);
+
+const ALIASES = {
+  "academy-ruhu": "academy",
+  "shevchenko-v2": "shevchenko",
+  "opera-test": "opera"
+};
+
+const $ = id => document.getElementById(id);
+
+const norm = v =>
+  ALIASES[String(v || "").trim()] ||
+  String(v || "").trim();
+
+const esc = v =>
+  String(v ?? "").replace(
+    /[&<>"']/g,
+    c => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[c])
+  );
+
+const qs = new URLSearchParams(location.search);
+
+const VENUE_ID = norm(
+  qs.get("venue") ||
+  sessionStorage.getItem("va-gateway-demo-venue") ||
+  ""
+);
+
+let venue = null;
+let halls = [];
+let seances = [];
+let selected = "";
+let gatewayOnline = false;
+let vaConnected = false;
+let readOk = false;
+let remoteSeances = [];
+
+if (!VENUE_ID) {
+  location.replace("./gateway-saas-venues.html");
+  return;
 }
 
-async function gatewayRequest(action,extra={}){
-  const t0=performance.now();
-  const r=await fetch(GATEWAY_URL,{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY},body:JSON.stringify({action,venue_id:VENUE_ID,...extra}),cache:"no-store"});
-  const body=await r.json().catch(()=>({}));
-  const browserMs=performance.now()-t0;
-  if(!r.ok||body?.ok===false){const e=new Error(body?.error||`gateway_http_${r.status}`);e.data=body;e.browserMs=browserMs;throw e;}
-  return {...body,browser_ms:Number(browserMs.toFixed(1))};
+async function directRequest(seanceId = "") {
+  const url = new URL(VENUE_READ_URL);
+  url.searchParams.set("venue_id", VENUE_ID);
+
+  if (seanceId) {
+    url.searchParams.set("seance_id", seanceId);
+  }
+
+  const t0 = performance.now();
+
+  const r = await fetch(url.toString(), {
+    method: "GET",
+    cache: "no-store"
+  });
+
+  const body = await r.json().catch(() => ({}));
+  const browserMs = performance.now() - t0;
+
+  if (!r.ok || body?.ok === false) {
+    const e = new Error(
+      body?.error ||
+      body?.response_code ||
+      `venue_http_${r.status}`
+    );
+    e.data = body;
+    e.browserMs = browserMs;
+    throw e;
+  }
+
+  return {
+    ...body,
+    browser_ms: Number(browserMs.toFixed(1))
+  };
 }
 
-function setLamp(id,on,kind="on"){$(id).className=`lamp${on?` ${kind}`:""}`;}
-function setStatus(id,text,kind=""){$(id).textContent=text;$(id).className=`statusline${kind?` ${kind}`:""}`;}
+async function gatewayRequest(action, extra = {}) {
+  const t0 = performance.now();
 
-function hallsForVenue(){const ids=new Set(seances.map(s=>s.id));const hs=[...new Set(pricing.filter(p=>ids.has(p.seance_id)).map(p=>String(p.hall||"").trim()).filter(Boolean))];if(!hs.length&&venue?.default_hall)hs.push(venue.default_hall);if(!hs.length&&HALL_ALIASES[VENUE_ID])hs.push(HALL_ALIASES[VENUE_ID]);return hs;}
-function hallOfSeance(id){return String(pricing.find(p=>p.seance_id===id)?.hall||venue?.default_hall||HALL_ALIASES[VENUE_ID]||"").trim();}
-function renderSeances(){const hall=$("hallSelect").value;const list=seances.filter(s=>!hall||hallOfSeance(s.id)===hall);$("seanceSelect").innerHTML='<option value="">Оберіть сеанс…</option>'+list.map(s=>`<option value="${esc(s.id)}">${esc(s.date||"")} ${esc(String(s.time||"").slice(0,5))} • ${esc(s.show||s.id)}</option>`).join("");if(selected&&list.some(s=>s.id===selected))$("seanceSelect").value=selected;}
+  const r = await fetch(GATEWAY_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SAAS_SUPABASE_KEY,
+      Authorization: "Bearer " + SAAS_SUPABASE_KEY
+    },
+    body: JSON.stringify({
+      action,
+      venue_id: VENUE_ID,
+      ...extra
+    }),
+    cache: "no-store"
+  });
 
-function resetGatewayStage(){
-  gatewayOnline=false;vaConnected=false;readOk=false;remoteSeances=[];
-  setLamp("lampGateway",false);setLamp("lampVa",false);setLamp("lampRead",false);setLamp("lampReady",false);
-  $("valGateway").textContent="OFF";$("valVa").textContent="ОЧІКУЄ";$("valRead").textContent="очікує";$("valReady").textContent="очікування";
-  $("gatewayBtn").textContent="GATEWAY ON";$("vaBtn").textContent="ПІДКЛЮЧИТИ VA";
-  $("gatewayBtn").disabled=!selected;$("vaBtn").disabled=true;
-  setStatus("gatewayStatus",selected?"Майданчик готовий. Натисніть GATEWAY ON.":"Спочатку оберіть сеанс.");
-  setStatus("vaStatus","Очікуємо Gateway.");
-  $("gatewayFrame").removeAttribute("srcdoc");$("gatewayFrame").removeAttribute("src");$("gatewayPlaceholder").classList.remove("hidden");$("gatewayPaneMeta").textContent="ще не підключено";
-  updateReady();
+  const body = await r.json().catch(() => ({}));
+  const browserMs = performance.now() - t0;
+
+  if (!r.ok || body?.ok === false) {
+    const e = new Error(
+      body?.error ||
+      body?.response_code ||
+      `gateway_http_${r.status}`
+    );
+    e.data = body;
+    e.browserMs = browserMs;
+    throw e;
+  }
+
+  return {
+    ...body,
+    browser_ms: Number(browserMs.toFixed(1))
+  };
 }
 
-function updateReady(){
-  $("gatewayBtn").disabled=!selected;
-  $("vaBtn").disabled=!gatewayOnline;
-  if(readOk){
-    setLamp("lampReady",true,"warn");
-    $("valReady").textContent="READ ГОТОВО";
-    setStatus("readyStatus","READ підтверджено. Ізоляція працює. HOLD/SALE — наступний етап.","ok");
-    $("readyBadge").textContent="READ ГОТОВО";
-  }else if(selected){
-    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Очікуємо Gateway і READ.");$("readyBadge").textContent="SaaS V2.2 · READ";
-  }else{
-    setLamp("lampReady",false);$("valReady").textContent="очікування";setStatus("readyStatus","Оберіть сеанс.");$("readyBadge").textContent="SaaS V2.2 · READ";
+function setLamp(id, on, kind = "on") {
+  $(id).className = `lamp${on ? ` ${kind}` : ""}`;
+}
+
+function setStatus(id, text, kind = "") {
+  $(id).textContent = text;
+  $(id).className =
+    `statusline${kind ? ` ${kind}` : ""}`;
+}
+
+function hallOfSeance(seanceOrId) {
+  const s =
+    typeof seanceOrId === "object"
+      ? seanceOrId
+      : seances.find(x => String(x.id) === String(seanceOrId));
+
+  return String(
+    s?.hall_id ||
+    venue?.default_hall_id ||
+    ""
+  ).trim();
+}
+
+function renderHalls() {
+  $("hallSelect").innerHTML =
+    '<option value="">Усі зали</option>' +
+    halls.map(h => `
+      <option value="${esc(h.id)}">
+        ${esc(h.name || h.id)}
+      </option>
+    `).join("");
+}
+
+function renderSeances() {
+  const hall = $("hallSelect").value;
+
+  const list = seances.filter(
+    s => !hall || hallOfSeance(s) === hall
+  );
+
+  $("seanceSelect").innerHTML =
+    '<option value="">Оберіть сеанс…</option>' +
+    list.map(s => {
+      const status = String(s.status || "");
+      const state =
+        s.active === true
+          ? "active"
+          : (status || "inactive");
+
+      return `
+        <option value="${esc(s.id)}">
+          ${esc(s.date || "")}
+          ${esc(String(s.time || "").slice(0, 5))}
+          • ${esc(s.show || s.id)}
+          • ${esc(state)}
+        </option>
+      `;
+    }).join("");
+
+  if (
+    selected &&
+    list.some(s => String(s.id) === String(selected))
+  ) {
+    $("seanceSelect").value = selected;
   }
 }
 
-function openDirect(){
-  if(!selected){$("directFrame").removeAttribute("src");$("directPlaceholder").classList.remove("hidden");$("directMeta").textContent="оберіть сеанс";setLamp("lampVenue",false);$("valVenue").textContent="OFF";resetGatewayStage();return;}
-  const u=new URL("https://monks-commits.github.io/VA-Venue-Demo-Public/venue-hall.html");
-  u.searchParams.set("venue",VENUE_ID);
-  u.searchParams.set("seance",selected);
-  $("directFrame").src=u.toString();
+function resetGatewayStage() {
+  gatewayOnline = false;
+  vaConnected = false;
+  readOk = false;
+  remoteSeances = [];
+
+  setLamp("lampGateway", false);
+  setLamp("lampVa", false);
+  setLamp("lampRead", false);
+  setLamp("lampReady", false);
+
+  $("valGateway").textContent = "OFF";
+  $("valVa").textContent = "ОЧІКУЄ";
+  $("valRead").textContent = "очікує";
+  $("valReady").textContent = "очікування";
+
+  $("gatewayBtn").textContent = "GATEWAY ON";
+  $("vaBtn").textContent = "ПІДКЛЮЧИТИ VA";
+
+  $("gatewayBtn").disabled = !selected;
+  $("vaBtn").disabled = true;
+
+  setStatus(
+    "gatewayStatus",
+    selected
+      ? "Майданчик готовий. Натисніть GATEWAY ON."
+      : "Спочатку оберіть сеанс."
+  );
+
+  setStatus(
+    "vaStatus",
+    "Очікуємо Gateway."
+  );
+
+  $("gatewayFrame").removeAttribute("srcdoc");
+  $("gatewayFrame").removeAttribute("src");
+  $("gatewayPlaceholder").classList.remove("hidden");
+  $("gatewayPaneMeta").textContent =
+    "ще не підключено";
+
+  updateReady();
+}
+
+function updateReady() {
+  $("gatewayBtn").disabled = !selected;
+  $("vaBtn").disabled = !gatewayOnline;
+
+  if (readOk) {
+    setLamp("lampReady", true, "warn");
+    $("valReady").textContent = "READ ГОТОВО";
+
+    setStatus(
+      "readyStatus",
+      "READ підтверджено. Ізоляція працює. HOLD/SALE — наступний етап.",
+      "ok"
+    );
+
+    $("readyBadge").textContent = "READ ГОТОВО";
+  } else if (selected) {
+    setLamp("lampReady", false);
+    $("valReady").textContent = "очікування";
+
+    setStatus(
+      "readyStatus",
+      "Очікуємо Gateway і READ."
+    );
+
+    $("readyBadge").textContent =
+      "SaaS V2.3 · LIVE VENUE";
+  } else {
+    setLamp("lampReady", false);
+    $("valReady").textContent = "очікування";
+
+    setStatus(
+      "readyStatus",
+      "Оберіть сеанс."
+    );
+
+    $("readyBadge").textContent =
+      "SaaS V2.3 · LIVE VENUE";
+  }
+}
+
+function openDirect() {
+  if (!selected) {
+    $("directFrame").removeAttribute("src");
+    $("directPlaceholder").classList.remove("hidden");
+    $("directMeta").textContent = "оберіть сеанс";
+
+    setLamp("lampVenue", false);
+    $("valVenue").textContent = "OFF";
+
+    resetGatewayStage();
+    return;
+  }
+
+  const u = new URL(
+    "https://monks-commits.github.io/VA-Venue-Demo-Public/venue-hall.html"
+  );
+
+  u.searchParams.set("venue", VENUE_ID);
+  u.searchParams.set("seance", selected);
+
+  $("directFrame").src = u.toString();
   $("directPlaceholder").classList.add("hidden");
-  const s=seances.find(x=>x.id===selected);
-  $("directMeta").textContent=s?`${s.show||s.id} • ${s.date||""} ${String(s.time||"").slice(0,5)} • VENUE HOST`:`${selected} • VENUE HOST`;
-  setLamp("lampVenue",true);
-  $("valVenue").textContent="ГОТОВИЙ";
+
+  const s =
+    seances.find(x => String(x.id) === String(selected));
+
+  $("directMeta").textContent =
+    s
+      ? `${s.show || s.id} • ${s.date || ""} ${String(s.time || "").slice(0, 5)} • VENUE HOST`
+      : `${selected} • VENUE HOST`;
+
+  setLamp("lampVenue", true);
+  $("valVenue").textContent = "ГОТОВИЙ";
+
   resetGatewayStage();
 }
 
-function storefrontUrl(){
-  const u=new URL(VA_STOREFRONT_BASE);
-  u.searchParams.set("venue",VENUE_ID);
+function storefrontUrl() {
+  const u = new URL(VA_STOREFRONT_BASE);
+  u.searchParams.set("venue", VENUE_ID);
   return u.toString();
 }
 
-function lockStorefrontToVenue(){
-  try{
-    const frame=$("gatewayFrame");
-    const doc=frame.contentDocument;
-    if(!doc)return;
-    const filters=doc.querySelector(".filters");
-    if(filters)filters.style.setProperty("display","none","important");
-    const venuesGrid=doc.querySelector("#venuesGrid");
-    if(venuesGrid)venuesGrid.style.setProperty("display","none","important");
-  }catch(_){ }
+function lockStorefrontToVenue() {
+  try {
+    const frame = $("gatewayFrame");
+    const doc = frame.contentDocument;
+
+    if (!doc) return;
+
+    const filters = doc.querySelector(".filters");
+    if (filters) {
+      filters.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+    }
+
+    const venuesGrid =
+      doc.querySelector("#venuesGrid");
+
+    if (venuesGrid) {
+      venuesGrid.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+    }
+  } catch (_) {}
 }
 
-function openVaStorefront(read){
-  const frame=$("gatewayFrame");
+function openVaStorefront(read) {
+  const frame = $("gatewayFrame");
+
   frame.removeAttribute("srcdoc");
-  frame.src=storefrontUrl();
+  frame.src = storefrontUrl();
+
   $("gatewayPlaceholder").classList.add("hidden");
-  $("gatewayPaneMeta").textContent=`афіша VA SaaS • READ ${Number(read?.browser_ms||0).toFixed(1)} ms`;
+
+  $("gatewayPaneMeta").textContent =
+    `афіша VA SaaS • READ ${Number(read?.browser_ms || 0).toFixed(1)} ms`;
 }
 
-async function gatewayOn(){
-  if(!selected)return;
-  setStatus("gatewayStatus","Перевіряємо окремий SaaS Gateway contour…");
-  try{
-    const r=await gatewayRequest("seances");
-    remoteSeances=Array.isArray(r.seances)?r.seances:[];
-    if(!remoteSeances.some(s=>String(s.id)===String(selected)))throw new Error("selected_seance_not_exposed_by_gateway");
-    gatewayOnline=true;setLamp("lampGateway",true);$("valGateway").textContent=`ONLINE ${Number(r.browser_ms||0).toFixed(0)} ms`;$("gatewayBtn").textContent="GATEWAY ONLINE";setStatus("gatewayStatus",`Gateway відповів • тільки ${venue.name||VENUE_ID} • ${remoteSeances.length} сеанс(ів) • ${Number(r.browser_ms||0).toFixed(1)} ms`,"ok");
-  }catch(e){gatewayOnline=false;setLamp("lampGateway",false);$("valGateway").textContent="ПОМИЛКА";setStatus("gatewayStatus",String(e.message||e),"bad");}
+async function gatewayOn() {
+  if (!selected) return;
+
+  setStatus(
+    "gatewayStatus",
+    "Перевіряємо Universal Gateway → Venue Demo Server…"
+  );
+
+  try {
+    const r =
+      await gatewayRequest("seances");
+
+    remoteSeances =
+      Array.isArray(r.seances)
+        ? r.seances
+        : [];
+
+    if (
+      !remoteSeances.some(
+        s => String(s.id) === String(selected)
+      )
+    ) {
+      throw new Error(
+        "selected_seance_not_exposed_by_gateway"
+      );
+    }
+
+    gatewayOnline = true;
+    setLamp("lampGateway", true);
+
+    $("valGateway").textContent =
+      `ONLINE ${Number(r.browser_ms || 0).toFixed(0)} ms`;
+
+    $("gatewayBtn").textContent =
+      "GATEWAY ONLINE";
+
+    setStatus(
+      "gatewayStatus",
+      `Gateway відповів • ${venue?.name || VENUE_ID} • дозволено ${remoteSeances.length} сеанс(ів) • ${Number(r.browser_ms || 0).toFixed(1)} ms`,
+      "ok"
+    );
+  } catch (e) {
+    gatewayOnline = false;
+    setLamp("lampGateway", false);
+    $("valGateway").textContent = "ПОМИЛКА";
+
+    setStatus(
+      "gatewayStatus",
+      String(e.message || e),
+      "bad"
+    );
+  }
+
   updateReady();
 }
 
-async function connectVa(){
-  if(!gatewayOnline||!selected)return;
-  setStatus("vaStatus","VA виконує READ вибраного сеансу через Gateway…");
-  try{
-    const r=await gatewayRequest("state",{seance_id:selected});
-    if(String(r.result||"")!=="succeeded")throw new Error(r.response_code||"gateway_state_rejected");
-    vaConnected=true;readOk=true;setLamp("lampVa",true);setLamp("lampRead",true);$("valVa").textContent="CONNECTED";$("valRead").textContent=`${Number(r.browser_ms||0).toFixed(0)} ms`;$("vaBtn").textContent="VA ПІДКЛЮЧЕНО";setStatus("vaStatus",`READ ${r.response_code||"state_returned"} • server ${Number(r.duration_ms||0).toFixed(1)} ms • route ${Number(r.browser_ms||0).toFixed(1)} ms`,"ok");openVaStorefront(r);
-  }catch(e){vaConnected=false;readOk=false;setLamp("lampVa",false);setLamp("lampRead",false);$("valVa").textContent="ПОМИЛКА";$("valRead").textContent="відмова";setStatus("vaStatus",String(e.message||e),"bad");}
+async function connectVa() {
+  if (!gatewayOnline || !selected) return;
+
+  setStatus(
+    "vaStatus",
+    "VA виконує READ вибраного сеансу через Universal Gateway…"
+  );
+
+  try {
+    const r =
+      await gatewayRequest(
+        "state",
+        { seance_id: selected }
+      );
+
+    if (String(r.result || "") !== "succeeded") {
+      throw new Error(
+        r.response_code ||
+        "gateway_state_rejected"
+      );
+    }
+
+    vaConnected = true;
+    readOk = true;
+
+    setLamp("lampVa", true);
+    setLamp("lampRead", true);
+
+    $("valVa").textContent = "CONNECTED";
+    $("valRead").textContent =
+      `${Number(r.browser_ms || 0).toFixed(0)} ms`;
+
+    $("vaBtn").textContent =
+      "VA ПІДКЛЮЧЕНО";
+
+    setStatus(
+      "vaStatus",
+      `READ ${r.response_code || "state_returned"} • server ${Number(r.duration_ms || 0).toFixed(1)} ms • route ${Number(r.browser_ms || 0).toFixed(1)} ms`,
+      "ok"
+    );
+
+    openVaStorefront(r);
+  } catch (e) {
+    vaConnected = false;
+    readOk = false;
+
+    setLamp("lampVa", false);
+    setLamp("lampRead", false);
+
+    $("valVa").textContent = "ПОМИЛКА";
+    $("valRead").textContent = "відмова";
+
+    setStatus(
+      "vaStatus",
+      String(e.message || e),
+      "bad"
+    );
+  }
+
   updateReady();
 }
 
-async function load(){
-  const allVenues=await rows("/rest/v1/venues?select=id,name,slug,default_hall&order=name.asc");venue=allVenues.find(v=>norm(v.id)===VENUE_ID);if(!venue)throw new Error("venue_not_found");
-  const [allS,allP]=await Promise.all([rows("/rest/v1/seances?select=id,show,date,time,venue_id,status,active,archived&archived=eq.false&order=date.asc,time.asc"),rows("/rest/v1/seances_pricing?select=seance_id,hall,venue_id")]);seances=allS.filter(s=>norm(s.venue_id)===VENUE_ID);pricing=allP;
-  const name=venue.name||VENUE_ID;document.title=`Gateway Flight Deck — ${name}`;$("subtitle").textContent=`${name} • ізольований демонстраційний READ-контур • Universal Gateway`;$("venueLampTitle").textContent=name.toUpperCase().slice(0,18);$("venueNode").textContent=name;$("venueStepTitle").textContent=name;$("directTitle").textContent=`${name} • окремий Venue Public Host`;
-  const halls=hallsForVenue();$("hallSelect").innerHTML='<option value="">Усі зали</option>'+halls.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join("");renderSeances();setStatus("venueStatus",`Завантажено: ${seances.length} сеанс(ів). Інші майданчики приховані.`,"ok");resetGatewayStage();
+async function load() {
+  const r = await directRequest();
+
+  venue = r.venue || null;
+
+  halls =
+    Array.isArray(r.halls)
+      ? r.halls
+      : [];
+
+  seances =
+    (Array.isArray(r.seances) ? r.seances : [])
+      .filter(s => s?.archived !== true);
+
+  if (!venue) {
+    throw new Error("venue_not_found");
+  }
+
+  /*
+    Если после Refresh текущий seance исчез,
+    не держим старый id в состоянии интерфейса.
+  */
+  if (
+    selected &&
+    !seances.some(
+      s => String(s.id) === String(selected)
+    )
+  ) {
+    selected = "";
+  }
+
+  const name =
+    venue.name || VENUE_ID;
+
+  document.title =
+    `Gateway Flight Deck — ${name}`;
+
+  $("subtitle").textContent =
+    `${name} • LIVE Venue Demo Server • Universal Gateway`;
+
+  $("venueLampTitle").textContent =
+    name.toUpperCase().slice(0, 18);
+
+  $("venueNode").textContent = name;
+  $("venueStepTitle").textContent = name;
+
+  $("directTitle").textContent =
+    `${name} • окремий Venue Public Host`;
+
+  renderHalls();
+  renderSeances();
+
+  setStatus(
+    "venueStatus",
+    `Venue Demo Server: ${halls.length} зал(ів), ${seances.length} сеанс(ів). Нові сеанси з'являються після «Оновити».`,
+    "ok"
+  );
+
+  resetGatewayStage();
 }
 
-$("gatewayFrame").addEventListener("load",()=>{
-  if(!readOk)return;
-  lockStorefrontToVenue();
-  try{
-    const href=$("gatewayFrame").contentWindow.location.href;
-    if(href.includes("hall.html"))$("gatewayPaneMeta").textContent="реальна схема VA SaaS";
-    else if(href.includes("order.html"))$("gatewayPaneMeta").textContent="оформлення VA SaaS";
-    else $("gatewayPaneMeta").textContent="реальна афіша VA SaaS";
-  }catch(_){ }
-});
+$("gatewayFrame").addEventListener(
+  "load",
+  () => {
+    if (!readOk) return;
 
-$("hallSelect").addEventListener("change",()=>{selected="";renderSeances();openDirect();});
-$("seanceSelect").addEventListener("change",()=>{selected=$("seanceSelect").value;openDirect();});
-$("gatewayBtn").addEventListener("click",gatewayOn);
-$("vaBtn").addEventListener("click",connectVa);
-$("refreshBtn").addEventListener("click",()=>load().catch(fail));
-function fail(e){setStatus("venueStatus","Помилка: "+e.message,"bad");}
+    lockStorefrontToVenue();
+
+    try {
+      const href =
+        $("gatewayFrame").contentWindow.location.href;
+
+      if (href.includes("hall.html")) {
+        $("gatewayPaneMeta").textContent =
+          "реальна схема VA SaaS";
+      } else if (href.includes("order.html")) {
+        $("gatewayPaneMeta").textContent =
+          "оформлення VA SaaS";
+      } else {
+        $("gatewayPaneMeta").textContent =
+          "реальна афіша VA SaaS";
+      }
+    } catch (_) {}
+  }
+);
+
+$("hallSelect").addEventListener(
+  "change",
+  () => {
+    selected = "";
+    renderSeances();
+    openDirect();
+  }
+);
+
+$("seanceSelect").addEventListener(
+  "change",
+  () => {
+    selected =
+      $("seanceSelect").value;
+
+    openDirect();
+  }
+);
+
+$("gatewayBtn").addEventListener(
+  "click",
+  gatewayOn
+);
+
+$("vaBtn").addEventListener(
+  "click",
+  connectVa
+);
+
+$("refreshBtn").addEventListener(
+  "click",
+  () => load().catch(fail)
+);
+
+function fail(e) {
+  setStatus(
+    "venueStatus",
+    "Помилка: " + e.message,
+    "bad"
+  );
+}
+
 load().catch(fail);
 })();
 </script>
