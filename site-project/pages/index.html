@@ -834,7 +834,10 @@ const img =
   visual?.poster_url ||
   s.poster_url ||
   "images/default.jpg";
-    const venue = getVenueName(s.venue_id);
+    const venueKeyForCard = s.gateway_source === true
+      ? (s.gateway_venue_code || s.venue_id || "")
+      : s.venue_id;
+    const venue = getVenueName(venueKeyForCard);
 
     const el = document.createElement("div");
     el.className = "card";
@@ -873,7 +876,7 @@ const img =
   data-seance="${s.id}"
   href="${
     s.gateway_source === true
-      ? `hall.html?seance=${encodeURIComponent(s.id)}&source=gateway&venue=${encodeURIComponent(s.gateway_venue_code || s.venue_id || "filarmoniya")}`
+      ? `hall.html?seance=${encodeURIComponent(s.id)}&source=gateway&venue=${encodeURIComponent(s.gateway_venue_code || s.venue_id || "")}`
       : `hall.html?seance=${encodeURIComponent(s.id)}`
   }"
 >
@@ -921,20 +924,100 @@ async function loadGatewaySeances(){
     const rows = Array.isArray(data?.seances) ? data.seances : [];
 
     for (const s of rows) {
-      const venueId = s.gateway_venue_code || s.venue_id || "filarmoniya";
+      const venueId = String(
+        s.gateway_venue_code || s.venue_id || ""
+      ).trim();
+
+      if (!venueId) continue;
+
+      const configured = CONFIG_VENUES.find(v =>
+        String(v?.id || "") === venueId ||
+        String(v?.hall || "") === venueId
+      );
+
+      const previous = VENUES[venueId] || {};
+
       VENUES[venueId] = {
-        title: s.venue_name || "Дніпровська філармонія",
-        city: s.city_code || "dnipro"
+        title:
+          s.venue_name ||
+          s.venue?.name ||
+          configured?.title ||
+          previous.title ||
+          venueId,
+        city:
+          s.city_code ||
+          configured?.city ||
+          previous.city ||
+          CLIENT_CONFIG?.city ||
+          ""
       };
     }
 
-    return rows.map(s => ({
-      ...s,
-      active: true,
-      status: s.status || "published",
-      gateway_source: true,
-      gateway_venue_code: s.gateway_venue_code || s.venue_id || "filarmoniya"
-    }));
+    const ids = rows
+      .map(s => String(s.id || "").trim())
+      .filter(Boolean);
+
+    const visualMap = new Map();
+
+    if (ids.length) {
+      try {
+        const visualUrl =
+          new URL(`${SUPABASE_URL}/rest/v1/seance_visuals`);
+
+        visualUrl.searchParams.set(
+          "select",
+          "seance_id,poster_url,event_text,live_poster_url"
+        );
+        visualUrl.searchParams.set("enabled", "eq.true");
+        visualUrl.searchParams.set(
+          "seance_id",
+          `in.(${ids.join(",")})`
+        );
+
+        const visualRes = await fetch(visualUrl.toString(), {
+          headers:{
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          cache:"no-store"
+        });
+
+        if (visualRes.ok) {
+          const visualRows = await visualRes.json();
+
+          (Array.isArray(visualRows) ? visualRows : [])
+            .forEach(v => {
+              if (v?.seance_id) {
+                visualMap.set(String(v.seance_id), v);
+              }
+            });
+        } else {
+          console.warn(
+            "Gateway visual load failed",
+            visualRes.status
+          );
+        }
+      } catch (e) {
+        console.warn("Gateway visuals unavailable", e);
+      }
+    }
+
+    return rows.map(s => {
+      const id = String(s.id || "").trim();
+      const visual = visualMap.get(id) || null;
+
+      return {
+        ...s,
+        active: true,
+        status: s.status || "published",
+        gateway_source: true,
+        gateway_venue_code:
+          s.gateway_venue_code ||
+          s.venue_id ||
+          "",
+        seance_visuals: visual ? [visual] : []
+      };
+    });
   } catch (e) {
     console.warn("Gateway seances unavailable", e);
     return [];
