@@ -467,14 +467,10 @@ const refCode =
 
 const MARKETING_ATTRIBUTION_STORAGE_KEY = "va_marketing_attribution_v1";
 
-function isSupportedMarketingAttributionId(value){
-  return /^(VAC|VAA)-[A-Za-z0-9_-]+$/.test(String(value || "").trim());
-}
-
 function readMarketingAttribution(){
   const fromUrlCampaign = String(qs.get("campaign_id") || "").trim();
   const fromUrlSeance = String(qs.get("seance") || "").trim();
-  if(fromUrlCampaign && isSupportedMarketingAttributionId(fromUrlCampaign)){
+  if(fromUrlCampaign && fromUrlCampaign.startsWith("VAC-")){
     return {
       campaign_id: fromUrlCampaign,
       seance_id: fromUrlSeance,
@@ -487,7 +483,7 @@ function readMarketingAttribution(){
     const raw = sessionStorage.getItem(MARKETING_ATTRIBUTION_STORAGE_KEY);
     const x = raw ? JSON.parse(raw) : null;
     if(!x || typeof x !== "object") return null;
-    if(!isSupportedMarketingAttributionId(x.campaign_id)) return null;
+    if(!String(x.campaign_id || "").startsWith("VAC-")) return null;
     return x;
   }catch(e){ return null; }
 }
@@ -604,6 +600,11 @@ function readMarketingAttribution(){
       const form = document.createElement("form");
       form.method = "POST";
       form.action = "https://www.liqpay.ua/api/3/checkout";
+
+      // Flight Deck opens VA SaaS inside an iframe. LiqPay must not be
+      // rendered inside that iframe, otherwise its checkout can hang/be blocked.
+      // In normal standalone checkout we keep the current-tab behavior.
+      form.target = (window.self !== window.top) ? "_blank" : "_self";
 
       const i1 = document.createElement("input");
       i1.type = "hidden";
