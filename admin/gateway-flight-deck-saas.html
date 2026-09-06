@@ -6,13 +6,14 @@
 <title>Gateway Flight Deck SaaS V2.4</title>
 <style>
 :root{--bg:#0b1015;--panel:#111922;--line:#283646;--text:#e8eef5;--muted:#8fa0b3;--green:#3bd177;--amber:#ffbd45;--red:#ff5e64;--blue:#54a6ff;--off:#3a4653}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}button,select{font:inherit}body{padding:18px}.deck{max-width:1680px;margin:0 auto}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px}h1{font-size:28px;margin:0 0 4px}.subtitle{color:var(--muted)}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#17212c;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}.btn:hover{background:#1d2a38}.btn:disabled{opacity:.42;cursor:not-allowed}.btn.green{background:#176b3c;border-color:#249d58}.btn.big{min-height:48px;padding:12px 18px;font-size:16px}.instrument{background:linear-gradient(180deg,#111922,#0e151d);border:1px solid #273545;border-radius:18px;padding:14px;box-shadow:inset 0 0 0 1px #0a0f14;margin-bottom:14px}.lamps{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:10px}.lampbox{border:1px solid #293846;background:#0c1218;border-radius:12px;padding:10px;text-align:center}.lamp{width:22px;height:22px;border-radius:50%;margin:0 auto 7px;background:var(--off);box-shadow:inset 0 0 0 3px #1b252f,0 0 0 1px #465565}.lamp.on{background:var(--green);box-shadow:inset 0 0 0 3px #1d4a2d,0 0 14px rgba(59,209,119,.72)}.lamp.warn{background:var(--amber);box-shadow:inset 0 0 0 3px #5c4319,0 0 14px rgba(255,189,69,.6)}.lamp-title{font-size:12px;letter-spacing:.07em;font-weight:850}.lamp-value{color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pathbar{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin-top:12px;border-top:1px solid #23303c;padding-top:12px}.node{border:1px solid var(--line);border-radius:11px;background:#121b24;padding:9px 11px;text-align:center}.node strong{display:block}.node span{font-size:12px;color:var(--muted)}.arrow{color:var(--blue);font-weight:900}.preflight{display:grid;grid-template-columns:1.25fr .8fr .8fr .9fr;gap:12px;margin-bottom:14px}.card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px}.step{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.stepno{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#263544;color:#c9d7e6;font-weight:900}.card h2{font-size:17px;margin:0}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}.controls{margin-top:12px;display:grid;gap:8px}.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field select{width:100%;min-height:42px;border:1px solid #334657;border-radius:9px;background:#0e161e;color:var(--text);padding:8px 10px}.statusline{min-height:18px;color:var(--muted);font-size:12px;line-height:1.4}.statusline.ok{color:var(--green)}.statusline.warn{color:var(--amber)}.statusline.bad{color:var(--red)}.workspace{border:1px solid #314257;background:#0d141c;border-radius:18px;overflow:hidden}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #293846;background:#111a24}.workspace-head h2{margin:0;font-size:20px}.ready-badge{border:1px solid #3b4b5b;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;color:var(--muted)}.panes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}.pane{border:1px solid #273747;border-radius:13px;background:#111922;overflow:hidden;min-width:0}.pane-head{padding:10px 12px;border-bottom:1px solid #273747;display:flex;justify-content:space-between;align-items:center;gap:8px}.pane-head b{font-size:15px}.pane-meta{font-size:11px;color:var(--muted);text-align:right}.pane-tools{display:flex;align-items:center;gap:7px;min-width:0}.mini-btn{border:1px solid #3b4b5b;background:#17212c;color:#dfe9f3;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}.mini-btn:hover{background:#213142}.frame-wrap{position:relative;height:clamp(720px,78vh,980px);background:#0a0f14;overscroll-behavior:contain}.frame-wrap iframe{display:block;width:100%;height:100%;border:0;background:#fff}.frame-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:var(--muted);background:#0d141c}.frame-placeholder.hidden{display:none}.notice{margin-top:14px;border:1px solid #244f35;background:#102219;color:#9ee7b9;border-radius:14px;padding:13px 15px;font-size:12px;line-height:1.55}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}button,select{font:inherit}body{padding:18px}.deck{max-width:1680px;margin:0 auto}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px}h1{font-size:28px;margin:0 0 4px}.subtitle{color:var(--muted)}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#17212c;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}.btn:hover{background:#1d2a38}.btn:disabled{opacity:.42;cursor:not-allowed}.btn.green{background:#176b3c;border-color:#249d58}.btn.big{min-height:48px;padding:12px 18px;font-size:16px}.instrument{background:linear-gradient(180deg,#111922,#0e151d);border:1px solid #273545;border-radius:18px;padding:14px;box-shadow:inset 0 0 0 1px #0a0f14;margin-bottom:14px}.lamps{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:10px}.lampbox{border:1px solid #293846;background:#0c1218;border-radius:12px;padding:10px;text-align:center}.lamp{width:22px;height:22px;border-radius:50%;margin:0 auto 7px;background:var(--off);box-shadow:inset 0 0 0 3px #1b252f,0 0 0 1px #465565}.lamp.on{background:var(--green);box-shadow:inset 0 0 0 3px #1d4a2d,0 0 14px rgba(59,209,119,.72)}.lamp.warn{background:var(--amber);box-shadow:inset 0 0 0 3px #5c4319,0 0 14px rgba(255,189,69,.6)}.lamp-title{font-size:12px;letter-spacing:.07em;font-weight:850}.lamp-value{color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pathbar{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin-top:12px;border-top:1px solid #23303c;padding-top:12px}.node{border:1px solid var(--line);border-radius:11px;background:#121b24;padding:9px 11px;text-align:center}.node strong{display:block}.node span{font-size:12px;color:var(--muted)}.arrow{color:var(--blue);font-weight:900}.preflight{display:grid;grid-template-columns:1.25fr .8fr .8fr .9fr;gap:12px;margin-bottom:14px}.card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px}.step{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.stepno{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#263544;color:#c9d7e6;font-weight:900}.card h2{font-size:17px;margin:0}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}.controls{margin-top:12px;display:grid;gap:8px}.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field select{width:100%;min-height:42px;border:1px solid #334657;border-radius:9px;background:#0e161e;color:var(--text);padding:8px 10px}.statusline{min-height:18px;color:var(--muted);font-size:12px;line-height:1.4}.statusline.ok{color:var(--green)}.statusline.warn{color:var(--amber)}.statusline.bad{color:var(--red)}.workspace{border:1px solid #314257;background:#0d141c;border-radius:18px;overflow:hidden}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #293846;background:#111a24}.workspace-head h2{margin:0;font-size:20px}.ready-badge{border:1px solid #3b4b5b;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;color:var(--muted)}.panes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}.pane{border:1px solid #273747;border-radius:13px;background:#111922;overflow:hidden;min-width:0}.pane-head{padding:10px 12px;border-bottom:1px solid #273747;display:flex;justify-content:space-between;align-items:center;gap:8px}.pane-head b{font-size:15px}.pane-meta{font-size:11px;color:var(--muted);text-align:right}.pane-tools{display:flex;align-items:center;gap:7px;min-width:0}.mini-btn{border:1px solid #3b4b5b;background:#17212c;color:#dfe9f3;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}.mini-btn:hover{background:#213142}.frame-wrap{position:relative;height:clamp(720px,78vh,980px);background:#0a0f14;overscroll-behavior:contain}.frame-wrap iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+.frame-wrap.autoheight{height:auto!important;min-height:720px}.frame-wrap.autoheight iframe{height:auto;min-height:720px;overflow:hidden}.frame-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:var(--muted);background:#0d141c}.frame-placeholder.hidden{display:none}.notice{margin-top:14px;border:1px solid #244f35;background:#102219;color:#9ee7b9;border-radius:14px;padding:13px 15px;font-size:12px;line-height:1.55}
 @media(max-width:1250px){.lamps{grid-template-columns:repeat(4,1fr)}.preflight{grid-template-columns:repeat(2,1fr)}.panes{grid-template-columns:1fr}.frame-wrap{height:78vh}}@media(max-width:700px){body{padding:8px}.lamps{grid-template-columns:repeat(2,1fr)}.preflight{grid-template-columns:1fr}.pathbar{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}.frame-wrap{height:70vh}.top-actions{width:100%}.top-actions .btn{flex:1}}
 </style>
 </head>
 <body>
 <div class="deck">
-<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.4 · LIVE HOLD / SALE</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
+<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.4.1 · FRAME AUTOHEIGHT</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
 <section class="instrument"><div class="lamps">
 <div class="lampbox"><div id="lampVenue" class="lamp"></div><div id="venueLampTitle" class="lamp-title">МАЙДАНЧИК</div><div id="valVenue" class="lamp-value">OFF</div></div>
 <div class="lampbox"><div id="lampGateway" class="lamp"></div><div class="lamp-title">GATEWAY</div><div id="valGateway" class="lamp-value">OFF</div></div>
@@ -28,11 +29,11 @@
 <article class="card"><div class="step"><div><h2>Ваш Адмін</h2><div class="hint">Після Gateway ONLINE виконуємо реальний READ вибраного сеансу через backend.</div></div><div class="stepno">3</div></div><div class="controls"><button id="vaBtn" class="btn green big" disabled>ПІДКЛЮЧИТИ VA</button><div id="vaStatus" class="statusline">Очікуємо Gateway.</div></div></article>
 <article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">Праворуч працює прямий venue-side HOLD. Продаж і LiqPay проходять штатним ланцюгом VA з відкриттям окремої вкладки.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
 </section>
-<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — живий Venue Public Host: схема автоматично оновлюється і вміє створювати прямий HOLD. Зліва — реальний VA SaaS. Для повної покупки відкрийте VA окремо кнопкою ↗ — без вкладеного scroll/iframe.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.4 · LIVE</div></div><div class="panes">
+<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — живий Venue Public Host: схема автоматично оновлюється і вміє створювати прямий HOLD. Зліва — реальний VA SaaS. Для повної покупки відкрийте VA окремо кнопкою ↗ — без вкладеного scroll/iframe.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.4.1 · LIVE</div></div><div class="panes">
 <section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><div class="pane-tools"><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span><button id="openVaExternalBtn" class="mini-btn">Відкрити VA ↗</button></div></div><div class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Після GATEWAY ON → ПІДКЛЮЧИТИ VA тут відкриється реальна афіша VA SaaS тільки цього майданчика.</div><iframe id="gatewayFrame" title="VA SaaS storefront"></iframe></div></section>
 <section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • окремий Venue Public Host</b><div class="pane-tools"><span id="directMeta" class="pane-meta">оберіть сеанс</span><button id="openVenueExternalBtn" class="mini-btn">Відкрити Venue ↗</button></div></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
 </div></section>
-<div class="notice">V2.4: списки й READ залишаються універсальними за <b>venue_id + seance_id</b>. Правий Venue Host тепер LIVE: polling + прямий HOLD. Повну покупку виконуємо у VA в окремій вкладці, щоб не ламати checkout/LiqPay вкладеним iframe.</div>
+<div class="notice">V2.4.1: списки й READ залишаються універсальними за <b>venue_id + seance_id</b>. Правий Venue Host тепер LIVE: polling + прямий HOLD. Повну покупку виконуємо у VA в окремій вкладці, щоб не ламати checkout/LiqPay вкладеним iframe.</div>
 </div>
 <script>
 (() => {
@@ -318,7 +319,7 @@ function updateReady() {
     );
 
     $("readyBadge").textContent =
-      "SaaS V2.4 · LIVE";
+      "SaaS V2.4.1 · LIVE";
   } else {
     setLamp("lampReady", false);
     $("valReady").textContent = "очікування";
@@ -329,8 +330,27 @@ function updateReady() {
     );
 
     $("readyBadge").textContent =
-      "SaaS V2.4 · LIVE";
+      "SaaS V2.4.1 · LIVE";
   }
+}
+
+
+let gatewayResizeObserver = null;
+
+function attachGatewayResizeObserver(){
+  const frame = $("gatewayFrame");
+  try{
+    const doc = frame?.contentDocument;
+    if(!doc?.body) return;
+
+    gatewayResizeObserver?.disconnect?.();
+
+    gatewayResizeObserver = new ResizeObserver(()=>{
+      fitSameOriginFrame("gatewayFrame");
+    });
+
+    gatewayResizeObserver.observe(doc.body);
+  }catch(_){}
 }
 
 function openDirect() {
@@ -653,9 +673,54 @@ window.addEventListener("message", (event) => {
   }
 });
 
+
+function fitSameOriginFrame(frameId){
+  const frame = $(frameId);
+  if(!frame) return;
+
+  try{
+    const doc = frame.contentDocument;
+    if(!doc || !doc.documentElement || !doc.body) return;
+
+    // Let the outer Flight Deck page own vertical scrolling.
+    // This avoids the Hall/Order/Checkout bottom buttons being trapped
+    // below a fixed-height nested iframe.
+    doc.documentElement.style.overflowY = "visible";
+    doc.body.style.overflowY = "visible";
+
+    const height = Math.max(
+      doc.documentElement.scrollHeight || 0,
+      doc.body.scrollHeight || 0,
+      720
+    );
+
+    const wrap = frame.closest(".frame-wrap");
+    if(wrap){
+      wrap.classList.add("autoheight");
+      wrap.style.height = `${height}px`;
+    }
+
+    frame.style.height = `${height}px`;
+    frame.setAttribute("scrolling","no");
+  }catch(_){
+    // Same-origin is expected on GitHub Pages. If navigation ever leaves
+    // the origin, simply keep the normal fixed frame.
+  }
+}
+
+function scheduleFrameFit(frameId){
+  // The Hall may resize after geometry / state / fonts finish rendering.
+  [0,120,400,900].forEach(delay=>{
+    setTimeout(()=>fitSameOriginFrame(frameId),delay);
+  });
+}
+
 $("gatewayFrame").addEventListener(
   "load",
   () => {
+    scheduleFrameFit("gatewayFrame");
+    setTimeout(attachGatewayResizeObserver, 150);
+
     if (!readOk) return;
 
     lockStorefrontToVenue();
