@@ -1,14 +1,15 @@
 /*
   VA -> Universal Gateway browser client
-  Version: 3.1-universal-metadata
+  Version: 3.0-browser
 
   Public file. Contains NO Gateway secret.
 
   Route:
     VA storefront / VA Hall
-      -> VA Edge Function: philharmonic-gateway-client (legacy function name)
-      -> Universal Gateway / venue route
-      -> authoritative Venue Server
+      -> VA Edge Function: philharmonic-gateway-client
+      -> Philharmonic Gateway
+      -> venue-connector V5
+      -> Philharmonic DB
 
   Compatible with current VA pages:
     index.html:
@@ -31,7 +32,12 @@
   const CLIENT_URL =
     "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/philharmonic-gateway-client";
 
-  const VERSION = "3.1-universal-metadata";
+  const VERSION = "3.1.1-universal-metadata";
+  // Backward compatibility only for the legacy endpoint below.
+  // Universal rows that already carry venue_id are never relabelled.
+  const LEGACY_VENUE_CODE = "filarmoniya";
+  const LEGACY_VENUE_NAME = "Дніпровська філармонія";
+  const LEGACY_CITY_CODE = "dnipro";
 
   function text(value) {
     return String(value ?? "").trim();
@@ -147,9 +153,19 @@
   }
 
   function normalizeSeance(row) {
-    const venueCode =
+    const explicitVenueCode =
       text(row?.gateway_venue_code) ||
       text(row?.venue_id);
+
+    // The legacy function philharmonic-gateway-client historically returned
+    // Philharmonic rows without venue_id. Preserve only that compatibility.
+    const venueCode =
+      explicitVenueCode ||
+      LEGACY_VENUE_CODE;
+
+    const legacyPhilharmonicRow =
+      !explicitVenueCode &&
+      venueCode === LEGACY_VENUE_CODE;
 
     return {
       ...row,
@@ -160,8 +176,6 @@
       time: text(row?.time),
       status: text(row?.status) || "published",
 
-      // venue_id is mandatory for a universal Gateway seance.
-      // Never silently turn an unknown venue into Philharmonic.
       venue_id: venueCode,
       hall_id: text(row?.hall_id),
       hall: row?.hall ?? null,
@@ -170,15 +184,17 @@
       gateway_source: true,
       gateway_venue_code: venueCode,
 
-      // Preserve only metadata actually returned by the Gateway/server.
-      // Storefront/config may supply a display fallback by venue_id.
+      // Do not turn Academy or any other explicit venue into Philharmonic.
       venue_name:
         text(row?.venue_name) ||
-        text(row?.venue?.name),
+        text(row?.venue?.name) ||
+        (legacyPhilharmonicRow ? LEGACY_VENUE_NAME : ""),
+
       city_code:
         text(row?.city_code) ||
         text(row?.venue?.city_code) ||
-        text(row?.venue?.city)
+        text(row?.venue?.city) ||
+        (legacyPhilharmonicRow ? LEGACY_CITY_CODE : "")
     };
   }
 
@@ -190,7 +206,7 @@
     const seances = Array.isArray(data?.seances)
       ? data.seances
           .map(normalizeSeance)
-          .filter(item => item.id && item.venue_id)
+          .filter(item => item.id)
       : [];
 
     return {
@@ -311,6 +327,6 @@
   window.VA_GATEWAY = api;
 
   console.info(
-    `[VA Gateway] browser client ${VERSION} loaded; route = browser -> VA server -> Universal Gateway`
+    `[VA Gateway] browser client ${VERSION} loaded; route = browser -> VA server -> Gateway`
   );
 })();
