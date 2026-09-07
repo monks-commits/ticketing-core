@@ -597,7 +597,7 @@ const CONFIG_PATH = "../../shared/config.js";
 <script src="../../shared/gateway-client.js"></script>
 
 <script>
-console.log("INDEX FINAL VERSION — VENUE FILTER FIX V2");
+console.log("INDEX FINAL VERSION — VENUE CANONICAL V3");
   
 console.log("INDEX VITRINE FILTERED VERSION");
 
@@ -623,6 +623,55 @@ const CITIES = {
   "dnipro": "Дніпро"
 };
 
+// Canonical public venue ids.
+// Legacy hall/file ids remain valid as URL/data aliases, but never become
+// separate storefront venues.
+const VENUE_ID_ALIASES = Object.freeze({
+  "academy-ruhu": "academy",
+  "shevchenko-v2": "shevchenko",
+  "opera-test": "opera"
+});
+
+function canonicalVenueId(value){
+  const raw = String(value || "").trim();
+  return VENUE_ID_ALIASES[raw] || raw;
+}
+
+function canonicalConfigVenue(v){
+  const id = canonicalVenueId(v?.id || v?.slug || v?.hall || "");
+  if (!id) return null;
+
+  return {
+    ...v,
+    id,
+    // Keep hall/file id untouched: only the public venue id is canonicalized.
+    hall: v?.hall || v?.default_hall || "",
+    title: v?.title || v?.name || id,
+    city: v?.city || ""
+  };
+}
+
+function mergeConfigVenues(rows){
+  const map = new Map();
+
+  for (const raw of (Array.isArray(rows) ? rows : [])) {
+    const v = canonicalConfigVenue(raw);
+    if (!v) continue;
+
+    const prev = map.get(v.id) || {};
+    map.set(v.id, {
+      ...prev,
+      ...v,
+      id: v.id,
+      title: v.title || prev.title || v.id,
+      city: v.city || prev.city || "",
+      hall: v.hall || prev.hall || ""
+    });
+  }
+
+  return [...map.values()];
+}
+
 let ALL_SEANCES = [];
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];  
@@ -639,19 +688,21 @@ function safeHtml(value){
 function dbVenueToPublic(v){
   if (!v) return "";
 
-  const direct = VENUES[v];
-  if (direct) return v;
+  const canonical = canonicalVenueId(v);
+  if (VENUES[canonical]) return canonical;
 
   const found = CONFIG_VENUES.find(item =>
-    item.id === v || item.hall === v
+    canonicalVenueId(item?.id) === canonical ||
+    canonicalVenueId(item?.hall) === canonical ||
+    String(item?.hall || "") === String(v)
   );
 
-  return found?.id || v;
+  return canonicalVenueId(found?.id || canonical);
 }
 
 function getVenueName(v){
   const key = dbVenueToPublic(v);
-  return VENUES[key]?.title || v || "Майданчик";
+  return VENUES[key]?.title || key || "Майданчик";
 }
 
 function getCityByVenue(v){
@@ -663,15 +714,23 @@ function fillVenueSelect(){
   const city = citySelect.value;
 
   const items = Object.entries(VENUES)
+    .map(([id, v]) => [canonicalVenueId(id), v])
+    .filter(([id]) => Boolean(id))
     .filter(([, v]) => !city || v.city === city);
+
+  // One canonical option per venue, even when old config/hall aliases exist.
+  const unique = new Map();
+  for (const [id, v] of items) {
+    if (!unique.has(id)) unique.set(id, v);
+  }
 
   venueSelect.innerHTML =
     `<option value="">Усі майданчики</option>` +
-    items.map(([id, v]) => `
+    [...unique.entries()].map(([id, v]) => `
       <option value="${id}">${v.title}</option>
     `).join("");
 
-  const venueFromUrl = qs.get("venue");
+  const venueFromUrl = canonicalVenueId(qs.get("venue"));
   if (venueFromUrl && VENUES[venueFromUrl]) {
     venueSelect.value = venueFromUrl;
   }
@@ -679,7 +738,7 @@ function fillVenueSelect(){
 
 function applyUrlParams(){
   const city = qs.get("city") || "";
-  const venue = qs.get("venue") || "";
+  const venue = canonicalVenueId(qs.get("venue"));
   const q = qs.get("q") || "";
 
   if (city && CITIES[city]) {
@@ -706,7 +765,7 @@ function updateUrl(){
   const params = new URLSearchParams();
 
   if (citySelect.value) params.set("city", citySelect.value);
-  if (venueSelect.value) params.set("venue", venueSelect.value);
+  if (venueSelect.value) params.set("venue", canonicalVenueId(venueSelect.value));
   if (searchInput.value.trim()) params.set("q", searchInput.value.trim());
 
   history.replaceState(
@@ -724,7 +783,7 @@ function isFutureOrToday(date){
 
 function eventVisible(s){
   const city = citySelect.value;
-  const venue = venueSelect.value;
+  const venue = canonicalVenueId(venueSelect.value);
   const q = searchInput.value.trim().toLowerCase();
 
   const publicVenue = dbVenueToPublic(s.venue_id);
@@ -755,14 +814,12 @@ function renderVenueCards(){
   const block = document.getElementById("venuesBlock");
   if (!block) return;
 
-  const venues = CONFIG_VENUES.length
-    ? CONFIG_VENUES
-    : Object.entries(VENUES).map(([id, v]) => ({
-        id,
-        title: v.title,
-        city: v.city,
-        description: "Онлайн-афіша, схема залу та продаж квитків."
-      }));
+  const venues = Object.entries(VENUES).map(([id, v]) => ({
+    id: canonicalVenueId(id),
+    title: v.title,
+    city: v.city,
+    description: "Онлайн-афіша, схема залу та продаж квитків."
+  }));
 
   block.innerHTML = venues.map(v => `
     <div class="venue-card" data-city="${v.city || ""}" data-venue="${v.id}">
@@ -924,15 +981,15 @@ async function loadGatewaySeances(){
     const rows = Array.isArray(data?.seances) ? data.seances : [];
 
     for (const s of rows) {
-      const venueId = String(
+      const venueId = canonicalVenueId(
         s.gateway_venue_code || s.venue_id || ""
-      ).trim();
+      );
 
       if (!venueId) continue;
 
       const configured = CONFIG_VENUES.find(v =>
-        String(v?.id || "") === venueId ||
-        String(v?.hall || "") === venueId
+        canonicalVenueId(v?.id) === venueId ||
+        canonicalVenueId(v?.hall) === venueId
       );
 
       const previous = VENUES[venueId] || {};
@@ -1014,10 +1071,16 @@ async function loadGatewaySeances(){
         active: true,
         status: s.status || "published",
         gateway_source: true,
-        gateway_venue_code:
+        venue_id: canonicalVenueId(
+          s.venue_id ||
+          s.gateway_venue_code ||
+          ""
+        ),
+        gateway_venue_code: canonicalVenueId(
           s.gateway_venue_code ||
           s.venue_id ||
-          "",
+          ""
+        ),
         seance_visuals: visual ? [visual] : []
       };
     });
@@ -1045,7 +1108,10 @@ async function loadSeances(){
     });
 
     const data = await res.json();
-    nativeRows = Array.isArray(data) ? data : [];
+    nativeRows = (Array.isArray(data) ? data : []).map(s => ({
+      ...s,
+      venue_id: canonicalVenueId(s?.venue_id)
+    }));
   } catch (e) {
     console.warn("VA seances unavailable", e);
   }
@@ -1101,18 +1167,21 @@ async function boot(){
   }
 
   if (Array.isArray(CLIENT_CONFIG?.venues)) {
-    CONFIG_VENUES = CLIENT_CONFIG.venues;
+    CONFIG_VENUES = mergeConfigVenues(CLIENT_CONFIG.venues);
 
     CONFIG_VENUES.forEach(v => {
-      VENUES[v.id] = {
-        title: v.title || v.id,
-        city: v.city || CLIENT_CONFIG.city || ""
+      const id = canonicalVenueId(v.id);
+      const previous = VENUES[id] || {};
+
+      VENUES[id] = {
+        title: v.title || previous.title || id,
+        city: v.city || previous.city || CLIENT_CONFIG.city || ""
       };
     });
   }
 
   console.log("CLIENT CONFIG:", CLIENT_CONFIG);
-  console.log("VA STOREFRONT VENUE FILTER FIX V2 active");
+  console.log("VA STOREFRONT VENUE CANONICAL V3 active");
 
   // First populate native + Gateway venues/seances.
   await loadSeances();
