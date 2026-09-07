@@ -1,5 +1,5 @@
 /*
-  VA -> Universal Gateway browser client
+  VA -> Philharmonic Gateway browser client
   Version: 3.0-browser
 
   Public file. Contains NO Gateway secret.
@@ -32,97 +32,23 @@
   const CLIENT_URL =
     "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/philharmonic-gateway-client";
 
-  const VERSION = "3.2-universal-list";
-  // Existing state/hold/release transport stays on the proven adapter.
-  // Only seance discovery is switched to the Universal Gateway path.
-  const SAAS_SUPABASE_URL =
-    "https://fhusjlkneckbvnrdhbil.supabase.co";
-
-  const SAAS_ANON_KEY =
-    "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-
-  const UNIVERSAL_GATEWAY_URL =
-    `${SAAS_SUPABASE_URL}/functions/v1/gateway-saas-universal`;
-
+  const VERSION = "3.3-operator-aware-universal";
   const VENUE_CATALOG_URL =
     "https://lyvdrqilglqwkmajmbai.supabase.co/functions/v1/venue-demo-catalog";
 
+  const VENUE_ALIASES = Object.freeze({
+    "academy-ruhu": "academy",
+    "shevchenko-v2": "shevchenko",
+    "opera-test": "opera"
+  });
+
+  function normalizeVenueId(value) {
+    const id = text(value);
+    return VENUE_ALIASES[id] || id;
+  }
+
   function text(value) {
     return String(value ?? "").trim();
-  }
-
-  function cityCode(value) {
-    const raw = text(value);
-    if (!raw) return "";
-
-    const normalized = raw
-      .toLocaleLowerCase("uk-UA")
-      .replace(/[’']/g, "")
-      .replace(/[^a-zа-яіїєґ0-9]+/gi, " ")
-      .trim();
-
-    if (normalized === "дніпро" || normalized === "dnipro") return "dnipro";
-    if (
-      normalized === "кривий ріг" ||
-      normalized === "кривой рог" ||
-      normalized === "kryvyi rih"
-    ) return "kryvyi-rih";
-
-    return normalized
-      .replace(/[а-яіїєґ]+/gi, "")
-      .trim()
-      .replace(/\s+/g, "-");
-  }
-
-  async function requestUniversalSeances(venueId) {
-    const response = await fetch(UNIVERSAL_GATEWAY_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SAAS_ANON_KEY,
-        Authorization: `Bearer ${SAAS_ANON_KEY}`
-      },
-      body: JSON.stringify({
-        action: "seances",
-        venue_id: venueId
-      }),
-      cache: "no-store"
-    });
-
-    const data = await readJson(response);
-
-    if (!response.ok || data?.ok === false) {
-      throw gatewayError(
-        data?.error ||
-        data?.message ||
-        `gateway_http_${response.status}`,
-        data,
-        response.status
-      );
-    }
-
-    return data;
-  }
-
-  async function readVenueCatalog() {
-    const response = await fetch(
-      `${VENUE_CATALOG_URL}?_=${Date.now()}`,
-      { cache: "no-store" }
-    );
-
-    const data = await readJson(response);
-
-    if (!response.ok || data?.ok === false) {
-      throw gatewayError(
-        data?.error ||
-        data?.message ||
-        `catalog_http_${response.status}`,
-        data,
-        response.status
-      );
-    }
-
-    return data;
   }
 
   function validUuid(value) {
@@ -234,12 +160,57 @@
     return data;
   }
 
+  async function readVenueCatalogMap() {
+    try {
+      const response = await fetch(
+        `${VENUE_CATALOG_URL}?_=${Date.now()}`,
+        { cache: "no-store" }
+      );
+
+      const data = await readJson(response);
+      if (!response.ok || data?.ok === false) return new Map();
+
+      const rows = Array.isArray(data?.venues) ? data.venues : [];
+      return new Map(
+        rows.map(v => [
+          normalizeVenueId(v?.id || v?.slug),
+          v
+        ]).filter(([id]) => Boolean(id))
+      );
+    } catch (error) {
+      console.warn("[VA Gateway] venue catalog metadata unavailable", error);
+      return new Map();
+    }
+  }
+
+  function cityCode(value) {
+    const raw = text(value).toLocaleLowerCase("uk-UA");
+
+    if (raw === "дніпро" || raw === "dnipro") return "dnipro";
+
+    if (
+      raw === "кривий ріг" ||
+      raw === "кривой рог" ||
+      raw === "kryvyi rih" ||
+      raw === "kryvyi-rih"
+    ) {
+      return "kryvyi-rih";
+    }
+
+    return text(value);
+  }
+
   function normalizeSeance(row, venueMeta = null) {
-    const venueCode =
-      text(row?.gateway_venue_code) ||
-      text(row?.venue_id) ||
-      text(venueMeta?.id) ||
-      text(venueMeta?.slug);
+    const explicitVenue =
+      normalizeVenueId(
+        row?.gateway_venue_code ||
+        row?.venue_id
+      );
+
+    // Backward compatibility only for genuinely old Philharmonic rows
+    // where the deployed adapter returned no venue_id at all.
+    const venueCode = explicitVenue || "filarmoniya";
+    const legacyPhilharmonic = !explicitVenue;
 
     return {
       ...row,
@@ -263,100 +234,61 @@
         text(row?.venue?.name) ||
         text(venueMeta?.name) ||
         text(venueMeta?.title) ||
-        venueCode,
+        (legacyPhilharmonic ? "Дніпровська філармонія" : venueCode),
 
       city_code:
         text(row?.city_code) ||
         text(row?.venue?.city_code) ||
         text(venueMeta?.city_code) ||
         cityCode(row?.venue?.city) ||
-        cityCode(venueMeta?.city)
+        cityCode(venueMeta?.city) ||
+        (legacyPhilharmonic ? "dnipro" : "")
     };
   }
 
   async function listSeances() {
     /*
-      Universal discovery:
-        Venue Catalog
-          -> every active venue_id
-          -> gateway-saas-universal(action=seances, venue_id)
-          -> only Gateway-authorized seances are returned.
+      IMPORTANT:
+      The list MUST come from the same authenticated VA subject adapter
+      as STATE / HOLD / RELEASE.
 
-      State/HOLD/release below stay on the already proven transport.
+      Therefore gateway_seance_access remains the source of truth:
+        browser
+          -> philharmonic-gateway-client (VA server, secret hidden)
+          -> deployed Gateway V4 live-registry
+          -> gateway_operators + gateway_seance_access
+
+      venue-demo-catalog is used ONLY to enrich venue name/city.
+      It never grants a seance to VA.
     */
-    try {
-      const catalog = await readVenueCatalog();
+    const [data, venueMap] = await Promise.all([
+      request(`${CLIENT_URL}?action=seances&_=${Date.now()}`),
+      readVenueCatalogMap()
+    ]);
 
-      const venues =
-        Array.isArray(catalog?.venues)
-          ? catalog.venues.filter(v => v?.is_active !== false)
-          : [];
+    const seances = Array.isArray(data?.seances)
+      ? data.seances
+          .map(row => {
+            const venueId = normalizeVenueId(
+              row?.gateway_venue_code ||
+              row?.venue_id
+            ) || "filarmoniya";
 
-      const results = await Promise.allSettled(
-        venues.map(async venue => {
-          const venueId =
-            text(venue?.id) ||
-            text(venue?.slug);
+            return normalizeSeance(
+              row,
+              venueMap.get(venueId) || null
+            );
+          })
+          .filter(item => item.id && item.venue_id)
+      : [];
 
-          if (!venueId) return [];
-
-          const data = await requestUniversalSeances(venueId);
-
-          const rows =
-            Array.isArray(data?.seances)
-              ? data.seances
-              : [];
-
-          return rows
-            .map(row => normalizeSeance(row, venue))
-            .filter(item => item.id && item.venue_id);
-        })
-      );
-
-      const seances = results.flatMap(result =>
-        result.status === "fulfilled"
-          ? result.value
-          : []
-      );
-
-      return {
-        ok: true,
-        service: "va-universal-gateway-browser-client",
-        mode: "catalog+universal-gateway",
-        seances,
-        count: seances.length,
-        browser_client_version: VERSION
-      };
-    } catch (universalError) {
-      console.warn(
-        "[VA Gateway] universal seance discovery failed; legacy fallback",
-        universalError
-      );
-
-      // Emergency compatibility only: preserve the previously working
-      // Philharmonic adapter if catalog/universal discovery is unavailable.
-      const data = await request(
-        `${CLIENT_URL}?action=seances&_=${Date.now()}`
-      );
-
-      const seances = Array.isArray(data?.seances)
-        ? data.seances
-            .map(row => normalizeSeance(row, {
-              id: text(row?.venue_id) || "filarmoniya",
-              name: text(row?.venue_name) || "Дніпровська філармонія",
-              city_code: text(row?.city_code) || "dnipro"
-            }))
-            .filter(item => item.id && item.venue_id)
-        : [];
-
-      return {
-        ...data,
-        seances,
-        count: seances.length,
-        browser_client_version: VERSION,
-        discovery_fallback: "legacy"
-      };
-    }
+    return {
+      ...data,
+      seances,
+      count: seances.length,
+      browser_client_version: VERSION,
+      discovery_mode: "operator-aware-gateway"
+    };
   }
 
   async function stateRead(seanceId, holdRef = "") {
@@ -469,6 +401,6 @@
   window.VA_GATEWAY = api;
 
   console.info(
-    `[VA Gateway] browser client ${VERSION} loaded; list = Catalog -> Universal Gateway; state/HOLD = proven VA adapter`
+    `[VA Gateway] browser client ${VERSION} loaded; LIST/STATE/HOLD/RELEASE = same operator-aware Gateway route`
   );
 })();
