@@ -32,15 +32,97 @@
   const CLIENT_URL =
     "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/philharmonic-gateway-client";
 
-  const VERSION = "3.1.1-universal-metadata";
-  // Backward compatibility only for the legacy endpoint below.
-  // Universal rows that already carry venue_id are never relabelled.
-  const LEGACY_VENUE_CODE = "filarmoniya";
-  const LEGACY_VENUE_NAME = "Дніпровська філармонія";
-  const LEGACY_CITY_CODE = "dnipro";
+  const VERSION = "3.2-universal-list";
+  // Existing state/hold/release transport stays on the proven adapter.
+  // Only seance discovery is switched to the Universal Gateway path.
+  const SAAS_SUPABASE_URL =
+    "https://fhusjlkneckbvnrdhbil.supabase.co";
+
+  const SAAS_ANON_KEY =
+    "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+  const UNIVERSAL_GATEWAY_URL =
+    `${SAAS_SUPABASE_URL}/functions/v1/gateway-saas-universal`;
+
+  const VENUE_CATALOG_URL =
+    "https://lyvdrqilglqwkmajmbai.supabase.co/functions/v1/venue-demo-catalog";
 
   function text(value) {
     return String(value ?? "").trim();
+  }
+
+  function cityCode(value) {
+    const raw = text(value);
+    if (!raw) return "";
+
+    const normalized = raw
+      .toLocaleLowerCase("uk-UA")
+      .replace(/[’']/g, "")
+      .replace(/[^a-zа-яіїєґ0-9]+/gi, " ")
+      .trim();
+
+    if (normalized === "дніпро" || normalized === "dnipro") return "dnipro";
+    if (
+      normalized === "кривий ріг" ||
+      normalized === "кривой рог" ||
+      normalized === "kryvyi rih"
+    ) return "kryvyi-rih";
+
+    return normalized
+      .replace(/[а-яіїєґ]+/gi, "")
+      .trim()
+      .replace(/\s+/g, "-");
+  }
+
+  async function requestUniversalSeances(venueId) {
+    const response = await fetch(UNIVERSAL_GATEWAY_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SAAS_ANON_KEY,
+        Authorization: `Bearer ${SAAS_ANON_KEY}`
+      },
+      body: JSON.stringify({
+        action: "seances",
+        venue_id: venueId
+      }),
+      cache: "no-store"
+    });
+
+    const data = await readJson(response);
+
+    if (!response.ok || data?.ok === false) {
+      throw gatewayError(
+        data?.error ||
+        data?.message ||
+        `gateway_http_${response.status}`,
+        data,
+        response.status
+      );
+    }
+
+    return data;
+  }
+
+  async function readVenueCatalog() {
+    const response = await fetch(
+      `${VENUE_CATALOG_URL}?_=${Date.now()}`,
+      { cache: "no-store" }
+    );
+
+    const data = await readJson(response);
+
+    if (!response.ok || data?.ok === false) {
+      throw gatewayError(
+        data?.error ||
+        data?.message ||
+        `catalog_http_${response.status}`,
+        data,
+        response.status
+      );
+    }
+
+    return data;
   }
 
   function validUuid(value) {
@@ -152,20 +234,12 @@
     return data;
   }
 
-  function normalizeSeance(row) {
-    const explicitVenueCode =
-      text(row?.gateway_venue_code) ||
-      text(row?.venue_id);
-
-    // The legacy function philharmonic-gateway-client historically returned
-    // Philharmonic rows without venue_id. Preserve only that compatibility.
+  function normalizeSeance(row, venueMeta = null) {
     const venueCode =
-      explicitVenueCode ||
-      LEGACY_VENUE_CODE;
-
-    const legacyPhilharmonicRow =
-      !explicitVenueCode &&
-      venueCode === LEGACY_VENUE_CODE;
+      text(row?.gateway_venue_code) ||
+      text(row?.venue_id) ||
+      text(venueMeta?.id) ||
+      text(venueMeta?.slug);
 
     return {
       ...row,
@@ -184,37 +258,105 @@
       gateway_source: true,
       gateway_venue_code: venueCode,
 
-      // Do not turn Academy or any other explicit venue into Philharmonic.
       venue_name:
         text(row?.venue_name) ||
         text(row?.venue?.name) ||
-        (legacyPhilharmonicRow ? LEGACY_VENUE_NAME : ""),
+        text(venueMeta?.name) ||
+        text(venueMeta?.title) ||
+        venueCode,
 
       city_code:
         text(row?.city_code) ||
         text(row?.venue?.city_code) ||
-        text(row?.venue?.city) ||
-        (legacyPhilharmonicRow ? LEGACY_CITY_CODE : "")
+        text(venueMeta?.city_code) ||
+        cityCode(row?.venue?.city) ||
+        cityCode(venueMeta?.city)
     };
   }
 
   async function listSeances() {
-    const data = await request(
-      `${CLIENT_URL}?action=seances&_=${Date.now()}`
-    );
+    /*
+      Universal discovery:
+        Venue Catalog
+          -> every active venue_id
+          -> gateway-saas-universal(action=seances, venue_id)
+          -> only Gateway-authorized seances are returned.
 
-    const seances = Array.isArray(data?.seances)
-      ? data.seances
-          .map(normalizeSeance)
-          .filter(item => item.id)
-      : [];
+      State/HOLD/release below stay on the already proven transport.
+    */
+    try {
+      const catalog = await readVenueCatalog();
 
-    return {
-      ...data,
-      seances,
-      count: seances.length,
-      browser_client_version: VERSION
-    };
+      const venues =
+        Array.isArray(catalog?.venues)
+          ? catalog.venues.filter(v => v?.is_active !== false)
+          : [];
+
+      const results = await Promise.allSettled(
+        venues.map(async venue => {
+          const venueId =
+            text(venue?.id) ||
+            text(venue?.slug);
+
+          if (!venueId) return [];
+
+          const data = await requestUniversalSeances(venueId);
+
+          const rows =
+            Array.isArray(data?.seances)
+              ? data.seances
+              : [];
+
+          return rows
+            .map(row => normalizeSeance(row, venue))
+            .filter(item => item.id && item.venue_id);
+        })
+      );
+
+      const seances = results.flatMap(result =>
+        result.status === "fulfilled"
+          ? result.value
+          : []
+      );
+
+      return {
+        ok: true,
+        service: "va-universal-gateway-browser-client",
+        mode: "catalog+universal-gateway",
+        seances,
+        count: seances.length,
+        browser_client_version: VERSION
+      };
+    } catch (universalError) {
+      console.warn(
+        "[VA Gateway] universal seance discovery failed; legacy fallback",
+        universalError
+      );
+
+      // Emergency compatibility only: preserve the previously working
+      // Philharmonic adapter if catalog/universal discovery is unavailable.
+      const data = await request(
+        `${CLIENT_URL}?action=seances&_=${Date.now()}`
+      );
+
+      const seances = Array.isArray(data?.seances)
+        ? data.seances
+            .map(row => normalizeSeance(row, {
+              id: text(row?.venue_id) || "filarmoniya",
+              name: text(row?.venue_name) || "Дніпровська філармонія",
+              city_code: text(row?.city_code) || "dnipro"
+            }))
+            .filter(item => item.id && item.venue_id)
+        : [];
+
+      return {
+        ...data,
+        seances,
+        count: seances.length,
+        browser_client_version: VERSION,
+        discovery_fallback: "legacy"
+      };
+    }
   }
 
   async function stateRead(seanceId, holdRef = "") {
@@ -327,6 +469,6 @@
   window.VA_GATEWAY = api;
 
   console.info(
-    `[VA Gateway] browser client ${VERSION} loaded; route = browser -> VA server -> Gateway`
+    `[VA Gateway] browser client ${VERSION} loaded; list = Catalog -> Universal Gateway; state/HOLD = proven VA adapter`
   );
 })();
