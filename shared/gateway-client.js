@@ -1,51 +1,43 @@
 /*
-  VA -> Gateway browser client
-  Version: 3.2-dual-route
+  VA -> Universal Gateway browser client
+  Version: 3.0-browser
 
   Public file. Contains NO Gateway secret.
 
-  Routing rule:
-  - ordinary storefront pages (no source=gateway): keep the legacy catalog route
-    through philharmonic-gateway-client, so the normal VA storefront is not
-    silently changed by the Gateway Showcase work;
-  - Hall / Order / Checkout opened with source=gateway: use the current
-    Universal Gateway route gateway-saas-universal with the explicit venue id.
+  Route:
+    VA storefront / VA Hall
+      -> VA Edge Function: philharmonic-gateway-client
+      -> Philharmonic Gateway
+      -> venue-connector V5
+      -> Philharmonic DB
 
-  This keeps the existing public API used by current VA pages:
-    listSeances()
-    stateRead(seanceId, holdRef)
-    setHold(seanceId, holdRef, seatKeys)
-    releaseHold(seanceId, holdRef)
-    getOrCreateHoldRef(seanceId)
-    existingHoldRef(seanceId)
-    forgetHoldRef(seanceId)
+  Compatible with current VA pages:
+    index.html:
+      VA_GATEWAY.listSeances()
+
+    hall.html:
+      VA_GATEWAY.getOrCreateHoldRef(seanceId)
+      VA_GATEWAY.stateRead(seanceId, holdRef)
+      VA_GATEWAY.setHold(seanceId, holdRef, seatKeys)
+      VA_GATEWAY.releaseHold(seanceId, holdRef)
+
+    checkout.html:
+      VA_GATEWAY.existingHoldRef(seanceId)
+      VA_GATEWAY.stateRead(seanceId, holdRef)
 */
 
 (() => {
   "use strict";
 
-  const LEGACY_CLIENT_URL =
+  const CLIENT_URL =
     "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/philharmonic-gateway-client";
 
-  const UNIVERSAL_CLIENT_URL =
-    "https://fhusjlkneckbvnrdhbil.supabase.co/functions/v1/gateway-saas-universal";
-
-  const SAAS_ANON_KEY =
-    "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-
-  const VERSION = "3.2-dual-route";
-  const DEFAULT_VENUE_CODE = "filarmoniya";
-  const DEFAULT_VENUE_NAME = "Дніпровська філармонія";
-  const DEFAULT_CITY_CODE = "dnipro";
-
-  const PAGE_QS = new URLSearchParams(location.search);
-  const UNIVERSAL_MODE =
-    PAGE_QS.get("source") === "gateway" ||
-    PAGE_QS.get("gateway_transport") === "universal";
-
-  const PAGE_VENUE_CODE =
-    String(PAGE_QS.get("venue") || DEFAULT_VENUE_CODE).trim() ||
-    DEFAULT_VENUE_CODE;
+  const VERSION = "3.1.1-universal-metadata";
+  // Backward compatibility only for the legacy endpoint below.
+  // Universal rows that already carry venue_id are never relabelled.
+  const LEGACY_VENUE_CODE = "filarmoniya";
+  const LEGACY_VENUE_NAME = "Дніпровська філармонія";
+  const LEGACY_CITY_CODE = "dnipro";
 
   function text(value) {
     return String(value ?? "").trim();
@@ -90,6 +82,7 @@
 
   async function readJson(response) {
     const raw = await response.text();
+
     if (!raw) return {};
 
     try {
@@ -133,7 +126,6 @@
       throw gatewayError(
         data?.error ||
         data?.message ||
-        data?.response_code ||
         `gateway_http_${response.status}`,
         data,
         response.status
@@ -141,21 +133,6 @@
     }
 
     return data;
-  }
-
-  async function universalRequest(action, extra = {}) {
-    return request(UNIVERSAL_CLIENT_URL, {
-      method: "POST",
-      headers: {
-        apikey: SAAS_ANON_KEY,
-        Authorization: `Bearer ${SAAS_ANON_KEY}`
-      },
-      body: JSON.stringify({
-        action,
-        venue_id: PAGE_VENUE_CODE,
-        ...extra
-      })
-    });
   }
 
   function requireSucceeded(data, fallbackMessage) {
@@ -176,78 +153,91 @@
   }
 
   function normalizeSeance(row) {
-    const venueCode =
+    const explicitVenueCode =
       text(row?.gateway_venue_code) ||
-      text(row?.venue_id) ||
-      (UNIVERSAL_MODE ? PAGE_VENUE_CODE : DEFAULT_VENUE_CODE);
+      text(row?.venue_id);
+
+    // The legacy function philharmonic-gateway-client historically returned
+    // Philharmonic rows without venue_id. Preserve only that compatibility.
+    const venueCode =
+      explicitVenueCode ||
+      LEGACY_VENUE_CODE;
+
+    const legacyPhilharmonicRow =
+      !explicitVenueCode &&
+      venueCode === LEGACY_VENUE_CODE;
 
     return {
       ...row,
+
       id: text(row?.id),
       show: text(row?.show) || "Подія",
       date: text(row?.date),
       time: text(row?.time),
       status: text(row?.status) || "published",
+
       venue_id: venueCode,
       hall_id: text(row?.hall_id),
       hall: row?.hall ?? null,
+
       active: true,
       gateway_source: true,
       gateway_venue_code: venueCode,
+
+      // Do not turn Academy or any other explicit venue into Philharmonic.
       venue_name:
         text(row?.venue_name) ||
         text(row?.venue?.name) ||
-        (venueCode === DEFAULT_VENUE_CODE ? DEFAULT_VENUE_NAME : venueCode),
+        (legacyPhilharmonicRow ? LEGACY_VENUE_NAME : ""),
+
       city_code:
         text(row?.city_code) ||
-        DEFAULT_CITY_CODE
+        text(row?.venue?.city_code) ||
+        text(row?.venue?.city) ||
+        (legacyPhilharmonicRow ? LEGACY_CITY_CODE : "")
     };
   }
 
   async function listSeances() {
-    const data = UNIVERSAL_MODE
-      ? await universalRequest("seances")
-      : await request(`${LEGACY_CLIENT_URL}?action=seances&_=${Date.now()}`);
+    const data = await request(
+      `${CLIENT_URL}?action=seances&_=${Date.now()}`
+    );
 
     const seances = Array.isArray(data?.seances)
-      ? data.seances.map(normalizeSeance).filter(item => item.id)
+      ? data.seances
+          .map(normalizeSeance)
+          .filter(item => item.id)
       : [];
 
     return {
       ...data,
       seances,
       count: seances.length,
-      browser_client_version: VERSION,
-      browser_gateway_route: UNIVERSAL_MODE ? "universal" : "legacy"
+      browser_client_version: VERSION
     };
   }
 
   async function stateRead(seanceId, holdRef = "") {
     const id = text(seanceId);
-    if (!id) throw new Error("gateway_seance_id_required");
+    if (!id) {
+      throw new Error("gateway_seance_id_required");
+    }
 
     const ref = text(holdRef) || existingHoldRef(id);
+
     if (ref && !validUuid(ref)) {
       throw new Error("gateway_hold_ref_invalid");
     }
 
-    let data;
+    const params = new URLSearchParams({
+      action: "state",
+      seance_id: id,
+      _: String(Date.now())
+    });
 
-    if (UNIVERSAL_MODE) {
-      data = await universalRequest("state", {
-        seance_id: id,
-        hold_ref: ref || null
-      });
-    } else {
-      const params = new URLSearchParams({
-        action: "state",
-        seance_id: id,
-        _: String(Date.now())
-      });
-      if (ref) params.set("hold_ref", ref);
-      data = await request(`${LEGACY_CLIENT_URL}?${params.toString()}`);
-    }
+    if (ref) params.set("hold_ref", ref);
 
+    const data = await request(`${CLIENT_URL}?${params.toString()}`);
     return requireSucceeded(data, "gateway_state_failed");
   }
 
@@ -270,23 +260,15 @@
 
     localStorage.setItem(holdStorageKey(id), ref);
 
-    const payload = {
-      action: "hold",
-      seance_id: id,
-      hold_ref: ref,
-      seat_keys: keys
-    };
-
-    const data = UNIVERSAL_MODE
-      ? await universalRequest("hold", {
-          seance_id: id,
-          hold_ref: ref,
-          seat_keys: keys
-        })
-      : await request(LEGACY_CLIENT_URL, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
+    const data = await request(CLIENT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "hold",
+        seance_id: id,
+        hold_ref: ref,
+        seat_keys: keys
+      })
+    });
 
     return requireSucceeded(data, "gateway_hold_failed");
   }
@@ -303,8 +285,7 @@
         result: "succeeded",
         response_code: "nothing_to_release",
         seance_id: id,
-        browser_client_version: VERSION,
-        browser_gateway_route: UNIVERSAL_MODE ? "universal" : "legacy"
+        browser_client_version: VERSION
       };
     }
 
@@ -312,28 +293,21 @@
       throw new Error("gateway_hold_ref_invalid");
     }
 
-    const data = UNIVERSAL_MODE
-      ? await universalRequest("release", {
-          seance_id: id,
-          hold_ref: ref
-        })
-      : await request(LEGACY_CLIENT_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "release",
-            seance_id: id,
-            hold_ref: ref
-          })
-        });
+    const data = await request(CLIENT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "release",
+        seance_id: id,
+        hold_ref: ref
+      })
+    });
 
     return requireSucceeded(data, "gateway_release_failed");
   }
 
   const api = Object.freeze({
     VERSION,
-    CLIENT_URL: UNIVERSAL_MODE ? UNIVERSAL_CLIENT_URL : LEGACY_CLIENT_URL,
-    MODE: UNIVERSAL_MODE ? "universal" : "legacy",
-    VENUE_CODE: PAGE_VENUE_CODE,
+    CLIENT_URL,
 
     listSeances,
     stateRead,
@@ -353,6 +327,6 @@
   window.VA_GATEWAY = api;
 
   console.info(
-    `[VA Gateway] browser client ${VERSION} loaded; route=${api.MODE}; venue=${PAGE_VENUE_CODE}`
+    `[VA Gateway] browser client ${VERSION} loaded; route = browser -> VA server -> Gateway`
   );
 })();
