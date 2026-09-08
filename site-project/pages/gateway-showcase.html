@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VA Gateway Showcase</title>
+<title>VA Gateway Showcase V1.2</title>
 <style>
 :root{
   --bg:#07131f;
@@ -76,7 +76,7 @@ h1{font-size:34px;line-height:1.1;margin:8px 0 8px}
   </section>
 
   <section id="grid" class="grid hidden"></section>
-  <div class="footer">Gateway Showcase V1.1 • джерело списку — тільки дані, передані Universal Gateway</div>
+  <div class="footer">Gateway Showcase V1.2 • джерело списку — тільки дані, передані Universal Gateway</div>
 </div>
 
 <script>
@@ -176,7 +176,7 @@ h1{font-size:34px;line-height:1.1;margin:8px 0 8px}
           <div class="body">
             <div class="title">${title}</div>
             <div class="meta">${date}${hall ? `<br>${hall}` : ""}</div>
-            <a class="btn" href="${esc(hallUrl(s))}" target="_blank" rel="noopener">Купити квитки ↗</a>
+            <a class="btn" href="${esc(hallUrl(s))}">Відкрити схему</a>
           </div>
         </article>`;
     }).join("");
