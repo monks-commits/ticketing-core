@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="deck">
-<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.6 · SHOWCASE</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
+<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.7 · SHOWCASE CACHEFIX</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
 <section class="instrument"><div class="lamps">
 <div class="lampbox"><div id="lampVenue" class="lamp"></div><div id="venueLampTitle" class="lamp-title">МАЙДАНЧИК</div><div id="valVenue" class="lamp-value">OFF</div></div>
 <div class="lampbox"><div id="lampGateway" class="lamp"></div><div class="lamp-title">GATEWAY</div><div id="valGateway" class="lamp-value">OFF</div></div>
@@ -28,7 +28,7 @@
 <article class="card"><div class="step"><div><h2>Ваш Адмін</h2><div class="hint">Підключаємо/відключаємо VA. Після успішного READ шлюзова вітрина отримує тільки дозволені Gateway сеанси.</div></div><div class="stepno">3</div></div><div class="controls"><button id="vaBtn" class="btn green big" disabled>ПІДКЛЮЧИТИ VA</button><div id="vaStatus" class="statusline">Очікуємо Gateway.</div></div></article>
 <article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">Праворуч працює прямий venue-side HOLD. Продаж і LiqPay проходять штатним ланцюгом VA з відкриттям окремої вкладки.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
 </section>
-<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — живий Venue Public Host: схема автоматично оновлюється і вміє створювати прямий HOLD. Зліва — окрема шлюзова вітрина VA. До підключення вона порожня; після реального READ через Universal Gateway показує тільки дозволені сеанси; після відключення знову очищується. Звичайна афіша VA не використовується.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.6 · SHOWCASE</div></div><div class="panes">
+<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — живий Venue Public Host: схема автоматично оновлюється і вміє створювати прямий HOLD. Зліва — окрема шлюзова вітрина VA. До підключення вона порожня; після реального READ через Universal Gateway показує тільки дозволені сеанси; після відключення знову очищується. Звичайна афіша VA не використовується.</div></div><div id="readyBadge" class="ready-badge">SaaS V2.7 · SHOWCASE CACHEFIX</div></div><div class="panes">
 <section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><div class="pane-tools"><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span><button id="openVaExternalBtn" class="mini-btn">Відкрити VA ↗</button></div></div><div id="gatewayFrameWrap" class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Шлюзова вітрина VA завантажується порожньою. Після підключення VA через Universal Gateway тут з’являться тільки дозволені сеанси.</div><div id="gatewayScaleStage" class="va-desktop-stage"><iframe id="gatewayFrame" class="va-desktop-frame" title="VA SaaS storefront"></iframe></div></div><div class="pane-footer"><button id="continueVaExternalBtn" class="continue-external">ПРОДОВЖИТИ ПОКУПКУ У VA ↗</button></div></section>
 <section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • окремий Venue Public Host</b><div class="pane-tools"><span id="directMeta" class="pane-meta">оберіть сеанс</span><button id="openVenueExternalBtn" class="mini-btn">Відкрити Venue ↗</button></div></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
 </div></section>
@@ -396,7 +396,7 @@ function updateReady() {
     );
 
     $("readyBadge").textContent =
-      "SaaS V2.6 · SHOWCASE";
+      "SaaS V2.7 · SHOWCASE CACHEFIX";
   } else {
     setLamp("lampReady", false);
     $("valReady").textContent = "очікування";
@@ -407,7 +407,7 @@ function updateReady() {
     );
 
     $("readyBadge").textContent =
-      "SaaS V2.6 · SHOWCASE";
+      "SaaS V2.7 · SHOWCASE CACHEFIX";
   }
 }
 
@@ -448,14 +448,19 @@ function openDirect() {
   resetGatewayStage();
 }
 
+const SHOWCASE_BUILD = "20260908-v1";
+
 function storefrontUrl() {
   const u = new URL(VA_STOREFRONT_BASE);
   u.searchParams.set("venue", VENUE_ID);
+  // Cache-buster is deliberate: GitHub Pages/browser may cache a former 404
+  // or an earlier iframe document under the same showcase path.
+  u.searchParams.set("showcase_build", SHOWCASE_BUILD);
   return u.toString();
 }
 
 function lockStorefrontToVenue() {
-  // V2.6 uses a dedicated Gateway Showcase; no native storefront filtering.
+  // V2.7 uses a dedicated Gateway Showcase; no native storefront filtering.
 }
 
 function openVaStorefront(read) {
@@ -772,6 +777,18 @@ $("gatewayFrame").addEventListener(
   "load",
   () => {
     scheduleVaDesktopFit();
+
+    // Before VA is connected this pane must ALWAYS be the dedicated showcase.
+    // If the browser restores an old iframe document (including the Flight Deck
+    // itself or a cached 404), force a fresh showcase URL. Once READ succeeds,
+    // Hall/Order navigation is allowed and is not redirected back.
+    if (!readOk && !frameIsShowcase()) {
+      const wanted = storefrontUrl();
+      if (String($("gatewayFrame").src || "") !== wanted) {
+        $("gatewayFrame").src = wanted;
+      }
+      return;
+    }
 
     if (frameIsShowcase()) {
       try {
