@@ -3929,15 +3929,7 @@ function applyMobileHallScale() {
 
 
 function gatewayStatePayload(result){
-  // Universal Gateway returns the current state as a flat object
-  // (seance / hall / geometry / seats / counts at the top level).
-  // Legacy gateway routes may still wrap the same state in payload.
-  if (result?.seance?.id && result?.geometry) return result;
-  if (result?.payload?.seance?.id) return result.payload;
-  if (result?.transaction?.response_payload?.seance?.id) {
-    return result.transaction.response_payload;
-  }
-  return null;
+  return result?.payload || result?.transaction?.response_payload || null;
 }
 
 function gatewayBuildSeanceConfig(payload){
