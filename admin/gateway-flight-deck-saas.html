@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gateway Flight Deck SaaS V2.6 — Showcase</title>
+<title>Gateway Flight Deck SaaS V2.9 — Dual Hall</title>
 <style>
 :root{--bg:#0b1015;--panel:#111922;--line:#283646;--text:#e8eef5;--muted:#8fa0b3;--green:#3bd177;--amber:#ffbd45;--red:#ff5e64;--blue:#54a6ff;--off:#3a4653}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}button,select{font:inherit}body{padding:18px}.deck{max-width:1680px;margin:0 auto}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px}h1{font-size:28px;margin:0 0 4px}.subtitle{color:var(--muted)}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#17212c;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}.btn:hover{background:#1d2a38}.btn:disabled{opacity:.42;cursor:not-allowed}.btn.green{background:#176b3c;border-color:#249d58}.btn.big{min-height:48px;padding:12px 18px;font-size:16px}.instrument{background:linear-gradient(180deg,#111922,#0e151d);border:1px solid #273545;border-radius:18px;padding:14px;box-shadow:inset 0 0 0 1px #0a0f14;margin-bottom:14px}.lamps{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:10px}.lampbox{border:1px solid #293846;background:#0c1218;border-radius:12px;padding:10px;text-align:center}.lamp{width:22px;height:22px;border-radius:50%;margin:0 auto 7px;background:var(--off);box-shadow:inset 0 0 0 3px #1b252f,0 0 0 1px #465565}.lamp.on{background:var(--green);box-shadow:inset 0 0 0 3px #1d4a2d,0 0 14px rgba(59,209,119,.72)}.lamp.warn{background:var(--amber);box-shadow:inset 0 0 0 3px #5c4319,0 0 14px rgba(255,189,69,.6)}.lamp-title{font-size:12px;letter-spacing:.07em;font-weight:850}.lamp-value{color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pathbar{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin-top:12px;border-top:1px solid #23303c;padding-top:12px}.node{border:1px solid var(--line);border-radius:11px;background:#121b24;padding:9px 11px;text-align:center}.node strong{display:block}.node span{font-size:12px;color:var(--muted)}.arrow{color:var(--blue);font-weight:900}.preflight{display:grid;grid-template-columns:1.25fr .8fr .8fr .9fr;gap:12px;margin-bottom:14px}.card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:14px}.step{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.stepno{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#263544;color:#c9d7e6;font-weight:900}.card h2{font-size:17px;margin:0}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}.controls{margin-top:12px;display:grid;gap:8px}.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field select{width:100%;min-height:42px;border:1px solid #334657;border-radius:9px;background:#0e161e;color:var(--text);padding:8px 10px}.statusline{min-height:18px;color:var(--muted);font-size:12px;line-height:1.4}.statusline.ok{color:var(--green)}.statusline.warn{color:var(--amber)}.statusline.bad{color:var(--red)}.workspace{border:1px solid #314257;background:#0d141c;border-radius:18px;overflow:hidden}.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #293846;background:#111a24}.workspace-head h2{margin:0;font-size:20px}.ready-badge{border:1px solid #3b4b5b;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;color:var(--muted)}.panes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}.pane{border:1px solid #273747;border-radius:13px;background:#111922;overflow:hidden;min-width:0}.pane-head{padding:10px 12px;border-bottom:1px solid #273747;display:flex;justify-content:space-between;align-items:center;gap:8px}.pane-head b{font-size:15px}.pane-meta{font-size:11px;color:var(--muted);text-align:right}.pane-tools{display:flex;align-items:center;gap:7px;min-width:0}.mini-btn{border:1px solid #3b4b5b;background:#17212c;color:#dfe9f3;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}.mini-btn:hover{background:#213142}.pane-footer{display:flex;justify-content:flex-end;gap:8px;padding:9px 12px;border-top:1px solid var(--line);background:#101923}.pane-footer .continue-external{border:1px solid #2d8559;background:#176d45;color:#fff;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:900;cursor:pointer}.pane-footer .continue-external:hover{background:#1d8052}.frame-wrap{position:relative;height:clamp(720px,78vh,980px);background:#0a0f14;overscroll-behavior:contain;overflow:auto}.frame-wrap iframe{display:block;width:100%;height:100%;border:0;background:#fff}.va-desktop-stage{position:relative;transform-origin:0 0;min-width:1px;min-height:1px;background:#fff}#gatewayFrame.va-desktop-frame{position:absolute;left:0;top:0;width:1440px;height:1600px;max-width:none;max-height:none;transform-origin:0 0;border:0;background:#fff}.frame-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:var(--muted);background:#0d141c}.frame-placeholder.hidden{display:none}.notice{margin-top:14px;border:1px solid #244f35;background:#102219;color:#9ee7b9;border-radius:14px;padding:13px 15px;font-size:12px;line-height:1.55}
 @media(max-width:1250px){.lamps{grid-template-columns:repeat(4,1fr)}.preflight{grid-template-columns:repeat(2,1fr)}.panes{grid-template-columns:1fr}.frame-wrap{height:78vh}}@media(max-width:700px){body{padding:8px}.lamps{grid-template-columns:repeat(2,1fr)}.preflight{grid-template-columns:1fr}.pathbar{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}.frame-wrap{height:70vh}.top-actions{width:100%}.top-actions .btn{flex:1}}
 
-/* V2.8: the left pane is a permanent showcase, never a Hall container. */
+/* V2.9: left pane starts as Showcase, then may navigate to the real VA Hall in the SAME iframe. */
 .workspace-head{position:sticky;top:0;z-index:40}
 #gatewayFrameWrap{overflow:hidden}
 #gatewayScaleStage{position:relative;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;background:#07131f}
@@ -23,7 +23,7 @@
 </head>
 <body>
 <div class="deck">
-<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.8 · STABLE SHOWCASE</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
+<header class="top"><div><h1>Gateway Flight Deck <span style="font-size:13px;color:#8fa0b3">SaaS V2.9 · DUAL HALL</span></h1><div id="subtitle" class="subtitle">Завантаження майданчика…</div></div><div class="top-actions"><button class="btn" onclick="location.href='./gateway-saas-venues.html'">← Майданчики</button><button id="refreshBtn" class="btn">Оновити</button></div></header>
 <section class="instrument"><div class="lamps">
 <div class="lampbox"><div id="lampVenue" class="lamp"></div><div id="venueLampTitle" class="lamp-title">МАЙДАНЧИК</div><div id="valVenue" class="lamp-value">OFF</div></div>
 <div class="lampbox"><div id="lampGateway" class="lamp"></div><div class="lamp-title">GATEWAY</div><div id="valGateway" class="lamp-value">OFF</div></div>
@@ -37,13 +37,13 @@
 <article class="card"><div class="step"><div><h2 id="venueStepTitle">Майданчик</h2><div class="hint">Вибір уже обмежений одним майданчиком. Інші клієнти тут не відображаються.</div></div><div class="stepno">1</div></div><div class="controls"><div class="field"><label for="hallSelect">Зал</label><select id="hallSelect"><option>Завантаження…</option></select></div><div class="field"><label for="seanceSelect">Сеанс</label><select id="seanceSelect"><option>Оберіть сеанс…</option></select></div><div id="venueStatus" class="statusline">Завантаження…</div></div></article>
 <article class="card"><div class="step"><div><h2>Gateway</h2><div class="hint">Вмикаємо окремий READ-only backend і перевіряємо, що він бачить тільки цей майданчик.</div></div><div class="stepno">2</div></div><div class="controls"><button id="gatewayBtn" class="btn green big" disabled>GATEWAY ON</button><div id="gatewayStatus" class="statusline">Спочатку оберіть сеанс.</div></div></article>
 <article class="card"><div class="step"><div><h2>Ваш Адмін</h2><div class="hint">Підключаємо/відключаємо VA. Після успішного READ шлюзова вітрина отримує тільки дозволені Gateway сеанси.</div></div><div class="stepno">3</div></div><div class="controls"><button id="vaBtn" class="btn green big" disabled>ПІДКЛЮЧИТИ VA</button><div id="vaStatus" class="statusline">Очікуємо Gateway.</div></div></article>
-<article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">Праворуч працює прямий venue-side HOLD. Продаж і LiqPay проходять штатним ланцюгом VA з відкриттям окремої вкладки.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
+<article class="card"><div class="step"><div><h2>Готовність</h2><div class="hint">Праворуч працює прямий Venue Hall. Ліворуч після підключення VA відкривається той самий сеанс через Gateway — обидві схеми залишаються на одному екрані.</div></div><div class="stepno">4</div></div><div class="controls"><div id="readyStatus" class="statusline">Оберіть сеанс.</div></div></article>
 </section>
-<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — живий Venue Public Host. Зліва — постійна шлюзова вітрина VA: вона більше не перетворюється на Hall. Купівля відкривається окремо.</div></div><div class="showcase-actions"><button id="stickyGatewayBtn" class="showcase-state-btn" disabled>GATEWAY OFF</button><button id="stickyVaBtn" class="showcase-state-btn" disabled>VA OFF</button><div id="readyBadge" class="ready-badge">SaaS V2.8 · STABLE SHOWCASE</div></div></div><div class="panes">
-<section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><div class="pane-tools"><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span><button id="openVaExternalBtn" class="mini-btn">Відкрити VA ↗</button></div></div><div id="gatewayFrameWrap" class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Шлюзова вітрина VA завантажується порожньою. Після підключення VA через Universal Gateway тут з’являться тільки дозволені сеанси.</div><div id="gatewayScaleStage" class="va-desktop-stage"><iframe id="gatewayFrame" class="va-desktop-frame" title="VA SaaS storefront"></iframe></div></div><div class="pane-footer"><button id="continueVaExternalBtn" class="continue-external">ВІДКРИТИ ВИБРАНИЙ СЕАНС У VA ↗</button></div></section>
-<section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • окремий Venue Public Host</b><div class="pane-tools"><span id="directMeta" class="pane-meta">оберіть сеанс</span><button id="openVenueExternalBtn" class="mini-btn">Відкрити Venue ↗</button></div></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
+<section class="workspace"><div class="workspace-head"><div><h2>Ізольований демонстраційний контур</h2><div class="hint">Справа — живий Venue Public Host. Зліва — окрема шлюзова вітрина VA: спочатку порожня, після підключення показує сеанс, а далі в цьому ж вікні переходить у VA Hall. Так на одному екрані видно дві схеми одного сеансу.</div></div><div class="showcase-actions"><button id="stickyGatewayBtn" class="showcase-state-btn" disabled>GATEWAY OFF</button><button id="stickyVaBtn" class="showcase-state-btn" disabled>VA OFF</button><div id="readyBadge" class="ready-badge">SaaS V2.9 · DUAL HALL</div></div></div><div class="panes">
+<section class="pane"><div class="pane-head"><b>Ваш Адмін • через Gateway</b><div class="pane-tools"><span id="gatewayPaneMeta" class="pane-meta">ще не підключено</span><button id="openVaExternalBtn" class="mini-btn">← До вітрини</button></div></div><div id="gatewayFrameWrap" class="frame-wrap"><div id="gatewayPlaceholder" class="frame-placeholder">Шлюзова вітрина VA завантажується порожньою. Після підключення VA через Universal Gateway тут з’являться тільки дозволені сеанси.</div><div id="gatewayScaleStage" class="va-desktop-stage"><iframe id="gatewayFrame" class="va-desktop-frame" title="VA SaaS storefront"></iframe></div></div><div class="pane-footer"><button id="continueVaExternalBtn" class="continue-external">ПОКАЗАТИ СХЕМУ VA</button></div></section>
+<section class="pane"><div class="pane-head"><b id="directTitle">Майданчик • окремий Venue Public Host</b><div class="pane-tools"><span id="directMeta" class="pane-meta">оберіть сеанс</span><button id="openVenueExternalBtn" class="mini-btn">Оновити Venue</button></div></div><div class="frame-wrap"><div id="directPlaceholder" class="frame-placeholder">Оберіть зал і сеанс.</div><iframe id="directFrame" title="Прямий контур"></iframe></div></section>
 </div></section>
-<div class="notice">V2.6: звичайна афіша VA відокремлена від демонстрації. Шлюзова вітрина стартує порожньою, наповнюється тільки після реального підключення VA через Universal Gateway і очищується при відключенні. Hall/Order/Checkout залишаються штатними.</div>
+<div class="notice">V2.9: звичайна афіша VA відокремлена від демонстрації. Шлюзова вітрина стартує порожньою, після реального READ показує дозволені сеанси, а вибраний сеанс відкриває реальний VA Hall у тому ж лівому iframe. Справа паралельно залишається Venue Hall того самого seance_id.</div>
 </div>
 <script>
 (() => {
@@ -425,7 +425,7 @@ function updateReady() {
     );
 
     $("readyBadge").textContent =
-      "SaaS V2.8 · STABLE SHOWCASE";
+      "SaaS V2.9 · DUAL HALL";
   } else {
     setLamp("lampReady", false);
     $("valReady").textContent = "очікування";
@@ -436,7 +436,7 @@ function updateReady() {
     );
 
     $("readyBadge").textContent =
-      "SaaS V2.8 · STABLE SHOWCASE";
+      "SaaS V2.9 · DUAL HALL";
   }
 }
 
@@ -717,18 +717,27 @@ function directVenueUrl() {
 }
 
 $("openVaExternalBtn").addEventListener("click", () => {
-  window.open(storefrontUrl(), "_blank", "noopener");
+  ensureShowcaseLoaded(true);
+  try {
+    $("gatewayFrame").contentWindow.postMessage(
+      showcaseState(vaConnected && readOk),
+      location.origin
+    );
+  } catch (_) {}
 });
 
 $("openVenueExternalBtn").addEventListener("click", () => {
-  const url = currentFrameUrl("directFrame", directVenueUrl());
-  if (url) window.open(url, "_blank", "noopener");
+  const url = directVenueUrl();
+  if (url) $("directFrame").src = url + (url.includes("?") ? "&" : "?") + "_=" + Date.now();
 });
 
 $("continueVaExternalBtn").addEventListener("click", () => {
   if (!vaConnected || !readOk) return;
   const url = selectedVaHallUrl();
-  if (url) window.open(url, "_blank", "noopener");
+  if (!url) return;
+  $("gatewayFrame").src = url;
+  $("gatewayPlaceholder").classList.add("hidden");
+  $("gatewayPaneMeta").textContent = "VA Hall • через Universal Gateway";
 });
 
 $("stickyGatewayBtn")?.addEventListener("click", gatewayOn);
@@ -768,7 +777,7 @@ window.addEventListener("message", (event) => {
 const VA_DESKTOP_WIDTH = 1440;
 let vaFrameResizeObserver = null;
 
-function fitVaDesktopFrame(){ /* V2.8 showcase uses normal 100% iframe */ }
+function fitVaDesktopFrame(){ /* V2.9 keeps both embedded panes at 100% width */ }
 
 function observeVaDesktopFrame(){ /* no-op */ }
 
@@ -779,20 +788,42 @@ window.addEventListener("resize", () => fitVaDesktopFrame());
 $("gatewayFrame").addEventListener(
   "load",
   () => {
-    // V2.8 rule: this iframe is presentation-only and must never become Hall/Order.
-    if (!frameIsShowcase()) {
-      ensureShowcaseLoaded(true);
+    let href = "";
+    try { href = $("gatewayFrame").contentWindow.location.href || ""; } catch (_) { href = $("gatewayFrame").src || ""; }
+
+    if (href.includes("gateway-showcase.html")) {
+      try {
+        $("gatewayFrame").contentWindow.postMessage(
+          showcaseState(vaConnected && readOk),
+          location.origin
+        );
+      } catch (_) {}
+      $("gatewayPaneMeta").textContent = vaConnected && readOk
+        ? `шлюзова вітрина • ${remoteSeances.length} сеанс(ів)`
+        : "шлюзова вітрина • порожньо";
       return;
     }
-    try {
-      $("gatewayFrame").contentWindow.postMessage(
-        showcaseState(vaConnected && readOk),
-        location.origin
-      );
-    } catch (_) {}
-    $("gatewayPaneMeta").textContent = vaConnected && readOk
-      ? `шлюзова вітрина • ${remoteSeances.length} сеанс(ів)`
-      : "шлюзова вітрина • порожньо";
+
+    // The real VA chain is allowed to stay inside the left iframe.
+    if (href.includes("hall.html")) {
+      $("gatewayPaneMeta").textContent = "VA Hall • через Universal Gateway";
+      return;
+    }
+    if (href.includes("order.html")) {
+      $("gatewayPaneMeta").textContent = "VA Order • через Universal Gateway";
+      return;
+    }
+    if (href.includes("checkout.html")) {
+      $("gatewayPaneMeta").textContent = "VA Checkout • через Universal Gateway";
+      return;
+    }
+    if (href.includes("thanks.html")) {
+      $("gatewayPaneMeta").textContent = "VA Thanks • через Universal Gateway";
+      return;
+    }
+
+    // Unknown navigation is not part of the demo contour.
+    if (!vaConnected || !readOk) ensureShowcaseLoaded(true);
   }
 );
 
