@@ -76,7 +76,7 @@ h1{font-size:34px;line-height:1.1;margin:8px 0 8px}
   </section>
 
   <section id="grid" class="grid hidden"></section>
-  <div class="footer">Gateway Showcase V1 • джерело списку — тільки дані, передані Universal Gateway</div>
+  <div class="footer">Gateway Showcase V1.1 • джерело списку — тільки дані, передані Universal Gateway</div>
 </div>
 
 <script>
@@ -85,7 +85,8 @@ h1{font-size:34px;line-height:1.1;margin:8px 0 8px}
 
   const qs = new URLSearchParams(location.search);
   const venueId = String(qs.get("venue") || "").trim();
-  const storageKey = `va-gateway-showcase:${venueId || "default"}`;
+  const demoSession = String(qs.get("demo_session") || "standalone").trim();
+  const storageKey = `va-gateway-showcase:${venueId || "default"}:${demoSession}`;
 
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
@@ -122,6 +123,9 @@ h1{font-size:34px;line-height:1.1;margin:8px 0 8px}
   }
 
   function readState(){
+    // A showcase opened by itself always starts empty. Only a Flight Deck
+    // session is allowed to restore a connected state.
+    if (demoSession === "standalone") return normalizeState(null);
     try {
       const raw = JSON.parse(localStorage.getItem(storageKey) || "null");
       return normalizeState(raw);
@@ -172,7 +176,7 @@ h1{font-size:34px;line-height:1.1;margin:8px 0 8px}
           <div class="body">
             <div class="title">${title}</div>
             <div class="meta">${date}${hall ? `<br>${hall}` : ""}</div>
-            <a class="btn" href="${esc(hallUrl(s))}">Купити квитки</a>
+            <a class="btn" href="${esc(hallUrl(s))}" target="_blank" rel="noopener">Купити квитки ↗</a>
           </div>
         </article>`;
     }).join("");
