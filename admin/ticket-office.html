@@ -419,7 +419,18 @@
             <div>
               <div class="field">
                 <label for="toggleSecret">TOGGLE_SECRET</label>
-                <input id="toggleSecret" type="password" placeholder="Secret для керування онлайн-продажами">
+                <input id="toggleSecret"
+                       type="text"
+                       name="va-toggle-control-key"
+                       autocomplete="off"
+                       autocapitalize="none"
+                       spellcheck="false"
+                       data-lpignore="true"
+                       data-1p-ignore="true"
+                       readonly
+                       onfocus="this.removeAttribute('readonly')"
+                       style="-webkit-text-security:disc;"
+                       placeholder="Secret для керування онлайн-продажами">
               </div>
 
               <div class="buttons">
@@ -1113,11 +1124,22 @@ function setText(id, value){
   if(el) el.innerText = value ?? 0;
 }
     
-    window.addEventListener("load", async () => {
+    function restoreToggleSecretFromStorage(){
+      if(!toggleSecret) return;
+      if(document.activeElement === toggleSecret) return;
       const saved = localStorage.getItem(TOGGLE_LS_KEY) || "";
-      if(saved){
+      if(saved && toggleSecret.value !== saved){
         toggleSecret.value = saved;
       }
+    }
+
+    window.addEventListener("load", async () => {
+      // Chrome/менеджери паролів можуть підмінити поле вже після DOM load.
+      // Відновлюємо саме VA TOGGLE_SECRET із localStorage кілька разів,
+      // але не чіпаємо поле, якщо користувач у цей момент редагує його вручну.
+      restoreToggleSecretFromStorage();
+      [200, 700, 1500].forEach(ms => setTimeout(restoreToggleSecretFromStorage, ms));
+
       VASeanceOps.init({
         supabaseUrl: SUPABASE_URL,
         supabaseKey: SUPABASE_ANON_KEY,
