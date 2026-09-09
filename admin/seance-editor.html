@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Редактор сеансу — VA Admin</title>
+<!-- VA Seance Editor V1.5 UNIVERSAL ZOOM/FULLSCREEN — exact-source patch 2026-09-09 -->
 <meta name="viewport" content="width=device-width, initial-scale=1">    
  
 <style>
@@ -368,6 +369,58 @@ textarea{
   flex-direction:column;
   gap:10px;
   align-items:center;
+}
+
+/* VA Preview Viewer V1.5 — universal zoom/fullscreen */
+.preview-toolbar{
+  position:sticky;
+  top:0;
+  z-index:60;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:8px;
+  margin:-4px -4px 12px;
+  padding:8px;
+  border-radius:12px;
+  background:rgba(6,26,58,.90);
+  backdrop-filter:blur(8px);
+}
+.preview-tool-btn{
+  min-width:42px;
+  height:38px;
+  padding:0 11px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:10px;
+  background:#223552;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
+.preview-tool-btn:hover{background:#2c456a}
+.preview-tool-btn.zoom-value{min-width:72px}
+.preview-tool-btn.fullscreen-btn{min-width:150px}
+#previewZoomSpace{
+  position:relative;
+  min-width:100%;
+  min-height:1px;
+}
+#previewWrap:fullscreen{
+  width:100vw;
+  height:100vh;
+  margin:0;
+  padding:12px;
+  border:0;
+  border-radius:0;
+  background:#061a3a;
+}
+#previewWrap:fullscreen .preview-toolbar{
+  margin:0 0 10px;
+  border-radius:10px;
+}
+@media(max-width:720px){
+  .preview-toolbar{justify-content:center;flex-wrap:wrap}
+  .preview-tool-btn.fullscreen-btn{min-width:120px}
 }
 
   
@@ -1141,11 +1194,119 @@ function ensurePreviewUi() {
     <div id="previewInfo" class="note">Схема ще не завантажена</div>
 
     <div id="previewWrap" class="preview-full-wrap">
-      <div id="previewStage"></div>
+      <div class="preview-toolbar" aria-label="Керування схемою">
+        <button id="previewZoomOut" class="preview-tool-btn" type="button" title="Зменшити">−</button>
+        <button id="previewZoomReset" class="preview-tool-btn zoom-value" type="button" title="Повернути 100%">100%</button>
+        <button id="previewZoomIn" class="preview-tool-btn" type="button" title="Збільшити">+</button>
+        <button id="previewFullscreenBtn" class="preview-tool-btn fullscreen-btn" type="button">⛶ На весь екран</button>
+      </div>
+      <div id="previewZoomSpace">
+        <div id="previewStage"></div>
+      </div>
     </div>
   `;
 
   dataCard.insertAdjacentElement("afterend", previewSection);
+  bindPreviewControls();
+}
+
+let PREVIEW_ZOOM = 1;
+const PREVIEW_ZOOM_MIN = 0.50;
+const PREVIEW_ZOOM_MAX = 3.00;
+const PREVIEW_ZOOM_STEP = 0.25;
+let PREVIEW_CONTROLS_BOUND = false;
+
+function clampPreviewZoom(value){
+  return Math.max(PREVIEW_ZOOM_MIN, Math.min(PREVIEW_ZOOM_MAX, value));
+}
+
+function applyPreviewZoom(){
+  const stage = document.getElementById("previewStage");
+  const space = document.getElementById("previewZoomSpace");
+  const wrap = document.getElementById("previewWrap");
+  const label = document.getElementById("previewZoomReset");
+  if (!stage || !space || !wrap) return;
+
+  // Measure the untransformed rendered preview.
+  stage.style.position = "absolute";
+  stage.style.top = "0";
+  stage.style.left = "50%";
+  stage.style.transformOrigin = "top center";
+  stage.style.transform = "translateX(-50%)";
+
+  const naturalW = Math.max(1, stage.scrollWidth, stage.offsetWidth);
+  const naturalH = Math.max(1, stage.scrollHeight, stage.offsetHeight);
+  const scaledW = Math.ceil(naturalW * PREVIEW_ZOOM);
+  const scaledH = Math.ceil(naturalH * PREVIEW_ZOOM);
+  const viewportW = Math.max(1, wrap.clientWidth - 36);
+
+  space.style.width = `${Math.max(viewportW, scaledW)}px`;
+  space.style.height = `${scaledH}px`;
+  stage.style.transform = `translateX(-50%) scale(${PREVIEW_ZOOM})`;
+
+  if (label) label.textContent = `${Math.round(PREVIEW_ZOOM * 100)}%`;
+}
+
+function setPreviewZoom(value){
+  PREVIEW_ZOOM = clampPreviewZoom(value);
+  requestAnimationFrame(applyPreviewZoom);
+}
+
+function changePreviewZoom(delta){
+  setPreviewZoom(PREVIEW_ZOOM + delta);
+}
+
+async function togglePreviewFullscreen(){
+  const wrap = document.getElementById("previewWrap");
+  if (!wrap) return;
+
+  try {
+    if (document.fullscreenElement === wrap) {
+      await document.exitFullscreen();
+    } else {
+      await wrap.requestFullscreen();
+    }
+  } catch (e) {
+    console.warn("Preview fullscreen unavailable", e);
+  }
+}
+
+function bindPreviewControls(){
+  if (PREVIEW_CONTROLS_BOUND) return;
+
+  const wrap = document.getElementById("previewWrap");
+  const zoomOut = document.getElementById("previewZoomOut");
+  const zoomReset = document.getElementById("previewZoomReset");
+  const zoomIn = document.getElementById("previewZoomIn");
+  const fullscreenBtn = document.getElementById("previewFullscreenBtn");
+  if (!wrap || !zoomOut || !zoomReset || !zoomIn || !fullscreenBtn) return;
+
+  PREVIEW_CONTROLS_BOUND = true;
+
+  zoomOut.addEventListener("click", () => changePreviewZoom(-PREVIEW_ZOOM_STEP));
+  zoomReset.addEventListener("click", () => setPreviewZoom(1));
+  zoomIn.addEventListener("click", () => changePreviewZoom(PREVIEW_ZOOM_STEP));
+  fullscreenBtn.addEventListener("click", togglePreviewFullscreen);
+
+  wrap.addEventListener("wheel", (event) => {
+    if (!event.ctrlKey) return;
+    event.preventDefault();
+    changePreviewZoom(event.deltaY < 0 ? PREVIEW_ZOOM_STEP : -PREVIEW_ZOOM_STEP);
+  }, { passive:false });
+
+  document.addEventListener("fullscreenchange", async () => {
+    const active = document.fullscreenElement === wrap;
+    fullscreenBtn.textContent = active ? "⛶ Вийти" : "⛶ На весь екран";
+
+    // Recalculate base FIT for the new viewport, then re-apply user zoom.
+    if (CURRENT_PREVIEW_HALL) {
+      await renderPreview();
+    } else {
+      requestAnimationFrame(applyPreviewZoom);
+    }
+  });
+
+  window.addEventListener("resize", () => requestAnimationFrame(applyPreviewZoom));
 }
 
 function normalizeVASeatKey(value){
@@ -2096,12 +2257,14 @@ async function renderPreview(){
     if (Array.isArray(hall.seats)) {
       renderBuilderPreview(hall, previewStage, previewWrap);
       previewInfo.textContent = `Builder-схема: ${hallName} • ${hall.seats.length} місць`;
+      requestAnimationFrame(applyPreviewZoom);
       return;
     }
 
     if (Array.isArray(hall.sections)) {
       renderSectionsPreview(hall, previewStage);
       previewInfo.textContent = `Схема: ${hallName} • Seance: ${seanceId.value.trim() || "новий сеанс"}`;
+      requestAnimationFrame(applyPreviewZoom);
       return;
     }
 
@@ -2117,9 +2280,13 @@ function renderBuilderPreview(hall, previewStage, previewWrap){
 
   const w = Number(hall.width || 1600);
   const h = Number(hall.height || 1000);
+  const isFullscreen = document.fullscreenElement === previewWrap;
   const maxW = Math.max(420, Number(previewWrap?.clientWidth || 900) - 46);
-  const maxH = 560;
-  const scale = Math.min(0.55, maxW / w, maxH / h);
+  const maxH = isFullscreen
+    ? Math.max(560, window.innerHeight - 130)
+    : 560;
+  const scaleCap = isFullscreen ? 1.25 : 0.55;
+  const scale = Math.min(scaleCap, maxW / w, maxH / h);
 
   const box = document.createElement("div");
   box.style.position = "relative";
