@@ -2145,6 +2145,7 @@ function clearPriceHighlight(){
   if (cfg && cfg.color) {
     btn.style.background = cfg.color;
     btn.style.color = "#fff";
+    btn.dataset.priceColor = String(cfg.color);
   }
 
   if (takenSeats.has(key)) {
@@ -3278,20 +3279,29 @@ function renderPriceLegendMobile() {
   const desktop = document.getElementById("priceLegendDesktop");
   const mobile = document.getElementById("priceLegendMobile");
 
+  // VA LEGEND V2:
+  // строим легенду не из "сырых" pricing/seat_overrides,
+  // а из ФАКТИЧЕСКОГО конечного состояния уже отрисованных мест.
+  // Поэтому полностью перекрытые старые цены (например 1/2 грн)
+  // автоматически исчезают из легенды.
   const byPrice = new Map();
 
-  const addCfg = (cfg) => {
-    if (!cfg || cfg.price == null || !cfg.color) return;
+  document.querySelectorAll(".seat[data-price]").forEach(btn => {
+    if (btn.classList.contains("seat--no-sale")) return;
 
-    const price = Number(cfg.price);
-    const color = String(cfg.color).trim();
+    const price = Number(btn.dataset.price);
+    if (!Number.isFinite(price)) return;
 
-    if (!Number.isFinite(price) || !color) return;
+    const color = String(
+      btn.dataset.priceColor ||
+      btn.style.backgroundColor ||
+      btn.style.background ||
+      ""
+    ).trim();
+
+    if (!color) return;
     if (!byPrice.has(price)) byPrice.set(price, color);
-  };
-
-  Object.values(SEANCE_CONFIG?.pricing || {}).forEach(addCfg);
-  Object.values(SEANCE_CONFIG?.seat_overrides || {}).forEach(addCfg);
+  });
 
   const items = [...byPrice.entries()].sort((a, b) => a[0] - b[0]);
 
@@ -3837,37 +3847,46 @@ function renderPriceLegendMobile() {
   const desktop = document.getElementById("priceLegendDesktop");
   const mobile = document.getElementById("priceLegendMobile");
 
+  // VA LEGEND V2:
+  // строим легенду не из "сырых" pricing/seat_overrides,
+  // а из ФАКТИЧЕСКОГО конечного состояния уже отрисованных мест.
+  // Поэтому полностью перекрытые старые цены (например 1/2 грн)
+  // автоматически исчезают из легенды.
   const byPrice = new Map();
 
-  const addCfg = (cfg) => {
-    if (!cfg || cfg.price == null || !cfg.color) return;
+  document.querySelectorAll(".seat[data-price]").forEach(btn => {
+    if (btn.classList.contains("seat--no-sale")) return;
 
-    const price = Number(cfg.price);
-    const color = String(cfg.color).trim();
+    const price = Number(btn.dataset.price);
+    if (!Number.isFinite(price)) return;
 
-    if (!Number.isFinite(price) || !color) return;
+    const color = String(
+      btn.dataset.priceColor ||
+      btn.style.backgroundColor ||
+      btn.style.background ||
+      ""
+    ).trim();
+
+    if (!color) return;
     if (!byPrice.has(price)) byPrice.set(price, color);
-  };
-
-  Object.values(SEANCE_CONFIG?.pricing || {}).forEach(addCfg);
-  Object.values(SEANCE_CONFIG?.seat_overrides || {}).forEach(addCfg);
+  });
 
   const items = [...byPrice.entries()].sort((a, b) => a[0] - b[0]);
 
   const desktopHtml = items.length
-  ? items.map(([price, color]) => `
-      <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
-        <span style="width:14px;height:14px;border-radius:50%;background:${color};display:inline-block;flex:0 0 14px;"></span>
-        <span>${price} грн</span>
-      </div>
-    `).join("")
-  : `<div class="price-legend-empty">Ціни не задані</div>`;
+    ? items.map(([price, color]) => `
+        <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+          <span style="width:14px;height:14px;border-radius:50%;background:${color};display:inline-block;flex:0 0 14px;"></span>
+          <span>${price} грн</span>
+        </div>
+      `).join("")
+    : `<div class="price-legend-empty">Ціни не задані</div>`;
 
   const mobileHtml = items.length
     ? `
       <div class="price-legend-mobile__stack">
         ${items.map(([price, color]) => `
-          <div class="price-legend-mobile__item" style="background:${color}"> 
+          <div class="price-legend-mobile__item" style="background:${color}">
             ${price}
           </div>
         `).join("")}
