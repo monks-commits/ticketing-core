@@ -2583,10 +2583,77 @@ function createNewSeance(){
   );
 }
 
+function pricingZoneCodeForCurrentHall(uiZone, rowFrom, rowTo){
+  const z = String(uiZone || "").trim().toUpperCase();
+  const from = Number(rowFrom);
+  const to = Number(rowTo);
+  const hallName = normalizeHallNameForPreview(
+    getHallNameByVenue(venueSelect.value) || venueSelect.value
+  );
+
+  /*
+    Opera geometry uses human zone "Амфітеатр", but its canonical seat keys
+    for rows 14–22 are P14-M…, P15-M… etc.  The editor UI keeps the
+    human-facing "Амфітеатр" option (A), while pricing must be stored against
+    the real seat-key prefix P so Hall/Cash/preview all resolve the same rule.
+
+    IMPORTANT: this conversion is Opera-only. Other halls (e.g. Shevchenko)
+    may legitimately use A-prefixed amphitheatre seat keys.
+  */
+  if (hallName === "opera-test" && z === "A" && from >= 14 && to <= 22) {
+    return "P";
+  }
+
+  return z;
+}
+
+function normalizeLoadedPricingForCurrentHall(pricing){
+  const source = pricing && typeof pricing === "object" ? pricing : {};
+  const hallName = normalizeHallNameForPreview(
+    getHallNameByVenue(venueSelect.value) || venueSelect.value
+  );
+
+  if (hallName !== "opera-test") return source;
+
+  const result = { ...source };
+
+  Object.entries(source).forEach(([key, rule]) => {
+    const m = String(key).match(/^A(\d+)-(\d+)$/i);
+    if (!m) return;
+
+    const from = Number(m[1]);
+    const to = Number(m[2]);
+    if (from < 14 || to > 22) return;
+
+    const canonicalKey = `P${from}-${to}`;
+    if (!(canonicalKey in result)) {
+      result[canonicalKey] = rule;
+    }
+    delete result[key];
+  });
+
+  return result;
+}
+
+function pricingRuleDisplayLabel(key){
+  const hallName = normalizeHallNameForPreview(
+    getHallNameByVenue(venueSelect.value) || venueSelect.value
+  );
+  const m = String(key).match(/^P(\d+)-(\d+)$/i);
+  if (hallName === "opera-test" && m) {
+    const from = Number(m[1]);
+    const to = Number(m[2]);
+    if (from >= 14 && to <= 22) {
+      return `Амфітеатр • ${key}`;
+    }
+  }
+  return key;
+}
+
 function addRule(){
-  const z = zone.value;
   const from = Number(fromRow.value);
   const to = Number(toRow.value);
+  const z = pricingZoneCodeForCurrentHall(zone.value, from, to);
   const p = price.value === "" ? null : Number(price.value);
   const c = color.value;
   const saleAllowed = sale.checked;
@@ -2608,9 +2675,9 @@ function addRule(){
   renderPreview();
 }
 function addSeatSegment(){
-  const z = segZone.value;
   const rowFrom = Number(segFromRow.value);
   const rowTo = Number(segToRow.value);
+  const z = pricingZoneCodeForCurrentHall(segZone.value, rowFrom, rowTo);
   const seatFrom = Number(segFromSeat.value);
   const seatTo = Number(segToSeat.value);
   const p = Number(segPrice.value);
@@ -2723,7 +2790,7 @@ function render(){
   rulesList.innerHTML =
     Object.entries(data.pricing).map(([k,r])=>`
       <div class="rule-row">
-        <b>${k}</b>
+        <b>${pricingRuleDisplayLabel(k)}</b>
         <span>${r.price} грн</span>
         <span class="color-chip" style="background:${r.color}"></span>
         <span>${r.sale === false ? "❌" : "✔"}</span>
@@ -2949,8 +3016,12 @@ showStatus.value = seanceRow.status || "draft";
   data.seat_overrides = rows[0].seat_overrides || {};
 
   if (rows[0].hall) {
-  setVenueByHallName(rows[0].hall);
-}
+    setVenueByHallName(rows[0].hall);
+  }
+
+  // Repair legacy Opera rules such as A14-16 -> P14-16 in editor memory.
+  // The corrected canonical key is persisted on the next explicit Save/Publish.
+  data.pricing = normalizeLoadedPricingForCurrentHall(data.pricing);
 
   render();
   renderPreview();
