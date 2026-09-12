@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Редактор сеансу — VA Admin</title>
-<!-- VA Seance Editor V1.5 UNIVERSAL ZOOM/FULLSCREEN — exact-source patch 2026-09-09 -->
+<!-- VA Seance Editor V1.7 UNIVERSAL ZOOM/FULLSCREEN + OPERA AMPHITHEATRE FIX + PRICE COLOR PALETTE — 2026-09-12 -->
 <meta name="viewport" content="width=device-width, initial-scale=1">    
  
 <style>
@@ -424,6 +424,34 @@ textarea{
 }
 
   
+
+/* VA V1.7 — quick price color palette */
+.va-color-palette{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:7px;
+  max-width:190px;
+}
+.va-color-swatch{
+  width:25px;
+  height:25px;
+  min-width:25px;
+  padding:0;
+  border:2px solid rgba(255,255,255,.28);
+  border-radius:7px;
+  cursor:pointer;
+  box-shadow:0 2px 7px rgba(0,0,0,.20);
+}
+.va-color-swatch:hover{
+  transform:translateY(-1px);
+  border-color:#fff;
+}
+.va-color-swatch.active{
+  outline:2px solid #fff;
+  outline-offset:2px;
+}
+
 </style>
 </head>
 
@@ -804,6 +832,66 @@ const data = {
   pricing: {},
   seat_overrides: {}
 };
+
+// VA V1.7 — palette of frequently used ticket-price colors.
+// The native color picker remains available for any custom color.
+const VA_PRICE_COLOR_PALETTE = [
+  { name:"Малиновий",  value:"#cd0174" },
+  { name:"Салатовий",  value:"#9fee00" },
+  { name:"Оливковий",  value:"#777300" },
+  { name:"Жовтий",     value:"#ffff01" },
+  { name:"Бірюзовий",  value:"#009899" },
+  { name:"Лавандовий", value:"#8a71cf" },
+  { name:"Фіолетовий", value:"#7209ab" },
+  { name:"Темно-червоний", value:"#89241f" },
+  { name:"Сірий",      value:"#c9c9c9" }
+];
+
+function attachVAColorPalette(inputId){
+  const input = document.getElementById(inputId);
+  if (!input || input.dataset.vaPaletteAttached === "true") return;
+
+  input.dataset.vaPaletteAttached = "true";
+
+  const palette = document.createElement("div");
+  palette.className = "va-color-palette";
+  palette.setAttribute("aria-label", "Швидка палітра кольорів");
+
+  const buttons = [];
+
+  VA_PRICE_COLOR_PALETTE.forEach(item => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "va-color-swatch";
+    btn.style.background = item.value;
+    btn.title = `${item.name} • ${item.value}`;
+    btn.setAttribute("aria-label", `${item.name} ${item.value}`);
+
+    btn.addEventListener("click", () => {
+      input.value = item.value;
+      input.dispatchEvent(new Event("input", { bubbles:true }));
+      updateActive();
+    });
+
+    buttons.push({ btn, value:item.value.toLowerCase() });
+    palette.appendChild(btn);
+  });
+
+  function updateActive(){
+    const current = String(input.value || "").toLowerCase();
+    buttons.forEach(x => x.btn.classList.toggle("active", x.value === current));
+  }
+
+  input.insertAdjacentElement("afterend", palette);
+  input.addEventListener("input", updateActive);
+  input.addEventListener("change", updateActive);
+  updateActive();
+}
+
+function attachVAColorPalettes(){
+  ["color", "segColor", "lodgeColor", "seatColor"].forEach(attachVAColorPalette);
+}
+
 
   const GENRES_BY_TYPE = {
   "Концерт": [
@@ -3096,6 +3184,7 @@ async function bootEditor(){
   applyEditorUrlParams();
 
   ensurePreviewUi();
+  attachVAColorPalettes();
   render();
   await renderPreview();
 
