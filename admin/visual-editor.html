@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"> 
-<title>VA Visual Editor</title>
+<title>VA Visual Editor V2.2</title>
 
 <style>
 *{box-sizing:border-box}
@@ -16,6 +16,10 @@ select,input{width:100%;padding:11px 12px;border-radius:12px;border:1px solid rg
 button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}
 .btn{background:#d4af37;color:#111827;width:100%;margin-top:14px}
 .btn2{background:#334155;color:#fff;width:100%;margin-top:10px}
+.btnDanger{background:#7f1d1d;color:#fff;width:100%;margin-top:8px}
+.btnDanger:hover{background:#991b1b}
+.btnDanger:disabled{opacity:.35;cursor:not-allowed}
+.asset-actions{margin-top:8px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .preview{display:grid;grid-template-columns:260px 1fr;gap:18px}
 .box{background:#020617;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;min-height:220px}
@@ -42,7 +46,8 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
 </head>
 
 <body>
-<h1>VA Visual Editor</h1>
+<div class="page">
+<h1>VA Visual Editor V2.2</h1>
 
 <div class="small">
 Візуальне оформлення сеансу. Афіша, Live Poster, відеофон та опис події.
@@ -58,10 +63,16 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
       <div>
         <label>Афіша</label>
         <input id="posterFile" type="file" accept="image/*">
+        <div class="asset-actions">
+          <button class="btnDanger" id="deletePosterBtn" type="button" disabled>Видалити завантажену афішу</button>
+        </div>
       </div>
       <div>
         <label>Live Poster mp4</label>
         <input id="livePosterFile" type="file" accept="video/mp4,video/*">
+        <div class="asset-actions">
+          <button class="btnDanger" id="deleteLivePosterBtn" type="button" disabled>Видалити Live Poster</button>
+        </div>
       </div>
 
      <div class="field">
@@ -76,6 +87,9 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
       <div>
         <label>Статичний фон</label>
         <input id="bgImageFile" type="file" accept="image/*">
+        <div class="asset-actions">
+          <button class="btnDanger" id="deleteBgImageBtn" type="button" disabled>Видалити статичний фон</button>
+        </div>
 
         <label style="display:flex;gap:10px;align-items:center;margin-top:12px">
           <input
@@ -89,6 +103,9 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
       <div>
         <label>Відеофон</label>
         <input id="bgVideoFile" type="file" accept="video/webm,video/mp4,video/*">
+        <div class="asset-actions">
+          <button class="btnDanger" id="deleteBgVideoBtn" type="button" disabled>Видалити відеофон</button>
+        </div>
         <div class="small" style="margin-top:8px">
           Відеофон використовується, коли статичний фон вимкнено.
         </div>
@@ -169,6 +186,7 @@ style="width:auto">
 
     <button class="btn" id="saveBtn">Завантажити файли і зберегти</button>
     <button class="btn2" id="loadBtn">Завантажити поточний visual</button>
+    <button class="btnDanger" id="clearAllVisualBtn" type="button" disabled>Очистити всі завантажені матеріали сеансу</button>
 
     <div class="status" id="status"></div>
   </div>
@@ -202,6 +220,12 @@ const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const URL_PARAMS = new URLSearchParams(location.search);
+const REQUESTED_SEANCE_ID =
+  URL_PARAMS.get("seance_id") ||
+  URL_PARAMS.get("seance") ||
+  "";
 
 const seanceSelect = document.getElementById("seanceSelect");
 const posterFile = document.getElementById("posterFile");
@@ -254,6 +278,14 @@ async function loadSeances(){
     opt.textContent = `${s.show || "Подія"} — ${s.date || ""} ${s.time || ""} — ${s.id}`;
     seanceSelect.appendChild(opt);
   });
+
+  if (
+    REQUESTED_SEANCE_ID &&
+    seances.some(s => String(s.id) === String(REQUESTED_SEANCE_ID))
+  ) {
+    seanceSelect.value = REQUESTED_SEANCE_ID;
+    await loadCurrentVisual();
+  }
 }
 
 async function uploadFile(bucket, folder, file){
@@ -340,7 +372,29 @@ backgroundOverlayOpacity.value =
   setStatus(currentVisual ? "Visual завантажено" : "Для цього сеансу visual ще не створено");
 }
 
+function syncDeleteButtons(v){
+  const setDisabled = (id, disabled) => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  };
+
+  setDisabled("deletePosterBtn", !v?.poster_url);
+  setDisabled("deleteLivePosterBtn", !v?.live_poster_url);
+  setDisabled("deleteBgImageBtn", !v?.background_image_url);
+  setDisabled("deleteBgVideoBtn", !v?.background_video_url);
+
+  const hasAny =
+    Boolean(v?.poster_url) ||
+    Boolean(v?.live_poster_url) ||
+    Boolean(v?.background_image_url) ||
+    Boolean(v?.background_video_url);
+
+  setDisabled("clearAllVisualBtn", !hasAny);
+}
+
 function renderPreview(v){
+  syncDeleteButtons(v);
+
   const posterBox = document.getElementById("posterPreview");
   const liveBox = document.getElementById("livePosterPreview");
   const bgBox = document.getElementById("bgPreview");
@@ -394,6 +448,141 @@ function renderPreview(v){
     bgBox.innerHTML = `<img src="${v.background_image_url}" alt="">`;
     bgStatus.textContent = "Статичний фон завантажено, але вимкнено";
   }
+}
+
+async function updateVisualFields(fields, successMessage){
+  const seanceId = seanceSelect.value;
+  if (!seanceId) {
+    alert("Оберіть сеанс");
+    return false;
+  }
+
+  setStatus("Оновлюю visual...");
+
+  try {
+    let result;
+
+    if (currentVisual) {
+      result = await sb
+        .from("seance_visuals")
+        .update({
+          ...fields,
+          updated_at: new Date().toISOString()
+        })
+        .eq("seance_id", seanceId)
+        .select()
+        .maybeSingle();
+    } else {
+      result = await sb
+        .from("seance_visuals")
+        .upsert({
+          seance_id: seanceId,
+          ...fields,
+          enabled: true,
+          updated_at: new Date().toISOString()
+        }, { onConflict:"seance_id" })
+        .select()
+        .maybeSingle();
+    }
+
+    const { data, error } = result;
+    if (error) throw error;
+
+    currentVisual = data || { ...(currentVisual || {}), seance_id: seanceId, ...fields };
+    renderPreview(currentVisual);
+    setStatus(successMessage || "Visual оновлено.");
+    return true;
+  } catch (e) {
+    console.error("UPDATE VISUAL ERROR:", e);
+    setStatus("Помилка: " + (e.message || e));
+    return false;
+  }
+}
+
+async function clearPoster(){
+  if (!currentVisual?.poster_url) return;
+  if (!confirm("Видалити афішу з цього сеансу?")) return;
+
+  posterFile.value = "";
+
+  await updateVisualFields(
+    { poster_url: null },
+    "Афішу видалено з цього сеансу."
+  );
+}
+
+async function clearLivePoster(){
+  if (!currentVisual?.live_poster_url) return;
+  if (!confirm("Видалити Live Poster з цього сеансу?")) return;
+
+  livePosterFile.value = "";
+
+  await updateVisualFields(
+    {
+      live_poster_url: null,
+      enable_live_poster: false
+    },
+    "Live Poster видалено з цього сеансу."
+  );
+}
+
+async function clearBackgroundImage(){
+  if (!currentVisual?.background_image_url) return;
+  if (!confirm("Видалити статичний фон з цього сеансу?")) return;
+
+  bgImageFile.value = "";
+  enableBackgroundImage.checked = false;
+
+  await updateVisualFields({
+    background_image_url: null,
+    background_image_enabled: false,
+    background_image_opacity: 1,
+    background_image_scale: 1,
+    background_image_x: 0,
+    background_image_y: 0,
+    background_image_fit: "cover"
+  }, "Статичний фон видалено з цього сеансу.");
+}
+
+async function clearBackgroundVideo(){
+  if (!currentVisual?.background_video_url) return;
+  if (!confirm("Видалити відеофон з цього сеансу?")) return;
+
+  bgVideoFile.value = "";
+
+  await updateVisualFields(
+    { background_video_url: null },
+    "Відеофон видалено з цього сеансу."
+  );
+}
+
+async function clearAllVisual(){
+  if (!confirm(
+    "Очистити афішу, Live Poster, статичний фон і відеофон для цього сеансу?"
+  )) return;
+
+  posterFile.value = "";
+  livePosterFile.value = "";
+  bgImageFile.value = "";
+  bgVideoFile.value = "";
+  enableBackgroundImage.checked = false;
+
+  await updateVisualFields({
+    poster_url: null,
+    live_poster_url: null,
+    enable_live_poster: false,
+
+    background_image_url: null,
+    background_image_enabled: false,
+    background_image_opacity: 1,
+    background_image_scale: 1,
+    background_image_x: 0,
+    background_image_y: 0,
+    background_image_fit: "cover",
+
+    background_video_url: null,
+    background_overlay_opacity: 0
+  }, "Усі завантажені матеріали цього сеансу очищено.");
 }
 
 async function saveVisual(){
@@ -480,6 +669,11 @@ bgImageFile.addEventListener("change", () => {
 });
 
 document.getElementById("saveBtn").addEventListener("click", saveVisual);
+document.getElementById("deletePosterBtn").addEventListener("click", clearPoster);
+document.getElementById("deleteLivePosterBtn").addEventListener("click", clearLivePoster);
+document.getElementById("deleteBgImageBtn").addEventListener("click", clearBackgroundImage);
+document.getElementById("deleteBgVideoBtn").addEventListener("click", clearBackgroundVideo);
+document.getElementById("clearAllVisualBtn").addEventListener("click", clearAllVisual);
 document.getElementById("loadBtn").addEventListener("click", loadCurrentVisual);
 seanceSelect.addEventListener("change", loadCurrentVisual);
 
