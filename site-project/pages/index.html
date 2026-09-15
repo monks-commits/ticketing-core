@@ -187,6 +187,17 @@
     background:var(--accent-hover);
   }
 
+  /* Demo 1: isolated public storefront mode.
+     Activated by ?venue=demo-fullcycle or ?demo=1. */
+  body.demo-mode .filters,
+  body.demo-mode .venues{
+    display:none !important;
+  }
+
+  body.demo-mode .hero{
+    margin-bottom:28px;
+  }
+
   .venues{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
@@ -606,6 +617,13 @@ const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
 const qs = new URLSearchParams(location.search);
 
+// ===== DEMO 1 ISOLATED STOREFRONT =====
+const DEMO_VENUE_ID = "demo-fullcycle";
+const DEMO_VENUE_TITLE = "Demo 1";
+const DEMO_MODE =
+  (qs.get("venue") || "").trim() === DEMO_VENUE_ID ||
+  qs.get("demo") === "1";
+
 const RETURN_SEANCE_ID =
   (qs.get("seance_id") || qs.get("seance") || "").trim();
 
@@ -672,6 +690,39 @@ function mergeConfigVenues(rows){
   return [...map.values()];
 }
 
+function ensureDemoVenue(){
+  const previous = VENUES[DEMO_VENUE_ID] || {};
+
+  VENUES[DEMO_VENUE_ID] = {
+    ...previous,
+    title: DEMO_VENUE_TITLE,
+    city: previous.city || ""
+  };
+}
+
+function applyDemoShell(){
+  if (!DEMO_MODE) return;
+
+  ensureDemoVenue();
+  document.body.classList.add("demo-mode");
+  document.title = `${DEMO_VENUE_TITLE} — Live Demo VA`;
+
+  const siteTitle = document.querySelector(".site-title");
+  const eyebrow = document.querySelector(".eyebrow");
+  const heroTitle = document.querySelector(".hero-title");
+  const heroText = document.querySelector(".hero-text");
+  const sectionTitle = document.querySelector(".section-title");
+
+  if (siteTitle) siteTitle.textContent = `${DEMO_VENUE_TITLE} — Ваш Адмін`;
+  if (eyebrow) eyebrow.textContent = "Ваш Адмін • Live Demo";
+  if (heroTitle) heroTitle.textContent = `${DEMO_VENUE_TITLE} — демонстраційна афіша`;
+  if (heroText) {
+    heroText.textContent =
+      "Демонстраційні події повного циклу VA: афіша, вибір місця, оплата, електронний квиток і контроль входу.";
+  }
+  if (sectionTitle) sectionTitle.textContent = `Події ${DEMO_VENUE_TITLE}`;
+}
+
 let ALL_SEANCES = [];
 let CLIENT_CONFIG = null;
 let CONFIG_VENUES = [];  
@@ -711,6 +762,14 @@ function getCityByVenue(v){
 }
 
 function fillVenueSelect(){
+  if (DEMO_MODE) {
+    ensureDemoVenue();
+    venueSelect.innerHTML =
+      `<option value="${DEMO_VENUE_ID}">${DEMO_VENUE_TITLE}</option>`;
+    venueSelect.value = DEMO_VENUE_ID;
+    return;
+  }
+
   const city = citySelect.value;
 
   const items = Object.entries(VENUES)
@@ -737,9 +796,11 @@ function fillVenueSelect(){
 }
 
 function applyUrlParams(){
-  const city = qs.get("city") || "";
-  const venue = canonicalVenueId(qs.get("venue"));
-  const q = qs.get("q") || "";
+  const city = DEMO_MODE ? "" : (qs.get("city") || "");
+  const venue = DEMO_MODE
+    ? DEMO_VENUE_ID
+    : canonicalVenueId(qs.get("venue"));
+  const q = DEMO_MODE ? "" : (qs.get("q") || "");
 
   if (city && CITIES[city]) {
     citySelect.value = city;
@@ -764,9 +825,13 @@ function applyUrlParams(){
 function updateUrl(){
   const params = new URLSearchParams();
 
-  if (citySelect.value) params.set("city", citySelect.value);
-  if (venueSelect.value) params.set("venue", canonicalVenueId(venueSelect.value));
-  if (searchInput.value.trim()) params.set("q", searchInput.value.trim());
+  if (DEMO_MODE) {
+    params.set("venue", DEMO_VENUE_ID);
+  } else {
+    if (citySelect.value) params.set("city", citySelect.value);
+    if (venueSelect.value) params.set("venue", canonicalVenueId(venueSelect.value));
+    if (searchInput.value.trim()) params.set("q", searchInput.value.trim());
+  }
 
   history.replaceState(
     null,
@@ -782,12 +847,18 @@ function isFutureOrToday(date){
 }
 
 function eventVisible(s){
-  const city = citySelect.value;
-  const venue = canonicalVenueId(venueSelect.value);
-  const q = searchInput.value.trim().toLowerCase();
+  const city = DEMO_MODE ? "" : citySelect.value;
+  const venue = DEMO_MODE
+    ? DEMO_VENUE_ID
+    : canonicalVenueId(venueSelect.value);
+  const q = DEMO_MODE ? "" : searchInput.value.trim().toLowerCase();
 
   const publicVenue = dbVenueToPublic(s.venue_id);
   const eventCity = getCityByVenue(publicVenue);
+
+  // Demo 1 never leaks into the ordinary multi-venue storefront.
+  // It is visible only through the isolated demo entry point.
+  if (!DEMO_MODE && publicVenue === DEMO_VENUE_ID) return false;
 
   if (s.active === false) return false;
   if (s.status === "archived") return false;
@@ -974,6 +1045,7 @@ function focusReturnedSeance(){
 }
 
 async function loadGatewaySeances(){
+  if (DEMO_MODE) return [];
   if (!window.VA_GATEWAY) return [];
 
   try {
@@ -1091,10 +1163,14 @@ async function loadGatewaySeances(){
 }
 
 async function loadSeances(){
+  const venueFilter = DEMO_MODE
+    ? `&venue_id=eq.${encodeURIComponent(DEMO_VENUE_ID)}`
+    : "";
+
   const url =
     `${SUPABASE_URL}/rest/v1/seances` +
     `?select=id,show,date,time,poster_url,venue_id,active,status,seance_visuals(poster_url,event_text,live_poster_url)` +
-    `&active=eq.true&order=date.asc,time.asc`;
+    `&active=eq.true${venueFilter}&order=date.asc,time.asc`;
 
   let nativeRows = [];
 
@@ -1180,14 +1256,29 @@ async function boot(){
     });
   }
 
+  if (DEMO_MODE) {
+    ensureDemoVenue();
+    applyDemoShell();
+  }
+
   console.log("CLIENT CONFIG:", CLIENT_CONFIG);
   console.log("VA STOREFRONT VENUE CANONICAL V3 active");
+  if (DEMO_MODE) console.log("VA STOREFRONT DEMO 1 isolated mode active");
 
   // First populate native + Gateway venues/seances.
+  // In Demo 1 mode only native demo-fullcycle seances are requested.
   await loadSeances();
 
   // Apply ?venue=... only after VENUES is actually populated.
   applyUrlParams();
+
+  if (DEMO_MODE) {
+    citySelect.value = "";
+    searchInput.value = "";
+    fillVenueSelect();
+    venueSelect.value = DEMO_VENUE_ID;
+    applyDemoShell();
+  }
 
   // Final render with the correct venue and city selected.
   renderVenueCards();
