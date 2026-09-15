@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VA Content Studio V1.8.2</title>
+    <title>VA Content Studio V1.8.3</title>
     <style>
       :root {
         --bg: #061426;
@@ -869,80 +869,6 @@
         .warehouse-layout { grid-template-columns:minmax(0,1fr) 390px; }
       }
 
-
-      /* ===== VA CONTEXT BRIDGE · MARKETING → CONTENT STUDIO ===== */
-      .va-context-bridge{
-        margin-top:16px;
-        padding:14px;
-        border:1px solid #3d6f9c;
-        border-radius:15px;
-        background:linear-gradient(135deg,#0b2340,#0c1e36);
-      }
-      .va-context-top{
-        display:flex;
-        gap:12px;
-        align-items:flex-start;
-        justify-content:space-between;
-        flex-wrap:wrap;
-      }
-      .va-context-title{
-        margin:3px 0 4px;
-        font-size:20px;
-      }
-      .va-context-actions{
-        display:flex;
-        gap:7px;
-        flex-wrap:wrap;
-      }
-      .va-context-pill{
-        display:inline-flex;
-        padding:5px 9px;
-        border-radius:999px;
-        background:#173b63;
-        border:1px solid #315f8e;
-        color:#dcecff;
-        font-size:12px;
-        font-weight:800;
-        margin:5px 5px 0 0;
-      }
-      .va-marketing-brief{
-        margin-top:12px;
-        padding:12px;
-        border-radius:13px;
-        background:#071a2f;
-        border:1px solid rgba(255,255,255,.10);
-      }
-      .va-brief-grid{
-        display:grid;
-        grid-template-columns:repeat(4,minmax(0,1fr));
-        gap:9px;
-        margin-top:10px;
-      }
-      .va-brief-cell{
-        background:#0b213c;
-        border:1px solid rgba(255,255,255,.09);
-        border-radius:11px;
-        padding:10px;
-        min-width:0;
-      }
-      .va-brief-cell span{
-        display:block;
-        color:var(--muted);
-        font-size:11px;
-        font-weight:800;
-        margin-bottom:5px;
-      }
-      .va-brief-cell b{
-        display:block;
-        line-height:1.35;
-        overflow-wrap:anywhere;
-      }
-      @media(max-width:900px){
-        .va-brief-grid{grid-template-columns:1fr 1fr}
-      }
-      @media(max-width:580px){
-        .va-brief-grid{grid-template-columns:1fr}
-      }
     </style>
   </head>
   <body>
@@ -960,24 +886,6 @@
             <span class="badge" id="apiBadge">Supabase: перевірка…</span
             ><span class="badge" id="schemaBadge">Схема БД: перевірка…</span>
           </div>
-        </div>
-
-        <div id="vaContextBridge" class="va-context-bridge hidden">
-          <div class="va-context-top">
-            <div class="grow">
-              <div class="meta">VA Context Bridge · Marketing → Content Studio</div>
-              <div class="va-context-title" id="vaContextTitle">Контекст маркетингу</div>
-              <div class="meta" id="vaContextMeta"></div>
-              <div id="vaContextPills"></div>
-            </div>
-            <div class="va-context-actions">
-              <button class="btn small" id="vaBackMarketingBtn">← Маркетинг</button>
-              <button class="btn small" id="vaOpenClientsBtn">КБ</button>
-              <button class="btn small" id="vaOpenDirectorBtn">Директор</button>
-              <button class="btn blue small" id="vaApplyMarketingBtn">До виробництва</button>
-            </div>
-          </div>
-          <div id="vaMarketingBrief" class="va-marketing-brief"></div>
         </div>
         <div class="workspace-picker">
           <div class="field no-margin">
@@ -1076,10 +984,10 @@
                 </div>
                 <div class="grid-3">
                   <div class="field">
-                    <label>Жанр</label><input id="pGenre" />
+                    <label>Тип</label><select id="pType"></select>
                   </div>
                   <div class="field">
-                    <label>Тип</label><input id="pType" />
+                    <label>Жанр</label><select id="pGenre"></select>
                   </div>
                   <div class="field">
                     <label>Вікове обмеження</label><input id="pAge" />
@@ -2217,6 +2125,7 @@
       </section>
     </div>
 
+    <script src="../shared/event-taxonomy.js"></script>
     <script>
       "use strict";
       const SUPABASE_URL =
@@ -2225,6 +2134,55 @@
         window.SUPABASE_ANON_KEY ||
         "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
       const $ = (id) => document.getElementById(id);
+
+      // V1.8.3 — Content Studio uses the same canonical taxonomy as Seance Editor.
+      function projectTaxonomy(){
+        return window.VAEventTaxonomy || null;
+      }
+      function normalizeProjectType(value){
+        const raw = String(value || "").trim();
+        const tax = projectTaxonomy();
+        if (!raw || !tax) return raw;
+        if (tax.hasType(raw)) return raw;
+        const match = tax.types().find(x =>
+          String(x.value || "").toLowerCase() === raw.toLowerCase() ||
+          String(x.label || "").toLowerCase() === raw.toLowerCase()
+        );
+        return match?.value || raw;
+      }
+      function normalizeProjectGenre(type, value){
+        const raw = String(value || "").trim();
+        const tax = projectTaxonomy();
+        if (!raw || !tax) return raw;
+        const canonicalType = normalizeProjectType(type);
+        if (tax.hasGenre(canonicalType, raw)) return raw;
+        const match = tax.genresFor(canonicalType).find(x =>
+          String(x.value || "").toLowerCase() === raw.toLowerCase() ||
+          String(x.label || "").toLowerCase() === raw.toLowerCase()
+        );
+        return match?.value || raw;
+      }
+      function fillProjectTaxonomy(typeValue = "", genreValue = ""){
+        const tax = projectTaxonomy();
+        const typeEl = $("pType");
+        const genreEl = $("pGenre");
+        if (!typeEl || !genreEl) return;
+        if (!tax) {
+          typeEl.innerHTML = `<option value="${esc(typeValue)}">${esc(typeValue || "Оберіть тип")}</option>`;
+          genreEl.innerHTML = `<option value="${esc(genreValue)}">${esc(genreValue || "Оберіть жанр")}</option>`;
+          return;
+        }
+        const type = normalizeProjectType(typeValue);
+        const genre = normalizeProjectGenre(type, genreValue);
+        tax.fillTypeSelect(typeEl, type, "Оберіть тип");
+        tax.fillGenreSelect(genreEl, type, genre, "Оберіть жанр");
+      }
+      function projectGenreLabel(project){
+        const tax = projectTaxonomy();
+        const type = normalizeProjectType(project?.type);
+        const genre = normalizeProjectGenre(type, project?.genre);
+        return tax ? tax.genreLabel(type, genre) : (project?.genre || "");
+      }
       const state = {
         projects: [],
         seances: [],
@@ -2256,189 +2214,7 @@
         schemaReady: false,
         serviceSchemaReady: false,
         busy: false,
-        vaMarketingContext: null,
       };
-
-      const VA_WORKSPACE_CONTEXT_KEY = "va_workspace_context_v1";
-      const VA_MARKETING_CAMPAIGNS_KEY = "va_marketing_campaigns_v24";
-      const VA_MARKETING_PASSPORT_KEY = "va_marketing_seance_context_v22";
-      const VA_BRIDGE_ROUTES = {
-        marketing: "marketing.html",
-        clients: "viewers.html",
-        director: "director-dashboard.html",
-      };
-
-      function vaReadJson(key, fallback) {
-        try {
-          const raw = localStorage.getItem(key);
-          return raw ? JSON.parse(raw) : fallback;
-        } catch (e) {
-          console.warn("VA Context Bridge:", key, e);
-          return fallback;
-        }
-      }
-
-      function vaReadIncomingContext() {
-        const params = new URLSearchParams(location.search);
-        const saved = vaReadJson(VA_WORKSPACE_CONTEXT_KEY, {}) || {};
-        let seanceId = params.get("seance_id") || saved.seance_id || "";
-        let campaignId = params.get("campaign_id") || saved.campaign_id || "";
-        const campaigns = vaReadJson(VA_MARKETING_CAMPAIGNS_KEY, []);
-        const campaign = Array.isArray(campaigns)
-          ? campaigns.find((x) => String(x.id) === String(campaignId)) || null
-          : null;
-        if (!seanceId && campaign?.seance_id) seanceId = String(campaign.seance_id);
-        const passports = vaReadJson(VA_MARKETING_PASSPORT_KEY, {}) || {};
-        const passport = passports && typeof passports === "object"
-          ? passports[String(seanceId)] || null
-          : null;
-        return {
-          seance_id: String(seanceId || ""),
-          campaign_id: String(campaignId || ""),
-          campaign,
-          passport,
-          source: params.get("va_from") || saved.source || "",
-        };
-      }
-
-      function vaWriteWorkspaceContext(target) {
-        const ctx = state.vaMarketingContext || vaReadIncomingContext();
-        const payload = {
-          seance_id: ctx?.seance_id || "",
-          campaign_id: ctx?.campaign_id || "",
-          source: "studio",
-          target,
-          updated_at: new Date().toISOString(),
-        };
-        try {
-          localStorage.setItem(VA_WORKSPACE_CONTEXT_KEY, JSON.stringify(payload));
-        } catch (e) {}
-        return payload;
-      }
-
-      function vaOpenWorkspace(target) {
-        const route = VA_BRIDGE_ROUTES[target];
-        if (!route) return;
-        const ctx = vaWriteWorkspaceContext(target);
-        const url = new URL(route, location.href);
-        if (ctx.seance_id) url.searchParams.set("seance_id", ctx.seance_id);
-        if (ctx.campaign_id) url.searchParams.set("campaign_id", ctx.campaign_id);
-        url.searchParams.set("va_from", "studio");
-        location.href = url.toString();
-      }
-
-      function vaMarketingToneValue(raw) {
-        const v = String(raw || "").toLocaleLowerCase("uk-UA");
-        if (!v) return "";
-        if (v.includes("емоці")) return "емоційний";
-        if (v.includes("стрим") || v.includes("інтеліг")) return "стриманий";
-        if (v.includes("сучас") || v.includes("дотеп") || v.includes("тепл")) return "живий";
-        if (v.includes("премі")) return "стриманий";
-        return "інформативний";
-      }
-
-      function vaCampaignPassport(ctx) {
-        return {
-          ...(ctx?.passport || {}),
-          ...(ctx?.campaign?.passport || {}),
-        };
-      }
-
-      function vaRenderContextBridge() {
-        const ctx = state.vaMarketingContext;
-        const box = $("vaContextBridge");
-        if (!box) return;
-        if (!ctx?.seance_id) {
-          box.classList.add("hidden");
-          return;
-        }
-        box.classList.remove("hidden");
-        const s = state.seances.find((x) => String(x.id) === String(ctx.seance_id));
-        const p = s?.project_id
-          ? state.projects.find((x) => String(x.id) === String(s.project_id))
-          : null;
-        const passport = vaCampaignPassport(ctx);
-        const campaign = ctx.campaign || null;
-        $("vaContextTitle").textContent = s
-          ? `${s.show || s.title || s.name || "Сеанс"}${s.date ? " · " + s.date : ""}${s.time ? " · " + String(s.time).slice(0,5) : ""}`
-          : `Сеанс ${ctx.seance_id}`;
-        $("vaContextMeta").textContent = p
-          ? `Content Studio: ${p.title || "Проєкт"}`
-          : s
-            ? "Сеанс знайдено, але він не прив’язаний до проєкту Content Studio."
-            : "Сеанс із Marketing не знайдено у завантажених сеансах Studio.";
-        $("vaContextPills").innerHTML = [
-          `<span class="va-context-pill">seance_id: ${esc(ctx.seance_id)}</span>`,
-          ctx.campaign_id ? `<span class="va-context-pill">${esc(ctx.campaign_id)}</span>` : "",
-          campaign?.segmentLabel ? `<span class="va-context-pill">${esc(campaign.segmentLabel)}</span>` : "",
-          campaign?.channel ? `<span class="va-context-pill">${esc(campaign.channel)}</span>` : "",
-        ].join("");
-
-        const primaryAudience = passport.primaryAudience || campaign?.segmentLabel || "—";
-        const promise = passport.corePromise || "—";
-        const tone = passport.tone || "—";
-        const cta = passport.cta || "—";
-        $("vaMarketingBrief").innerHTML = `
-          <b>Маркетингове завдання</b>
-          <div class="va-brief-grid">
-            <div class="va-brief-cell"><span>Кому</span><b>${esc(primaryAudience)}</b></div>
-            <div class="va-brief-cell"><span>Навіщо / головна теза</span><b>${esc(promise)}</b></div>
-            <div class="va-brief-cell"><span>Як говорити</span><b>${esc(tone)}</b></div>
-            <div class="va-brief-cell"><span>CTA</span><b>${esc(cta)}</b></div>
-          </div>
-          ${campaign?.goal ? `<div class="meta" style="margin-top:9px"><b>Мета кампанії:</b> ${esc(campaign.goal)}</div>` : ""}
-        `;
-      }
-
-      function vaApplyMarketingContextToProduction() {
-        const ctx = state.vaMarketingContext;
-        if (!ctx?.seance_id) return false;
-        const s = state.seances.find((x) => String(x.id) === String(ctx.seance_id));
-        if (!s) {
-          vaRenderContextBridge();
-          setMessage(`Сеанс ${ctx.seance_id} не знайдено у Content Studio.`, "warn");
-          return false;
-        }
-        const project = s.project_id
-          ? state.projects.find((x) => String(x.id) === String(s.project_id))
-          : null;
-        if (!project) {
-          vaRenderContextBridge();
-          setMessage(
-            `Сеанс «${s.show || s.title || s.id}» ще не прив’язаний до проєкту Content Studio. Автоматично змінювати БД VA не буде.`,
-            "warn",
-          );
-          return false;
-        }
-
-        state.currentVenue = canonicalVenueId(projectVenue(project) || venueKey(s) || "");
-        populateVenueSelectors();
-        fillProject(project);
-        showSection("projects");
-        showProjectTab("production");
-
-        if ($("productionSeance")) {
-          $("productionSeance").value = String(s.id);
-          $("productionLink").value = exactSeanceUrl(s);
-          delete $("productionLink").dataset.manual;
-        }
-
-        const passport = vaCampaignPassport(ctx);
-        const tone = vaMarketingToneValue(passport.tone);
-        if (tone && $("productionTone")) $("productionTone").value = tone;
-        if (passport.cta && $("productionCta")) $("productionCta").value = passport.cta;
-
-        renderProductionTexts();
-        vaRenderContextBridge();
-        setProductionMessage(
-          ctx.campaign_id
-            ? `Контекст кампанії ${ctx.campaign_id} прийнято. Сеанс, Tone і CTA підставлено.`
-            : "Контекст Marketing прийнято. Сеанс, Tone і CTA підставлено.",
-          "ok",
-        );
-        return true;
-      }
-
       const CHANNEL_PROFILES = {
         "site|storefront": {
           label: "Онлайн-вітрина",
@@ -4184,7 +3960,7 @@
           ? rows
               .map(
                 (p) =>
-                  `<div class="list-item ${state.selectedProject && String(p.id) === String(state.selectedProject.id) ? "active" : ""}" data-project-id="${esc(p.id)}"><div class="item-title">${esc(p.title || "Без назви")}</div><div class="meta">${esc(venueName(projectVenue(p)))}<br>${esc(p.genre || "—")} · ${esc(p.status || "draft")}</div></div>`,
+                  `<div class="list-item ${state.selectedProject && String(p.id) === String(state.selectedProject.id) ? "active" : ""}" data-project-id="${esc(p.id)}"><div class="item-title">${esc(p.title || "Без назви")}</div><div class="meta">${esc(venueName(projectVenue(p)))}<br>${esc(projectGenreLabel(p) || "—")} · ${esc(p.status || "draft")}</div></div>`,
               )
               .join("")
           : '<div class="empty">Проєктів не знайдено.</div>';
@@ -4197,8 +3973,7 @@
         $("pVenue").value = projectVenue(p) || state.currentVenue || "";
         $("pTitle").value = p.title || "";
         $("pStatus").value = p.status || "draft";
-        $("pGenre").value = p.genre || "";
-        $("pType").value = p.type || "";
+        fillProjectTaxonomy(p.type || "", p.genre || "");
         $("pAge").value = p.age || "";
         $("pShort").value = p.short_description || "";
         $("pDescription").value = p.description || "";
@@ -4219,8 +3994,8 @@
           venue_id: venue,
           title: $("pTitle").value.trim() || "Без назви",
           status: $("pStatus").value,
-          genre: $("pGenre").value.trim(),
-          type: $("pType").value.trim(),
+          genre: normalizeProjectGenre($("pType").value, $("pGenre").value),
+          type: normalizeProjectType($("pType").value),
           age: $("pAge").value.trim(),
           short_description: $("pShort").value.trim(),
           description: $("pDescription").value.trim(),
@@ -6968,6 +6743,11 @@
         }),
       );
       bind("saveProjectBtn", "click", saveProject);
+      $("pType")?.addEventListener("change", () => {
+        const tax = projectTaxonomy();
+        if (!tax) return;
+        tax.fillGenreSelect($("pGenre"), $("pType").value, "", "Оберіть жанр");
+      });
       bind("deleteProjectBtn", "click", removeProject);
       bind("reloadSeancesBtn", "click", loadAll);
       bind("refreshAllBtn", "click", loadAll);
@@ -7183,23 +6963,13 @@
         "serviceResultNote",
       ].forEach((id) => $(id)?.addEventListener("input", renderServicePreview));
       $("serviceTemplateSelect")?.addEventListener("change", () => {});
-      bind("vaBackMarketingBtn", "click", () => vaOpenWorkspace("marketing"));
-      bind("vaOpenClientsBtn", "click", () => vaOpenWorkspace("clients"));
-      bind("vaOpenDirectorBtn", "click", () => vaOpenWorkspace("director"));
-      bind("vaApplyMarketingBtn", "click", () => vaApplyMarketingContextToProduction());
-
       async function boot() {
         try {
-          state.vaMarketingContext = vaReadIncomingContext();
           await loadAll();
           $("apiBadge").textContent = "Supabase: підключено";
           $("apiBadge").className = "badge ok";
           const saved = localStorage.getItem("va_content_agent_key");
           if (saved) $("agentKey").value = saved;
-          vaRenderContextBridge();
-          if (state.vaMarketingContext?.seance_id) {
-            vaApplyMarketingContextToProduction();
-          }
         } catch (e) {
           $("apiBadge").textContent = "Supabase: помилка";
           $("apiBadge").className = "badge bad";
