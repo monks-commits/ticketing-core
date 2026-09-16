@@ -685,7 +685,7 @@ const CONFIG_PATH = "../../shared/config.js";
 <script src="../../shared/gateway-client.js"></script>
 
 <script>
-console.log("INDEX FINAL VERSION — VENUE CANONICAL V3 + SEAMLESS HALL TRANSITION V1");
+console.log("INDEX FINAL VERSION — VENUE CANONICAL V3 + SEAMLESS HALL TRANSITION V1 + BFCACHE RETURN FIX");
   
 console.log("INDEX VITRINE FILTERED VERSION");
 
@@ -1593,6 +1593,54 @@ async function openVideoIntro(targetUrl, btn){
     // Autoplay can be blocked on some devices. The user can still press Skip.
   });
 }
+
+// ===== VA BFCache RETURN FIX =====
+// When the browser returns from hall.html with Back, it can restore this page
+// from the back/forward cache exactly as it was at the moment of navigation:
+// transition curtain active + Live Poster already ended.
+// Reset that transient state so Back really returns to the storefront,
+// not to a frozen transition screen that tempts the next Back to go to Control Center.
+window.addEventListener("pageshow", (event) => {
+  const screen = document.getElementById("vaPageTransition");
+  const poster = document.getElementById("vaTransitionPoster");
+  const backdrop = screen?.querySelector(".va-transition-backdrop");
+
+  if (screen) {
+    screen.classList.remove("active", "has-poster");
+  }
+
+  if (poster) {
+    poster.removeAttribute("src");
+  }
+
+  if (backdrop) {
+    backdrop.style.backgroundImage = "";
+  }
+
+  const hasFinishedLivePoster =
+    Boolean(document.querySelector(".live-poster-video"));
+
+  if ((event.persisted || hasFinishedLivePoster) &&
+      Array.isArray(ALL_SEANCES) &&
+      ALL_SEANCES.length) {
+
+    const x = window.scrollX;
+    const y = window.scrollY;
+
+    // Rebuild the cards from the already loaded in-memory seance data.
+    // No extra network request is needed.
+    renderSeances();
+
+    requestAnimationFrame(() => {
+      window.scrollTo({
+        left: x,
+        top: y,
+        behavior: "auto"
+      });
+    });
+  }
+});
+
 </script>
 
 </body>
