@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>Квитки онлайн — Ваш Адмін</title>
+<link rel="prefetch" href="hall.html">
 
 <style>
   :root{
@@ -529,6 +530,77 @@
 }
     
   }
+
+/* ===== VA SEAMLESS STOREFRONT -> HALL TRANSITION ===== */
+#vaPageTransition{
+  position:fixed;
+  inset:0;
+  z-index:2147483000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:#020617;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .10s ease, visibility .10s ease;
+}
+
+#vaPageTransition.active{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+
+#vaPageTransition .va-transition-backdrop{
+  position:absolute;
+  inset:-4%;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(185,28,28,.18), transparent 40%),
+    linear-gradient(180deg,#020617 0%,#050014 100%);
+  transform:scale(1.03);
+}
+
+#vaPageTransition.has-poster .va-transition-backdrop{
+  background-position:center;
+  background-size:cover;
+  filter:blur(12px) brightness(.76);
+}
+
+#vaTransitionPoster{
+  position:relative;
+  z-index:2;
+  display:none;
+  width:min(38vw,420px);
+  max-width:82vw;
+  max-height:82vh;
+  object-fit:contain;
+  border-radius:18px;
+  box-shadow:0 26px 80px rgba(0,0,0,.55);
+}
+
+#vaPageTransition.has-poster #vaTransitionPoster{
+  display:block;
+}
+
+#vaPageTransition .va-transition-vignette{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at center, transparent 35%, rgba(2,6,23,.34) 76%, rgba(2,6,23,.72) 100%);
+}
+
+@media (max-width:768px){
+  #vaTransitionPoster{
+    width:min(74vw,360px);
+    max-height:78vh;
+    border-radius:14px;
+  }
+}
+
 </style>
 </head>
 
@@ -542,6 +614,11 @@
 </div>
   
 <body>
+<div id="vaPageTransition" aria-hidden="true">
+  <div class="va-transition-backdrop"></div>
+  <img id="vaTransitionPoster" alt="">
+  <div class="va-transition-vignette"></div>
+</div>
 
 <div class="page">
 
@@ -608,7 +685,7 @@ const CONFIG_PATH = "../../shared/config.js";
 <script src="../../shared/gateway-client.js"></script>
 
 <script>
-console.log("INDEX FINAL VERSION — VENUE CANONICAL V3");
+console.log("INDEX FINAL VERSION — VENUE CANONICAL V3 + SEAMLESS HALL TRANSITION V1");
   
 console.log("INDEX VITRINE FILTERED VERSION");
 
@@ -1324,6 +1401,81 @@ document.addEventListener("click", e => {
   }
 });
   
+
+function getTransitionPosterUrl(seanceId, btn){
+  const id = String(seanceId || "").trim();
+
+  const item = ALL_SEANCES.find(
+    s => String(s?.id || "") === id
+  );
+
+  const visual = item ? getVisual(item) : null;
+
+  const fromData =
+    visual?.poster_url ||
+    item?.poster_url ||
+    "";
+
+  if (fromData) return String(fromData);
+
+  const cardImg = btn
+    ?.closest(".card")
+    ?.querySelector(".poster-wrap img.poster");
+
+  return String(cardImg?.currentSrc || cardImg?.src || "");
+}
+
+function rememberTransitionPoster(seanceId, posterUrl){
+  const id = String(seanceId || "").trim();
+  const poster = String(posterUrl || "").trim();
+
+  if (!poster) return;
+
+  try{
+    if (id) {
+      sessionStorage.setItem(`va_transition_poster:${id}`, poster);
+    }
+    sessionStorage.setItem("va_transition_poster", poster);
+  }catch(e){
+    console.warn("Cannot save transition poster", e);
+  }
+}
+
+function showPageTransition(posterUrl){
+  const screen = document.getElementById("vaPageTransition");
+  const poster = document.getElementById("vaTransitionPoster");
+  const backdrop = screen?.querySelector(".va-transition-backdrop");
+  const url = String(posterUrl || "").trim();
+
+  if (!screen) return;
+
+  if (url && poster && backdrop){
+    poster.src = url;
+    backdrop.style.backgroundImage =
+      `linear-gradient(rgba(2,6,23,.44), rgba(2,6,23,.72)), url("${url.replace(/"/g, '\\"')}")`;
+    screen.classList.add("has-poster");
+  } else {
+    screen.classList.remove("has-poster");
+  }
+
+  screen.classList.add("active");
+}
+
+function navigateToHall(targetUrl, seanceId, posterUrl){
+  rememberTransitionPoster(seanceId, posterUrl);
+  showPageTransition(posterUrl);
+
+  /*
+    Two animation frames are enough for the browser to paint the curtain
+    before it unloads the storefront. No artificial visible pause.
+  */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      location.href = targetUrl;
+    });
+  });
+}
+
 function rememberReturnTarget(seanceId){
   const id = String(seanceId || "").trim();
   if (!id) return;
@@ -1357,16 +1509,22 @@ document.addEventListener("click", e => {
 
 async function openVideoIntro(targetUrl, btn){
   const seanceId = btn?.dataset?.seance || "";
+  const posterUrl = getTransitionPosterUrl(seanceId, btn);
   let videoUrl = "";
+
+  // Save the poster immediately. Hall can reuse the exact same image
+  // before its own data/geometry has finished loading.
+  rememberTransitionPoster(seanceId, posterUrl);
 
   try{
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/seance_visuals?select=live_poster_url&seance_id=eq.${seanceId}&enabled=eq.true`,
+      `${SUPABASE_URL}/rest/v1/seance_visuals?select=live_poster_url&seance_id=eq.${encodeURIComponent(seanceId)}&enabled=eq.true`,
       {
         headers:{
           apikey: SUPABASE_ANON_KEY,
           Authorization:`Bearer ${SUPABASE_ANON_KEY}`
-        }
+        },
+        cache:"no-store"
       }
     );
 
@@ -1379,8 +1537,9 @@ async function openVideoIntro(targetUrl, btn){
     console.error(e);
   }
 
+  // No Live Poster: still use the same seamless curtain.
   if (!videoUrl){
-    location.href = targetUrl;
+    navigateToHall(targetUrl, seanceId, posterUrl);
     return;
   }
 
@@ -1388,7 +1547,7 @@ async function openVideoIntro(targetUrl, btn){
   const wrap = card?.querySelector(".poster-wrap");
 
   if (!wrap){
-    location.href = targetUrl;
+    navigateToHall(targetUrl, seanceId, posterUrl);
     return;
   }
 
@@ -1398,8 +1557,9 @@ async function openVideoIntro(targetUrl, btn){
       autoplay
       playsinline
       controls
+      preload="auto"
     >
-      <source src="${videoUrl}" type="video/mp4">
+      <source src="${safeHtml(videoUrl)}" type="video/mp4">
     </video>
 
     <button class="skip-card-video" type="button">
@@ -1410,14 +1570,28 @@ async function openVideoIntro(targetUrl, btn){
   const video = wrap.querySelector("video");
   const skip = wrap.querySelector(".skip-card-video");
 
+  let leaving = false;
+
   const go = () => {
-    location.href = targetUrl;
+    if (leaving) return;
+    leaving = true;
+
+    try{
+      if (video) {
+        video.pause();
+      }
+    }catch(_){}
+
+    navigateToHall(targetUrl, seanceId, posterUrl);
   };
 
   skip.onclick = go;
   video.onended = go;
+  video.onerror = go;
 
-  video.play().catch(() => {});
+  video.play().catch(() => {
+    // Autoplay can be blocked on some devices. The user can still press Skip.
+  });
 }
 </script>
 
