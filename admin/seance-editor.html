@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Редактор сеансу — VA Admin</title>
-<!-- VA Seance Editor V1.7 UNIVERSAL ZOOM/FULLSCREEN + OPERA AMPHITHEATRE FIX + PRICE COLOR PALETTE — 2026-09-12 -->
+<!-- VA Seance Editor V1.8 UNIVERSAL ZOOM/FULLSCREEN + OPERA AMPHITHEATRE FIX + PRICE COLOR PALETTE + UNIVERSAL LODGE KEYS — 2026-09-16 -->
 <meta name="viewport" content="width=device-width, initial-scale=1">    
  
 <style>
@@ -747,8 +747,8 @@ Seance ID — технічний ключ.
         </div>
 
         <div class="note">
-          Ложа А = <b>A0-M1...A0-M18</b>, Ложа Б = <b>B0-M1...B0-M18</b>.
-          Також записується в <b>seat_overrides</b>.
+          Реальні ключі місць лож беруться з активної схеми залу.
+          Правило записується в <b>seat_overrides</b> саме за фактичними ключами місць.
         </div>
       </section>
 
@@ -2802,15 +2802,106 @@ function addSeatSegment(){
   renderPreview();
 }
 
+function getLodgeSeatKeysForCurrentHall(lodgeValue, from, to){
+  const hall = CURRENT_PREVIEW_HALL;
+  const lodge = String(lodgeValue || "").trim().toUpperCase();
+
+  const zoneName =
+    lodge === "A0" ? "Ложа А" :
+    lodge === "B0" ? "Ложа Б" :
+    "";
+
+  /*
+    Builder/V7 halls are authoritative: use the real seat.key from geometry.
+    This is important because different halls may encode lodges differently
+    (A0-M..., B0-M..., LA1-M..., LB1-M..., P0-M..., etc.).
+  */
+  if (hall && Array.isArray(hall.seats) && zoneName) {
+    const exact = hall.seats
+      .filter(seat =>
+        String(seat?.zone || "").trim().toLocaleLowerCase("uk") ===
+        zoneName.toLocaleLowerCase("uk")
+      )
+      .filter(seat => {
+        const n = Number(seat?.seat ?? seat?.seat_number);
+        return Number.isFinite(n) && n >= from && n <= to;
+      })
+      .map(seat =>
+        String(
+          seat?.key ||
+          seat?.seat_key ||
+          makeVASeatKey(
+            seat?.prefix || "",
+            seat?.row ?? seat?.row_label,
+            seat?.seat ?? seat?.seat_number
+          )
+        ).trim()
+      )
+      .filter(Boolean);
+
+    if (exact.length) {
+      return [...new Set(exact)];
+    }
+  }
+
+  /*
+    Section-based/legacy halls: resolve known lodge key families
+    only among seats that actually exist in the current hall.
+  */
+  if (hall) {
+    const actualKeys = [...collectVASeatKeys(hall)];
+
+    const patterns =
+      lodge === "A0"
+        ? [
+            /^A0-M(\d+)$/i,
+            /^LA\d+-M(\d+)$/i,
+            /^P0-M(\d+)$/i
+          ]
+        : lodge === "B0"
+        ? [
+            /^B0-M(\d+)$/i,
+            /^LB\d+-M(\d+)$/i
+          ]
+        : [];
+
+    const matched = actualKeys.filter(key => {
+      for (const re of patterns) {
+        const m = String(key).match(re);
+        if (!m) continue;
+
+        const seatNo = Number(m[1]);
+        return Number.isFinite(seatNo) &&
+               seatNo >= from &&
+               seatNo <= to;
+      }
+      return false;
+    });
+
+    if (matched.length) {
+      return matched;
+    }
+  }
+
+  /*
+    Final fallback for old classic halls where lodge keys are A0/B0.
+  */
+  const fallback = [];
+  for (let seat = from; seat <= to; seat++) {
+    fallback.push(`${lodge}-M${seat}`);
+  }
+  return fallback;
+}
+
 function addLodgeRange(){
-  const lodge = lodgeZone.value;
+  const lodge = String(lodgeZone.value || "").trim().toUpperCase();
   const from = Number(lodgeFromSeat.value);
   const to = Number(lodgeToSeat.value);
-  const p = Number(lodgePrice.value);
+  const p = lodgePrice.value === "" ? null : Number(lodgePrice.value);
   const c = lodgeColor.value;
   const saleAllowed = lodgeSale.checked;
 
-  if (!lodge || !from || !to || !p) {
+  if (!lodge || !from || !to || p === null || !Number.isFinite(p)) {
     alert("Вкажи ложу, місця і ціну");
     return;
   }
@@ -2820,14 +2911,28 @@ function addLodgeRange(){
     return;
   }
 
+  const keys = getLodgeSeatKeysForCurrentHall(lodge, from, to);
+
+  if (!keys.length) {
+    alert("У поточній схемі не знайдено місць цієї ложі в заданому діапазоні.");
+    return;
+  }
+
+  /*
+    Remove stale hard-coded A0/B0 overrides from earlier attempts.
+    If the real key is A0/B0, it will be written again below.
+  */
   for (let seat = from; seat <= to; seat++) {
-    const key = `${lodge}-M${seat}`;
+    delete data.seat_overrides[`${lodge}-M${seat}`];
+  }
+
+  keys.forEach(key => {
     data.seat_overrides[key] = {
       price: p,
       color: c,
       sale: saleAllowed
     };
-  }
+  });
 
   render();
   renderPreview();
