@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" class="va-booting">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />   
   <title>Схема залу</title>
+
+  <!-- VA SEAMLESS HALL BOOT: prevents the browser's white first paint -->
+  <style id="va-hall-boot-critical">
+    html.va-booting,
+    html.va-booting body{
+      background:#020617 !important;
+    }
+  </style>
 
  <link rel="stylesheet" href="../../styles/styles.css" />
 
@@ -1590,10 +1598,93 @@ body.va-static-bg-active::before{
   }
 }
 
+
+/* ===== VA SEAMLESS POSTER -> HALL TRANSITION ===== */
+#hallBootScreen{
+  position:fixed;
+  inset:0;
+  z-index:2147483000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:#020617;
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transition:opacity .28s ease, visibility .28s ease;
+}
+
+#hallBootScreen.is-ready{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+
+#hallBootScreen .hall-boot-backdrop{
+  position:absolute;
+  inset:-4%;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(185,28,28,.18), transparent 40%),
+    linear-gradient(180deg,#020617 0%,#050014 100%);
+  transform:scale(1.03);
+}
+
+#hallBootScreen.has-poster .hall-boot-backdrop{
+  background-image:
+    linear-gradient(rgba(2,6,23,.44), rgba(2,6,23,.72)),
+    var(--va-hall-boot-poster);
+  background-position:center;
+  background-size:cover;
+  filter:blur(12px) brightness(.78);
+}
+
+#hallBootPoster{
+  position:relative;
+  z-index:2;
+  display:none;
+  width:min(38vw,420px);
+  max-width:82vw;
+  max-height:82vh;
+  object-fit:contain;
+  border-radius:18px;
+  box-shadow:0 26px 80px rgba(0,0,0,.55);
+  opacity:.96;
+  transform:scale(1);
+  transition:opacity .2s ease;
+}
+
+#hallBootScreen.has-poster #hallBootPoster{
+  display:block;
+}
+
+#hallBootScreen .hall-boot-vignette{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at center, transparent 35%, rgba(2,6,23,.34) 76%, rgba(2,6,23,.72) 100%);
+}
+
+@media (max-width:768px){
+  #hallBootPoster{
+    width:min(74vw,360px);
+    max-height:78vh;
+    border-radius:14px;
+  }
+}
+
 </style>
 
 </head>
 <body>
+  <!-- VA seamless transition receiver: stays above Hall until geometry + visual are ready -->
+  <div id="hallBootScreen" aria-hidden="true">
+    <div class="hall-boot-backdrop"></div>
+    <img id="hallBootPoster" alt="">
+    <div class="hall-boot-vignette"></div>
+  </div>
 <div id="refDemoBadge"></div>
   
    <div id="seat-tooltip" class="seat-tooltip" hidden></div>
@@ -1792,6 +1883,103 @@ if (refCode) {
     const SEANCE_ID = (qs.get("seance") || "").trim();
     const DIRECT_HALL = (qs.get("hall") || "").trim();
     const VENUE_ID = (qs.get("venue") || "").trim();
+
+    // ===== VA SEAMLESS POSTER -> HALL TRANSITION =====
+    function setHallBootPoster(url){
+      const clean = String(url || "").trim();
+      const screen = document.getElementById("hallBootScreen");
+      const img = document.getElementById("hallBootPoster");
+      if (!screen || !img || !clean) return;
+
+      img.src = clean;
+      screen.style.setProperty(
+        "--va-hall-boot-poster",
+        `url("${clean.replace(/"/g, '\\"')}")`
+      );
+      screen.classList.add("has-poster");
+    }
+
+    function prepareHallBootVisual(){
+      if (!SEANCE_ID) return;
+
+      const candidates = [
+        `va_transition_poster:${SEANCE_ID}`,
+        "va_transition_poster"
+      ];
+
+      for (const key of candidates) {
+        try {
+          const value = sessionStorage.getItem(key);
+          if (value) {
+            setHallBootPoster(value);
+            return;
+          }
+        } catch (_) {}
+      }
+    }
+
+    async function waitForHallVisualReady(timeoutMs = 1400){
+      const media =
+        document.getElementById("va-theme-image-bg") ||
+        document.getElementById("va-theme-video-bg");
+
+      if (!media) return;
+
+      if (media.tagName === "IMG") {
+        if (media.complete && media.naturalWidth > 0) {
+          try { await media.decode?.(); } catch (_) {}
+          return;
+        }
+
+        await Promise.race([
+          new Promise(resolve => {
+            media.addEventListener("load", resolve, { once:true });
+            media.addEventListener("error", resolve, { once:true });
+          }),
+          new Promise(resolve => setTimeout(resolve, timeoutMs))
+        ]);
+        return;
+      }
+
+      if (media.tagName === "VIDEO") {
+        if (media.readyState >= 2) return;
+
+        await Promise.race([
+          new Promise(resolve => {
+            media.addEventListener("loadeddata", resolve, { once:true });
+            media.addEventListener("canplay", resolve, { once:true });
+            media.addEventListener("error", resolve, { once:true });
+          }),
+          new Promise(resolve => setTimeout(resolve, timeoutMs))
+        ]);
+      }
+    }
+
+    function finishHallBoot(){
+      const screen = document.getElementById("hallBootScreen");
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.documentElement.classList.remove("va-booting");
+
+          if (!screen) return;
+          screen.classList.add("is-ready");
+
+          setTimeout(() => {
+            screen.remove();
+          }, 360);
+        });
+      });
+    }
+
+    prepareHallBootVisual();
+
+    // Safety valve: never leave a buyer behind the curtain forever.
+    setTimeout(() => {
+      if (document.documentElement.classList.contains("va-booting")) {
+        finishHallBoot();
+      }
+    }, 8000);
 
     // ===== VA CRO V1 =====
     // Analytics is deliberately fire-and-forget: it must never block Hall,
@@ -4249,6 +4437,9 @@ async function bootGatewayHall(){
   // The Hall is counted only after Gateway state and geometry loaded successfully.
   croTrackHallOpen("gateway");
 
+  await waitForHallVisualReady();
+  finishHallBoot();
+
   setInterval(async () => {
     try {
       const before = new Set(selected.keys());
@@ -4591,7 +4782,15 @@ hallFile = String(hallFile).trim();
 
 console.log("RESOLVED HALL:", hallFile);
 await loadHallVisualConfig(hallFile);
- setEventPosterFromSeance(SEANCE_META); 
+
+// Upgrade the transition curtain to the authoritative poster as soon as it is known.
+setHallBootPoster(
+  HALL_VISUAL_CONFIG?.poster ||
+  SEANCE_META?.poster_url ||
+  ""
+);
+
+setEventPosterFromSeance(SEANCE_META); 
 renderPageVideoBackground();
   const hallRes = await fetch(`../../data/hall/${hallFile}.json`, {
   cache: "no-store"
@@ -4644,6 +4843,10 @@ renderPageVideoBackground();
 
   // The Hall is counted only after native geometry and current seat state loaded.
   croTrackHallOpen("native");
+
+  // Keep the previous-poster curtain until Hall and its visual background are actually ready.
+  await waitForHallVisualReady();
+  finishHallBoot();
 
   setInterval(async () => {
     await loadTakenSeats();
