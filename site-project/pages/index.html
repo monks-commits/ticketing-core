@@ -1516,9 +1516,6 @@ async function openVideoIntro(targetUrl, btn){
   // before its own data/geometry has finished loading.
   rememberTransitionPoster(seanceId, posterUrl);
 
-  // IMPORTANT:
-  // Keep the original direct request for Live Poster.
-  // For the current storefront this is the reliable source.
   try{
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/seance_visuals?select=live_poster_url&seance_id=eq.${encodeURIComponent(seanceId)}&enabled=eq.true`,
@@ -1540,7 +1537,7 @@ async function openVideoIntro(targetUrl, btn){
     console.error(e);
   }
 
-  // No Live Poster: go straight to Hall.
+  // No Live Poster: still use the same seamless curtain.
   if (!videoUrl){
     navigateToHall(targetUrl, seanceId, posterUrl);
     return;
@@ -1554,7 +1551,6 @@ async function openVideoIntro(targetUrl, btn){
     return;
   }
 
-  // Preserve the working Live Poster markup.
   wrap.innerHTML = `
     <video
       class="poster live-poster-video"
@@ -1575,27 +1571,15 @@ async function openVideoIntro(targetUrl, btn){
   const skip = wrap.querySelector(".skip-card-video");
 
   let leaving = false;
-  let introTimer = null;
-  let safetyTimer = null;
-
-  const clearTimers = () => {
-    if (introTimer) {
-      clearTimeout(introTimer);
-      introTimer = null;
-    }
-    if (safetyTimer) {
-      clearTimeout(safetyTimer);
-      safetyTimer = null;
-    }
-  };
 
   const go = () => {
     if (leaving) return;
     leaving = true;
-    clearTimers();
 
     try{
-      if (video) video.pause();
+      if (video) {
+        video.pause();
+      }
     }catch(_){}
 
     navigateToHall(targetUrl, seanceId, posterUrl);
@@ -1605,24 +1589,8 @@ async function openVideoIntro(targetUrl, btn){
   video.onended = go;
   video.onerror = go;
 
-  // Start the 4-second limit only when the visitor can actually see
-  // the Live Poster playing. This preserves the visual instead of
-  // consuming its time while the MP4 is still loading.
-  const startIntroLimit = () => {
-    if (leaving || introTimer) return;
-    introTimer = setTimeout(go, 4000);
-  };
-
-  video.addEventListener("playing", startIntroLimit, { once:true });
-
-  // Fallback only for a broken/blocked media start.
-  // It is intentionally longer so a normal Live Poster has time to appear.
-  safetyTimer = setTimeout(go, 8000);
-
   video.play().catch(() => {
-    // Original behavior preserved:
-    // controls and "Пропустити" remain available.
-    // Safety timer guarantees that the buyer is not trapped forever.
+    // Autoplay can be blocked on some devices. The user can still press Skip.
   });
 }
 
