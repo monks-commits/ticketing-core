@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VA — Live Poster</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden}
+  body{min-height:100dvh}
+  .stage{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center}
+  .backdrop{position:absolute;inset:-30px;background-position:center;background-size:cover;filter:blur(26px) brightness(.34);transform:scale(1.08);opacity:0;transition:opacity .25s ease}
+  .backdrop.on{opacity:1}
+  .shade{position:absolute;inset:0;background:radial-gradient(circle at center,rgba(0,0,0,.03),rgba(0,0,0,.54) 82%)}
+  video{position:relative;z-index:2;width:100%;height:100%;object-fit:contain;background:#000}
+  .skip,.sound,.play{position:fixed;z-index:5;border:1px solid rgba(255,255,255,.28);background:rgba(2,6,23,.72);color:#fff;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);font-weight:800;cursor:pointer}
+  .skip{top:max(16px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));padding:12px 18px;border-radius:999px;font-size:15px}
+  .sound{left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));padding:11px 15px;border-radius:999px;font-size:14px}
+  .play{left:50%;top:50%;transform:translate(-50%,-50%);padding:16px 22px;border-radius:999px;font-size:17px}
+  .status{position:fixed;z-index:6;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);max-width:min(90vw,620px);padding:10px 14px;border-radius:12px;background:rgba(2,6,23,.82);color:#cbd5e1;font-size:14px;text-align:center}
+  [hidden]{display:none!important}
+  @media (max-width:640px){.skip{font-size:14px;padding:11px 15px}.sound{font-size:13px}.status{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="backdrop" id="backdrop"></div>
+  <div class="shade"></div>
+  <video id="video" playsinline preload="auto"></video>
+</div>
+<button class="skip" id="skipBtn" type="button">Пропустити</button>
+<button class="sound" id="soundBtn" type="button" hidden>🔊 Увімкнути звук</button>
+<button class="play" id="playBtn" type="button" hidden>▶ Відтворити</button>
+<div class="status" id="status">Завантаження Live Poster…</div>
+
+<script>
+const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+const params = new URLSearchParams(location.search);
+const seanceId = params.get("seance") || params.get("seance_id") || "";
+
+const video = document.getElementById("video");
+const skipBtn = document.getElementById("skipBtn");
+const soundBtn = document.getElementById("soundBtn");
+const playBtn = document.getElementById("playBtn");
+const statusEl = document.getElementById("status");
+const backdrop = document.getElementById("backdrop");
+
+let leaving = false;
+
+function hallUrl(){
+  const url = new URL("./hall.html", location.href);
+
+  for (const [key,value] of params.entries()) {
+    if (key === "seance" || key === "seance_id") continue;
+    url.searchParams.set(key,value);
+  }
+
+  if (seanceId) url.searchParams.set("seance",seanceId);
+  url.searchParams.set("va_entry","live_poster");
+  return url.toString();
+}
+
+function goHall(){
+  if (leaving) return;
+  leaving = true;
+
+  try{ video.pause(); }catch(_){}
+  location.replace(hallUrl());
+}
+
+function setStatus(text){
+  statusEl.textContent = text || "";
+  statusEl.hidden = !text;
+}
+
+function setPosterBackdrop(url){
+  if (!url) return;
+  backdrop.style.backgroundImage = `url("${String(url).replace(/"/g,"\\\"")}")`;
+  backdrop.classList.add("on");
+}
+
+async function loadVisual(){
+  if (!seanceId) {
+    setStatus("Сеанс не визначено. Відкриваю схему залу…");
+    setTimeout(goHall,250);
+    return;
+  }
+
+  try{
+    const api = new URL(`${SUPABASE_URL}/rest/v1/seance_visuals`);
+    api.searchParams.set("select","live_poster_url,poster_url,enable_live_poster,enabled");
+    api.searchParams.set("seance_id",`eq.${seanceId}`);
+    api.searchParams.set("enabled","eq.true");
+    api.searchParams.set("limit","1");
+
+    const res = await fetch(api.toString(),{
+      headers:{
+        apikey:SUPABASE_ANON_KEY,
+        Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+      },
+      cache:"no-store"
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const rows = await res.json();
+    const visual = Array.isArray(rows) ? rows[0] : null;
+
+    if (!visual?.live_poster_url || visual?.enable_live_poster === false) {
+      goHall();
+      return;
+    }
+
+    setPosterBackdrop(visual.poster_url || "");
+    video.src = visual.live_poster_url;
+
+    video.addEventListener("ended",goHall,{once:true});
+    video.addEventListener("error",goHall,{once:true});
+    video.addEventListener("playing",()=>setStatus(""),{once:true});
+
+    try{
+      video.muted = false;
+      await video.play();
+      soundBtn.hidden = false;
+      soundBtn.textContent = "🔇 Вимкнути звук";
+    }catch(_){
+      try{
+        video.muted = true;
+        await video.play();
+        soundBtn.hidden = false;
+        soundBtn.textContent = "🔊 Увімкнути звук";
+      }catch(__){
+        setStatus("Натисніть «Відтворити» або «Пропустити».");
+        playBtn.hidden = false;
+      }
+    }
+  }catch(error){
+    console.error("VA LIVE POSTER BRIDGE:",error);
+    goHall();
+  }
+}
+
+skipBtn.addEventListener("click",goHall);
+
+playBtn.addEventListener("click",async()=>{
+  try{
+    await video.play();
+    playBtn.hidden = true;
+    setStatus("");
+  }catch(error){
+    console.warn(error);
+  }
+});
+
+soundBtn.addEventListener("click",()=>{
+  video.muted = !video.muted;
+  soundBtn.textContent = video.muted
+    ? "🔊 Увімкнути звук"
+    : "🔇 Вимкнути звук";
+});
+
+loadVisual();
+</script>
+</body>
+</html>
