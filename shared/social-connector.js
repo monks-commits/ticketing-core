@@ -86,6 +86,8 @@
       file_kind: clean(options.fileKind || options.file_kind),
       output_id: clean(options.outputId || options.output_id),
       queue_id: clean(options.queueId || options.queue_id),
+      publication_mode: clean(options.publicationMode || options.publication_mode),
+      destination_url: clean(options.destinationUrl || options.destination_url),
 
       // Контекст VA. Поточна Facebook Edge Function може його ігнорувати;
       // поля вже передаються, щоб транспорт не був прив'язаний до одного модуля.
@@ -116,7 +118,7 @@
   }
 
   global.VA_SOCIAL = Object.freeze({
-    version: "1.0.0",
+    version: "1.1.0",
     publish,
     publishFacebook,
     buildTrackedUrl,
