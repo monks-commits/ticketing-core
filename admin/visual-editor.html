@@ -41,6 +41,17 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
     grid-template-columns:1fr;
   }
 }
+
+.social-card h2{margin:0 0 8px}
+.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.social-textarea{width:100%;min-height:150px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:#020617;color:#fff;resize:vertical}
+.social-link{display:inline-block;margin-top:10px;color:#93c5fd;text-decoration:none;word-break:break-all}
+.social-link:hover{text-decoration:underline}
+.social-note{margin-top:12px;padding:12px;border:1px solid rgba(255,255,255,.10);border-radius:12px;background:#0b1220;color:#94a3b8;font-size:13px;line-height:1.45}
+.social-status{margin-top:12px;color:#a7f3d0;font-size:14px;white-space:pre-wrap}
+.social-status.error{color:#fecaca}
+.social-status.warn{color:#fde68a}
+@media(max-width:850px){.social-grid{grid-template-columns:1fr}}
   
 </style>
 </head>
@@ -211,9 +222,47 @@ style="width:auto">
 
 <button class="btn2" id="openSeanceBtn">Відкрити сторінку сеансу</button>
   </div>
+
+  <div class="card social-card">
+    <h2>Публікація</h2>
+    <div class="small">
+      Social Connector площадки. Visual Editor може відправити власний visual без «Рекламного відділу».
+    </div>
+
+    <div class="social-grid">
+      <div>
+        <label>Канал</label>
+        <input value="Facebook" readonly>
+      </div>
+      <div>
+        <label>Медіа</label>
+        <select id="facebookMediaSelect">
+          <option value="live_poster">Live Poster з вітрини</option>
+          <option value="poster">Статична афіша</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Текст публікації</label>
+    <textarea id="facebookPublishText" class="social-textarea" placeholder="Текст публікації"></textarea>
+
+    <label>Перехід на схему залу</label>
+    <input id="facebookTargetUrl" readonly>
+
+    <button class="btn" id="facebookPublishBtn" type="button" disabled>Опублікувати у Facebook</button>
+
+    <div id="facebookPublishStatus" class="social-status"></div>
+    <a id="facebookPublishedUrl" class="social-link" href="#" target="_blank" rel="noopener" hidden>Відкрити публікацію у Facebook</a>
+
+    <div class="social-note">
+      Зараз для тесту використовується вже налаштований серверний Facebook-транспорт VA.
+      Токен у браузер не передається. Реальне підключення конкретної Facebook Page буде належати майданчику, а не цьому модулю.
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../shared/social-connector.js"></script>
 
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
@@ -242,6 +291,13 @@ const backgroundOverlayOpacity = document.getElementById("backgroundOverlayOpaci
 const durationInput = document.getElementById("durationInput");
 const statusEl = document.getElementById("status");
 
+const facebookMediaSelect = document.getElementById("facebookMediaSelect");
+const facebookPublishText = document.getElementById("facebookPublishText");
+const facebookTargetUrl = document.getElementById("facebookTargetUrl");
+const facebookPublishBtn = document.getElementById("facebookPublishBtn");
+const facebookPublishStatus = document.getElementById("facebookPublishStatus");
+const facebookPublishedUrl = document.getElementById("facebookPublishedUrl");
+
 let seances = [];
 let currentVisual = null;
 
@@ -259,7 +315,7 @@ function safeName(name){
 async function loadSeances(){
   const { data, error } = await sb
     .from("seances")
-    .select("id,show,date,time,venue_id,poster_url,active,status")
+    .select("id,show,date,time,venue_id,project_id,poster_url,active,status")
     .order("date", { ascending:true });
 
   if (error) {
@@ -285,6 +341,299 @@ async function loadSeances(){
   ) {
     seanceSelect.value = REQUESTED_SEANCE_ID;
     await loadCurrentVisual();
+  }
+}
+
+function selectedSeance(){
+  const seanceId = seanceSelect.value;
+  return seances.find(s => String(s.id) === String(seanceId)) || null;
+}
+
+function formatEventDate(dateValue){
+  if (!dateValue) return "";
+  const d = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return String(dateValue);
+  return d.toLocaleDateString("uk-UA", {
+    day:"2-digit",
+    month:"2-digit",
+    year:"numeric"
+  });
+}
+
+function baseHallUrl(){
+  const seanceId = seanceSelect.value;
+  if (!seanceId) return "";
+
+  const url = new URL("../site-project/pages/hall.html", location.href);
+  url.searchParams.set("seance", seanceId);
+  return url.toString();
+}
+
+function trackedFacebookHallUrl(){
+  const seanceId = seanceSelect.value;
+  const raw = baseHallUrl();
+  if (!raw) return "";
+
+  if (window.VA_SOCIAL?.buildTrackedUrl) {
+    return window.VA_SOCIAL.buildTrackedUrl(raw, {
+      source:"facebook",
+      medium:"social",
+      campaign:seanceId,
+      seanceId,
+      sourceModule:"visual_editor"
+    });
+  }
+
+  return raw;
+}
+
+function defaultFacebookText(){
+  const s = selectedSeance();
+  if (!s) return "";
+
+  const when = [
+    formatEventDate(s.date),
+    s.time || ""
+  ].filter(Boolean).join(" · ");
+
+  const description =
+    currentVisual?.event_text ||
+    currentVisual?.ticket_text ||
+    "";
+
+  return [
+    s.show || "Подія",
+    when,
+    description
+  ].filter(Boolean).join("\n\n");
+}
+
+function currentFacebookMedia(){
+  const source = facebookMediaSelect?.value || "live_poster";
+
+  if (source === "poster") {
+    return {
+      source,
+      url: currentVisual?.poster_url || "",
+      mimeType:"image/jpeg",
+      fileKind:"image"
+    };
+  }
+
+  return {
+    source:"live_poster",
+    url: currentVisual?.live_poster_url || "",
+    mimeType:"video/mp4",
+    fileKind:"mp4"
+  };
+}
+
+function setFacebookPublishStatus(text, kind=""){
+  if (!facebookPublishStatus) return;
+  facebookPublishStatus.textContent = text || "";
+  facebookPublishStatus.className = `social-status ${kind}`.trim();
+}
+
+function refreshFacebookPanel(){
+  if (!facebookPublishBtn) return;
+
+  const s = selectedSeance();
+  const hasLive = Boolean(currentVisual?.live_poster_url);
+  const hasPoster = Boolean(currentVisual?.poster_url);
+
+  if (facebookMediaSelect) {
+    const liveOption = facebookMediaSelect.querySelector('option[value="live_poster"]');
+    const posterOption = facebookMediaSelect.querySelector('option[value="poster"]');
+    if (liveOption) liveOption.disabled = !hasLive;
+    if (posterOption) posterOption.disabled = !hasPoster;
+
+    if (facebookMediaSelect.value === "live_poster" && !hasLive && hasPoster) {
+      facebookMediaSelect.value = "poster";
+    } else if (facebookMediaSelect.value === "poster" && !hasPoster && hasLive) {
+      facebookMediaSelect.value = "live_poster";
+    }
+  }
+
+  facebookTargetUrl.value = s ? trackedFacebookHallUrl() : "";
+  facebookPublishText.value = s ? defaultFacebookText() : "";
+
+  const media = currentFacebookMedia();
+  facebookPublishBtn.disabled = !(s && media.url);
+
+  facebookPublishedUrl.hidden = true;
+  facebookPublishedUrl.href = "#";
+  setFacebookPublishStatus(
+    !s
+      ? "Оберіть сеанс."
+      : !media.url
+        ? "Для публікації спочатку завантажте Live Poster або афішу."
+        : "Готово до публікації."
+  );
+}
+
+async function createVisualSocialQueueItem({
+  seance,
+  media,
+  message,
+  targetUrl
+}){
+  const now = new Date().toISOString();
+
+  const payload = {
+    output_id:`visual-editor:${String(seance?.id || "unknown")}:${Date.now()}`,
+    publication_id:null,
+    venue_id:String(seance?.venue_id || ""),
+    project_id:seance?.project_id ? String(seance.project_id) : null,
+    seance_id:String(seance?.id || ""),
+    channel:"facebook",
+    mode:"now",
+    scheduled_at:null,
+    status:"queued",
+    title:`${seance?.show || "Подія"} · Visual Editor`,
+    file_url:media.url || null,
+    target_url:targetUrl || null,
+    payload:{
+      text:message || "",
+      media_source:media.source,
+      source_module:"visual_editor",
+      transport:"va_social_connector_v1"
+    },
+    created_at:now,
+    updated_at:now
+  };
+
+  const { data, error } = await sb
+    .from("social_publication_queue")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.warn("SOCIAL QUEUE INSERT:", error);
+    return null;
+  }
+
+  return data;
+}
+
+async function updateVisualSocialQueueItem(queueItem, fields){
+  if (!queueItem?.id) return;
+
+  const { error } = await sb
+    .from("social_publication_queue")
+    .update({
+      ...fields,
+      updated_at:new Date().toISOString()
+    })
+    .eq("id", queueItem.id);
+
+  if (error) {
+    console.warn("SOCIAL QUEUE UPDATE:", error);
+  }
+}
+
+async function publishVisualToFacebook(){
+  const seance = selectedSeance();
+  if (!seance) {
+    alert("Оберіть сеанс");
+    return;
+  }
+
+  if (!seance.venue_id) {
+    setFacebookPublishStatus("У сеансу не визначено venue_id.", "error");
+    return;
+  }
+
+  if (!window.VA_SOCIAL?.publishFacebook) {
+    setFacebookPublishStatus(
+      "Social Connector не завантажено. Перевірте shared/social-connector.js.",
+      "error"
+    );
+    return;
+  }
+
+  const media = currentFacebookMedia();
+  if (!media.url) {
+    setFacebookPublishStatus(
+      "Обраний visual відсутній. Завантажте його та збережіть сеанс.",
+      "warn"
+    );
+    return;
+  }
+
+  const message = facebookPublishText.value.trim();
+  const targetUrl = facebookTargetUrl.value.trim() || trackedFacebookHallUrl();
+
+  facebookPublishBtn.disabled = true;
+  facebookPublishedUrl.hidden = true;
+  setFacebookPublishStatus("Facebook: відправляю через Social Connector VA…");
+
+  let queueItem = null;
+
+  try {
+    queueItem = await createVisualSocialQueueItem({
+      seance,
+      media,
+      message,
+      targetUrl
+    });
+
+    const result = await window.VA_SOCIAL.publishFacebook({
+      supabaseUrl:SUPABASE_URL,
+      anonKey:SUPABASE_ANON_KEY,
+      venueId:seance.venue_id,
+      seanceId:seance.id,
+      sourceModule:"visual_editor",
+      message,
+      targetUrl,
+      fileUrl:media.url,
+      mimeType:media.mimeType,
+      fileKind:media.fileKind,
+      queueId:queueItem?.id || ""
+    });
+
+    const publishedAt = result?.published_at || new Date().toISOString();
+    const permalink = result?.permalink_url || null;
+
+    await updateVisualSocialQueueItem(queueItem, {
+      status:"published",
+      payload:{
+        ...(queueItem?.payload || {}),
+        provider:"facebook",
+        provider_post_id:result?.post_id || null,
+        provider_object_id:result?.provider_object_id || null,
+        permalink_url:permalink,
+        published_at:publishedAt
+      }
+    });
+
+    if (permalink) {
+      facebookPublishedUrl.href = permalink;
+      facebookPublishedUrl.hidden = false;
+      setFacebookPublishStatus(
+        "Facebook: опубліковано. Посилання на публікацію збережено."
+      );
+    } else {
+      setFacebookPublishStatus(
+        `Facebook: опубліковано. post_id: ${result?.post_id || "отримано"}`
+      );
+    }
+  } catch (error) {
+    const text = error instanceof Error ? error.message : String(error);
+
+    await updateVisualSocialQueueItem(queueItem, {
+      status:"error",
+      payload:{
+        ...(queueItem?.payload || {}),
+        provider:"facebook",
+        error:text,
+        failed_at:new Date().toISOString()
+      }
+    });
+
+    setFacebookPublishStatus(`Facebook: помилка — ${text}`, "error");
+  } finally {
+    facebookPublishBtn.disabled = !currentFacebookMedia().url;
   }
 }
 
@@ -369,6 +718,7 @@ backgroundOverlayOpacity.value =
   Number(currentVisual?.background_overlay_opacity ?? 0);
 
   renderPreview(currentVisual);
+  refreshFacebookPanel();
   setStatus(currentVisual ? "Visual завантажено" : "Для цього сеансу visual ще не створено");
 }
 
@@ -448,6 +798,8 @@ function renderPreview(v){
     bgBox.innerHTML = `<img src="${v.background_image_url}" alt="">`;
     bgStatus.textContent = "Статичний фон завантажено, але вимкнено";
   }
+
+  refreshFacebookPanel();
 }
 
 async function updateVisualFields(fields, successMessage){
@@ -490,6 +842,7 @@ async function updateVisualFields(fields, successMessage){
 
     currentVisual = data || { ...(currentVisual || {}), seance_id: seanceId, ...fields };
     renderPreview(currentVisual);
+    refreshFacebookPanel();
     setStatus(successMessage || "Visual оновлено.");
     return true;
   } catch (e) {
@@ -654,6 +1007,7 @@ ticket_text:
 
 currentVisual = data;
 renderPreview(currentVisual);
+refreshFacebookPanel();
 
 setStatus("Готово. Visual і опис події збережено.");
   } catch (e) {
@@ -676,6 +1030,8 @@ document.getElementById("deleteBgVideoBtn").addEventListener("click", clearBackg
 document.getElementById("clearAllVisualBtn").addEventListener("click", clearAllVisual);
 document.getElementById("loadBtn").addEventListener("click", loadCurrentVisual);
 seanceSelect.addEventListener("change", loadCurrentVisual);
+facebookMediaSelect.addEventListener("change", refreshFacebookPanel);
+facebookPublishBtn.addEventListener("click", publishVisualToFacebook);
 
 document.getElementById("openSeanceBtn").addEventListener("click", () => {
   const seanceId = seanceSelect.value;
