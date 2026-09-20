@@ -51,7 +51,10 @@ button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:poin
 .social-status{margin-top:12px;color:#a7f3d0;font-size:14px;white-space:pre-wrap}
 .social-status.error{color:#fecaca}
 .social-status.warn{color:#fde68a}
-@media(max-width:850px){.social-grid{grid-template-columns:1fr}}
+.social-poster-preview{margin-top:14px;display:grid;grid-template-columns:180px 1fr;gap:14px;align-items:start}
+.social-poster-preview canvas{width:180px;max-height:270px;object-fit:contain;border-radius:12px;background:#020617;border:1px solid rgba(255,255,255,.12)}
+.social-poster-preview .small{padding-top:4px}
+@media(max-width:850px){.social-grid{grid-template-columns:1fr}.social-poster-preview{grid-template-columns:1fr}.social-poster-preview canvas{width:min(100%,260px)}}
   
 </style>
 </head>
@@ -235,28 +238,40 @@ style="width:auto">
         <input value="Facebook" readonly>
       </div>
       <div>
-        <label>Медіа</label>
-        <select id="facebookMediaSelect">
-          <option value="live_poster">Live Poster з вітрини</option>
-          <option value="poster">Статична афіша</option>
-        </select>
+        <label>Формат</label>
+        <input value="Клікабельна афіша → вітрина" readonly>
+      </div>
+    </div>
+
+    <label>Підказка на афіші Facebook</label>
+    <select id="facebookPosterHint">
+      <option value="video">НАТИСНИ — ДИВИСЬ ВІДЕО</option>
+      <option value="poster">НАТИСНИ НА АФІШУ</option>
+      <option value="none">Без підказки</option>
+    </select>
+
+    <div class="social-poster-preview">
+      <canvas id="facebookPosterPreview" width="720" height="1080"></canvas>
+      <div class="small">
+        Оригінальна афіша не змінюється. Для Facebook VA створює окрему соціальну копію.
+        Натискання на афішу у Facebook відкриває конкретний сеанс на вітрині майданчика.
+        Якщо у сеансу є Live Poster — він запускається на вітрині; якщо немає — глядач бачить звичайну афішу.
       </div>
     </div>
 
     <label>Текст публікації</label>
     <textarea id="facebookPublishText" class="social-textarea" placeholder="Текст публікації"></textarea>
 
-    <label>Перехід на схему залу</label>
+    <label>Перехід з Facebook: афіша → вітрина конкретного сеансу</label>
     <input id="facebookTargetUrl" readonly>
 
-    <button class="btn" id="facebookPublishBtn" type="button" disabled>Опублікувати у Facebook</button>
+    <button class="btn" id="facebookPublishBtn" type="button" disabled>Опублікувати клікабельну афішу у Facebook</button>
 
     <div id="facebookPublishStatus" class="social-status"></div>
     <a id="facebookPublishedUrl" class="social-link" href="#" target="_blank" rel="noopener" hidden>Відкрити публікацію у Facebook</a>
 
     <div class="social-note">
-      Зараз для тесту використовується вже налаштований серверний Facebook-транспорт VA.
-      Токен у браузер не передається. Реальне підключення конкретної Facebook Page буде належати майданчику, а не цьому модулю.
+      Facebook отримує клікабельну link-картку. Оригінальна афіша не змінюється: VA створює окрему соціальну копію з підказкою. Токен у браузер не передається; підключення Facebook Page належить майданчику.
     </div>
   </div>
 </div>
@@ -291,7 +306,8 @@ const backgroundOverlayOpacity = document.getElementById("backgroundOverlayOpaci
 const durationInput = document.getElementById("durationInput");
 const statusEl = document.getElementById("status");
 
-const facebookMediaSelect = document.getElementById("facebookMediaSelect");
+const facebookPosterHint = document.getElementById("facebookPosterHint");
+const facebookPosterPreview = document.getElementById("facebookPosterPreview");
 const facebookPublishText = document.getElementById("facebookPublishText");
 const facebookTargetUrl = document.getElementById("facebookTargetUrl");
 const facebookPublishBtn = document.getElementById("facebookPublishBtn");
@@ -369,22 +385,44 @@ function baseHallUrl(){
   return url.toString();
 }
 
-function trackedFacebookHallUrl(){
-  const seanceId = seanceSelect.value;
-  const raw = baseHallUrl();
-  if (!raw) return "";
+function baseStorefrontUrl(){
+  const s = selectedSeance();
+  if (!s?.id) return "";
+
+  const url = new URL("../site-project/index.html", location.href);
+  url.searchParams.set("seance", s.id);
+  url.searchParams.set("seance_id", s.id);
+  if (s.venue_id) url.searchParams.set("venue", s.venue_id);
+  return url.toString();
+}
+
+function trackedFacebookEntryUrl(){
+  const s = selectedSeance();
+  const raw = baseStorefrontUrl();
+  if (!raw || !s) return "";
 
   if (window.VA_SOCIAL?.buildTrackedUrl) {
     return window.VA_SOCIAL.buildTrackedUrl(raw, {
       source:"facebook",
       medium:"social",
-      campaign:seanceId,
-      seanceId,
+      campaign:s.id,
+      seanceId:s.id,
       sourceModule:"visual_editor"
     });
   }
 
   return raw;
+}
+
+function socialShareUrl(targetUrl, version=""){
+  const s = selectedSeance();
+  if (!s?.id || !targetUrl) return "";
+
+  const url = new URL(`${SUPABASE_URL}/functions/v1/social-share`);
+  url.searchParams.set("seance", s.id);
+  url.searchParams.set("target", targetUrl);
+  if (version) url.searchParams.set("v", String(version));
+  return url.toString();
 }
 
 function defaultFacebookText(){
@@ -408,23 +446,116 @@ function defaultFacebookText(){
   ].filter(Boolean).join("\n\n");
 }
 
-function currentFacebookMedia(){
-  const source = facebookMediaSelect?.value || "live_poster";
+function facebookHintText(){
+  const value = facebookPosterHint?.value || "video";
+  if (value === "poster") return "НАТИСНИ НА АФІШУ";
+  if (value === "none") return "";
+  return "НАТИСНИ — ДИВИСЬ ВІДЕО";
+}
 
-  if (source === "poster") {
-    return {
-      source,
-      url: currentVisual?.poster_url || "",
-      mimeType:"image/jpeg",
-      fileKind:"image"
-    };
+async function loadImageBitmapFromUrl(url){
+  const response = await fetch(url, { cache:"no-store" });
+  if (!response.ok) throw new Error(`Не вдалося завантажити афішу: HTTP ${response.status}`);
+  const blob = await response.blob();
+  return await createImageBitmap(blob);
+}
+
+async function drawFacebookPosterCopy(){
+  const sourceUrl = currentVisual?.poster_url || "";
+  if (!sourceUrl || !facebookPosterPreview) return null;
+
+  const bitmap = await loadImageBitmapFromUrl(sourceUrl);
+  const maxWidth = 1440;
+  const scale = Math.min(1, maxWidth / Math.max(1, bitmap.width));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+
+  facebookPosterPreview.width = width;
+  facebookPosterPreview.height = height;
+
+  const ctx = facebookPosterPreview.getContext("2d");
+  ctx.clearRect(0,0,width,height);
+  ctx.drawImage(bitmap,0,0,width,height);
+
+  const hint = facebookHintText();
+  if (hint) {
+    const barHeight = Math.max(72, Math.round(height * 0.115));
+    const y = height - barHeight;
+
+    const gradient = ctx.createLinearGradient(0,y,0,height);
+    gradient.addColorStop(0,"rgba(0,0,0,.58)");
+    gradient.addColorStop(1,"rgba(0,0,0,.88)");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0,y,width,barHeight);
+
+    let fontSize = Math.max(28, Math.round(width * 0.052));
+    ctx.font = `800 ${fontSize}px Arial, sans-serif`;
+    while (ctx.measureText(hint).width > width * .90 && fontSize > 22) {
+      fontSize -= 2;
+      ctx.font = `800 ${fontSize}px Arial, sans-serif`;
+    }
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineWidth = Math.max(2, Math.round(fontSize * .08));
+    ctx.strokeStyle = "rgba(0,0,0,.75)";
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeText(hint,width/2,y+barHeight/2);
+    ctx.fillText(hint,width/2,y+barHeight/2);
   }
 
+  return facebookPosterPreview;
+}
+
+async function renderFacebookPosterPreview(){
+  if (!facebookPosterPreview) return;
+  if (!currentVisual?.poster_url) {
+    const ctx = facebookPosterPreview.getContext("2d");
+    ctx.clearRect(0,0,facebookPosterPreview.width,facebookPosterPreview.height);
+    return;
+  }
+
+  try {
+    await drawFacebookPosterCopy();
+  } catch (error) {
+    console.warn("FACEBOOK POSTER PREVIEW:", error);
+  }
+}
+
+async function uploadFacebookPosterCopy(){
+  const s = selectedSeance();
+  if (!s?.id) throw new Error("Оберіть сеанс.");
+  if (!currentVisual?.poster_url) throw new Error("Для сеансу немає афіші.");
+
+  const canvas = await drawFacebookPosterCopy();
+  if (!canvas) throw new Error("Не вдалося сформувати Facebook-афішу.");
+
+  const blob = await new Promise((resolve,reject) => {
+    canvas.toBlob(
+      value => value ? resolve(value) : reject(new Error("Не вдалося створити JPEG.")),
+      "image/jpeg",
+      .92
+    );
+  });
+
+  const path = `social/facebook/${safeName(s.id)}/poster.jpg`;
+  const { error } = await sb.storage
+    .from("posters")
+    .upload(path, blob, {
+      contentType:"image/jpeg",
+      cacheControl:"60",
+      upsert:true
+    });
+
+  if (error) throw error;
+
+  const { data } = sb.storage.from("posters").getPublicUrl(path);
   return {
-    source:"live_poster",
-    url: currentVisual?.live_poster_url || "",
-    mimeType:"video/mp4",
-    fileKind:"mp4"
+    url:data.publicUrl,
+    version:Date.now(),
+    source:"facebook_link_card",
+    mimeType:"image/jpeg",
+    fileKind:"image"
   };
 }
 
@@ -438,37 +569,23 @@ function refreshFacebookPanel(){
   if (!facebookPublishBtn) return;
 
   const s = selectedSeance();
-  const hasLive = Boolean(currentVisual?.live_poster_url);
   const hasPoster = Boolean(currentVisual?.poster_url);
 
-  if (facebookMediaSelect) {
-    const liveOption = facebookMediaSelect.querySelector('option[value="live_poster"]');
-    const posterOption = facebookMediaSelect.querySelector('option[value="poster"]');
-    if (liveOption) liveOption.disabled = !hasLive;
-    if (posterOption) posterOption.disabled = !hasPoster;
-
-    if (facebookMediaSelect.value === "live_poster" && !hasLive && hasPoster) {
-      facebookMediaSelect.value = "poster";
-    } else if (facebookMediaSelect.value === "poster" && !hasPoster && hasLive) {
-      facebookMediaSelect.value = "live_poster";
-    }
-  }
-
-  facebookTargetUrl.value = s ? trackedFacebookHallUrl() : "";
+  facebookTargetUrl.value = s ? trackedFacebookEntryUrl() : "";
   facebookPublishText.value = s ? defaultFacebookText() : "";
-
-  const media = currentFacebookMedia();
-  facebookPublishBtn.disabled = !(s && media.url);
+  facebookPublishBtn.disabled = !(s && hasPoster);
 
   facebookPublishedUrl.hidden = true;
   facebookPublishedUrl.href = "#";
   setFacebookPublishStatus(
     !s
       ? "Оберіть сеанс."
-      : !media.url
-        ? "Для публікації спочатку завантажте Live Poster або афішу."
-        : "Готово до публікації."
+      : !hasPoster
+        ? "Для клікабельної публікації спочатку завантажте афішу."
+        : "Готово до публікації клікабельної афіші."
   );
+
+  renderFacebookPosterPreview();
 }
 
 async function createVisualSocialQueueItem({
@@ -552,25 +669,27 @@ async function publishVisualToFacebook(){
     return;
   }
 
-  const media = currentFacebookMedia();
-  if (!media.url) {
+  if (!currentVisual?.poster_url) {
     setFacebookPublishStatus(
-      "Обраний visual відсутній. Завантажте його та збережіть сеанс.",
+      "Для клікабельної публікації потрібна афіша.",
       "warn"
     );
     return;
   }
 
   const message = facebookPublishText.value.trim();
-  const targetUrl = facebookTargetUrl.value.trim() || trackedFacebookHallUrl();
+  const targetUrl = facebookTargetUrl.value.trim() || trackedFacebookEntryUrl();
 
   facebookPublishBtn.disabled = true;
   facebookPublishedUrl.hidden = true;
-  setFacebookPublishStatus("Facebook: відправляю через Social Connector VA…");
+  setFacebookPublishStatus("Facebook: готую соціальну копію афіші…");
 
   let queueItem = null;
 
   try {
+    const media = await uploadFacebookPosterCopy();
+    const shareUrl = socialShareUrl(targetUrl, media.version);
+
     queueItem = await createVisualSocialQueueItem({
       seance,
       media,
@@ -578,14 +697,29 @@ async function publishVisualToFacebook(){
       targetUrl
     });
 
+    if (queueItem?.id) {
+      await updateVisualSocialQueueItem(queueItem, {
+        payload:{
+          ...(queueItem?.payload || {}),
+          share_url:shareUrl,
+          hint:facebookHintText(),
+          publication_mode:"link_card"
+        }
+      });
+    }
+
+    setFacebookPublishStatus("Facebook: публікую клікабельну афішу…");
+
     const result = await window.VA_SOCIAL.publishFacebook({
       supabaseUrl:SUPABASE_URL,
       anonKey:SUPABASE_ANON_KEY,
       venueId:seance.venue_id,
       seanceId:seance.id,
       sourceModule:"visual_editor",
+      publicationMode:"link_card",
       message,
-      targetUrl,
+      targetUrl:shareUrl,
+      destinationUrl:targetUrl,
       fileUrl:media.url,
       mimeType:media.mimeType,
       fileKind:media.fileKind,
@@ -603,6 +737,8 @@ async function publishVisualToFacebook(){
         provider_post_id:result?.post_id || null,
         provider_object_id:result?.provider_object_id || null,
         permalink_url:permalink,
+        share_url:shareUrl,
+        destination_url:targetUrl,
         published_at:publishedAt
       }
     });
@@ -611,7 +747,7 @@ async function publishVisualToFacebook(){
       facebookPublishedUrl.href = permalink;
       facebookPublishedUrl.hidden = false;
       setFacebookPublishStatus(
-        "Facebook: опубліковано. Посилання на публікацію збережено."
+        "Facebook: клікабельну афішу опубліковано."
       );
     } else {
       setFacebookPublishStatus(
@@ -633,7 +769,7 @@ async function publishVisualToFacebook(){
 
     setFacebookPublishStatus(`Facebook: помилка — ${text}`, "error");
   } finally {
-    facebookPublishBtn.disabled = !currentFacebookMedia().url;
+    facebookPublishBtn.disabled = !Boolean(selectedSeance() && currentVisual?.poster_url);
   }
 }
 
@@ -1030,7 +1166,7 @@ document.getElementById("deleteBgVideoBtn").addEventListener("click", clearBackg
 document.getElementById("clearAllVisualBtn").addEventListener("click", clearAllVisual);
 document.getElementById("loadBtn").addEventListener("click", loadCurrentVisual);
 seanceSelect.addEventListener("change", loadCurrentVisual);
-facebookMediaSelect.addEventListener("change", refreshFacebookPanel);
+facebookPosterHint.addEventListener("change", refreshFacebookPanel);
 facebookPublishBtn.addEventListener("click", publishVisualToFacebook);
 
 document.getElementById("openSeanceBtn").addEventListener("click", () => {
