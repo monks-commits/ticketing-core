@@ -389,7 +389,7 @@ function baseStorefrontUrl(){
   const s = selectedSeance();
   if (!s?.id) return "";
 
-  const url = new URL("../site-project/index.html", location.href);
+  const url = new URL("../site-project/pages/index.html", location.href);
   url.searchParams.set("seance", s.id);
   url.searchParams.set("seance_id", s.id);
   if (s.venue_id) url.searchParams.set("venue", s.venue_id);
