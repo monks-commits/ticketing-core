@@ -685,7 +685,7 @@ const CONFIG_PATH = "../../shared/config.js";
 <script src="../../shared/gateway-client.js"></script>
 
 <script>
-console.log("INDEX FINAL VERSION — VENUE CANONICAL V3 + SEAMLESS HALL TRANSITION V1 + BFCACHE RETURN FIX");
+console.log("INDEX FINAL VERSION — VENUE CANONICAL V3 + SOCIAL ENTRY V1.4 + BFCACHE RETURN FIX");
   
 console.log("INDEX VITRINE FILTERED VERSION");
 
@@ -1149,7 +1149,7 @@ function copyAttributionToUrl(rawUrl){
   }
 }
 
-function maybeStartSocialEntryIntro(card){
+async function maybeStartSocialEntryIntro(card){
   if (!SOCIAL_ENTRY || socialEntryIntroStarted || !RETURN_SEANCE_ID || !card) return;
 
   socialEntryIntroStarted = true;
@@ -1158,10 +1158,36 @@ function maybeStartSocialEntryIntro(card){
     item => String(item?.id || "") === String(RETURN_SEANCE_ID)
   );
   const visual = seance ? getVisual(seance) : null;
-  const videoUrl = String(visual?.live_poster_url || "").trim();
+  let videoUrl = String(visual?.live_poster_url || "").trim();
 
-  // Якщо Live Poster немає, Facebook-вхід просто залишає глядача
-  // на конкретній афіші вітрини. Ніякого примусового переходу до залу.
+  // Robust Facebook-entry fallback: read Live Poster directly for this seance.
+  // This does not depend on whether the embedded seance_visuals relation
+  // happened to contain live_poster_url in the storefront response.
+  if (!videoUrl) {
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/seance_visuals?select=live_poster_url,enable_live_poster&seance_id=eq.${encodeURIComponent(RETURN_SEANCE_ID)}&enabled=eq.true&limit=1`,
+        {
+          headers:{
+            apikey: SUPABASE_ANON_KEY,
+            Authorization:`Bearer ${SUPABASE_ANON_KEY}`
+          },
+          cache:"no-store"
+        }
+      );
+      if (res.ok) {
+        const rows = await res.json();
+        const row = Array.isArray(rows) ? rows[0] : null;
+        if (row?.enable_live_poster !== false) {
+          videoUrl = String(row?.live_poster_url || "").trim();
+        }
+      }
+    } catch (e) {
+      console.warn("Facebook entry Live Poster lookup failed", e);
+    }
+  }
+
+  // No Live Poster: remain on the exact poster/card in the storefront.
   if (!videoUrl || visual?.enable_live_poster === false) return;
 
   const wrap = card.querySelector(".poster-wrap");
@@ -1177,6 +1203,7 @@ function maybeStartSocialEntryIntro(card){
     <video
       class="poster live-poster-video social-entry-video"
       autoplay
+      muted
       playsinline
       controls
       preload="auto"
@@ -1211,8 +1238,8 @@ function maybeStartSocialEntryIntro(card){
     video.onended = go;
     video.onerror = restorePoster;
     video.play().catch(() => {
-      // Після переходу між сайтами autoplay зі звуком може бути заблокований.
-      // У такому разі плеєр і кнопка «Пропустити» залишаються видимими.
+      // Even if autoplay is blocked, the player remains visible and controls
+      // plus «Пропустити» are available to the visitor.
     });
   }
 }
