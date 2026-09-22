@@ -1697,30 +1697,28 @@ async function openVideoIntro(targetUrl, btn){
   const video = wrap.querySelector("video");
   const skip = wrap.querySelector(".skip-card-video");
 
+  // VA LIVE POSTER: play to the real end; do not reintroduce a 4-second cut.
+  // A timer is permitted only while the video has NEVER started.
   let leaving = false;
-  let introTimer = null;
-  let safetyTimer = null;
+  let startupTimer = null;
 
-  const clearTimers = () => {
-    if (introTimer) {
-      clearTimeout(introTimer);
-      introTimer = null;
-    }
-    if (safetyTimer) {
-      clearTimeout(safetyTimer);
-      safetyTimer = null;
+  const clearStartupTimer = () => {
+    if (startupTimer !== null) {
+      clearTimeout(startupTimer);
+      startupTimer = null;
     }
   };
 
   const go = () => {
     if (leaving) return;
     leaving = true;
-    clearTimers();
+    clearStartupTimer();
 
-    try{
+    try {
       if (video) video.pause();
-    }catch(_){}
+    } catch (_) {}
 
+    // No post-video delay: switch to Hall as soon as "ended" fires.
     navigateToHall(targetUrl, seanceId, posterUrl);
   };
 
@@ -1728,24 +1726,14 @@ async function openVideoIntro(targetUrl, btn){
   video.onended = go;
   video.onerror = go;
 
-  // Start the 4-second limit only when the visitor can actually see
-  // the Live Poster playing. This preserves the visual instead of
-  // consuming its time while the MP4 is still loading.
-  const startIntroLimit = () => {
-    if (leaving || introTimer) return;
-    introTimer = setTimeout(go, 4000);
-  };
-
-  video.addEventListener("playing", startIntroLimit, { once:true });
-
-  // Fallback only for a broken/blocked media start.
-  // It is intentionally longer so a normal Live Poster has time to appear.
-  safetyTimer = setTimeout(go, 8000);
+  // A slow or blocked startup must not trap the buyer. Once video plays,
+  // this fallback is cancelled and cannot interrupt the live poster.
+  video.addEventListener("playing", clearStartupTimer, { once: true });
+  startupTimer = setTimeout(go, 15000);
 
   video.play().catch(() => {
-    // Original behavior preserved:
-    // controls and "Пропустити" remain available.
-    // Safety timer guarantees that the buyer is not trapped forever.
+    // Browser may block autoplay: controls and "Пропустити" remain available.
+    // The startup fallback is still active until real playback begins.
   });
 }
 
