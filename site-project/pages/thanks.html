@@ -387,19 +387,28 @@ function supaHeaders() {
 }
 
 function getReturnHrefByVenue(venueId, seanceId) {
+  const venue = String(venueId || "").trim();
+  const id = String(seanceId || "").trim();
+
   let base = "./index.html";
 
-  if (venueId === "academy") base = "./index-academy.html";
-  if (venueId === "shevchenko") base = "./index-shevchenko.html";
-
-  const id = String(seanceId || "").trim();
-  if (!id) return base;
+  if (venue === "academy") base = "./index-academy.html";
+  if (venue === "shevchenko") base = "./index-shevchenko.html";
 
   const params = new URLSearchParams();
-  params.set("seance", id);
-  params.set("seance_id", id);
 
-  return `${base}?${params.toString()}`;
+  // Demo 1 lives on the common showcase and is selected by ?venue=demo-fullcycle.
+  if (venue === "demo-fullcycle") {
+    params.set("venue", "demo-fullcycle");
+  }
+
+  if (id) {
+    params.set("seance", id);
+    params.set("seance_id", id);
+  }
+
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }
 
 async function fetchJson(url) {
