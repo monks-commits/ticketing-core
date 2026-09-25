@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>VA Зовнішні аудиторії V1</title>
+<title>VA Зовнішні аудиторії V1.1</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#071a35;color:#fff;font-family:Arial,sans-serif}.wrap{max-width:1500px;margin:auto;padding:22px}.card{background:#152744;border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 12px 34px rgba(0,0,0,.18)}.hero{background:linear-gradient(135deg,#17345f,#10233f)}h1,h2,h3{margin:0 0 10px}h1{font-size:34px}.muted,.micro{color:#aebbd0}.micro{font-size:12px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;color:#8dc2ff;text-transform:uppercase}.row,.toolbar,.nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row-between{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}.nav{margin-top:12px}.btn{border:0;border-radius:10px;padding:10px 13px;background:#2d8cff;color:#fff;font-weight:800;cursor:pointer}.btn.secondary{background:#314766}.btn.green{background:#1f7a4a}.btn.red{background:#7d3434}.btn:disabled{opacity:.45;cursor:not-allowed}.badge,.pill{display:inline-flex;padding:5px 9px;border-radius:999px;background:#27496d;font-size:12px;font-weight:700}.badge.ok{background:#1f6f45}.badge.warn{background:#765817}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stat{background:#0d1d34;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px}.stat span{display:block;color:#aebbd0;font-size:12px}.stat b{display:block;font-size:25px;margin-top:6px}.field{margin-bottom:12px}.field label{display:block;color:#aebbd0;font-size:12px;font-weight:700;margin-bottom:6px}input,select{width:100%;padding:10px 11px;border-radius:10px;border:1px solid #40526f;background:#0d1d34;color:#fff}.filebox{border:1px dashed #456888;border-radius:14px;padding:14px;background:#0a1d34}.notice{padding:12px 14px;border-radius:12px;background:#102b49;border:1px solid #31577e;color:#dcecff;margin:10px 0}.notice.warn{background:#30250c;border-color:#7d621d;color:#ffe9ac}.notice.bad{background:#351919;border-color:#7d3535;color:#ffd0d0}.table-wrap{overflow:auto;border:1px solid rgba(255,255,255,.1);border-radius:12px}table{width:100%;border-collapse:collapse}th,td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.09);text-align:left;vertical-align:top;font-size:13px}th{color:#aebbd0}.mapping-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.layout{display:grid;grid-template-columns:minmax(280px,.7fr) minmax(0,1.3fr);gap:14px}.batch-list{display:grid;gap:8px;max-height:68vh;overflow:auto}.batch{padding:12px;border-radius:12px;background:#0d1d34;border:1px solid rgba(255,255,255,.1);cursor:pointer}.batch.active,.batch:hover{border-color:#2d8cff}.big{font-size:29px;font-weight:900}.context{position:sticky;top:0;z-index:20;background:rgba(7,26,53,.96);backdrop-filter:blur(10px)}a{color:#8dc2ff}.privacy{border-left:3px solid #f2b632;padding:10px 12px;background:#2b250f;color:#ffe9ac;border-radius:8px}.hidden{display:none!important}@media(max-width:950px){.grid4,.grid2,.layout,.mapping-grid{grid-template-columns:1fr 1fr}}@media(max-width:650px){.wrap{padding:12px}.grid4,.grid2,.layout,.mapping-grid{grid-template-columns:1fr}h1{font-size:28px}}
@@ -12,7 +12,7 @@
 <body>
 <div class="wrap">
   <div class="card hero">
-    <div class="row-between"><div><div class="eyebrow">VA • окремий контур</div><h1>Зовнішні аудиторії V1</h1><div class="muted">CSV/XLSX оператора → окремий імпорт → зіставлення з КБ VA → доступна аудиторія поточного сеансу.</div></div><div><span class="badge">External ≠ VA sale</span> <span class="badge" id="vaBadge">VA: завантаження…</span></div></div>
+    <div class="row-between"><div><div class="eyebrow">VA • окремий контур</div><h1>Зовнішні аудиторії V1.1</h1><div class="muted">CSV/XLSX оператора → окремий імпорт → зіставлення з КБ VA → доступна аудиторія поточного сеансу.</div></div><div><span class="badge">External ≠ VA sale</span> <span class="badge" id="vaBadge">VA: завантаження…</span></div></div>
   </div>
 
   <div class="card context">
@@ -70,7 +70,7 @@ function qp(){return new URLSearchParams(location.search);}
 function currentSeanceId(){return qp().get("seance_id")||"";}
 function currentCampaignId(){return qp().get("campaign_id")||"";}
 function go(key){const url=new URL(ROUTES[key],location.href);const sid=getTargetSeanceId()||currentSeanceId();if(sid)url.searchParams.set("seance_id",sid);const cid=currentCampaignId();if(cid)url.searchParams.set("campaign_id",cid);url.searchParams.set("va_from","external_audiences");location.href=url.toString();}
-async function fetchAll(table,select="*"){let all=[],from=0,size=1000;while(true){const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=${encodeURIComponent(select)}&offset=${from}&limit=${size}`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`},cache:"no-store"});if(!r.ok)throw new Error(`${table}: ${r.status}`);const rows=await r.json();all=all.concat(rows||[]);if(!rows||rows.length<size)break;from+=size;}return all;}
+async function fetchAll(table,select="*"){let all=[],from=0,size=1000;while(true){const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=${encodeURIComponent(select)}&offset=${from}&limit=${size}`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`},cache:"no-store"});if(!r.ok){let detail="";try{const j=await r.json();detail=j.message||j.details||j.hint||"";}catch{}throw new Error(`${table}: ${r.status}${detail?" — "+detail:""}`);}const rows=await r.json();all=all.concat(rows||[]);if(!rows||rows.length<size)break;from+=size;}return all;}
 function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:"id"});};req.onsuccess=()=>{DB=req.result;resolve(DB)};req.onerror=()=>reject(req.error);});}
 function idbPut(value){return new Promise((resolve,reject)=>{const tx=DB.transaction(STORE,"readwrite");tx.objectStore(STORE).put(value);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}
 function idbDelete(id){return new Promise((resolve,reject)=>{const tx=DB.transaction(STORE,"readwrite");tx.objectStore(STORE).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}
@@ -114,7 +114,44 @@ async function deleteSelectedBatch(){const b=BATCHES.find(x=>x.id===SELECTED_BAT
 function handoffToMarketing(){const batch=BATCHES.find(b=>b.id===SELECTED_BATCH_ID),sid=getTargetSeanceId();if(!batch||!sid)return;const cmp=compareBatch(batch,sid),s=targetSeance();const summary={batch_id:batch.id,operator:batch.operator,source_event:batch.source_event||"",filename:batch.filename||"",seance_id:String(sid),seance_title:s?seanceLabel(s):"",total_buyers:cmp.total,known_in_va:cmp.known,external_only:cmp.externalOnly,already_bought_target:cmp.alreadyBought,reachable:cmp.reachable,available:cmp.available,email:cmp.availableRows.filter(x=>x.email).length,phone:cmp.availableRows.filter(x=>x.phone).length,updated_at:new Date().toISOString()};localStorage.setItem(EXTERNAL_CTX_KEY,JSON.stringify(summary));const url=new URL("marketing.html",location.href);url.searchParams.set("seance_id",sid);url.searchParams.set("external_batch_id",batch.id);if(currentCampaignId())url.searchParams.set("campaign_id",currentCampaignId());url.searchParams.set("va_from","external_audiences");location.href=url.toString();}
 function csvCell(v){const s=String(v??"");return /[",\n;]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
 function exportAvailableCsv(){const batch=BATCHES.find(b=>b.id===SELECTED_BATCH_ID);if(!batch)return;const cmp=compareBatch(batch,getTargetSeanceId());const rows=cmp.availableRows.length?cmp.availableRows:cmp.buyers.filter(x=>x.reachable);const lines=[["name","email","phone","source_operator","source_event","known_in_va","already_bought_target"],...rows.map(b=>[b.name,b.email,b.phone,batch.operator,batch.source_event,b.known?"1":"0",b.boughtCurrent?"1":"0"])].map(r=>r.map(csvCell).join(",")).join("\n");const blob=new Blob(["\ufeff"+lines],{type:"text/csv;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`VA_external_${batch.operator}_${Date.now()}.csv`.replace(/[^a-zA-Z0-9_.-]/g,"_");a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-async function boot(){try{await openDb();[VA_ORDERS,SEANCES]=await Promise.all([fetchAll("orders","id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,status"),fetchAll("seances","id,show,title,name,date,time,genre,venue_id,project_id")]);document.getElementById("vaBadge").textContent=`VA: ${VA_ORDERS.filter(paid).length} замовлень`;document.getElementById("vaBadge").classList.add("ok");await loadBatches();renderContext();}catch(e){console.error(e);document.getElementById("vaBadge").textContent="VA: помилка";document.getElementById("vaBadge").classList.add("warn");msg(e.message||String(e),"bad");}}
+// TEST FIX: isolated failures: broken seance columns cannot block CSV imports or VA orders.
+async function loadSeancesWithFallback(){
+  const projections=[
+    "id,show,date,time,genre,venue_id",
+    "id,show,date,time",
+    "id,show",
+    "id"
+  ];
+  let lastError=null;
+  for(const columns of projections){
+    try {return {rows:await fetchAll("seances",columns),error:null};}
+    catch(e){lastError=e;console.warn("EXR demo: seances projection unavailable",columns,e);}
+  }
+  return {rows:[],error:lastError};
+}
+async function boot(){
+  const warnings=[];
+  try{await openDb();}
+  catch(e){console.error(e);msg("Не вдалося відкрити локальну базу: "+String(e.message||e),"bad");return;}
+  try {
+    VA_ORDERS=await fetchAll("orders","id,order_id,buyer_name,buyer_email,buyer_phone,amount,created_at,seance_id,channel,status");
+    document.getElementById("vaBadge").textContent=`VA: ${VA_ORDERS.filter(paid).length} оплачених замовлень`;
+    document.getElementById("vaBadge").classList.add("ok");
+  }catch(e){
+    console.error("VA orders unavailable",e);VA_ORDERS=[];
+    document.getElementById("vaBadge").textContent="VA: замовлення недоступні";
+    document.getElementById("vaBadge").classList.add("warn");
+    warnings.push("Порівняння з КБ VA недоступне: "+String(e.message||e)+". Не сприймайте 0 збігів як перевірений результат.");
+  }
+  const seances=await loadSeancesWithFallback();
+  SEANCES=seances.rows;
+  if(seances.error){
+    warnings.push("Сеанси VA недоступні: "+String(seances.error.message||seances.error)+". Імпорт CSV працює; вибір цільового сеансу та передача у Marketing поки недоступні.");
+  }
+  try{await loadBatches();renderContext();}
+  catch(e){console.error(e);warnings.push("Не вдалося завантажити збережені імпорти: "+String(e.message||e));}
+  if(warnings.length)msg(warnings.join("\n"),"warn");
+}
 document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
