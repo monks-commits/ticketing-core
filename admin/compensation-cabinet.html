@@ -613,14 +613,57 @@ function latestOkAuditForToken(token, auditByToken){
 }
 
 function effectiveUsedSeanceId(tokenRow, auditByToken){
-  if (tokenRow.used_seance_id) return String(tokenRow.used_seance_id);
 
-  const ok = latestOkAuditForToken(tokenRow.token, auditByToken);
-  if (ok && ok.scan_seance_id) return String(ok.scan_seance_id);
+  // Открытая компенсация ещё нигде не погашена.
+  // Старые OK того же физического token сюда подставлять нельзя.
+  if (tokenRow.compensation_used !== true) {
+    return "";
+  }
+
+  // Основной источник истины — сама конкретная строка recovery_tokens.
+  if (tokenRow.used_seance_id) {
+    return String(tokenRow.used_seance_id);
+  }
+
+  /*
+    Fallback только для старых legacy-записей,
+    где compensation_used=true, но used_seance_id ещё не записывался.
+
+    При многократной компенсации одного token ищем OK
+    именно того же recovery_event_id.
+  */
+  const list =
+    auditByToken[String(tokenRow.token || "").trim()] || [];
+
+  const eventId =
+    String(tokenRow.recovery_event_id || "");
+
+  const ok = list.find(a => {
+
+    if (
+      String(a.result || "").toUpperCase() !== "OK"
+    ){
+      return false;
+    }
+
+    if (eventId) {
+      return (
+        String(a.recovery_event_id || "") === eventId
+      );
+    }
+
+    // Старый fallback для совсем древних записей,
+    // в которых recovery_event_id ещё отсутствовал.
+    return true;
+  });
+
+  if (ok && ok.scan_seance_id) {
+    return String(ok.scan_seance_id);
+  }
 
   return "";
 }
-
+  
 function effectiveSourceSeanceId(tokenRow, auditByToken){
   if (tokenRow.source_seance_id) return String(tokenRow.source_seance_id);
 
