@@ -2,13 +2,28 @@
 (() => {
   "use strict";
 
-  const state = { cfg:null, seanceId:"", busy:false };
-  const $ = id => document.getElementById(id);
-  const esc = value => String(value ?? "")
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  const state = {
+    cfg:null,
+    seanceId:"",
+    busy:false,
+    cycleEvent:null
+  };
 
-  function seanceTitle(s){ return s?.show || s?.title || s?.name || s?.id || "Сеанс"; }
-  function normalize(v){ return String(v || "").trim(); }
+  const $ = id => document.getElementById(id);
+
+  const esc = value => String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+
+  function seanceTitle(s){
+    return s?.show || s?.title || s?.name || s?.id || "Сеанс";
+  }
+
+  function normalize(v){
+    return String(v || "").trim();
+  }
 
   function headers(extra={}){
     return {
@@ -19,18 +34,25 @@
   }
 
   async function rest(path, options={}){
-    const res = await fetch(`${state.cfg.supabaseUrl}/rest/v1/${path}`, {
-      cache:"no-store",
-      ...options,
-      headers:{...headers(), ...(options.headers||{})}
-    });
+    const res = await fetch(
+      `${state.cfg.supabaseUrl}/rest/v1/${path}`,
+      {
+        cache:"no-store",
+        ...options,
+        headers:{
+          ...headers(),
+          ...(options.headers || {})
+        }
+      }
+    );
 
     const text = await res.text();
+
     let data = null;
 
-    try {
+    try{
       data = text ? JSON.parse(text) : null;
-    } catch {
+    }catch{
       data = text;
     }
 
@@ -61,9 +83,9 @@
 
     let data = null;
 
-    try {
+    try{
       data = text ? JSON.parse(text) : null;
-    } catch {
+    }catch{
       data = text;
     }
 
@@ -81,9 +103,9 @@
   function mount(){
     if($("vaRecoveryActionsModal")) return;
 
-    const host=document.createElement("div");
+    const host = document.createElement("div");
 
-    host.innerHTML=`
+    host.innerHTML = `
       <div id="vaRecoveryActionsModal" class="va-seance-modal hidden">
 
         <div
@@ -92,7 +114,10 @@
         >
 
           <div class="va-seance-modal-head">
-            <h3>♻️ Recovery — активація компенсації</h3>
+
+            <h3>
+              ♻️ Recovery — активація компенсації
+            </h3>
 
             <button
               class="va-seance-modal-close"
@@ -101,6 +126,7 @@
             >
               ×
             </button>
+
           </div>
 
           <div
@@ -109,13 +135,19 @@
           ></div>
 
           <div class="va-incident-banner warn">
+
             <b>Два робочі режими.</b>
+
             «1 квиток» активує компенсаційне право
             для конкретного квитка.
-            «Сеанс» створює права для всіх квитків,
-            які вже були погашені до переривання цього сеансу.
+
+            «Сеанс» створює права для всіх глядачів,
+            чий прохід уже був зафіксований:
+            як звичайним квитком, так і попереднім Recovery.
+
             Місця не переносяться,
             нова виручка не створюється.
+
           </div>
 
           <div
@@ -124,9 +156,11 @@
           >
 
             <label class="wide">
+
               Причина компенсації
 
               <select id="vaRecoveryReason">
+
                 <option value="air_alert">
                   Повітряна тривога
                 </option>
@@ -142,16 +176,20 @@
                 <option value="other">
                   Інше
                 </option>
+
               </select>
+
             </label>
 
             <label class="wide">
+
               Примітка
 
               <textarea
                 id="vaRecoveryNote"
                 placeholder="Причина / обставини"
               >Мероприятие было прервано после начала. Компенсационный проход без предоставления места.</textarea>
+
             </label>
 
           </div>
@@ -180,12 +218,14 @@
             >
 
               <label>
+
                 Номер квитка / QR / token
 
                 <input
                   id="vaRecoveryTicketToken"
                   placeholder="TK-… або QR payload"
                 >
+
               </label>
 
               <button
@@ -229,11 +269,11 @@
                 color:#cbd5e1
               "
             >
-              Активація виконується тільки для квитків
-              із зафіксованим проходом
-              <b>checked_in_at</b>.
-              Непогашені квитки не перетворюються
-              на компенсаційні.
+              Активація виконується для всіх зафіксованих проходів:
+              звичайних квитків
+              <b>checked_in_at</b>
+              і квитків, погашених на цьому сеансі
+              через попередній Recovery.
             </p>
 
             <button
@@ -284,10 +324,13 @@
           </div>
 
         </div>
+
       </div>
     `;
 
-    document.body.appendChild(host.firstElementChild);
+    document.body.appendChild(
+      host.firstElementChild
+    );
   }
 
   function selectedSeance(){
@@ -315,15 +358,16 @@
         ? `
           <b>${esc(seanceTitle(s))}</b><br>
           Seance ID: ${esc(s.id)}<br>
-          ${esc(s.date||"")}
-          ${esc(String(s.time||"").slice(0,5))}
+          ${esc(s.date || "")}
+          ${esc(String(s.time || "").slice(0,5))}
           ·
-          ${esc(s.venue_id||s.hall||"")}
+          ${esc(s.venue_id || s.hall || "")}
         `
         : `Seance ID: ${esc(state.seanceId)}`;
   }
 
   function open(seanceId){
+
     state.seanceId =
       normalize(
         seanceId ||
@@ -334,11 +378,22 @@
       return alert("Оберіть сеанс.");
     }
 
+    /*
+      Новое открытие Recovery = новый компенсационный цикл.
+
+      Пока окно открыто, один recovery_event используется повторно.
+      Поэтому случайное повторное нажатие кнопки не создаст дублей.
+
+      Если позже тот же спектакль снова будет прерван,
+      окно открывается заново — создаётся следующий Recovery-цикл.
+    */
+    state.cycleEvent = null;
+
     mount();
     renderInfo();
 
-    $("vaRecoveryOneResult").textContent="—";
-    $("vaRecoverySeanceResult").textContent="—";
+    $("vaRecoveryOneResult").textContent = "—";
+    $("vaRecoverySeanceResult").textContent = "—";
 
     $("vaRecoveryActionsModal")
       .classList
@@ -352,6 +407,7 @@
   }
 
   async function loadSeanceById(id){
+
     const rows =
       await rest(
         `seances?id=eq.${encodeURIComponent(id)}&select=*`
@@ -365,21 +421,14 @@
     );
   }
 
-  async function ensureRecoveryEventForSeance(id){
-    const rows =
-      await rest(
-        `recovery_events?source_seance_id=eq.${encodeURIComponent(id)}` +
-        `&select=*` +
-        `&order=created_at.desc` +
-        `&limit=1`
-      );
+  /*
+    ВАЖНО:
+    здесь больше НЕ ищем старый recovery_event по source_seance_id.
 
-    if(
-      Array.isArray(rows) &&
-      rows.length
-    ){
-      return rows[0];
-    }
+    Один и тот же сеанс может быть прерван несколько раз.
+    Каждое новое прерывание должно иметь собственный recovery_event_id.
+  */
+  async function createRecoveryEventForSeance(id){
 
     const s =
       await loadSeanceById(id);
@@ -414,6 +463,7 @@
           },
 
           body:JSON.stringify({
+
             title:
               `Компенсація: ${title}`,
 
@@ -469,7 +519,28 @@
     );
   }
 
+  /*
+    Один рабочий цикл на одно открытое окно Recovery.
+  */
+  async function getCycleRecoveryEvent(id){
+
+    if(
+      state.cycleEvent &&
+      String(
+        state.cycleEvent.source_seance_id || ""
+      ) === String(id)
+    ){
+      return state.cycleEvent;
+    }
+
+    state.cycleEvent =
+      await createRecoveryEventForSeance(id);
+
+    return state.cycleEvent;
+  }
+
   async function findTicket(raw){
+
     const token =
       normalize(raw);
 
@@ -532,6 +603,7 @@
     eventId,
     token
   ){
+
     const rows =
       await rest(
         `recovery_tokens?` +
@@ -549,10 +621,135 @@
     );
   }
 
+  /*
+    Зрители, которые вошли на текущий сеанс
+    по предыдущему Recovery.
+
+    Именно этого слоя не хватало для реального сценария Академии:
+    сеанс №1 -> Recovery -> сеанс №2 -> снова прерван.
+  */
+  async function loadUsedRecoveryEntrants(
+    seanceId
+  ){
+
+    const rows =
+      await rest(
+        `recovery_tokens?` +
+        `used_seance_id=eq.${encodeURIComponent(seanceId)}` +
+        `&compensation_used=eq.true` +
+        `&select=` +
+        `id,` +
+        `token,` +
+        `seat_label,` +
+        `owner_name,` +
+        `owner_email,` +
+        `source_ticket_id,` +
+        `source_order_id,` +
+        `source_show_slug,` +
+        `source_seat_label,` +
+        `compensation_used_at`
+      );
+
+    return (
+      Array.isArray(rows)
+        ? rows
+        : []
+    )
+      .filter(
+        r => normalize(r.token)
+      )
+      .map(
+        r => ({
+
+          id:
+            r.source_ticket_id ||
+            `recovery:${r.id}`,
+
+          order_id:
+            r.source_order_id ||
+            "",
+
+          seance_id:
+            seanceId,
+
+          show_slug:
+            r.source_show_slug ||
+            "",
+
+          seat_label:
+            r.source_seat_label ||
+            r.seat_label ||
+            "",
+
+          price:0,
+
+          buyer_name:
+            r.owner_name ||
+            "",
+
+          buyer_email:
+            r.owner_email ||
+            null,
+
+          qr_payload:
+            r.token,
+
+          ticket_number:
+            r.token,
+
+          checked_in_at:
+            r.compensation_used_at ||
+            null,
+
+          _entry_source:
+            "recovery"
+        })
+      );
+  }
+
+  /*
+    Если один физический token каким-то образом попал
+    и в обычные tickets, и в Recovery-проходы,
+    новое право создаём только один раз.
+  */
+  function uniqueByPhysicalToken(rows){
+
+    const map =
+      new Map();
+
+    for(const row of rows || []){
+
+      const token =
+        normalize(
+          row?.qr_payload ||
+          row?.ticket_number ||
+          row?.id
+        );
+
+      if(!token){
+        continue;
+      }
+
+      if(map.has(token)){
+        continue;
+      }
+
+      map.set(
+        token,
+        row
+      );
+    }
+
+    return Array.from(
+      map.values()
+    );
+  }
+
   async function createRecoveryToken(
     event,
     t
   ){
+
     const token =
       normalize(
         t.qr_payload ||
@@ -566,6 +763,11 @@
       );
     }
 
+    /*
+      Дубликат проверяем ТОЛЬКО внутри конкретного recovery_event.
+
+      В другом цикле тот же token допустим.
+    */
     if(
       await existingToken(
         event.id,
@@ -589,6 +791,7 @@
         },
 
         body:JSON.stringify({
+
           recovery_event_id:
             event.id,
 
@@ -610,23 +813,34 @@
           compensation_used:
             false,
 
+          /*
+            Источником нового права является именно тот сеанс,
+            который сейчас был прерван.
+          */
           source_seance_id:
             state.seanceId,
 
           source_ticket_id:
-            String(t.id||""),
+            String(
+              t.id || ""
+            ),
 
           source_order_id:
-            String(t.order_id||""),
+            String(
+              t.order_id || ""
+            ),
 
           source_show_slug:
-            t.show_slug||"",
+            t.show_slug ||
+            "",
 
           source_seat_label:
-            t.seat_label||"",
+            t.seat_label ||
+            "",
 
           source_checked_in_at:
-            t.checked_in_at||null,
+            t.checked_in_at ||
+            null,
 
           note:
             "Компенсаційний прохід без місця"
@@ -641,6 +855,7 @@
   }
 
   async function activateOne(){
+
     if(state.busy){
       return;
     }
@@ -657,9 +872,12 @@
     }
 
     state.busy = true;
-    $("vaRecoveryOneBtn").disabled = true;
+
+    $("vaRecoveryOneBtn").disabled =
+      true;
 
     try{
+
       const t =
         await findTicket(raw);
 
@@ -674,12 +892,12 @@
         String(state.seanceId)
       ){
         throw new Error(
-          `Квиток належить іншому сеансу: ${t.seance_id||"—"}.`
+          `Квиток належить іншому сеансу: ${t.seance_id || "—"}.`
         );
       }
 
       const event =
-        await ensureRecoveryEventForSeance(
+        await getCycleRecoveryEvent(
           state.seanceId
         );
 
@@ -693,30 +911,36 @@
         result.status === "exists"
           ? `
             ↻ Recovery уже було активовано.<br>
-            <b>${esc(t.ticket_number||result.token)}</b>
+            <b>${esc(t.ticket_number || result.token)}</b>
             ·
-            ${esc(t.seat_label||"—")}
+            ${esc(t.seat_label || "—")}
           `
           : `
             ✅ Recovery активовано.<br>
-            <b>${esc(t.ticket_number||result.token)}</b>
+            <b>${esc(t.ticket_number || result.token)}</b>
             · старе місце:
-            ${esc(t.seat_label||"—")}
+            ${esc(t.seat_label || "—")}
           `;
-    }
-    catch(e){
+
+    }catch(e){
+
       $("vaRecoveryOneResult").textContent =
         "❌ " +
-        String(e?.message||e);
-    }
-    finally{
+        String(e?.message || e);
+
+    }finally{
+
       state.busy = false;
-      $("vaRecoveryOneBtn").disabled = false;
+
+      $("vaRecoveryOneBtn").disabled =
+        false;
     }
   }
 
   async function latestInterruptedIncident(){
+
     try{
+
       const rows =
         await rest(
           `va_seance_incidents?` +
@@ -734,13 +958,15 @@
           ? rows[0]
           : null
       );
-    }
-    catch{
+
+    }catch{
+
       return null;
     }
   }
 
   async function activateSeance(){
+
     if(state.busy){
       return;
     }
@@ -748,22 +974,29 @@
     if(
       !confirm(
         "Активувати компенсаційні права для ВСІХ погашених квитків цього сеансу?\n\n" +
-        "Непогашені квитки не зачіпаються. " +
-        "Місця не переносяться. " +
-        "Кожне право одноразове."
+        "Ураховуються як звичайні проходи, так і проходи через попередній Recovery.\n\n" +
+        "Місця не переносяться. Кожне нове право одноразове."
       )
     ){
       return;
     }
 
     state.busy = true;
-    $("vaRecoverySeanceBtn").disabled = true;
+
+    $("vaRecoverySeanceBtn").disabled =
+      true;
 
     try{
+
+      /*
+        Если есть полноценный Incident Registry,
+        оставляем штатную RPC-ветку.
+      */
       const incident =
         await latestInterruptedIncident();
 
       if(incident){
+
         const actor =
           prompt(
             "Відповідальний:",
@@ -802,14 +1035,18 @@
           `
             ✅ Сеанс оброблено через реєстр перенесення.<br>
             Створено:
-            <b>${Number(result?.created||0)}</b>
+            <b>${Number(result?.created || 0)}</b>
             · вже існували / пропущено:
-            <b>${Number(result?.skipped||0)}</b>
+            <b>${Number(result?.skipped || 0)}</b>
           `;
 
         return;
       }
 
+      /*
+        1. Обычные билеты,
+        которые были погашены на этом сеансе.
+      */
       const tickets =
         await rest(
           `tickets?` +
@@ -829,20 +1066,45 @@
           `checked_in_at`
         );
 
-      const valid =
+      const direct =
         Array.isArray(tickets)
           ? tickets
           : [];
 
+      /*
+        2. Зрители,
+        которые вошли на этот сеанс
+        по предыдущей компенсации.
+      */
+      const recoveryEntrants =
+        await loadUsedRecoveryEntrants(
+          state.seanceId
+        );
+
+      /*
+        3. Один физический token = одно новое право
+        в текущем цикле.
+      */
+      const valid =
+        uniqueByPhysicalToken([
+          ...direct,
+          ...recoveryEntrants
+        ]);
+
       if(!valid.length){
+
         $("vaRecoverySeanceResult").textContent =
           "Погашених квитків для компенсації не знайдено.";
 
         return;
       }
 
+      /*
+        Новый цикл создаётся один раз
+        на текущее открытие окна Recovery.
+      */
       const event =
-        await ensureRecoveryEventForSeance(
+        await getCycleRecoveryEvent(
           state.seanceId
         );
 
@@ -851,7 +1113,9 @@
       let errors = 0;
 
       for(const t of valid){
+
         try{
+
           const r =
             await createRecoveryToken(
               event,
@@ -862,13 +1126,14 @@
             r.status === "created"
           ){
             created++;
-          }
-          else{
+          }else{
             exists++;
           }
-        }
-        catch(e){
+
+        }catch(e){
+
           console.error(e);
+
           errors++;
         }
       }
@@ -876,36 +1141,51 @@
       $("vaRecoverySeanceResult").innerHTML =
         `
           ✅ Активацію сеансу завершено.<br>
+
           Погашених квитків:
           <b>${valid.length}</b>
+
+          · звичайних:
+          <b>${direct.length}</b>
+
+          · через Recovery:
+          <b>${recoveryEntrants.length}</b>
+
           · нових Recovery:
           <b>${created}</b>
+
           · вже існували:
           <b>${exists}</b>
+
           · помилок:
           <b>${errors}</b>
         `;
-    }
-    catch(e){
+
+    }catch(e){
+
       $("vaRecoverySeanceResult").textContent =
         "❌ " +
-        String(e?.message||e);
-    }
-    finally{
+        String(e?.message || e);
+
+    }finally{
+
       state.busy = false;
-      $("vaRecoverySeanceBtn").disabled = false;
+
+      $("vaRecoverySeanceBtn").disabled =
+        false;
     }
   }
 
   function openCabinet(){
+
     const id =
       state.seanceId ||
       state.cfg?.getSelectedSeanceId?.();
 
     const url =
       `https://monks-commits.github.io/hall-engine-lab/recovery/cabinet.html` +
-      `?source_seance_id=${encodeURIComponent(id||"")}` +
-      `&seance=${encodeURIComponent(id||"")}`;
+      `?source_seance_id=${encodeURIComponent(id || "")}` +
+      `&seance=${encodeURIComponent(id || "")}`;
 
     window.open(
       url,
@@ -914,20 +1194,23 @@
   }
 
   function openAccounting(){
+
     const id =
       state.seanceId ||
       state.cfg?.getSelectedSeanceId?.();
 
     window.open(
       `./compensation-cabinet.html` +
-      `?seance=${encodeURIComponent(id||"")}` +
-      `&source_seance_id=${encodeURIComponent(id||"")}`,
+      `?seance=${encodeURIComponent(id || "")}` +
+      `&source_seance_id=${encodeURIComponent(id || "")}`,
       "_blank"
     );
   }
 
   function init(cfg){
+
     state.cfg = cfg;
+
     mount();
   }
 
