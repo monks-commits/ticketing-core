@@ -216,6 +216,81 @@
       word-break:break-all;
     }
 
+    .chain-ticket{min-width:190px}
+    .chain-viewer{min-width:190px}
+    .chain-steps{min-width:520px}
+
+    .chain-step{
+      display:grid;
+      grid-template-columns:34px minmax(150px,1fr) 24px minmax(150px,1fr);
+      gap:9px;
+      align-items:center;
+      padding:9px 0;
+      border-bottom:1px dashed rgba(255,255,255,.12);
+    }
+
+    .chain-step:last-child{border-bottom:0}
+
+    .chain-no{
+      width:28px;
+      height:28px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      background:rgba(56,189,248,.14);
+      border:1px solid rgba(56,189,248,.34);
+      color:#d8f6ff;
+      font-weight:900;
+      font-size:12px;
+    }
+
+    .chain-arrow{
+      text-align:center;
+      color:var(--muted);
+      font-weight:900;
+    }
+
+    .chain-place strong{
+      display:block;
+      line-height:1.25;
+    }
+
+    .chain-place small{
+      display:block;
+      margin-top:2px;
+    }
+
+    .chain-open{color:#fff2b8}
+
+    .chain-break{
+      margin-top:7px;
+      color:#ffd1d1;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .chain-summary{
+      white-space:nowrap;
+      line-height:1.7;
+    }
+
+    @media(max-width:900px){
+      .chain-step{
+        grid-template-columns:30px 1fr;
+      }
+
+      .chain-arrow{display:none}
+
+      .chain-place.target{
+        grid-column:2;
+      }
+
+      .chain-steps{
+        min-width:360px;
+      }
+    }
+
     .scroll{
       overflow:auto;
       max-height:520px;
@@ -354,22 +429,25 @@
   </section>
 
   <section class="panel">
-    <h2>Матриця “звідки → куди”</h2>
+    <h2>Ланцюги компенсацій</h2>
     <div class="panel-note">
-      Головна управлінська таблиця: з якого сеансу виник борг і на якому сеансі його закрили.
+      Один фізичний квиток — один послідовний ланцюг. Видно кожну фактичну активацію:
+      з якого перерваного сеансу виникло право, на якому сеансі його погашено,
+      скільки разів квиток реактивували та чи закритий компенсаційний ланцюг.
     </div>
 
     <div class="scroll">
       <table>
         <thead>
           <tr>
-            <th>Компенсація від</th>
-            <th>Погашено на</th>
-            <th>К-сть</th>
-            <th>Останнє погашення</th>
+            <th>Квиток</th>
+            <th>Глядач</th>
+            <th>Послідовність активацій</th>
+            <th>Підсумок</th>
+            <th>Статус</th>
           </tr>
         </thead>
-        <tbody id="matrixBody"></tbody>
+        <tbody id="chainBody"></tbody>
       </table>
     </div>
   </section>
@@ -613,47 +691,29 @@ function latestOkAuditForToken(token, auditByToken){
 }
 
 function effectiveUsedSeanceId(tokenRow, auditByToken){
-
-  // Открытая компенсация ещё нигде не погашена.
-  // Старые OK того же физического token сюда подставлять нельзя.
+  // Відкрите право ще ніде не погашено.
   if (tokenRow.compensation_used !== true) {
     return "";
   }
 
-  // Основной источник истины — сама конкретная строка recovery_tokens.
+  // Основне джерело істини — конкретний рядок recovery_tokens.
   if (tokenRow.used_seance_id) {
     return String(tokenRow.used_seance_id);
   }
 
-  /*
-    Fallback только для старых legacy-записей,
-    где compensation_used=true, но used_seance_id ещё не записывался.
-
-    При многократной компенсации одного token ищем OK
-    именно того же recovery_event_id.
-  */
-  const list =
-    auditByToken[String(tokenRow.token || "").trim()] || [];
-
-  const eventId =
-    String(tokenRow.recovery_event_id || "");
+  // Legacy fallback: тільки OK того самого recovery_event_id.
+  const list = auditByToken[String(tokenRow.token || "").trim()] || [];
+  const eventId = String(tokenRow.recovery_event_id || "");
 
   const ok = list.find(a => {
-
-    if (
-      String(a.result || "").toUpperCase() !== "OK"
-    ){
+    if (String(a.result || "").toUpperCase() !== "OK") {
       return false;
     }
 
     if (eventId) {
-      return (
-        String(a.recovery_event_id || "") === eventId
-      );
+      return String(a.recovery_event_id || "") === eventId;
     }
 
-    // Старый fallback для совсем древних записей,
-    // в которых recovery_event_id ещё отсутствовал.
     return true;
   });
 
@@ -663,7 +723,7 @@ function effectiveUsedSeanceId(tokenRow, auditByToken){
 
   return "";
 }
-  
+
 function effectiveSourceSeanceId(tokenRow, auditByToken){
   if (tokenRow.source_seance_id) return String(tokenRow.source_seance_id);
 
@@ -701,13 +761,14 @@ function renderAll(){
 
   renderSourceTable(auditByToken);
   renderUsedTable(auditByToken);
-  renderMatrixTable(auditByToken);
+  renderChainTable(auditByToken);
   renderDetailTable(auditByToken);
   renderAuditTable();
 
   LAST_REPORT_TEXT = [
     "КОМПЕНСАЦІЙНИЙ ОБЛІК",
-    "Створено: " + total,
+    "Фізичних квитків у Recovery: " + new Set(TOKENS.map(physicalTicketKey)).size,
+    "Створено прав: " + total,
     "Погашено: " + used,
     "Залишок боргу: " + unused,
     "OK сканів: " + okScans,
@@ -826,51 +887,247 @@ function renderUsedTable(auditByToken){
   }).join("");
 }
 
-function renderMatrixTable(auditByToken){
-  const matrix = {};
+function physicalTicketKey(t){
+  const sourceTicketId = String(t.source_ticket_id || "").trim();
+  if (sourceTicketId) return "ticket:" + sourceTicketId;
+
+  const orderId = String(t.source_order_id || "").trim();
+  const seat = String(t.source_seat_label || t.seat_label || "").trim();
+
+  if (orderId && seat) {
+    return "order-seat:" + orderId.toLowerCase() + "|" + seat.toUpperCase().replace(/\s+/g,"");
+  }
+
+  return "token:" + String(t.token || "").trim().toLowerCase();
+}
+
+function compactSeanceHtml(id, extraClass = ""){
+  const label = seanceLabel(id);
+
+  if (!id) {
+    return `
+      <div class="chain-place ${extraClass} chain-open">
+        <strong>Очікує погашення</strong>
+        <small>право ще відкрите</small>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="chain-place ${extraClass}">
+      <strong>${esc(label.title)}</strong>
+      <small>${esc(label.meta)}</small>
+      ${label.id ? `<small class="mono">${esc(label.id)}</small>` : ""}
+    </div>
+  `;
+}
+
+function renderChainTable(auditByToken){
+  const groups = new Map();
 
   TOKENS.forEach(t => {
-    if (t.compensation_used !== true) return;
+    const key = physicalTicketKey(t);
 
-    const sourceId = effectiveSourceSeanceId(t, auditByToken) || "__none__";
-    const usedId = effectiveUsedSeanceId(t, auditByToken) || "__none__";
-    const key = sourceId + "|||"+ usedId;
-
-    if (!matrix[key]) {
-      matrix[key] = {
-        sourceId,
-        usedId,
-        count:0,
-        latest:""
-      };
+    if (!groups.has(key)) {
+      groups.set(key, []);
     }
 
-    matrix[key].count++;
-
-    const dt = t.compensation_used_at || "";
-    if (dt && (!matrix[key].latest || new Date(dt) > new Date(matrix[key].latest))) {
-      matrix[key].latest = dt;
-    }
+    groups.get(key).push(t);
   });
 
-  const rows = Object.values(matrix)
-    .sort((a,b) => b.count - a.count);
+  const chains = Array.from(groups.values()).map(rows => {
+    rows.sort((a,b) => {
+      const da = new Date(a.created_at || 0).getTime();
+      const db = new Date(b.created_at || 0).getTime();
+      return da - db;
+    });
 
-  const body = $("matrixBody");
+    const first = rows[0] || {};
+    const last = rows[rows.length - 1] || {};
 
-  if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="4" class="empty">Матриця поки порожня</td></tr>`;
+    const usedCount = rows.filter(r => r.compensation_used === true).length;
+    const openCount = rows.length - usedCount;
+
+    let hasBreak = false;
+
+    const steps = rows.map((r, index) => {
+      const sourceId = effectiveSourceSeanceId(r, auditByToken);
+      const usedId = effectiveUsedSeanceId(r, auditByToken);
+
+      if (index > 0) {
+        const prevUsedId = effectiveUsedSeanceId(rows[index - 1], auditByToken);
+
+        if (
+          prevUsedId &&
+          sourceId &&
+          String(prevUsedId) !== String(sourceId)
+        ) {
+          hasBreak = true;
+        }
+      }
+
+      return {
+        row:r,
+        index:index + 1,
+        sourceId,
+        usedId
+      };
+    });
+
+    const latestTs = Math.max(
+      ...rows.map(r => {
+        const d = new Date(
+          r.compensation_used_at ||
+          r.created_at ||
+          0
+        ).getTime();
+
+        return Number.isFinite(d) ? d : 0;
+      })
+    );
+
+    return {
+      rows,
+      steps,
+      first,
+      last,
+      usedCount,
+      openCount,
+      hasBreak,
+      latestTs
+    };
+  });
+
+  chains.sort((a,b) => b.latestTs - a.latestTs);
+
+  const body = $("chainBody");
+
+  if (!chains.length) {
+    body.innerHTML = `<tr><td colspan="5" class="empty">Компенсаційних ланцюгів немає</td></tr>`;
     return;
   }
 
-  body.innerHTML = rows.map(r => `
-    <tr>
-      <td>${seanceCell(r.sourceId === "__none__" ? "" : r.sourceId)}</td>
-      <td>${seanceCell(r.usedId === "__none__" ? "" : r.usedId)}</td>
-      <td><strong>${r.count}</strong></td>
-      <td>${fmtDateTime(r.latest)}</td>
-    </tr>
-  `).join("");
+  body.innerHTML = chains.map(chain => {
+    const first = chain.first || {};
+    const last = chain.last || {};
+
+    const token =
+      last.token ||
+      first.token ||
+      "—";
+
+    const viewer = [
+      last.owner_name || first.owner_name || "",
+      last.owner_email || first.owner_email || "",
+      last.owner_phone || first.owner_phone || ""
+    ].filter(Boolean).join("<br>");
+
+    const oldSeat =
+      last.source_seat_label ||
+      first.source_seat_label ||
+      last.seat_label ||
+      first.seat_label ||
+      "";
+
+    const stepsHtml = chain.steps.map((step, idx) => {
+      const prev = idx > 0 ? chain.steps[idx - 1] : null;
+
+      const continuityWarning =
+        prev &&
+        prev.usedId &&
+        step.sourceId &&
+        String(prev.usedId) !== String(step.sourceId);
+
+      return `
+        <div class="chain-step">
+
+          <div class="chain-no">
+            ${step.index}
+          </div>
+
+          ${compactSeanceHtml(step.sourceId)}
+
+          <div class="chain-arrow">
+            →
+          </div>
+
+          ${compactSeanceHtml(step.usedId, "target")}
+
+          ${continuityWarning ? `
+            <div
+              class="chain-break"
+              style="grid-column:2 / -1;"
+            >
+              ⚠ Розрив: попереднє погашення не збігається
+              з джерелом наступної активації.
+            </div>
+          ` : ""}
+
+        </div>
+      `;
+    }).join("");
+
+    const status =
+      chain.openCount > 0
+        ? `<span class="tag open">ВІДКРИТО</span>`
+        : chain.hasBreak
+          ? `<span class="tag bad">ПЕРЕВІРИТИ</span>`
+          : `<span class="tag ok">ЗАКРИТО</span>`;
+
+    return `
+      <tr>
+
+        <td class="chain-ticket">
+          <div class="mono">
+            ${esc(shortToken(token))}
+          </div>
+
+          ${last.source_ticket_id || first.source_ticket_id
+            ? `<small>${esc(last.source_ticket_id || first.source_ticket_id)}</small>`
+            : ""
+          }
+        </td>
+
+        <td class="chain-viewer">
+          ${viewer || "—"}
+
+          ${oldSeat
+            ? `<br><small>Старе місце: ${esc(oldSeat)}</small>`
+            : ""
+          }
+        </td>
+
+        <td class="chain-steps">
+          ${stepsHtml}
+        </td>
+
+        <td>
+          <div class="chain-summary">
+            Активацій:
+            <strong>${chain.rows.length}</strong><br>
+
+            Погашено:
+            <strong>${chain.usedCount}</strong><br>
+
+            ${chain.openCount
+              ? `Відкрито: <strong>${chain.openCount}</strong>`
+              : `Залишок: <strong>0</strong>`
+            }
+          </div>
+        </td>
+
+        <td>
+          ${status}
+
+          ${chain.hasBreak
+            ? `<div class="chain-break">Є розрив послідовності</div>`
+            : ""
+          }
+        </td>
+
+      </tr>
+    `;
+  }).join("");
 }
 
 function renderDetailTable(auditByToken){
