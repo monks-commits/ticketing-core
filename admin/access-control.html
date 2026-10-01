@@ -1,86 +1,160 @@
 <!doctype html>
 <html lang="uk">
+
 <head>
   <meta charset="UTF-8" />
+
   <title>VA • Контроль доступу</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <style>
+
     :root{
-      --bg:#0b0b0f; --card:#15151d; --card2:#1d1d27;
-      --text:#f5f5f7; --muted:#9ca3af; --line:#2a2a36;
-      --green:#22c55e; --red:#ef4444; --blue:#38bdf8; --accent:#7f1d1d;
+      --bg:#0b0b0f;
+      --card:#15151d;
+      --card2:#1d1d27;
+      --text:#f5f5f7;
+      --muted:#9ca3af;
+      --line:#2a2a36;
+      --green:#22c55e;
+      --red:#ef4444;
+      --blue:#38bdf8;
+      --accent:#7f1d1d;
       --orange:#f59e0b;
     }
 
-    *{box-sizing:border-box}
+    *{
+      box-sizing:border-box;
+    }
 
     body{
       margin:0;
-      background:radial-gradient(circle at top,#241111,#08080c 55%);
+
+      background:
+        radial-gradient(
+          circle at top,
+          #241111,
+          #08080c 55%
+        );
+
       color:var(--text);
-      font-family:Arial,Helvetica,sans-serif;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
     }
 
     .wrap{
       max-width:1280px;
+
       margin:0 auto;
+
       padding:22px;
     }
 
     .top{
       display:flex;
+
       justify-content:space-between;
+
       align-items:flex-start;
+
       gap:20px;
+
       margin-bottom:20px;
     }
 
     h1{
       margin:0 0 6px;
+
       font-size:28px;
+
       letter-spacing:.04em;
+
       text-transform:uppercase;
     }
 
-    h2{margin-top:0}
+    h2{
+      margin-top:0;
+    }
 
     .sub{
       color:var(--muted);
+
       font-size:14px;
     }
 
     .status{
       padding:10px 14px;
+
       border:1px solid var(--line);
-      background:rgba(255,255,255,.04);
+
+      background:
+        rgba(255,255,255,.04);
+
       border-radius:12px;
+
       font-size:14px;
+
       color:var(--muted);
     }
 
     .grid4{
       display:grid;
-      grid-template-columns:repeat(4,1fr);
+
+      grid-template-columns:
+        repeat(4,1fr);
+
       gap:14px;
+
       margin-bottom:18px;
     }
 
     .card{
-      background:linear-gradient(180deg,var(--card),#101018);
-      border:1px solid var(--line);
+      background:
+        linear-gradient(
+          180deg,
+          var(--card),
+          #101018
+        );
+
+      border:
+        1px solid var(--line);
+
       border-radius:18px;
+
       padding:18px;
-      box-shadow:0 12px 35px rgba(0,0,0,.25);
+
+      box-shadow:
+        0 12px 35px
+        rgba(0,0,0,.25);
     }
 
     .recovery-box{
       margin-bottom:18px;
-      background:linear-gradient(180deg,#15151d,#101018);
-      border:1px solid var(--line);
+
+      background:
+        linear-gradient(
+          180deg,
+          #15151d,
+          #101018
+        );
+
+      border:
+        1px solid var(--line);
+
       border-radius:18px;
+
       padding:18px;
-      box-shadow:0 12px 35px rgba(0,0,0,.25);
+
+      box-shadow:
+        0 12px 35px
+        rgba(0,0,0,.25);
     }
 
     .recovery-box h2{
@@ -89,529 +163,1406 @@
 
     .metric-title{
       color:var(--muted);
+
       font-size:13px;
+
       text-transform:uppercase;
+
       letter-spacing:.06em;
+
       margin-bottom:8px;
     }
 
     .metric-value{
       font-size:34px;
+
       font-weight:800;
+
       line-height:1;
     }
 
     .metric-note{
       margin-top:8px;
+
       color:var(--muted);
+
       font-size:13px;
     }
 
-    .green{color:var(--green)}
-    .red{color:var(--red)}
-    .blue{color:var(--blue)}
-    .orange{color:var(--orange)}
+    .green{
+      color:var(--green);
+    }
+
+    .red{
+      color:var(--red);
+    }
+
+    .blue{
+      color:var(--blue);
+    }
+
+    .orange{
+      color:var(--orange);
+    }
 
     .main{
       display:grid;
-      grid-template-columns:1fr 1fr;
+
+      grid-template-columns:
+        1fr 1fr;
+
       gap:16px;
     }
 
     table{
       width:100%;
+
       border-collapse:collapse;
+
       font-size:14px;
     }
 
-    th,td{
+    th,
+    td{
       padding:12px 10px;
-      border-bottom:1px solid var(--line);
+
+      border-bottom:
+        1px solid var(--line);
+
       text-align:left;
     }
 
     th{
       color:var(--muted);
+
       font-weight:600;
+
       font-size:12px;
+
       text-transform:uppercase;
+
       letter-spacing:.05em;
     }
 
     .bar{
       height:8px;
+
       background:#262632;
+
       border-radius:999px;
+
       overflow:hidden;
+
       margin-top:6px;
     }
 
     .bar span{
       display:block;
+
       height:100%;
+
       background:var(--green);
+
       width:0%;
     }
 
-    select,button{
+    select,
+    button{
       background:#111118;
+
       color:var(--text);
-      border:1px solid var(--line);
+
+      border:
+        1px solid var(--line);
+
       border-radius:10px;
+
       padding:10px 12px;
     }
 
     button{
       cursor:pointer;
+
       background:var(--accent);
+
       border-color:#9f1239;
     }
 
     .controls{
       display:flex;
+
       gap:10px;
+
       flex-wrap:wrap;
+
       margin-top:12px;
     }
 
     .empty{
       color:var(--muted);
+
       padding:12px 0;
     }
 
     @media(max-width:900px){
-      .grid4{grid-template-columns:1fr 1fr}
-      .main{grid-template-columns:1fr}
+
+      .grid4{
+        grid-template-columns:
+          1fr 1fr;
+      }
+
+      .main{
+        grid-template-columns:
+          1fr;
+      }
     }
 
     @media(max-width:560px){
-      .grid4{grid-template-columns:1fr}
-      .top{display:block}
+
+      .grid4{
+        grid-template-columns:
+          1fr;
+      }
+
+      .top{
+        display:block;
+      }
     }
+
   </style>
 </head>
 
+
 <body>
+
 <div class="wrap">
 
   <div class="top">
+
     <div>
-      <h1>Контроль доступу</h1>
-      <div class="sub" id="seanceInfo">Поточний сеанс завантажується...</div>
+
+      <h1>
+        Контроль доступу
+      </h1>
+
+      <div
+        class="sub"
+        id="seanceInfo"
+      >
+        Поточний сеанс завантажується...
+      </div>
 
       <div class="controls">
-        <select id="seanceSelect"></select>
-        <button onclick="loadData()">Оновити</button>
+
+        <select
+          id="seanceSelect"
+        ></select>
+
+        <button
+          onclick="loadData()"
+        >
+          Оновити
+        </button>
+
       </div>
+
     </div>
 
-    <div class="status" id="liveStatus">Статус: очікування даних</div>
+    <div
+      class="status"
+      id="liveStatus"
+    >
+      Статус: очікування даних
+    </div>
+
   </div>
+
+
+  <!--
+    Звичайні квитки саме цього сеансу.
+    Recovery сюди не додаємо,
+    щоб не спотворювати явку по власних квитках.
+  -->
 
   <div class="grid4">
-    <div class="card">
-      <div class="metric-title">Оформлено</div>
-      <div class="metric-value" id="totalExpected">0</div>
-      <div class="metric-note">усі квитки по сеансу</div>
-    </div>
 
     <div class="card">
-      <div class="metric-title">Пройшло</div>
-      <div class="metric-value green" id="totalPassed">0</div>
-      <div class="metric-note">checked_in_at заповнено</div>
+
+      <div class="metric-title">
+        Оформлено
+      </div>
+
+      <div
+        class="metric-value"
+        id="totalExpected"
+      >
+        0
+      </div>
+
+      <div class="metric-note">
+        квитки цього сеансу
+      </div>
+
     </div>
 
-    <div class="card">
-      <div class="metric-title">Явка</div>
-      <div class="metric-value blue" id="attendanceRate">0%</div>
-      <div class="metric-note">пройшло / оформлено</div>
-    </div>
 
     <div class="card">
-      <div class="metric-title">Не пройшло</div>
-      <div class="metric-value red" id="notPassed">0</div>
-      <div class="metric-note">оформлено, але не скановано</div>
+
+      <div class="metric-title">
+        Пройшло за квитками
+      </div>
+
+      <div
+        class="metric-value green"
+        id="totalPassed"
+      >
+        0
+      </div>
+
+      <div class="metric-note">
+        checked_in_at цього сеансу
+      </div>
+
     </div>
+
+
+    <div class="card">
+
+      <div class="metric-title">
+        Явка за квитками
+      </div>
+
+      <div
+        class="metric-value blue"
+        id="attendanceRate"
+      >
+        0%
+      </div>
+
+      <div class="metric-note">
+        пройшло за квитками / оформлено
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="metric-title">
+        Не пройшло за квитками
+      </div>
+
+      <div
+        class="metric-value red"
+        id="notPassed"
+      >
+        0
+      </div>
+
+      <div class="metric-note">
+        оформлено, але не скановано
+      </div>
+
+    </div>
+
   </div>
+
+
+  <!--
+    Recovery:
+    только фактические компенсационные проходы
+    НА выбранный сеанс.
+  -->
 
   <div class="recovery-box">
-    <h2>Компенсаційний доступ</h2>
 
-    <div class="grid4" style="margin-bottom:0;">
-      <div class="card">
-        <div class="metric-title">Дозволено</div>
-        <div class="metric-value" id="recoveryAllowed">0</div>
-        <div class="metric-note">створено compensation rights</div>
-      </div>
+    <h2>
+      Компенсаційний доступ
+    </h2>
 
-      <div class="card">
-        <div class="metric-title">Пройшло</div>
-        <div class="metric-value green" id="recoveryPassed">0</div>
-        <div class="metric-note">compensation_used = true</div>
-      </div>
+    <div
+      class="grid4"
+      style="margin-bottom:0;"
+    >
 
       <div class="card">
-        <div class="metric-title">Не використано</div>
-        <div class="metric-value red" id="recoveryUnused">0</div>
-        <div class="metric-note">борг ще відкритий</div>
+
+        <div class="metric-title">
+          Через Recovery
+        </div>
+
+        <div
+          class="metric-value green"
+          id="recoveryPassed"
+        >
+          0
+        </div>
+
+        <div class="metric-note">
+          компенсаційних проходів на цей сеанс
+        </div>
+
       </div>
 
+
       <div class="card">
-        <div class="metric-title">Повторні спроби</div>
-        <div class="metric-value orange" id="recoveryRepeated">0</div>
-        <div class="metric-note">ALREADY_USED у recovery_audit</div>
+
+        <div class="metric-title">
+          З різних сеансів
+        </div>
+
+        <div
+          class="metric-value blue"
+          id="recoverySources"
+        >
+          0
+        </div>
+
+        <div class="metric-note">
+          джерел компенсаційного допуску
+        </div>
+
       </div>
+
+
+      <div class="card">
+
+        <div class="metric-title">
+          Фактично пройшло
+        </div>
+
+        <div
+          class="metric-value green"
+          id="actualPassed"
+        >
+          0
+        </div>
+
+        <div class="metric-note">
+          квитки цього сеансу + Recovery
+        </div>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="metric-title">
+          Повторні спроби
+        </div>
+
+        <div
+          class="metric-value orange"
+          id="recoveryRepeated"
+        >
+          0
+        </div>
+
+        <div class="metric-note">
+          ALREADY_USED на цьому сеансі
+        </div>
+
+      </div>
+
     </div>
+
   </div>
 
+
   <div class="main">
-    <div class="card">
-      <h2>Типи квитків</h2>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Тип</th>
-            <th>Очікується</th>
-            <th>Пройшло</th>
-            <th>%</th>
-          </tr>
-        </thead>
-
-        <tbody id="typeRows"></tbody>
-      </table>
-    </div>
 
     <div class="card">
-      <h2>Канали</h2>
+
+      <h2>
+        Типи квитків
+      </h2>
 
       <table>
+
         <thead>
+
           <tr>
-            <th>Канал</th>
-            <th>Очікується</th>
-            <th>Пройшло</th>
-            <th>%</th>
+
+            <th>
+              Тип
+            </th>
+
+            <th>
+              Очікується
+            </th>
+
+            <th>
+              Пройшло
+            </th>
+
+            <th>
+              %
+            </th>
+
           </tr>
+
         </thead>
 
-        <tbody id="channelRows"></tbody>
+        <tbody
+          id="typeRows"
+        ></tbody>
+
       </table>
+
     </div>
+
+
+    <div class="card">
+
+      <h2>
+        Канали
+      </h2>
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Канал
+            </th>
+
+            <th>
+              Очікується
+            </th>
+
+            <th>
+              Пройшло
+            </th>
+
+            <th>
+              %
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody
+          id="channelRows"
+        ></tbody>
+
+      </table>
+
+    </div>
+
   </div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script
+  src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+></script>
+
 
 <script>
-const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL =
+  "https://fhusjlkneckbvnrdhbil.supabase.co";
 
-const qs = new URLSearchParams(location.search);
+const SUPABASE_ANON_KEY =
+  "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+
+
+const sb =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+
+const qs =
+  new URLSearchParams(
+    location.search
+  );
+
 
 let CURRENT_SEANCE_ID =
   qs.get("seance_id") ||
   qs.get("seance") ||
   null;
 
+
 const TYPE_LABELS = {
-  full: "Звичайний",
-  regular: "Звичайний",
-  standard: "Звичайний",
-  vip: "VIP",
-  discount: "Пільговий",
-  child: "Дитячий",
-  promo: "Акційний",
-  invitation: "Запрошення",
-  invite: "Запрошення",
-  service: "Службовий",
-  compensation: "Компенсаційний",
-  free: "Безкоштовний",
-  undefined: "Не вказано",
-  null: "Не вказано"
+
+  full:
+    "Звичайний",
+
+  regular:
+    "Звичайний",
+
+  standard:
+    "Звичайний",
+
+  vip:
+    "VIP",
+
+  discount:
+    "Пільговий",
+
+  child:
+    "Дитячий",
+
+  promo:
+    "Акційний",
+
+  invitation:
+    "Запрошення",
+
+  invite:
+    "Запрошення",
+
+  service:
+    "Службовий",
+
+  compensation:
+    "Компенсаційний",
+
+  free:
+    "Безкоштовний",
+
+  undefined:
+    "Не вказано",
+
+  null:
+    "Не вказано"
 };
+
 
 const CHANNEL_LABELS = {
-  cash: "Каса",
-  online: "Онлайн",
-  site: "Сайт",
-  partner: "Партнер",
-  operator: "Оператор",
-  referral: "Реферал",
-  undefined: "Не вказано",
-  null: "Не вказано"
+
+  cash:
+    "Каса",
+
+  online:
+    "Онлайн",
+
+  site:
+    "Сайт",
+
+  partner:
+    "Партнер",
+
+  operator:
+    "Оператор",
+
+  referral:
+    "Реферал",
+
+  undefined:
+    "Не вказано",
+
+  null:
+    "Не вказано"
 };
 
+
 async function init(){
+
   await loadSeances();
+
   await loadData();
 
-  setInterval(loadData, 5000);
+  setInterval(
+    loadData,
+    5000
+  );
 }
 
-async function loadSeances(){
-  const select = document.getElementById("seanceSelect");
 
-  const { data, error } = await sb
-    .from("seances")
-    .select("id,show,date,time,venue_id,status,active")
-    .order("date", { ascending: true });
+async function loadSeances(){
+
+  const select =
+    document.getElementById(
+      "seanceSelect"
+    );
+
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from("seances")
+      .select(
+        "id,show,date,time,venue_id,status,active"
+      )
+      .order(
+        "date",
+        {
+          ascending:true
+        }
+      );
+
 
   if(error){
-    console.error("loadSeances error:", error);
 
-    select.innerHTML = `<option>Помилка завантаження сеансів</option>`;
+    console.error(
+      "loadSeances error:",
+      error
+    );
 
-    document.getElementById("seanceInfo").textContent =
+    select.innerHTML =
+      `<option>
+        Помилка завантаження сеансів
+      </option>`;
+
+    document.getElementById(
+      "seanceInfo"
+    ).textContent =
       "Немає доступних сеансів";
 
-    document.getElementById("liveStatus").textContent =
+    document.getElementById(
+      "liveStatus"
+    ).textContent =
       "Статус: помилка";
 
     return;
   }
 
+
   select.innerHTML = "";
 
-  const rows = data || [];
 
-  rows.forEach(s => {
-    const title = s.show || "Без назви";
-    const dateTime = `${s.date || ""} ${s.time || ""}`.trim();
+  const rows =
+    data || [];
 
-    const opt = document.createElement("option");
 
-    opt.value = s.id;
-    opt.textContent = `${title} • ${dateTime}`;
+  rows.forEach(
+    s => {
 
-    select.appendChild(opt);
-  });
+      const title =
+        s.show ||
+        "Без назви";
 
-  if(!CURRENT_SEANCE_ID && rows.length){
-    CURRENT_SEANCE_ID = rows[0].id;
+      const dateTime =
+        `${s.date || ""} ${s.time || ""}`
+          .trim();
+
+      const opt =
+        document.createElement(
+          "option"
+        );
+
+      opt.value =
+        s.id;
+
+      opt.textContent =
+        `${title} • ${dateTime}`;
+
+      select.appendChild(
+        opt
+      );
+    }
+  );
+
+
+  if(
+    !CURRENT_SEANCE_ID &&
+    rows.length
+  ){
+    CURRENT_SEANCE_ID =
+      rows[0].id;
   }
+
 
   if(CURRENT_SEANCE_ID){
-    select.value = CURRENT_SEANCE_ID;
+
+    select.value =
+      CURRENT_SEANCE_ID;
   }
 
-  select.onchange = () => {
-    CURRENT_SEANCE_ID = select.value;
 
-    const url = new URL(location.href);
-    url.searchParams.set("seance", CURRENT_SEANCE_ID);
-    history.replaceState(null, "", url.toString());
+  select.onchange =
+    () => {
 
-    loadData();
-  };
+      CURRENT_SEANCE_ID =
+        select.value;
+
+      const url =
+        new URL(
+          location.href
+        );
+
+      url.searchParams.set(
+        "seance",
+        CURRENT_SEANCE_ID
+      );
+
+      history.replaceState(
+        null,
+        "",
+        url.toString()
+      );
+
+      loadData();
+    };
 }
 
+
 async function loadData(){
+
   if(!CURRENT_SEANCE_ID){
-    document.getElementById("seanceInfo").textContent =
+
+    document.getElementById(
+      "seanceInfo"
+    ).textContent =
       "Немає доступних сеансів";
 
-    document.getElementById("liveStatus").textContent =
+    document.getElementById(
+      "liveStatus"
+    ).textContent =
       "Статус: немає сеансу";
 
     return;
   }
 
-  document.getElementById("liveStatus").textContent =
+
+  document.getElementById(
+    "liveStatus"
+  ).textContent =
     "Статус: оновлення...";
 
-  const [seanceRes, ticketsRes, recoveryTokensRes] = await Promise.all([
-    sb.from("seances")
-      .select("id,show,date,time,venue_id,status,active")
-      .eq("id", CURRENT_SEANCE_ID)
-      .single(),
 
-    sb.from("tickets")
-      .select("id,seance_id,seat_label,price,channel,ticket_type,checked_in_at,checked_in_by")
-      .eq("seance_id", CURRENT_SEANCE_ID),
+  /*
+    ВАЖЛИВО.
 
-    sb.from("recovery_tokens")
-      .select("id,recovery_event_id,source_seance_id,token,compensation_used,compensation_used_at,compensation_used_by")
-      .eq("source_seance_id", CURRENT_SEANCE_ID)
-  ]);
+    tickets:
+      квитки, які належать вибраному сеансу.
+
+    recovery_tokens:
+      тільки компенсаційні права,
+      які були ФАКТИЧНО погашені
+      НА вибраному сеансі.
+
+    recovery_audit:
+      спроби Recovery-сканування
+      НА вибраному сеансі.
+  */
+
+  const [
+    seanceRes,
+    ticketsRes,
+    recoveryUsedRes,
+    recoveryAuditRes
+  ] =
+    await Promise.all([
+
+
+      sb
+        .from("seances")
+        .select(
+          "id,show,date,time,venue_id,status,active"
+        )
+        .eq(
+          "id",
+          CURRENT_SEANCE_ID
+        )
+        .single(),
+
+
+      sb
+        .from("tickets")
+        .select(
+          "id,seance_id,seat_label,price,channel,ticket_type,checked_in_at,checked_in_by"
+        )
+        .eq(
+          "seance_id",
+          CURRENT_SEANCE_ID
+        ),
+
+
+      sb
+        .from("recovery_tokens")
+        .select(
+          "id,recovery_event_id,source_seance_id,token,compensation_used,compensation_used_at,compensation_used_by,used_seance_id"
+        )
+        .eq(
+          "used_seance_id",
+          CURRENT_SEANCE_ID
+        )
+        .eq(
+          "compensation_used",
+          true
+        ),
+
+
+      sb
+        .from("recovery_audit")
+        .select(
+          "id,recovery_event_id,token,result,action,scanned_by,source_seance_id,scan_seance_id,created_at"
+        )
+        .eq(
+          "scan_seance_id",
+          CURRENT_SEANCE_ID
+        )
+
+    ]);
+
 
   if(seanceRes.error){
-    console.error("seance error:", seanceRes.error);
+
+    console.error(
+      "seance error:",
+      seanceRes.error
+    );
   }
 
-  if(ticketsRes.error){
-    console.error("tickets error:", ticketsRes.error);
 
-    document.getElementById("liveStatus").textContent =
+  if(ticketsRes.error){
+
+    console.error(
+      "tickets error:",
+      ticketsRes.error
+    );
+
+    document.getElementById(
+      "liveStatus"
+    ).textContent =
       "Статус: помилка квитків";
 
     return;
   }
 
-  if(recoveryTokensRes.error){
-    console.warn("recovery tokens error:", recoveryTokensRes.error);
+
+  if(recoveryUsedRes.error){
+
+    console.warn(
+      "recovery used error:",
+      recoveryUsedRes.error
+    );
   }
 
-  const seance = seanceRes.data || null;
-  const tickets = ticketsRes.data || [];
-  const recoveryTokens = recoveryTokensRes.data || [];
 
-  let recoveryAudit = [];
+  if(recoveryAuditRes.error){
 
-  const recoveryEventIds = [
-    ...new Set(
-      recoveryTokens
-        .map(t => t.recovery_event_id)
-        .filter(Boolean)
-        .map(String)
-    )
-  ];
-
-  if(recoveryEventIds.length){
-    const auditRes = await sb
-      .from("recovery_audit")
-      .select("id,recovery_event_id,token,result,action,scanned_by,created_at")
-      .in("recovery_event_id", recoveryEventIds);
-
-    if(auditRes.error){
-      console.warn("recovery_audit error:", auditRes.error);
-    } else {
-      recoveryAudit = auditRes.data || [];
-    }
+    console.warn(
+      "recovery audit error:",
+      recoveryAuditRes.error
+    );
   }
 
-  renderSeance(seance);
-  renderSummary(tickets);
-  renderRecoverySummary(recoveryTokens, recoveryAudit);
-  renderGroupedTable(tickets, "ticket_type", "typeRows", TYPE_LABELS);
-  renderGroupedTable(tickets, "channel", "channelRows", CHANNEL_LABELS);
 
-  document.getElementById("liveStatus").textContent =
-    "Статус: дані оновлено " + new Date().toLocaleTimeString("uk-UA");
+  const seance =
+    seanceRes.data ||
+    null;
+
+
+  const tickets =
+    ticketsRes.data ||
+    [];
+
+
+  const recoveryUsed =
+    recoveryUsedRes.data ||
+    [];
+
+
+  const recoveryAudit =
+    recoveryAuditRes.data ||
+    [];
+
+
+  renderSeance(
+    seance
+  );
+
+
+  /*
+    Возвращает количество
+    обычных проходов по билетам.
+  */
+
+  const ticketPassed =
+    renderSummary(
+      tickets
+    );
+
+
+  /*
+    Добавляем к нему
+    фактические Recovery-проходы.
+  */
+
+  renderRecoverySummary(
+    recoveryUsed,
+    recoveryAudit,
+    ticketPassed
+  );
+
+
+  renderGroupedTable(
+    tickets,
+    "ticket_type",
+    "typeRows",
+    TYPE_LABELS
+  );
+
+
+  renderGroupedTable(
+    tickets,
+    "channel",
+    "channelRows",
+    CHANNEL_LABELS
+  );
+
+
+  document.getElementById(
+    "liveStatus"
+  ).textContent =
+    "Статус: дані оновлено " +
+    new Date()
+      .toLocaleTimeString(
+        "uk-UA"
+      );
 }
 
-function renderSeance(seance){
+
+function renderSeance(
+  seance
+){
+
   if(!seance){
-    document.getElementById("seanceInfo").textContent =
+
+    document.getElementById(
+      "seanceInfo"
+    ).textContent =
       "Сеанс не знайдено";
 
     return;
   }
 
-  const title = seance.show || "Без назви";
-  const venue = seance.venue_id || "";
-  const date = seance.date || "";
-  const time = seance.time || "";
-  const status = seance.status || "";
 
-  document.getElementById("seanceInfo").textContent =
+  const title =
+    seance.show ||
+    "Без назви";
+
+
+  const venue =
+    seance.venue_id ||
+    "";
+
+
+  const date =
+    seance.date ||
+    "";
+
+
+  const time =
+    seance.time ||
+    "";
+
+
+  const status =
+    seance.status ||
+    "";
+
+
+  document.getElementById(
+    "seanceInfo"
+  ).textContent =
     `${title} • ${date} ${time} • ${venue} • ${status}`;
 }
 
-function renderSummary(tickets){
-  const total = tickets.length;
-  const passed = tickets.filter(t => !!t.checked_in_at).length;
-  const notPassed = total - passed;
-  const rate = total ? Math.round((passed / total) * 100) : 0;
 
-  document.getElementById("totalExpected").textContent = total;
-  document.getElementById("totalPassed").textContent = passed;
-  document.getElementById("notPassed").textContent = notPassed;
-  document.getElementById("attendanceRate").textContent = rate + "%";
+/*
+  Верхняя сводка:
+  ТОЛЬКО обычные билеты выбранного сеанса.
+
+  Recovery в процент явки не вмешивается.
+*/
+
+function renderSummary(
+  tickets
+){
+
+  const total =
+    tickets.length;
+
+
+  const passed =
+    tickets.filter(
+      t => !!t.checked_in_at
+    ).length;
+
+
+  const notPassed =
+    total - passed;
+
+
+  const rate =
+    total
+      ? Math.round(
+          (passed / total) *
+          100
+        )
+      : 0;
+
+
+  document.getElementById(
+    "totalExpected"
+  ).textContent =
+    total;
+
+
+  document.getElementById(
+    "totalPassed"
+  ).textContent =
+    passed;
+
+
+  document.getElementById(
+    "notPassed"
+  ).textContent =
+    notPassed;
+
+
+  document.getElementById(
+    "attendanceRate"
+  ).textContent =
+    rate + "%";
+
+
+  return passed;
 }
 
-function renderRecoverySummary(tokens, audit){
-  const list = Array.isArray(tokens) ? tokens : [];
-  const auditRows = Array.isArray(audit) ? audit : [];
 
-  const allowed = list.length;
-  const passed = list.filter(t => t.compensation_used === true).length;
-  const unused = Math.max(allowed - passed, 0);
-  const repeated = auditRows.filter(a =>
-    String(a.result || "").trim() === "ALREADY_USED"
-  ).length;
+/*
+  Компенсационный доступ выбранного сеанса.
 
-  document.getElementById("recoveryAllowed").textContent = allowed;
-  document.getElementById("recoveryPassed").textContent = passed;
-  document.getElementById("recoveryUnused").textContent = unused;
-  document.getElementById("recoveryRepeated").textContent = repeated;
+  list:
+    только строки recovery_tokens,
+    у которых used_seance_id =
+    CURRENT_SEANCE_ID
+    и compensation_used = true.
+
+  Поэтому list.length =
+    фактическое количество
+    Recovery-проходов на этот сеанс.
+*/
+
+function renderRecoverySummary(
+  tokens,
+  audit,
+  ticketPassed
+){
+
+  const list =
+    Array.isArray(tokens)
+      ? tokens
+      : [];
+
+
+  const auditRows =
+    Array.isArray(audit)
+      ? audit
+      : [];
+
+
+  /*
+    Количество фактических
+    компенсационных проходов.
+  */
+
+  const recoveryPassed =
+    list.length;
+
+
+  /*
+    Сколько разных исходных
+    прерванных сеансов привело
+    Recovery-зрителей на этот сеанс.
+  */
+
+  const sourceIds =
+    new Set(
+
+      list
+        .map(
+          t =>
+            String(
+              t.source_seance_id ||
+              ""
+            ).trim()
+        )
+        .filter(Boolean)
+
+    );
+
+
+  const recoverySources =
+    sourceIds.size;
+
+
+  /*
+    Повторные попытки
+    именно на выбранном сеансе.
+  */
+
+  const repeated =
+    auditRows.filter(
+      a =>
+        String(
+          a.result ||
+          ""
+        )
+          .trim()
+          .toUpperCase()
+        ===
+        "ALREADY_USED"
+    ).length;
+
+
+  /*
+    Фактическое количество
+    успешных проходов через контроль:
+
+    обычные билеты
+    +
+    Recovery.
+  */
+
+  const actualPassed =
+    Number(
+      ticketPassed ||
+      0
+    )
+    +
+    recoveryPassed;
+
+
+  document.getElementById(
+    "recoveryPassed"
+  ).textContent =
+    recoveryPassed;
+
+
+  document.getElementById(
+    "recoverySources"
+  ).textContent =
+    recoverySources;
+
+
+  document.getElementById(
+    "actualPassed"
+  ).textContent =
+    actualPassed;
+
+
+  document.getElementById(
+    "recoveryRepeated"
+  ).textContent =
+    repeated;
 }
 
-function renderGroupedTable(tickets, field, tbodyId, labels){
+
+/*
+  Таблицы "Типи квитків" и "Канали"
+  остаются статистикой только
+  по обычным билетам выбранного сеанса.
+
+  Recovery сюда не подмешивается,
+  потому что его источник —
+  другой сеанс.
+*/
+
+function renderGroupedTable(
+  tickets,
+  field,
+  tbodyId,
+  labels
+){
+
   const grouped = {};
 
-  tickets.forEach(t => {
-    const raw = t[field] ?? "undefined";
-    const key = String(raw).toLowerCase();
-    const label = labels[key] || raw || "Не вказано";
 
-    if(!grouped[label]){
-      grouped[label] = {
-        expected:0,
-        passed:0
-      };
+  tickets.forEach(
+    t => {
+
+      const raw =
+        t[field] ??
+        "undefined";
+
+
+      const key =
+        String(raw)
+          .toLowerCase();
+
+
+      const label =
+        labels[key] ||
+        raw ||
+        "Не вказано";
+
+
+      if(!grouped[label]){
+
+        grouped[label] = {
+
+          expected:0,
+
+          passed:0
+        };
+      }
+
+
+      grouped[label]
+        .expected++;
+
+
+      if(t.checked_in_at){
+
+        grouped[label]
+          .passed++;
+      }
     }
+  );
 
-    grouped[label].expected++;
 
-    if(t.checked_in_at){
-      grouped[label].passed++;
-    }
-  });
+  const tbody =
+    document.getElementById(
+      tbodyId
+    );
 
-  const tbody = document.getElementById(tbodyId);
 
-  tbody.innerHTML = "";
+  tbody.innerHTML =
+    "";
 
-  const keys = Object.keys(grouped).sort();
+
+  const keys =
+    Object
+      .keys(grouped)
+      .sort();
+
 
   if(!keys.length){
+
     tbody.innerHTML = `
       <tr>
-        <td colspan="4" class="empty">Немає даних</td>
+        <td
+          colspan="4"
+          class="empty"
+        >
+          Немає даних
+        </td>
       </tr>
     `;
 
     return;
   }
 
-  keys.forEach(label => {
-    const item = grouped[label];
-    const percent = item.expected
-      ? Math.round((item.passed / item.expected) * 100)
-      : 0;
 
-    const tr = document.createElement("tr");
+  keys.forEach(
+    label => {
 
-    tr.innerHTML = `
-      <td>
-        <strong>${escapeHtml(label)}</strong>
-        <div class="bar">
-          <span style="width:${percent}%"></span>
-        </div>
-      </td>
-      <td>${item.expected}</td>
-      <td>${item.passed}</td>
-      <td>${percent}%</td>
-    `;
+      const item =
+        grouped[label];
 
-    tbody.appendChild(tr);
-  });
+
+      const percent =
+        item.expected
+          ? Math.round(
+              (
+                item.passed /
+                item.expected
+              ) *
+              100
+            )
+          : 0;
+
+
+      const tr =
+        document.createElement(
+          "tr"
+        );
+
+
+      tr.innerHTML = `
+
+        <td>
+
+          <strong>
+            ${escapeHtml(label)}
+          </strong>
+
+          <div class="bar">
+
+            <span
+              style="width:${percent}%"
+            ></span>
+
+          </div>
+
+        </td>
+
+        <td>
+          ${item.expected}
+        </td>
+
+        <td>
+          ${item.passed}
+        </td>
+
+        <td>
+          ${percent}%
+        </td>
+
+      `;
+
+
+      tbody.appendChild(
+        tr
+      );
+    }
+  );
 }
 
-function escapeHtml(value){
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+
+function escapeHtml(
+  value
+){
+
+  return String(
+    value ??
+    ""
+  )
+
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
+
 
 init();
+
 </script>
 
 </body>
