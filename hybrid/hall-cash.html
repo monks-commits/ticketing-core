@@ -1157,6 +1157,41 @@ body{
     "
   />
 </div>
+
+<div class="cash-print-format" style="margin:16px 0;">
+  <label
+    for="cashPrintFormat"
+    style="
+      display:block;
+      margin-bottom:8px;
+      font-size:13px;
+      opacity:.9;
+    "
+  >
+    Формат друку
+  </label>
+
+  <select
+    id="cashPrintFormat"
+    style="
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:#10233f;
+      color:#fff;
+      font:inherit;
+    "
+  >
+    <option value="standard">Стандартний / A4</option>
+    <option value="150x70">Касовий 150×70</option>
+  </select>
+
+  <div style="margin-top:6px;font-size:11px;opacity:.65;line-height:1.3;">
+    Вибір зберігається на цьому ПК. 150×70 — двосторонній квиток із двома контрольними корінцями по 25 мм.
+  </div>
+</div>
+
 <div class="cash-actions cash-actions-premium">
     <button id="btn-sell" class="btn btn-sell" disabled>ПРОДАТИ (КАСА) + ДРУК</button>
     <button id="btn-reserve" class="btn btn-reserve" disabled>ДО РЕЗЕРВУ</button>
@@ -1704,6 +1739,25 @@ async function loadSeanceConfig() {
       if(!el) return;
       el.className = "pill " + (kind || "");
       el.textContent = text;
+    }
+
+    function getCashPrintFormat(){
+      return localStorage.getItem("cash_print_format") || "standard";
+    }
+
+    function setCashPrintFormat(value){
+      const format = value === "150x70" ? "150x70" : "standard";
+      localStorage.setItem("cash_print_format", format);
+      const el = document.getElementById("cashPrintFormat");
+      if (el && el.value !== format) el.value = format;
+      return format;
+    }
+
+    function initCashPrintFormat(){
+      const el = document.getElementById("cashPrintFormat");
+      if (!el) return;
+      el.value = getCashPrintFormat();
+      el.addEventListener("change", () => setCashPrintFormat(el.value));
     }
 
     function getCashierId(){
@@ -2434,236 +2488,349 @@ async function applyStatusToSelectedLocal(status){
     }
 
 // ---- печать билетов (с QR) ----
-    async function openPrintWindowOffline(tickets, meta){
-  const theatre = "Найменування майданчика";
-  const title = meta?.title || showSlug || "Квиток";
-  const dt = (meta?.date && meta?.time) ? `${meta.date} ${meta.time}` : "";
-  const seance = SEANCE_ID || "";
-
-  const safeTickets = Array.isArray(tickets) ? tickets : [];
-
-  if (!safeTickets.length) {
-    alert("Немає квитків для друку.");
-    return;
-  }
-
-  const cardsHtml = [];
-
-  for (const t of safeTickets){
-    const ticketNo = String(t?.ticket_number || "").trim();
-
-    const payload = String(
-      t?.qr_payload ||
-      ticketNo ||
-      buildCashQrPayload(t)
-    ).trim();
-
-    let qrDataUrl = "";
-    try{
-      qrDataUrl = await window.QRCode.toDataURL(payload, {
-        width: 320,
-        margin: 2,
-        errorCorrectionLevel: "M"
-      });
-    }catch(e){
-      console.warn("QR error:", e);
+    function cashPrintEsc(value){
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
-    cardsHtml.push(`
+    function cashSeatParts(key){
+      const raw = String(key || "").trim();
+      const m = raw.match(/^([A-Za-zА-Яа-яІіЇїЄєҐґ_-]*?)(\d+)-M(\d+)$/u);
+      if (!m) {
+        return { zone: "", row: "—", seat: "—", human: seatKeyToHuman(raw) || raw };
+      }
+
+      const prefix = String(m[1] || "").toUpperCase();
+      const row = String(m[2]);
+      const seat = String(m[3]);
+
+      let zone = prefix || "";
+      if (prefix === "P") zone = "Партер";
+      if (prefix === "A") zone = row === "0" ? "Ложа А" : "Амфітеатр";
+      if (prefix === "B") zone = row === "0" ? "Ложа Б" : "Балкон";
+
+      return { zone, row, seat, human: seatKeyToHuman(raw) || raw };
+    }
+
+    async function resolveCashPrintVenueName(){
+      const fromShow = String(
+        SHOW_META?.venue_name ||
+        SHOW_META?.venue_title ||
+        ""
+      ).trim();
+      if (fromShow) return fromShow;
+
+      const venueId = String(
+        SHOW_META?.venue_id ||
+        SHOW_META?.venue ||
+        VENUE_ID ||
+        ""
+      ).trim();
+
+      if (venueId && typeof loadCashVenueMeta === "function") {
+        try {
+          const meta = await loadCashVenueMeta(venueId);
+          const name = String(meta?.name || "").trim();
+          if (name) return name;
+        } catch(e) {
+          console.warn("print venue meta error", e);
+        }
+      }
+
+      return "Найменування майданчика";
+    }
+
+    async function openPrintWindowOffline(tickets, meta){
+      const printFormat = getCashPrintFormat();
+      const theatre = await resolveCashPrintVenueName();
+      const title = meta?.title || SHOW_META?.show || SHOW_META?.title || showSlug || "Квиток";
+      const date = String(meta?.date || SHOW_META?.date || "").trim();
+      const time = String(meta?.time || SHOW_META?.time || "").trim();
+      const dt = [date, time].filter(Boolean).join(" ");
+      const seance = SEANCE_ID || "";
+
+      const safeTickets = Array.isArray(tickets) ? tickets : [];
+
+      if (!safeTickets.length) {
+        alert("Немає квитків для друку.");
+        return;
+      }
+
+      const prepared = [];
+
+      for (const t of safeTickets){
+        const ticketNo = String(t?.ticket_number || "").trim();
+        const payload = String(
+          t?.qr_payload ||
+          ticketNo ||
+          buildCashQrPayload(t)
+        ).trim();
+
+        let qrDataUrl = "";
+        try{
+          qrDataUrl = await window.QRCode.toDataURL(payload, {
+            width: 320,
+            margin: 2,
+            errorCorrectionLevel: "M"
+          });
+        }catch(e){
+          console.warn("QR error:", e);
+        }
+
+        prepared.push({
+          ticket: t,
+          ticketNo,
+          payload,
+          qrDataUrl,
+          seat: cashSeatParts(t?.seat_label)
+        });
+      }
+
+      let html = "";
+
+      if (printFormat === "150x70") {
+        const pages = [];
+
+        for (const item of prepared) {
+          const t = item.ticket;
+          const ticketNo = cashPrintEsc(item.ticketNo || item.payload || "—");
+          const qrDataUrl = item.qrDataUrl;
+          const row = cashPrintEsc(item.seat.row);
+          const seat = cashPrintEsc(item.seat.seat);
+          const zone = cashPrintEsc(item.seat.zone || "");
+          const price = `${Number(t?.price || 0)} грн`;
+          const type = cashPrintEsc(t?.ticket_type_label || ticketTypeLabel(t?.ticket_type));
+          const cashier = cashPrintEsc(getCashierId());
+          const venue = cashPrintEsc(theatre);
+          const eventTitle = cashPrintEsc(title);
+          const eventDate = cashPrintEsc(date || "—");
+          const eventTime = cashPrintEsc(time || "—");
+          const shortNo = ticketNo.length > 10 ? ticketNo.slice(-10) : ticketNo;
+
+          pages.push(`
+<section class="ticket-page ticket-front">
+  <div class="stub stub-left">
+    <div class="stub-title">КОНТРОЛЬ</div>
+    <div class="stub-date">${eventDate}</div>
+    <div class="stub-time">${eventTime}</div>
+    <div class="stub-label">РЯД / МІСЦЕ</div>
+    <div class="stub-seat">${row} / ${seat}</div>
+    <div class="stub-code">${ticketNo}</div>
+  </div>
+
+  <div class="ticket-main">
+    <div class="venue">${venue}</div>
+    <div class="event">${eventTitle}</div>
+    <div class="datetime">${eventDate} &nbsp; ${eventTime}</div>
+    ${zone ? `<div class="zone">${zone}</div>` : ``}
+
+    <div class="facts">
+      <div><div class="fact-label">РЯД</div><div class="fact-value">${row}</div></div>
+      <div><div class="fact-label">МІСЦЕ</div><div class="fact-value">${seat}</div></div>
+      <div><div class="fact-label">ЦІНА</div><div class="price-value">${cashPrintEsc(price)}</div></div>
+    </div>
+
+    ${qrDataUrl ? `<img class="qr-compact" src="${qrDataUrl}" alt="QR"/>` : `<div class="qr-miss compact">QR</div>`}
+    <div class="qr-code">${ticketNo}</div>
+    <div class="ticket-meta">${type} • Каса ${cashier}</div>
+  </div>
+
+  <div class="stub stub-right">
+    <div class="stub-title">КОРІНЕЦЬ</div>
+    <div class="stub-date">${eventDate}</div>
+    <div class="stub-time">${eventTime}</div>
+    <div class="stub-label">РЯД / МІСЦЕ</div>
+    <div class="stub-seat">${row} / ${seat}</div>
+    <div class="stub-label cashier-label">КАСА</div>
+    <div class="stub-cashier">${cashier}</div>
+    <div class="stub-code">${cashPrintEsc(shortNo)}</div>
+  </div>
+</section>
+
+<section class="ticket-page ticket-back">
+  <div class="stub stub-left">
+    <div class="va-mark">VA</div>
+    <div class="stub-label">№ КВИТКА</div>
+    <div class="back-code">${ticketNo}</div>
+    <div class="stub-label">РЯД / МІСЦЕ</div>
+    <div class="stub-seat">${row} / ${seat}</div>
+  </div>
+
+  <div class="ticket-main back-main">
+    <div class="rules-title">ПРАВИЛА</div>
+    <div class="rules">
+      <div>1. Квиток дійсний для одноразового відвідування зазначеної події.</div>
+      <div>2. Не передавайте QR-код третім особам.</div>
+      <div>3. Повернення та обмін виконуються відповідно до правил організатора.</div>
+      <div>4. Зберігайте квиток до завершення події.</div>
+    </div>
+    <div class="back-footer">VA Ticket • ${venue}<br/>${eventDate} ${eventTime} • ${cashPrintEsc(seance)}</div>
+  </div>
+
+  <div class="stub stub-right">
+    <div class="stub-title">КОНТРОЛЬ</div>
+    <div class="stub-label">№ КВИТКА</div>
+    <div class="back-code">${ticketNo}</div>
+    <div class="stub-label">РЯД / МІСЦЕ</div>
+    <div class="stub-seat">${row} / ${seat}</div>
+    <div class="stub-label cashier-label">КАСА</div>
+    <div class="stub-cashier">${cashier}</div>
+  </div>
+</section>`);
+        }
+
+        html = `<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Касовий квиток 150×70</title>
+<style>
+  @page{size:150mm 70mm;margin:0}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#d1d5db;color:#111827;font-family:Arial,sans-serif}
+  body{padding:10mm 0}
+  .ticket-page{
+    width:150mm;height:70mm;margin:0 auto 8mm;background:#fff;
+    border:1.2mm solid #6d1021;
+    display:grid;grid-template-columns:25mm 100mm 25mm;
+    overflow:hidden;page-break-after:always;break-after:page;
+    box-shadow:0 8px 28px #0003;
+  }
+  .ticket-page:last-child{page-break-after:auto;break-after:auto}
+  .stub,.ticket-main{position:relative;padding:2.5mm;min-width:0;overflow:hidden}
+  .stub-left{border-right:.25mm dashed #777}
+  .stub-right{border-left:.25mm dashed #777}
+  .stub-title{font-size:7pt;font-weight:800;text-align:center;color:#6d1021}
+  .stub-date{font-size:6pt;font-weight:700;text-align:center;margin-top:4mm}
+  .stub-time{font-size:10pt;font-weight:800;text-align:center;margin-top:1mm}
+  .stub-label{font-size:5pt;color:#666;text-align:center;margin-top:4mm}
+  .stub-seat{font-size:13pt;font-weight:800;text-align:center;margin-top:1mm}
+  .stub-code{position:absolute;left:1mm;right:1mm;bottom:2mm;text-align:center;font-size:4.1pt;white-space:nowrap;overflow:hidden}
+  .stub-cashier{text-align:center;font-size:5pt;font-weight:700;margin-top:.5mm;white-space:nowrap;overflow:hidden}
+  .cashier-label{margin-top:2mm}
+  .venue{font-size:8pt;font-weight:800;border-bottom:.25mm solid #222;padding-bottom:1.2mm;padding-right:1mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .event{font-size:14pt;font-weight:800;line-height:1.05;margin-top:2mm;max-width:62mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .datetime{font-size:7pt;font-weight:800;margin-top:2.5mm}
+  .zone{font-size:6pt;margin-top:1mm}
+  .facts{display:grid;grid-template-columns:11mm 14mm 1fr;gap:2mm;margin-top:2mm;max-width:60mm}
+  .fact-label{font-size:5pt;color:#666}
+  .fact-value{font-size:14pt;font-weight:800;line-height:1}
+  .price-value{font-size:8pt;font-weight:800;line-height:1.2;padding-top:1mm}
+  .qr-compact{position:absolute;right:3mm;top:18mm;width:27mm;height:27mm;display:block}
+  .qr-code{position:absolute;right:2mm;top:46.5mm;width:29mm;text-align:center;font-size:4.2pt;white-space:nowrap;overflow:hidden}
+  .qr-miss.compact{position:absolute;right:3mm;top:18mm;width:27mm;height:27mm;border:.3mm dashed #aaa;display:flex;align-items:center;justify-content:center;color:#888;font-size:8pt}
+  .ticket-meta{position:absolute;left:2.5mm;bottom:2.5mm;font-size:5pt;color:#666;max-width:61mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .va-mark{font-size:14pt;font-weight:800;text-align:center;color:#6d1021;margin-top:1mm}
+  .back-code{font-size:4.2pt;text-align:center;margin-top:1mm;overflow:hidden}
+  .rules-title{font-size:8pt;font-weight:800;color:#6d1021}
+  .rules{font-size:5.1pt;line-height:1.28;margin-top:2mm}
+  .rules div{margin-bottom:1.1mm}
+  .back-footer{position:absolute;left:2.5mm;right:2.5mm;bottom:2.5mm;border-top:.2mm solid #777;padding-top:1.4mm;font-size:5pt;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  @media print{
+    html,body{background:#fff}
+    body{padding:0}
+    .ticket-page{margin:0;box-shadow:none}
+  }
+</style>
+</head>
+<body>${pages.join("")}</body>
+</html>`;
+      } else {
+        const cardsHtml = prepared.map(item => {
+          const t = item.ticket;
+          const ticketNo = cashPrintEsc(item.ticketNo || "—");
+          const payload = cashPrintEsc(item.payload || "—");
+          const qrDataUrl = item.qrDataUrl;
+          return `
       <div class="t">
         <div class="h">
-          <div class="theatre">${theatre}</div>
+          <div class="theatre">${cashPrintEsc(theatre)}</div>
           <div class="ord">
-            <b>№ ${ticketNo || "—"}</b><br/>
+            <b>№ ${ticketNo}</b><br/>
             Канал: Каса
           </div>
         </div>
 
-        <div class="show">${title}</div>
+        <div class="show">${cashPrintEsc(title)}</div>
 
         <div class="meta">
-          ${dt ? `<div>Дата/час: ${dt}</div>` : ``}
-          <div><b>${seatKeyToHuman(t.seat_label)}</b></div>
-          ${seance ? `<div class="muted">Seance: ${seance}</div>` : ``}
-          <div class="muted">Order: ${t.order_id || "—"}</div>
+          ${dt ? `<div>Дата/час: ${cashPrintEsc(dt)}</div>` : ``}
+          <div><b>${cashPrintEsc(item.seat.human)}</b></div>
+          ${seance ? `<div class="muted">Seance: ${cashPrintEsc(seance)}</div>` : ``}
+          <div class="muted">Order: ${cashPrintEsc(t?.order_id || "—")}</div>
         </div>
 
-        <div class="price">Ціна: ${Number(t.price || 0)} грн</div>
-        <div class="type">
-          Тип квитка: ${t.ticket_type_label || ticketTypeLabel(t.ticket_type)}
-        </div>
+        <div class="price">Ціна: ${Number(t?.price || 0)} грн</div>
+        <div class="type">Тип квитка: ${cashPrintEsc(t?.ticket_type_label || ticketTypeLabel(t?.ticket_type))}</div>
 
-        ${
-          qrDataUrl
-            ? `<img class="qr" src="${qrDataUrl}" alt="QR"/>`
-            : `<div class="qr-miss">QR не згенеровано</div>`
-        }
-
+        ${qrDataUrl ? `<img class="qr" src="${qrDataUrl}" alt="QR"/>` : `<div class="qr-miss">QR не згенеровано</div>`}
         <div class="ticket-code">Код: ${ticketNo || payload}</div>
 
         <div class="note">
           Квиток дійсний на одну особу. Зберігайте до кінця вистави.<br/>
           Для гарантованого сканування натисніть SYNC, коли є інтернет.
         </div>
-      </div>
-    `);
-  }
+      </div>`;
+        }).join("");
 
-  const html = `<!doctype html>
+        html = `<!doctype html>
 <html lang="uk">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Друк квитків</title>
 <style>
-  html,body{
-    margin:0;
-    padding:0;
-    background:#fff;
-    color:#111827;
-    font-family:Arial,sans-serif;
-  }
-
-  body{
-    padding:16px;
-  }
-
-  .wrap{
-    display:flex;
-    flex-wrap:wrap;
-    gap:14px;
-  }
-
-  .t{
-    width:320px;
-    border:1px solid #e5e7eb;
-    border-radius:14px;
-    padding:12px;
-    break-inside:avoid;
-    page-break-inside:avoid;
-  }
-
-  .h{
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-    margin-bottom:6px;
-  }
-
-  .theatre{
-    font-weight:700;
-    font-size:12px;
-  }
-
-  .ord{
-    font-size:11px;
-    color:#6b7280;
-    text-align:right;
-  }
-
-  .show{
-    font-size:14px;
-    font-weight:800;
-    margin:6px 0 4px;
-  }
-
-  .meta{
-    font-size:12px;
-    color:#374151;
-    line-height:1.35;
-  }
-
-  .muted{
-    font-size:11px;
-    color:#6b7280;
-    margin-top:4px;
-  }
-
-  .price{
-    margin-top:8px;
-    font-size:14px;
-    font-weight:800;
-  }
-
-  .type{
-    margin-top:4px;
-    font-size:12px;
-    font-weight:700;
-    color:#374151;
-  }
-
-  .qr{
-    display:block;
-    margin:10px auto 6px;
-    width:190px;
-    height:190px;
-    border:1px solid #e5e7eb;
-    border-radius:10px;
-  }
-
-  .qr-miss{
-    margin:10px 0;
-    padding:10px;
-    border:1px dashed #e5e7eb;
-    border-radius:10px;
-    color:#6b7280;
-    text-align:center;
-  }
-
-  .ticket-code{
-    margin:2px 0 8px;
-    font-size:11px;
-    font-weight:800;
-    text-align:center;
-    color:#111827;
-  }
-
-  .note{
-    font-size:10px;
-    color:#6b7280;
-    line-height:1.3;
-    margin-top:8px;
-  }
-
-  @media print{
-    body{padding:10mm;}
-  }
+  @page{size:A4 portrait;margin:10mm}
+  html,body{margin:0;padding:0;background:#fff;color:#111827;font-family:Arial,sans-serif}
+  body{padding:0}
+  .wrap{display:flex;flex-wrap:wrap;gap:14px}
+  .t{width:320px;border:1px solid #e5e7eb;border-radius:14px;padding:12px;break-inside:avoid;page-break-inside:avoid}
+  .h{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .theatre{font-weight:700;font-size:12px}.ord{font-size:11px;color:#6b7280;text-align:right}
+  .show{font-size:14px;font-weight:800;margin:6px 0 4px}
+  .meta{font-size:12px;color:#374151;line-height:1.35}.muted{font-size:11px;color:#6b7280;margin-top:4px}
+  .price{margin-top:8px;font-size:14px;font-weight:800}.type{margin-top:4px;font-size:12px;font-weight:700;color:#374151}
+  .qr{display:block;margin:10px auto 6px;width:190px;height:190px;border:1px solid #e5e7eb;border-radius:10px}
+  .qr-miss{margin:10px 0;padding:10px;border:1px dashed #e5e7eb;border-radius:10px;color:#6b7280;text-align:center}
+  .ticket-code{margin:2px 0 8px;font-size:11px;font-weight:800;text-align:center;color:#111827}
+  .note{font-size:10px;color:#6b7280;line-height:1.3;margin-top:8px}
 </style>
 </head>
-<body>
-  <div class="wrap">
-    ${cardsHtml.join("")}
-  </div>
-</body>
+<body><div class="wrap">${cardsHtml}</div></body>
 </html>`;
+      }
 
-  console.log("PRINT HTML:", html);
+      console.log("PRINT FORMAT:", printFormat, "PRINT HTML:", html);
 
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, "_blank");
 
-  const w = window.open(url, "_blank");
+      if (!w){
+        URL.revokeObjectURL(url);
+        alert("Браузер заблокував pop-up. Дозвольте відкриття вікон для друку.");
+        return;
+      }
 
-  if (!w){
-    URL.revokeObjectURL(url);
-    alert("Браузер заблокував pop-up. Дозвольте відкриття вікон для друку.");
-    return;
-  }
+      setTimeout(() => {
+        try{
+          w.focus();
+          w.print();
+        }catch(e){
+          console.warn("print error:", e);
+        }
 
-  setTimeout(() => {
-    try{
-      w.focus();
-      w.print();
-    }catch(e){
-      console.warn("print error:", e);
+        setTimeout(() => {
+          try { URL.revokeObjectURL(url); } catch(e) {}
+        }, 5000);
+      }, 1200);
     }
 
-    setTimeout(() => {
-      try { URL.revokeObjectURL(url); } catch(e) {}
-    }, 5000);
-  }, 1200);
-}
-    
     async function postCashSync(cashier_id, ops){
       const secret = getCashierSecret().trim();
       const headers = { "Content-Type": "application/json" };
@@ -4244,6 +4411,7 @@ await loadClientConfig();
 setNetPill();
 refreshQueueCount();
 initLastSync();
+initCashPrintFormat();
 
 const topOnlineStatus = document.getElementById("topOnlineStatus");
 if (topOnlineStatus) {
