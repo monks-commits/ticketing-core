@@ -4,7 +4,7 @@
 
   const state = {
     cfg:null,
-    currentIncident:null,
+    currentIncident:null, 
     currentTickets:[],
     formSeanceId:"",
     actorKey:"va_incident_actor_v1",
