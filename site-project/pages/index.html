@@ -195,6 +195,24 @@
     display:none !important;
   }
 
+  /* VA International: visible text only in Full-Cycle Demo. */
+  body.demo-mode .info-btn,
+  body.demo-mode .buy-ticket-btn{
+    min-height:60px;
+    padding:10px 12px;
+    line-height:1.38;
+    white-space:normal;
+    font-size:13px;
+  }
+  body.demo-mode .event-modal-title{
+    padding-right:22px;
+    line-height:1.25;
+    font-size:22px;
+  }
+  body.demo-mode .hero-text{
+    max-width:1040px;
+  }
+
   body.demo-mode .hero{
     margin-bottom:28px;
   }
@@ -795,14 +813,24 @@ function applyDemoShell(){
   const heroText = document.querySelector(".hero-text");
   const sectionTitle = document.querySelector(".section-title");
 
-  if (siteTitle) siteTitle.textContent = `${DEMO_VENUE_TITLE} — Ваш Адмін`;
-  if (eyebrow) eyebrow.textContent = "Ваш Адмін • Live Demo";
-  if (heroTitle) heroTitle.textContent = `${DEMO_VENUE_TITLE} — демонстраційна афіша`;
+  if (siteTitle) siteTitle.textContent = `${DEMO_VENUE_TITLE} — Ваш Адмін / Vash Admin / Ваш Админ`;
+  if (eyebrow) eyebrow.textContent = "Ваш Адмін • Live Demo • Ваш Админ";
+  if (heroTitle) heroTitle.textContent = `${DEMO_VENUE_TITLE} — демонстраційна афіша / Event showcase / Демонстрационная афиша`;
   if (heroText) {
-    heroText.textContent =
-      "Демонстраційні події повного циклу VA: афіша, вибір місця, оплата, електронний квиток і контроль входу.";
+    heroText.innerHTML = [
+      "<span lang=\"uk\">Повний цикл покупки квитка: подія, відеоафіша, місце, оплата, квиток та контроль входу.</span>",
+      "<span lang=\"en\">Full ticketing cycle: event, video poster, seat selection, payment, ticket and entry validation.</span>",
+      "<span lang=\"ru\">Полный цикл покупки билета: событие, видеоафиша, место, оплата, билет и контроль входа.</span>",
+      "<small style=\"display:block;margin-top:12px;color:#d4af37\">Мова інтерфейсу налаштовується для замовника / The interface language is customized for each client / Язык интерфейса настраивается для заказчика.</small>"
+    ].join("<br>");
   }
-  if (sectionTitle) sectionTitle.textContent = `Події ${DEMO_VENUE_TITLE}`;
+  const badges = document.querySelectorAll(".hero-badge");
+  if (badges[0]) badges[0].textContent = "Вибір місця / Seat selection / Выбор места";
+  if (badges[1]) badges[1].textContent = "QR-квиток / QR ticket / QR-билет";
+  if (badges[2]) badges[2].textContent = "Онлайн-покупка / Online purchase / Онлайн-покупка";
+  const modalTitle = document.querySelector(".event-modal-title");
+  if (modalTitle) modalTitle.textContent = "Про подію / About the event / О событии";
+  if (sectionTitle) sectionTitle.textContent = `Події / Events / События — ${DEMO_VENUE_TITLE}`;
 }
 
 let ALL_SEANCES = [];
@@ -1019,17 +1047,22 @@ function renderSeances(){
   const cityLabel = citySelect.value ? CITIES[citySelect.value] : "";
   const venueLabel = venueSelect.value ? VENUES[venueSelect.value]?.title : "";
 
-  sectionNote.textContent =
-    visible.length
-      ? `Знайдено подій: ${visible.length}` +
-        (cityLabel ? ` • ${cityLabel}` : "") +
-        (venueLabel ? ` • ${venueLabel}` : "")
-      : "За цими фільтрами подій немає";
+  sectionNote.textContent = DEMO_MODE
+    ? (visible.length
+        ? `Знайдено подій / Events found / Найдено событий: ${visible.length}`
+        : "Немає активних сеансів / No active performances / Нет активных сеансов")
+    : (visible.length
+        ? `Знайдено подій: ${visible.length}` +
+          (cityLabel ? ` • ${cityLabel}` : "") +
+          (venueLabel ? ` • ${venueLabel}` : "")
+        : "За цими фільтрами подій немає");
 
   if (!visible.length){
     grid.innerHTML = `
       <div class="empty">
-        Поки що немає активних сеансів за обраними фільтрами.
+        ${DEMO_MODE
+          ? "Наразі немає активних сеансів / No active performances at the moment / Пока нет активных сеансов."
+          : "Поки що немає активних сеансів за обраними фільтрами."}
       </div>
     `;
     return;
@@ -1078,7 +1111,7 @@ const img =
   type="button"
   data-seance="${safeHtml(s.id)}"
 >
-  Про подію
+  ${DEMO_MODE ? "Про подію / About the event / О событии" : "Про подію"}
 </button>
 
         <a
@@ -1090,7 +1123,7 @@ const img =
       : `hall.html?seance=${encodeURIComponent(s.id)}`
   }"
 >
-  Купити квитки
+  ${DEMO_MODE ? "Купити квитки / Buy tickets / Купить билеты" : "Купити квитки"}
 </a>
       </div>
     `;
@@ -1212,7 +1245,7 @@ async function maybeStartSocialEntryIntro(card){
     </video>
 
     <button class="skip-card-video" type="button">
-      Пропустити
+      ${DEMO_MODE ? "Пропустити / Skip / Пропустить" : "Пропустити"}
     </button>
   `;
 
@@ -1690,7 +1723,7 @@ async function openVideoIntro(targetUrl, btn){
     </video>
 
     <button class="skip-card-video" type="button">
-      Пропустити
+      ${DEMO_MODE ? "Пропустити / Skip / Пропустить" : "Пропустити"}
     </button>
   `;
 
