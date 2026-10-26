@@ -1757,6 +1757,13 @@ body.va-static-bg-active .hall-section-title{
   }
 }
 
+/* VA International: demo-only captions, outside the hall geometry */
+.va-demo-legend { display:none; margin:0 16px 14px; padding:12px 16px; background:rgba(15,23,42,.06); border:1px solid rgba(100,116,139,.25); border-radius:12px; }
+.va-demo-legend[data-active="1"] { display:block; }
+.va-demo-legend-title { font-weight:800; font-size:13px; margin-bottom:8px; }
+.va-demo-legend-list { display:flex; gap:8px; flex-wrap:wrap; }
+.va-demo-legend-item { padding:6px 10px; border:1px solid rgba(100,116,139,.26); border-radius:9px; font-size:12px; line-height:1.5; background:rgba(255,255,255,.08); }
+@media(max-width:640px) { .va-demo-legend { margin:0 8px 12px; padding:10px; } .va-demo-legend-item { width:100%; } }
 </style>
 
 </head>
@@ -1835,6 +1842,8 @@ body.va-static-bg-active .hall-section-title{
         </div>
       </div>
 
+      <!-- Visible legend appears only when the selected seance belongs to demo-fullcycle. -->
+      <div class="va-demo-legend" id="va-demo-legend" aria-live="polite"></div>
       <div class="hall-scroll">
         <div id="mobile-hall-viewport" class="mobile-hall-viewport">
           <div id="mobile-hall-scale" class="mobile-hall-scale">
@@ -1890,6 +1899,7 @@ body.va-static-bg-active .hall-section-title{
 let HALL_VISUAL_CONFIG = null;
     const qs = new URLSearchParams(location.search);
     const GATEWAY_MODE = qs.get("source") === "gateway";
+    let VA_I18N_DEMO = false; // Set from seances.venue_id, never from an arbitrary query flag.
     const GATEWAY_VENUE_CODE = (qs.get("venue") || "filarmoniya").trim();
     let GATEWAY_STATE = null;
     let GATEWAY_HOLD_REF = null;
@@ -2139,6 +2149,66 @@ async function loadClientConfig(){
 
     const selected = new Map(); // key -> { meta, price }
 
+    // ===== VA INTERNATIONAL DEMO: explanatory labels only.
+    // The seat JSON, editor, seat identifiers, rates, booking and Gateway logic stay untouched.
+    function demoTrio(uk, en, ru){ return VA_I18N_DEMO ? `${uk} / ${en} / ${ru}` : uk; }
+
+    function applyDemoHallLabels(){
+      if (!VA_I18N_DEMO) return;
+      const set = (selector, value) => {
+        const node = document.querySelector(selector);
+        if (node) node.textContent = value;
+      };
+      set('.hall-eyebrow', 'Ваш Адмін • Live Demo • Vash Admin');
+      set('.ticket-price-sidebar .price-card h3', 'Ціна / Price / Цена');
+      set('.hall-summary-help', 'Кнопка активується після вибору місця. / The button becomes active when you select a seat. / Кнопка активируется после выбора места.');
+      set('#go-order', 'Перейти до оформлення / Continue to checkout / Перейти к оформлению');
+      const status = [
+        ['Вільно', 'Available', 'Свободно'],
+        ['Тимчасово заброньовано', 'Temporarily held', 'Временно забронировано'],
+        ['Продано', 'Sold', 'Продано'],
+        ['Резерв', 'Reserved', 'Резерв']
+      ];
+      const spans = document.querySelectorAll('.ticket-price-sidebar .price-card > div[style] > div > span:last-child');
+      spans.forEach(span => {
+        const row = status.find(values => values[0] === span.textContent.trim());
+        if (row) span.textContent = row.join(' / ');
+      });
+    }
+
+    function renderDemoHallLegend(hallData){
+      if (!VA_I18N_DEMO) return;
+      const root = document.getElementById('va-demo-legend');
+      if (!root) return;
+      const zoneTexts = [
+        ...(Array.isArray(hallData?.seats) ? hallData.seats.map(s => s.zone) : []),
+        ...(Array.isArray(hallData?.decor) ? hallData.decor.map(d => d.text) : [])
+      ].map(v => String(v || '').toLowerCase());
+      const contains = pattern => zoneTexts.some(text => pattern.test(text));
+      const items = [
+        ['СЦЕНА', 'STAGE', 'СЦЕНА'],
+        ...(contains(/партер/) ? [['ПАРТЕР', 'STALLS', 'ПАРТЕР']] : []),
+        ...(contains(/амф[іи]театр/) ? [['АМФІТЕАТР', 'AMPHITHEATRE', 'АМФИТЕАТР']] : []),
+        ...(contains(/балкон/) ? [['БАЛКОН', 'BALCONY', 'БАЛКОН']] : []),
+        ...(contains(/лож/) ? [['ЛОЖІ', 'BOXES', 'ЛОЖИ']] : [])
+      ];
+      root.replaceChildren();
+      const title = document.createElement('div');
+      title.className = 'va-demo-legend-title';
+      title.textContent = 'Позначення залу / Hall sections / Обозначения зала';
+      root.appendChild(title);
+      const list = document.createElement('div');
+      list.className = 'va-demo-legend-list';
+      for (const row of items){
+        const label = document.createElement('span');
+        label.className = 'va-demo-legend-item';
+        label.textContent = row.join(' / ');
+        list.appendChild(label);
+      }
+      root.appendChild(list);
+      root.dataset.active = '1';
+    }
+
     // ===== UI helpers =====
     function setHeroInfo(hallTitleText = "Схема залу", seanceMeta = null) {
   const showText =
@@ -2157,7 +2227,7 @@ async function loadClientConfig(){
   if (subtitleEl) {
     subtitleEl.textContent =
       [dateText, timeText].filter(Boolean).join(" • ") ||
-      "Оберіть місця та перейдіть до оформлення замовлення.";
+       demoTrio('Оберіть місця та перейдіть до оформлення замовлення.', 'Select seats and proceed to checkout.', 'Выберите места и перейдите к оформлению заказа.');
   }
 
   const heroShowBadge = document.getElementById("hero-show-badge");
@@ -2166,15 +2236,15 @@ async function loadClientConfig(){
   const hallMetaEl = document.getElementById("hall-meta");
   const summaryShowEl = document.getElementById("summary-show");
 
-  if (heroShowBadge) heroShowBadge.textContent = "Вистава: " + showText;
+   if (heroShowBadge) heroShowBadge.textContent = demoTrio('Вистава', 'Performance', 'Спектакль') + ': ' + showText;
   if (heroSeanceBadge) {
     heroSeanceBadge.textContent =
-      [dateText, timeText].filter(Boolean).join(" • ") || ("Сеанс: " + (SEANCE_ID || "—"));
+       [dateText, timeText].filter(Boolean).join(" • ") || (demoTrio('Сеанс', 'Session', 'Сеанс') + ': ' + (SEANCE_ID || "—"));
   }
 
   if (hallTitleEl) hallTitleEl.textContent = hallTitleText || "Схема залу";
-  if (hallMetaEl) hallMetaEl.textContent = "Оберіть місця на схемі нижче.";
-  if (summaryShowEl) summaryShowEl.textContent = "Вистава: " + showText;
+   if (hallMetaEl) hallMetaEl.textContent = demoTrio('Оберіть місця на схемі нижче.', 'Select seats on the seating plan below.', 'Выберите места на схеме ниже.');
+   if (summaryShowEl) summaryShowEl.textContent = demoTrio('Вистава', 'Performance', 'Спектакль') + ': ' + showText;
 }
 
     function makeSectionTitle(text){
@@ -2288,13 +2358,13 @@ function getSeatTooltipHtml(meta, price){
   const isLodge = zone.toLowerCase().includes("лож");
 
   const placeLine = isLodge
-    ? `${zone}, місце: ${seat}`
-    : `${zone}, ряд: ${row}, місце: ${seat}`;
+    ? `${zone}, ${demoTrio('місце', 'seat', 'место')}: ${seat}`
+    : `${zone}, ${demoTrio('ряд', 'row', 'ряд')}: ${row}, ${demoTrio('місце', 'seat', 'место')}: ${seat}`;
 
   return `
-    <div class="seat-tooltip__title">Додати в кошик</div>
+    <div class="seat-tooltip__title">${demoTrio('Додати в кошик', 'Add to basket', 'Добавить в корзину')}</div>
     <p class="seat-tooltip__line">${placeLine}</p>
-    <p class="seat-tooltip__line">Ціна: ${formatPrice(price)}</p>
+    <p class="seat-tooltip__line">${demoTrio('Ціна', 'Price', 'Цена')}: ${formatPrice(price)}</p>
   `;
 }
 
@@ -4786,8 +4856,8 @@ function updateSummary(){
 
   const keys = Array.from(selected.keys());
   if (!keys.length){
-    placesEl.textContent = "Обрані місця: немає";
-    amountEl.textContent = "Сума: 0 грн";
+    placesEl.textContent = demoTrio('Обрані місця: немає', 'Selected seats: none', 'Выбранные места: нет');
+    amountEl.textContent = demoTrio('Сума', 'Total', 'Сумма') + ': 0 грн';
     btn.disabled = true;
     return;
   }
@@ -4795,8 +4865,8 @@ function updateSummary(){
   const placesStr = keys.map(seatKeyToHuman).join("; ");
   const total = Array.from(selected.values()).reduce((sum,x)=> sum + (x.price||0), 0);
 
-  placesEl.textContent = "Обрані місця: " + placesStr;
-  amountEl.textContent = "Сума: " + total + " грн";
+  placesEl.textContent = demoTrio('Обрані місця', 'Selected seats', 'Выбранные места') + ': ' + placesStr;
+  amountEl.textContent = demoTrio('Сума', 'Total', 'Сумма') + ': ' + total + ' грн';
   btn.disabled = false;
 }
 
@@ -4843,9 +4913,11 @@ await loadClientConfig();
   }
   
   SEANCE_CONFIG = await loadSeanceConfig();
-  const SEANCE_META = await loadSeanceMeta();
+   const SEANCE_META = await loadSeanceMeta();
+   VA_I18N_DEMO = !GATEWAY_MODE && String(SEANCE_META?.venue_id || '').trim() === 'demo-fullcycle';
+   applyDemoHallLabels();
 
- const VENUE = await loadVenue(SEANCE_META?.venue_id);
+  const VENUE = await loadVenue(SEANCE_META?.venue_id);
 
 let hallFile = DIRECT_HALL;
 
@@ -4882,9 +4954,10 @@ renderPageVideoBackground();
     throw new Error(`Hall JSON not found: ${hallFile}.json`);
   }
 
-  const HALL = await hallRes.json();
+   const HALL = await hallRes.json();
+   renderDemoHallLegend(HALL);
 
-  setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
+   setHeroInfo(HALL?.title || HALL?.name || "Схема залу", SEANCE_META);
 
   await loadTakenSeats();
   await loadBookingSeats();
