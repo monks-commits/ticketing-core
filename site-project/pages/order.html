@@ -414,6 +414,40 @@
       }
     }
   </style>
+  <style>
+    /* VA International Demo: presentation only; no changes to payment or seat IDs. */
+    body.va-demo-trilingual .btn-pay,
+    body.va-demo-trilingual .btn-clear,
+    body.va-demo-trilingual .btn-back,
+    body.va-demo-trilingual .btn,
+    body.va-demo-trilingual .trust-item,
+    body.va-demo-trilingual .hero-badge,
+    body.va-demo-trilingual .card-note,
+    body.va-demo-trilingual .hero-subtitle,
+    body.va-demo-trilingual .info-label,
+    body.va-demo-trilingual .field label {
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    body.va-demo-trilingual .btn-pay,
+    body.va-demo-trilingual .btn-clear,
+    body.va-demo-trilingual .btn-back {
+      white-space: normal;
+      height: auto;
+      min-height: 54px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      font-size: 14px;
+    }
+    body.va-demo-trilingual .hero-title {overflow-wrap:anywhere}
+    body.va-demo-trilingual .hero-badge {font-size: 12px}
+    body.va-demo-trilingual .summary-meta {align-items: flex-start}
+    body.va-demo-trilingual .summary-meta span {line-height:1.5}
+    body.va-demo-trilingual .trust-item {font-size:13px}
+    body.va-demo-trilingual .seat-title {line-height:1.45}
+    body.va-demo-trilingual .field label {display:block}
+    body.va-demo-trilingual .actions .btn {white-space:normal}
+  </style>
 </head>
 <body>
   <script src="../../shared/gateway-client.js"></script>
@@ -536,7 +570,60 @@ if (refCode) {
       venue_id: ""
     };
 
+
+    // VA International: the three-language text is enabled ONLY for the
+    // authoritative seances.venue_id=demo-fullcycle; sale and seat data untouched.
+    let VA_DEMO_I18N = false;
+    function vaDemoCopy(uk,en,ru){ return VA_DEMO_I18N ? `${uk} / ${en} / ${ru}` : uk; }
+  const VA_DEMO_STATIC_LABELS = new Map([
+    ["Афіша","Афіша / Poster / Афиша"],
+    ["Ваш Адмін • Підтвердження замовлення","Ваш Адмін • Підтвердження замовлення / Vash Admin • Order confirmation / Ваш Админ • Подтверждение заказа"],
+    ["Вистава","Вистава / Performance / Спектакль"],
+    ["Оберіть місця та перейдіть до оплати.","Оберіть місця та перейдіть до оплати. / Select seats and proceed to payment. / Выберите места и перейдите к оплате."],
+    ["Ваші місця","Ваші місця / Your seats / Ваши места"],
+    ["Перевірте вибір перед оплатою. Видалення місця зі списку одразу знімає його бронювання.","Перевірте вибір перед оплатою. Видалення місця зі списку одразу знімає його бронювання. / Check your seats before payment. Removing a seat also releases its reservation. / Проверьте места перед оплатой. Удаление места из списка снимает его бронь."],
+    ["Замовлення","Замовлення / Order / Заказ"],
+    ["Квитків","Квитків / Tickets / Билетов"],
+    ["Майданчик","Майданчик / Venue / Площадка"],
+    ["Дата / час","Дата / час / Date / time / Дата / время"],
+    ["До сплати","До сплати / Amount due / К оплате"],
+    ["Перейти до безпечної оплати","Перейти до безпечної оплати / Proceed to secure payment / Перейти к безопасной оплате"],
+    ["← Повернутись до вибору місць","← Повернутись до вибору місць / Return to seat selection / Вернуться к выбору мест"],
+    ["Очистити кошик","Очистити кошик / Clear cart / Очистить корзину"],
+    ["Після оплати квиток буде сформовано автоматично.","Після оплати квиток буде сформовано автоматично. / Your ticket will be generated automatically after payment. / После оплаты билет будет сформирован автоматически."],
+    ["QR-код використовується для контролю входу.","QR-код використовується для контролю входу. / The QR code is used for entry validation. / QR-код используется для контроля входа."],
+    ["Покупка оформлюється в офіційному контурі квиткової системи.","Покупка оформлюється в офіційному контурі квиткової системи. / Your purchase is processed within the official ticketing system. / Покупка оформляется в официальной билетной системе."]
+  ]);
+  function vaDemoApplyLabels(){
+    if (!VA_DEMO_I18N) return;
+    document.body.classList.add("va-demo-trilingual");
+    document.title = "Підтвердження вибору / Confirm selection / Подтверждение выбора";
+
+    document.querySelectorAll("body *").forEach(el => {
+      if (["SCRIPT","STYLE","NOSCRIPT","PRE","TEXTAREA","INPUT"].includes(el.tagName)) return;
+      for (const node of el.childNodes) {
+        if (node.nodeType !== 3) continue;
+        const raw = node.nodeValue || "";
+        const key = raw.trim().replace(/\s+/g, " ");
+        if (!VA_DEMO_STATIC_LABELS.has(key)) continue;
+        node.nodeValue = VA_DEMO_STATIC_LABELS.get(key);
+      }
+    });
+  }
+
+    function vaDemoSeatText(k){
+      const m = String(k).match(/^([PAB])(\d+)-M(\d+)$/i);
+      if (!m || !VA_DEMO_I18N) return seatKeyToHuman(k);
+      const prefix = m[1].toUpperCase(), row = Number(m[2]), seat = Number(m[3]);
+      if(prefix === 'P') return `Партер, ряд ${row}, місце ${seat} / Stalls, row ${row}, seat ${seat} / Партер, ряд ${row}, место ${seat}`;
+      if(prefix === 'A' && row === 0) return `Ложа А, місце ${seat} / Box A, seat ${seat} / Ложа А, место ${seat}`;
+      if(prefix === 'A') return `Амфітеатр, ряд ${row}, місце ${seat} / Amphitheatre, row ${row}, seat ${seat} / Амфитеатр, ряд ${row}, место ${seat}`;
+      if(prefix === 'B' && row === 0) return `Ложа Б, місце ${seat} / Box B, seat ${seat} / Ложа Б, место ${seat}`;
+      return `Балкон, ряд ${row}, місце ${seat} / Balcony, row ${row}, seat ${seat} / Балкон, ряд ${row}, место ${seat}`;
+    }
+
     function venueToHuman(v){
+      if (v === "demo-fullcycle") return "Demo 1";
       if (v === "academy") return "Академія Руху";
       if (v === "shevchenko" || v === "shevchenko-v2") return "Театр Шевченка";
       if (v === "filarmoniya") return "Дніпровська філармонія";
@@ -699,14 +786,14 @@ if (refCode) {
       const summaryDateTimeEl = document.getElementById("summaryDateTime");
 
       const showText = seanceMeta.show || title || "Вистава";
-      const dateTimeText = [seanceMeta.date, seanceMeta.time].filter(Boolean).join(" • ") || "Дата і час уточнюються";
+      const dateTimeText = [seanceMeta.date, seanceMeta.time].filter(Boolean).join(" • ") || vaDemoCopy("Дата і час уточнюються", "Date and time to be confirmed", "Дата и время уточняются");
       const venueText = venueToHuman(seanceMeta.venue_id);
 
       eventTitleEl.textContent = showText;
       heroSubtitleEl.textContent = dateTimeText;
-      seanceInfoEl.textContent = `Seance: ${seance || "—"}`;
-      venueBadgeEl.textContent = `Майданчик: ${venueText}`;
-      countBadgeEl.textContent = `Місць: ${seats.length}`;
+      seanceInfoEl.textContent = `${vaDemoCopy("Сеанс", "Performance", "Сеанс")}: ${seance || "—"}`;
+      venueBadgeEl.textContent = `${vaDemoCopy("Майданчик", "Venue", "Площадка")}: ${venueText}`;
+      countBadgeEl.textContent = `${vaDemoCopy("Місць", "Seats", "Мест")}: ${seats.length}`;
       summaryVenueEl.textContent = venueText;
       summaryDateTimeEl.textContent = dateTimeText;
 
@@ -731,7 +818,7 @@ if (refCode) {
       const summaryCount = document.getElementById("summaryCount");
 
       if (!seats.length){
-        seatList.innerHTML = `<div class="empty">Кошик порожній</div>`;
+        seatList.innerHTML = `<div class="empty">${vaDemoCopy("Кошик порожній", "Your cart is empty", "Корзина пуста")}</div>`;
         totalBox.textContent = "0 грн";
         summaryCount.textContent = "0";
         btnPay.disabled = true;
@@ -743,10 +830,10 @@ if (refCode) {
       seatList.innerHTML = seats.map(key => `
         <div class="seat-item">
           <div class="seat-left">
-            <div class="seat-title">${seatKeyToHuman(key)}</div>
-            <div class="seat-price">Ціна: ${Number(prices[key] || 0)} грн</div>
+            <div class="seat-title">${vaDemoSeatText(key)}</div>
+            <div class="seat-price">${vaDemoCopy("Ціна", "Price", "Цена")}: ${Number(prices[key] || 0)} грн</div>
           </div>
-          <button class="btn-remove" data-seat="${key}" title="Видалити">−</button>
+          <button class="btn-remove" data-seat="${key}" title="${vaDemoCopy("Видалити", "Remove", "Удалить")}">−</button>
         </div>
       `).join("");
 
@@ -770,7 +857,7 @@ if (refCode) {
             render();
 
           } catch(e){
-            alert("Не вдалося зняти місце з броні.");
+            alert(vaDemoCopy("Не вдалося зняти місце з броні.", "Could not release this seat.", "Не удалось снять место с брони."));
             btn.disabled = false;
           }
         });
@@ -799,7 +886,7 @@ if (refCode) {
         render();
 
       } catch(e){
-        alert("Не вдалося очистити кошик.");
+        alert(vaDemoCopy("Не вдалося очистити кошик.", "Could not clear the cart.", "Не удалось очистить корзину."));
       }
     });
 
@@ -843,6 +930,8 @@ if (refCode) {
 
     (async function boot(){
       await loadSeanceMeta();
+      VA_DEMO_I18N = !GATEWAY_MODE && String(seanceMeta.venue_id || "").trim() === "demo-fullcycle";
+      vaDemoApplyLabels();
       render();
       croTrackOrderOpen();
     })();
