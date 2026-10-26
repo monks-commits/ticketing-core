@@ -286,6 +286,40 @@
       }
     }
   </style>
+  <style>
+    /* VA International Demo: presentation only; no changes to payment or seat IDs. */
+    body.va-demo-trilingual .btn-pay,
+    body.va-demo-trilingual .btn-clear,
+    body.va-demo-trilingual .btn-back,
+    body.va-demo-trilingual .btn,
+    body.va-demo-trilingual .trust-item,
+    body.va-demo-trilingual .hero-badge,
+    body.va-demo-trilingual .card-note,
+    body.va-demo-trilingual .hero-subtitle,
+    body.va-demo-trilingual .info-label,
+    body.va-demo-trilingual .field label {
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    body.va-demo-trilingual .btn-pay,
+    body.va-demo-trilingual .btn-clear,
+    body.va-demo-trilingual .btn-back {
+      white-space: normal;
+      height: auto;
+      min-height: 54px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      font-size: 14px;
+    }
+    body.va-demo-trilingual .hero-title {overflow-wrap:anywhere}
+    body.va-demo-trilingual .hero-badge {font-size: 12px}
+    body.va-demo-trilingual .summary-meta {align-items: flex-start}
+    body.va-demo-trilingual .summary-meta span {line-height:1.5}
+    body.va-demo-trilingual .trust-item {font-size:13px}
+    body.va-demo-trilingual .seat-title {line-height:1.45}
+    body.va-demo-trilingual .field label {display:block}
+    body.va-demo-trilingual .actions .btn {white-space:normal}
+  </style>
 </head>
 
 <body>
@@ -378,6 +412,42 @@ const msgEl = document.getElementById("msg");
 const returnLinkEl = document.getElementById("returnLink");
 
 const qs = new URLSearchParams(location.search);
+
+
+let VA_DEMO_I18N = false;
+  const VA_DEMO_STATIC_LABELS = new Map([
+    ["Ваш Адмін • Оплата завершена","Ваш Адмін • Оплата завершена / Vash Admin • Payment completed / Ваш Админ • Оплата завершена"],
+    ["Дякуємо за оплату!","Дякуємо за оплату! / Thank you for your payment! / Спасибо за оплату!"],
+    ["Ваше замовлення успішно оформлено. Квиток буде сформовано автоматично та надіслано на email. Якщо лист не надійшов — перевірте папку «Спам».","Ваше замовлення успішно оформлено. Квиток буде сформовано автоматично та надіслано на email. Якщо лист не надійшов — перевірте папку «Спам». / Your order was placed successfully. Your ticket will be generated and emailed. If you do not receive it, check your spam folder. / Ваш заказ успешно оформлен. Билет будет сформирован и отправлен на email. Если письма нет, проверьте папку «Спам»."],
+    ["Оплату підтверджено","Оплату підтверджено / Payment confirmed / Оплата подтверждена"],
+    ["Замовлення успішно зафіксовано в системі. QR-код буде використано для контролю входу.","Замовлення успішно зафіксовано в системі. QR-код буде використано для контролю входу. / The order has been recorded in the system. Your QR code is used for entry validation. / Заказ зарегистрирован в системе. QR-код используется для контроля входа."],
+    ["Номер замовлення","Номер замовлення / Order number / Номер заказа"],
+    ["Сума оплати","Сума оплати / Amount paid / Сумма оплаты"],
+    ["Ми отримали ваше замовлення. Якщо квиток не прийшов на email — перевірте «Спам» або зверніться до адміністратора майданчика.","Ми отримали ваше замовлення. Якщо квиток не прийшов на email — перевірте «Спам» або зверніться до адміністратора майданчика. / We have received your order. If the ticket email does not arrive, check spam or contact the venue administrator. / Мы получили ваш заказ. Если билет не пришёл на email, проверьте «Спам» или обратитесь к администратору площадки."],
+    ["Електронний квиток має таку ж силу, як і друкований.","Електронний квиток має таку ж силу, як і друкований. / The electronic ticket is as valid as a printed ticket. / Электронный билет имеет такую же силу, как печатный."],
+    ["Для входу достатньо показати QR-код з телефону.","Для входу достатньо показати QR-код з телефону. / Show the QR code on your phone at the entrance. / Для входа достаточно показать QR-код с телефона."],
+    ["У разі питань звертайтесь до каси або адміністрації майданчика.","У разі питань звертайтесь до каси або адміністрації майданчика. / If you have questions, contact the ticket office or venue staff. / По вопросам обращайтесь в кассу или администрацию площадки."],
+    ["Повернутися до афіші","Повернутися до афіші / Back to event poster / Вернуться к афише"],
+    ["Друк сторінки","Друк сторінки / Print page / Печать страницы"],
+    ["Технічна довідка","Технічна довідка / Technical details / Техническая информация"]
+  ]);
+  function vaDemoApplyLabels(){
+    if (!VA_DEMO_I18N) return;
+    document.body.classList.add("va-demo-trilingual");
+    document.title = "Дякуємо за оплату / Thank you / Спасибо за оплату";
+
+    document.querySelectorAll("body *").forEach(el => {
+      if (["SCRIPT","STYLE","NOSCRIPT","PRE","TEXTAREA","INPUT"].includes(el.tagName)) return;
+      for (const node of el.childNodes) {
+        if (node.nodeType !== 3) continue;
+        const raw = node.nodeValue || "";
+        const key = raw.trim().replace(/\s+/g, " ");
+        if (!VA_DEMO_STATIC_LABELS.has(key)) continue;
+        node.nodeValue = VA_DEMO_STATIC_LABELS.get(key);
+      }
+    });
+  }
+
 
 function supaHeaders() {
   return {
@@ -501,6 +571,19 @@ async function loadPaidOrder() {
     `${Number(o.amount || 0).toFixed(2)} ${o.currency || "UAH"}`;
 
   const venueId = await resolveVenueIdFromOrder(o);
+  // Do not use an untrusted ?venue= URL flag to identify the paid order's venue.
+  // Prefer the authoritative paid order, or read its actual seance when needed.
+  let actualVenue = String(o.venue_id || "").trim();
+  if (!actualVenue && o.seance_id) {
+    try {
+      const check = await fetchJson(
+        `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(o.seance_id)}&select=venue_id&limit=1`
+      );
+      actualVenue = Array.isArray(check.json) ? String(check.json[0]?.venue_id || "").trim() : "";
+    } catch(e) { console.warn("Demo order venue check unavailable",e); }
+  }
+  VA_DEMO_I18N = actualVenue === "demo-fullcycle";
+  vaDemoApplyLabels();
   const seanceId = String(o.seance_id || "").trim();
 
   let returnHref = "";
