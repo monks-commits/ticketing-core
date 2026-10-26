@@ -371,6 +371,40 @@
       }
     }
   </style>
+  <style>
+    /* VA International Demo: presentation only; no changes to payment or seat IDs. */
+    body.va-demo-trilingual .btn-pay,
+    body.va-demo-trilingual .btn-clear,
+    body.va-demo-trilingual .btn-back,
+    body.va-demo-trilingual .btn,
+    body.va-demo-trilingual .trust-item,
+    body.va-demo-trilingual .hero-badge,
+    body.va-demo-trilingual .card-note,
+    body.va-demo-trilingual .hero-subtitle,
+    body.va-demo-trilingual .info-label,
+    body.va-demo-trilingual .field label {
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    body.va-demo-trilingual .btn-pay,
+    body.va-demo-trilingual .btn-clear,
+    body.va-demo-trilingual .btn-back {
+      white-space: normal;
+      height: auto;
+      min-height: 54px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      font-size: 14px;
+    }
+    body.va-demo-trilingual .hero-title {overflow-wrap:anywhere}
+    body.va-demo-trilingual .hero-badge {font-size: 12px}
+    body.va-demo-trilingual .summary-meta {align-items: flex-start}
+    body.va-demo-trilingual .summary-meta span {line-height:1.5}
+    body.va-demo-trilingual .trust-item {font-size:13px}
+    body.va-demo-trilingual .seat-title {line-height:1.45}
+    body.va-demo-trilingual .field label {display:block}
+    body.va-demo-trilingual .actions .btn {white-space:normal}
+  </style>
 </head>
 
 <body>
@@ -592,6 +626,70 @@ function readMarketingAttribution(){
       return k;
     }
 
+
+    // Demo-only display layer; never changes amount, seats, payment payload or LiqPay form.
+    const VA_DEMO_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
+    let VA_DEMO_I18N = false;
+    function vaDemoCopy(uk,en,ru){ return VA_DEMO_I18N ? `${uk} / ${en} / ${ru}` : uk; }
+  const VA_DEMO_STATIC_LABELS = new Map([
+    ["Ваш Адмін • Безпечна оплата","Ваш Адмін • Безпечна оплата / Vash Admin • Secure payment / Ваш Админ • Безопасная оплата"],
+    ["Оплата замовлення","Оплата замовлення / Order payment / Оплата заказа"],
+    ["Перевірте дані покупця та перейдіть до оплати через LiqPay.","Перевірте дані покупця та перейдіть до оплати через LiqPay. / Check buyer details and proceed to LiqPay. / Проверьте данные покупателя и перейдите к оплате через LiqPay."],
+    ["Дані покупця","Дані покупця / Buyer details / Данные покупателя"],
+    ["Вкажіть контактні дані для оформлення замовлення. Після успішної оплати квиток буде сформовано автоматично.","Вкажіть контактні дані для оформлення замовлення. Після успішної оплати квиток буде сформовано автоматично. / Enter your contact details to place the order. Your ticket will be generated after successful payment. / Укажите контактные данные для оформления заказа. После успешной оплаты билет будет сформирован автоматически."],
+    ["Ім’я","Ім’я / Name / Имя"],
+    ["Телефон","Телефон / Phone / Телефон"],
+    ["До оплати","До оплати / Payment summary / К оплате"],
+    ["Сеанс","Сеанс / Performance / Сеанс"],
+    ["Квитків","Квитків / Tickets / Билетов"],
+    ["Сума платежу","Сума платежу / Payment amount / Сумма платежа"],
+    ["Оплатити через LiqPay","Оплатити через LiqPay / Pay with LiqPay / Оплатить через LiqPay"],
+    ["← Повернутись до замовлення","← Повернутись до замовлення / Return to order / Вернуться к заказу"],
+    ["Оплата виконується через захищену сторінку LiqPay.","Оплата виконується через захищену сторінку LiqPay. / Payment is handled on the secure LiqPay page. / Оплата проходит на защищённой странице LiqPay."],
+    ["Контактні дані потрібні для оформлення та відправки квитка.","Контактні дані потрібні для оформлення та відправки квитка. / Contact details are needed to issue and deliver the ticket. / Контактные данные нужны для оформления и отправки билета."],
+    ["Після оплати ви отримаєте підтвердження та квиток із QR-кодом.","Після оплати ви отримаєте підтвердження та квиток із QR-кодом. / After payment you will receive a confirmation and QR ticket. / После оплаты вы получите подтверждение и билет с QR-кодом."]
+  ]);
+  function vaDemoApplyLabels(){
+    if (!VA_DEMO_I18N) return;
+    document.body.classList.add("va-demo-trilingual");
+    document.title = "Оплата / Payment / Оплата";
+
+    document.querySelectorAll("body *").forEach(el => {
+      if (["SCRIPT","STYLE","NOSCRIPT","PRE","TEXTAREA","INPUT"].includes(el.tagName)) return;
+      for (const node of el.childNodes) {
+        if (node.nodeType !== 3) continue;
+        const raw = node.nodeValue || "";
+        const key = raw.trim().replace(/\s+/g, " ");
+        if (!VA_DEMO_STATIC_LABELS.has(key)) continue;
+        node.nodeValue = VA_DEMO_STATIC_LABELS.get(key);
+      }
+    });
+  }
+
+    async function vaDetectDemoBySeance(){
+      if (GATEWAY_MODE || !seance) return;
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=venue_id&limit=1`;
+        const res = await fetch(url, {headers:{apikey:VA_DEMO_ANON_KEY, Authorization:`Bearer ${VA_DEMO_ANON_KEY}`}, cache:'no-store'});
+        if (!res.ok) return;
+        const rows = await res.json();
+        if (!Array.isArray(rows) || String(rows[0]?.venue_id || '').trim() !== 'demo-fullcycle') return;
+        VA_DEMO_I18N = true;
+        vaDemoApplyLabels();
+        renderPage();
+      } catch(e){ console.warn('VA Demo locale lookup unavailable', e); }
+    }
+    function vaDemoSeatText(k){
+      const m = String(k).match(/^([PAB])(\d+)-M(\d+)$/i);
+      if (!m || !VA_DEMO_I18N) return seatKeyToHuman(k);
+      const prefix = m[1].toUpperCase(), row = Number(m[2]), seat = Number(m[3]);
+      if(prefix === 'P') return `Партер, ряд ${row}, місце ${seat} / Stalls, row ${row}, seat ${seat} / Партер, ряд ${row}, место ${seat}`;
+      if(prefix === 'A' && row === 0) return `Ложа А, місце ${seat} / Box A, seat ${seat} / Ложа А, место ${seat}`;
+      if(prefix === 'A') return `Амфітеатр, ряд ${row}, місце ${seat} / Amphitheatre, row ${row}, seat ${seat} / Амфитеатр, ряд ${row}, место ${seat}`;
+      if(prefix === 'B' && row === 0) return `Ложа Б, місце ${seat} / Box B, seat ${seat} / Ложа Б, место ${seat}`;
+      return `Балкон, ряд ${row}, місце ${seat} / Balcony, row ${row}, seat ${seat} / Балкон, ряд ${row}, место ${seat}`;
+    }
+
     function newIdempotencyKey() {
       return "idem_" + crypto.randomUUID();
     }
@@ -625,20 +723,21 @@ function readMarketingAttribution(){
 
     function renderPage(){
       document.getElementById("heroTitle").textContent = title || "Оплата замовлення";
-      document.getElementById("heroSubtitle").textContent = "Перевірте дані покупця та перейдіть до оплати через LiqPay.";
-      document.getElementById("heroSeance").textContent = `Seance: ${seance || "—"}`;
-      document.getElementById("heroCount").textContent = `Місць: ${seats.length}`;
+      document.getElementById("heroSubtitle").textContent = vaDemoCopy("Перевірте дані покупця та перейдіть до оплати через LiqPay.", "Check buyer details and proceed to LiqPay.", "Проверьте данные покупателя и перейдите к оплате через LiqPay.");
+      document.getElementById("heroSeance").textContent = `${vaDemoCopy("Сеанс", "Performance", "Сеанс")}: ${seance || "—"}`;
+      document.getElementById("heroCount").textContent = `${vaDemoCopy("Місць", "Seats", "Мест")}: ${seats.length}`;
 
       document.getElementById("summarySeance").textContent = seance || "—";
       document.getElementById("summaryCount").textContent = String(seats.length);
       document.getElementById("amount").textContent = amount.toFixed(2) + " грн";
 
+      if (VA_DEMO_I18N) document.getElementById("name").placeholder = "Ваше ім’я / Your name / Ваше имя";
       const seatSummary = document.getElementById("seatSummary");
 
       if (!seats.length) {
         seatSummary.innerHTML = `
           <div class="summary-item">
-            <div class="summary-item-title">Немає вибраних місць</div>
+            <div class="summary-item-title">${vaDemoCopy("Немає вибраних місць", "No seats selected", "Места не выбраны")}</div>
             <div class="summary-item-price">0 грн</div>
           </div>
         `;
@@ -647,7 +746,7 @@ function readMarketingAttribution(){
 
       seatSummary.innerHTML = seats.map(key => `
         <div class="summary-item">
-          <div class="summary-item-title">${seatKeyToHuman(key)}</div>
+          <div class="summary-item-title">${vaDemoSeatText(key)}</div>
           <div class="summary-item-price">${Number(prices[key] || 0)} грн</div>
         </div>
       `).join("");
@@ -695,7 +794,7 @@ function readMarketingAttribution(){
       showCheckoutError("");
 
       if (!buyer_name || !buyer_email || !buyer_phone) {
-        showCheckoutError("Заповніть всі поля");
+        showCheckoutError(vaDemoCopy("Заповніть всі поля", "Please complete all fields", "Заполните все поля"));
         return;
       }
 
@@ -703,13 +802,13 @@ function readMarketingAttribution(){
 
       if (GATEWAY_MODE) {
         if (!window.VA_GATEWAY) {
-          showCheckoutError("Gateway-клієнт не завантажено.");
+          showCheckoutError(vaDemoCopy("Gateway-клієнт не завантажено.", "Gateway client is unavailable.", "Gateway-клиент не загружен."));
           return;
         }
 
         if (!GATEWAY_HOLD_REF) {
           showCheckoutError(
-            "Сесію утримання місць втрачено. Поверніться до схеми залу та оберіть місця повторно."
+            vaDemoCopy("Сесію утримання місць втрачено. Поверніться до схеми залу та оберіть місця повторно.", "Your seat hold has expired. Return to the hall and select seats again.", "Срок брони истёк. Вернитесь к схеме зала и выберите места снова.")
           );
           return;
         }
@@ -748,7 +847,7 @@ function readMarketingAttribution(){
         } catch (e) {
           console.error("Gateway checkout preflight failed", e);
           showCheckoutError(
-            "Не вдалося підтвердити утримання місць у майданчика. Поверніться до схеми залу."
+            vaDemoCopy("Не вдалося підтвердити утримання місць у майданчика. Поверніться до схеми залу.", "Could not confirm the seat hold. Return to the hall.", "Не удалось подтвердить бронь мест. Вернитесь к схеме зала.")
           );
           return;
         }
@@ -793,7 +892,7 @@ function readMarketingAttribution(){
           if (errorCode === "online_sales_disabled") {
             croTrackPaymentInitError(idempotencyKey, errorCode);
             showCheckoutError(
-              "Наразі придбати квитки можна лише в касі.",
+              vaDemoCopy("Наразі придбати квитки можна лише в касі.", "Tickets are currently available only at the ticket office.", "Сейчас билеты можно купить только в кассе."),
               "sales-disabled"
             );
             return;
@@ -805,8 +904,8 @@ function readMarketingAttribution(){
           );
 
           showCheckoutError(
-            j?.message ||
-            "Не вдалося перейти до оплати. Спробуйте ще раз."
+            (VA_DEMO_I18N ? null : j?.message) ||
+            vaDemoCopy("Не вдалося перейти до оплати. Спробуйте ще раз.", "Could not proceed to payment. Please try again.", "Не удалось перейти к оплате. Попробуйте ещё раз.")
           );
           return;
         }
@@ -823,13 +922,14 @@ function readMarketingAttribution(){
         );
 
         showCheckoutError(
-          "Не вдалося з’єднатися із сервісом оплати. Перевірте інтернет-з’єднання."
+          vaDemoCopy("Не вдалося з’єднатися із сервісом оплати. Перевірте інтернет-з’єднання.", "Could not connect to the payment service. Check your internet connection.", "Не удалось связаться с платёжным сервисом. Проверьте интернет-соединение.")
         );
       }
     };
 
     renderPage();
     croTrackCheckoutOpen();
+    vaDetectDemoBySeance();
   </script>
 </body>
 </html>
