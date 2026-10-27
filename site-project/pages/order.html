@@ -679,7 +679,9 @@ if (refCode) {
       const params = new URLSearchParams();
 
       if (showSlug) params.set("show", showSlug);
-      if (title) params.set("title", title);
+      // Pass the display name loaded from seances, not the legacy URL fallback.
+      const currentTitle = String(seanceMeta.show || title || "").trim();
+      if (currentTitle) params.set("title", currentTitle);
       if (seance) params.set("seance", seance);
       if (seats.length) params.set("seats", seats.join(","));
       params.set("prices", JSON.stringify(prices));
@@ -771,6 +773,30 @@ if (refCode) {
           poster_url: row.poster_url || "",
           venue_id: row.venue_id || ""
         };
+
+        // VA: the same poster precedence as Vitrine and Hall.
+        // Visual Editor stores current artwork in seance_visuals, not necessarily
+        // in the legacy seances.poster_url column. Metadata and booking are
+        // independent: if this request fails, keep the seance poster as fallback.
+        try {
+          const visualRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/seance_visuals?seance_id=eq.${encodeURIComponent(seance)}&enabled=eq.true&select=poster_url&limit=1`,
+            {
+              headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+              },
+              cache: "no-store"
+            }
+          );
+          if (visualRes.ok) {
+            const visualRows = await visualRes.json();
+            const visualPoster = String(visualRows?.[0]?.poster_url || "").trim();
+            if (visualPoster) seanceMeta.poster_url = visualPoster;
+          }
+        } catch (visualError) {
+          console.warn("Visual Editor poster unavailable; using seance poster", visualError);
+        }
       } catch(e){
         console.warn("loadSeanceMeta error", e);
       }
@@ -914,7 +940,9 @@ if (refCode) {
 
       const params = new URLSearchParams();
       if (showSlug) params.set("show", showSlug);
-      if (title) params.set("title", title);
+      // Pass the display name loaded from seances, not the legacy URL fallback.
+      const currentTitle = String(seanceMeta.show || title || "").trim();
+      if (currentTitle) params.set("title", currentTitle);
       if (seance) params.set("seance", seance);
       params.set("seats", seats.join(","));
       params.set("prices", JSON.stringify(prices));
