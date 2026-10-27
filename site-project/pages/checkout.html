@@ -526,6 +526,9 @@ function readMarketingAttribution(){
     const amount = Number(p.get("amount") || 0);
     const seance = p.get("seance") || "";
     const title = p.get("title") || "Вистава";
+    // Display-only: native seances.show is authoritative, not the URL title.
+    // The actual payment payload and Gateway event metadata are unchanged.
+    let displayTitle = title;
     const show = p.get("show") || "demo";
 
     const marketingAttributionRaw = readMarketingAttribution();
@@ -669,13 +672,19 @@ function readMarketingAttribution(){
     async function vaDetectDemoBySeance(){
       if (GATEWAY_MODE || !seance) return;
       try {
-        const url = `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=venue_id&limit=1`;
+        // One lookup for both the real title (SaaS + Demo) and Demo styling.
+        const url = `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=show,venue_id&limit=1`;
         const res = await fetch(url, {headers:{apikey:VA_DEMO_ANON_KEY, Authorization:`Bearer ${VA_DEMO_ANON_KEY}`}, cache:'no-store'});
         if (!res.ok) return;
         const rows = await res.json();
-        if (!Array.isArray(rows) || String(rows[0]?.venue_id || '').trim() !== 'demo-fullcycle') return;
-        VA_DEMO_I18N = true;
-        vaDemoApplyLabels();
+        if (!Array.isArray(rows) || !rows.length) return;
+        const row = rows[0];
+        const dbTitle = String(row?.show || '').trim();
+        if (dbTitle) displayTitle = dbTitle;
+        if (String(row?.venue_id || '').trim() === 'demo-fullcycle') {
+          VA_DEMO_I18N = true;
+          vaDemoApplyLabels();
+        }
         renderPage();
       } catch(e){ console.warn('VA Demo locale lookup unavailable', e); }
     }
@@ -722,7 +731,7 @@ function readMarketingAttribution(){
     }
 
     function renderPage(){
-      document.getElementById("heroTitle").textContent = title || "Оплата замовлення";
+      document.getElementById("heroTitle").textContent = displayTitle || "Оплата замовлення";
       document.getElementById("heroSubtitle").textContent = vaDemoCopy("Перевірте дані покупця та перейдіть до оплати через LiqPay.", "Check buyer details and proceed to LiqPay.", "Проверьте данные покупателя и перейдите к оплате через LiqPay.");
       document.getElementById("heroSeance").textContent = `${vaDemoCopy("Сеанс", "Performance", "Сеанс")}: ${seance || "—"}`;
       document.getElementById("heroCount").textContent = `${vaDemoCopy("Місць", "Seats", "Мест")}: ${seats.length}`;
@@ -755,7 +764,7 @@ function readMarketingAttribution(){
     document.getElementById("btnBack").addEventListener("click", () => {
       const params = new URLSearchParams();
       if (show) params.set("show", show);
-      if (title) params.set("title", title);
+      if (displayTitle) params.set("title", displayTitle);
       if (seance) params.set("seance", seance);
       if (seats.length) params.set("seats", seats.join(","));
       params.set("prices", JSON.stringify(prices));
