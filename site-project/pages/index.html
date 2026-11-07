@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1"> 
 
-<title>Квитки онлайн — Ваш Адмін</title>
+<title>Академія руху — квитки онлайн | Ваш Адмін</title>
 <link rel="prefetch" href="hall.html">
 
 <style>
@@ -186,6 +186,19 @@
 
   .filter-btn:hover{
     background:var(--accent-hover);
+  }
+
+  /* Public ticket storefront: Academy-only. Keep the VA International
+     isolated Demo 1 route intact for demonstrations, not public sales. */
+  body:not(.demo-mode) .filters {
+    grid-template-columns:minmax(0,1fr) auto;
+  }
+  body:not(.demo-mode) .filters select,
+  body:not(.demo-mode) .venues {
+    display:none !important;
+  }
+  @media (max-width:560px) {
+    body:not(.demo-mode) .filters { grid-template-columns:1fr; }
   }
 
   /* Demo 1: isolated public storefront mode.
@@ -641,7 +654,7 @@
 <div class="page">
 
   <div class="topbar">
-    <div class="site-title">Квитки онлайн — Ваш Адмін</div>
+    <div class="site-title">Академія руху • Квитки онлайн — Ваш Адмін</div>
     <a class="partner-login" href="../../admin/partner-login.html">Вхід для партнерів</a>
   </div>
 
@@ -649,13 +662,12 @@
     <div class="eyebrow">Ваш Адмін • Квитки онлайн</div>
 
     <h1 class="hero-title">
-      Офіційна онлайн-афіша театрів та майданчиків
+       Академія руху — квитки онлайн
     </h1>
 
     <p class="hero-text">
-      Оберіть майданчик, перегляньте актуальні події,
-      відкрийте схему залу та придбайте квитки онлайн
-      у кілька кроків.
+       Перегляньте актуальні вистави Академії руху,
+       оберіть місця на схемі залу та придбайте квитки онлайн.
     </p>
 
     <div class="hero-badges">
@@ -718,6 +730,14 @@ const DEMO_VENUE_TITLE = "Demo 1";
 const DEMO_MODE =
   (qs.get("venue") || "").trim() === DEMO_VENUE_ID ||
   qs.get("demo") === "1";
+
+// Stage: real public sales — Academy only. Demo 1 remains isolated.
+const PUBLIC_VENUE_ID = "academy";
+const PUBLIC_VENUE_LEGACY_ID = "academy-ruhu";
+const PUBLIC_REQUESTED_VENUE = (qs.get("venue") || "").trim();
+const PUBLIC_VENUE_DENIED = !DEMO_MODE &&
+  PUBLIC_REQUESTED_VENUE !== "" &&
+  ![PUBLIC_VENUE_ID, PUBLIC_VENUE_LEGACY_ID].includes(PUBLIC_REQUESTED_VENUE);
 
 const RETURN_SEANCE_ID =
   (qs.get("seance_id") || qs.get("seance") || "").trim();
@@ -880,74 +900,36 @@ function fillVenueSelect(){
     return;
   }
 
-  const city = citySelect.value;
-
-  const items = Object.entries(VENUES)
-    .map(([id, v]) => [canonicalVenueId(id), v])
-    .filter(([id]) => Boolean(id))
-    .filter(([, v]) => !city || v.city === city);
-
-  // One canonical option per venue, even when old config/hall aliases exist.
-  const unique = new Map();
-  for (const [id, v] of items) {
-    if (!unique.has(id)) unique.set(id, v);
-  }
-
-  venueSelect.innerHTML =
-    `<option value="">Усі майданчики</option>` +
-    [...unique.entries()].map(([id, v]) => `
-      <option value="${id}">${v.title}</option>
-    `).join("");
-
-  const venueFromUrl = canonicalVenueId(qs.get("venue"));
-  if (venueFromUrl && VENUES[venueFromUrl]) {
-    venueSelect.value = venueFromUrl;
-  }
+  // One public venue only. Never offer a choice of other venues.
+  venueSelect.innerHTML = '<option value="academy">Академія руху</option>';
+  venueSelect.value = PUBLIC_VENUE_ID;
 }
 
 function applyUrlParams(){
-  const city = DEMO_MODE ? "" : (qs.get("city") || "");
-  const venue = DEMO_MODE
-    ? DEMO_VENUE_ID
-    : canonicalVenueId(qs.get("venue"));
-  const q = DEMO_MODE ? "" : (qs.get("q") || "");
-
-  if (city && CITIES[city]) {
-    citySelect.value = city;
+  if (!DEMO_MODE) {
+    citySelect.value = "kryvyi-rih";
+    fillVenueSelect();
+    searchInput.value = qs.get("q") || "";
+    return;
   }
-
+  citySelect.value = "";
   fillVenueSelect();
-
-  if (venue && VENUES[venue]) {
-    venueSelect.value = venue;
-    if (!citySelect.value) {
-      citySelect.value = VENUES[venue].city;
-      fillVenueSelect();
-      venueSelect.value = venue;
-    }
-  }
-
-  if (q) {
-    searchInput.value = q;
-  }
+  venueSelect.value = DEMO_VENUE_ID;
+  searchInput.value = "";
 }
 
 function updateUrl(){
   const params = new URLSearchParams();
-
-  if (DEMO_MODE) {
-    params.set("venue", DEMO_VENUE_ID);
-  } else {
-    if (citySelect.value) params.set("city", citySelect.value);
-    if (venueSelect.value) params.set("venue", canonicalVenueId(venueSelect.value));
-    if (searchInput.value.trim()) params.set("q", searchInput.value.trim());
+  params.set("venue", DEMO_MODE ? DEMO_VENUE_ID : PUBLIC_VENUE_ID);
+  if (!DEMO_MODE && searchInput.value.trim()) {
+    params.set("q", searchInput.value.trim());
   }
-
-  history.replaceState(
-    null,
-    "",
-    "index.html" + (params.toString() ? "?" + params.toString() : "")
-  );
+  // Preserve third-party attribution used by the existing storefront.
+  ["ref", "utm_source", "utm_medium", "utm_campaign", "utm_content", "va_source", "fbclid"].forEach(key => {
+    const value = qs.get(key);
+    if (value) params.set(key, value);
+  });
+  history.replaceState(null, "", "index.html?" + params.toString());
 }
 
 function isFutureOrToday(date){
@@ -966,9 +948,10 @@ function eventVisible(s){
   const publicVenue = dbVenueToPublic(s.venue_id);
   const eventCity = getCityByVenue(publicVenue);
 
-  // Demo 1 never leaks into the ordinary multi-venue storefront.
-  // It is visible only through the isolated demo entry point.
-  if (!DEMO_MODE && publicVenue === DEMO_VENUE_ID) return false;
+  // Academy is the only real venue enabled on this public storefront.
+  // Other venues, including Gateway venues, are never displayed.
+  if (!DEMO_MODE && publicVenue !== PUBLIC_VENUE_ID) return false;
+  if (PUBLIC_VENUE_DENIED) return false;
 
   if (s.active === false) return false;
   if (s.status === "archived") return false;
@@ -1033,6 +1016,14 @@ function applyVenueCardsFilter(){
 function renderSeances(){
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
+
+  // Fail closed for legacy URLs to other real venues.
+  if (PUBLIC_VENUE_DENIED) {
+    sectionNote.textContent = "Цей майданчик наразі недоступний";
+    grid.innerHTML = '<div class="empty">Продаж квитків для цього майданчика недоступний. ' +
+      '<a href="index.html?venue=academy" style="color:#d4af37">Перейти до афіші Академії руху</a></div>';
+    return;
+  }
 
   applyVenueCardsFilter();
 
@@ -1278,7 +1269,8 @@ async function maybeStartSocialEntryIntro(card){
 }
 
 async function loadGatewaySeances(){
-  if (DEMO_MODE) return [];
+  // Quota-sales launch: no Gateway inventory on the Academy public page.
+  if (DEMO_MODE || PUBLIC_VENUE_ID === "academy") return [];
   if (!window.VA_GATEWAY) return [];
 
   try {
@@ -1398,7 +1390,7 @@ async function loadGatewaySeances(){
 async function loadSeances(){
   const venueFilter = DEMO_MODE
     ? `&venue_id=eq.${encodeURIComponent(DEMO_VENUE_ID)}`
-    : "";
+    : `&venue_id=in.(${PUBLIC_VENUE_ID},${PUBLIC_VENUE_LEGACY_ID})`;
 
   const url =
     `${SUPABASE_URL}/rest/v1/seances` +
@@ -1427,7 +1419,11 @@ async function loadSeances(){
 
   const gatewayRows = await loadGatewaySeances();
 
-  ALL_SEANCES = [...nativeRows, ...gatewayRows];
+  ALL_SEANCES = DEMO_MODE
+    ? nativeRows.filter(s => s.venue_id === DEMO_VENUE_ID)
+    : nativeRows.filter(s => canonicalVenueId(s.venue_id) === PUBLIC_VENUE_ID);
+  // gatewayRows intentionally unused for public Academy quota sales.
+
 
   fillVenueSelect();
   renderVenueCards();
@@ -1471,7 +1467,7 @@ async function boot(){
 
   CLIENT_CONFIG = await loadVAConfig();
 
-  if (CLIENT_CONFIG?.client_name) {
+  if (DEMO_MODE && CLIENT_CONFIG?.client_name) {
     document.title = CLIENT_CONFIG.client_name + " — Квитки онлайн";
   }
 
@@ -1480,6 +1476,7 @@ async function boot(){
 
     CONFIG_VENUES.forEach(v => {
       const id = canonicalVenueId(v.id);
+      if (!DEMO_MODE && id !== PUBLIC_VENUE_ID) return;
       const previous = VENUES[id] || {};
 
       VENUES[id] = {
@@ -1492,14 +1489,19 @@ async function boot(){
   if (DEMO_MODE) {
     ensureDemoVenue();
     applyDemoShell();
+  } else {
+    // Ensure the public Academy remains available even if config is sparse.
+    VENUES[PUBLIC_VENUE_ID] = {
+      title: "Академія руху",
+      city: "kryvyi-rih"
+    };
   }
 
   console.log("CLIENT CONFIG:", CLIENT_CONFIG);
   console.log("VA STOREFRONT VENUE CANONICAL V3 active");
   if (DEMO_MODE) console.log("VA STOREFRONT DEMO 1 isolated mode active");
 
-  // First populate native + Gateway venues/seances.
-  // In Demo 1 mode only native demo-fullcycle seances are requested.
+  // Academy-only native seances; isolated Demo 1 unchanged.
   await loadSeances();
 
   // Apply ?venue=... only after VENUES is actually populated.
