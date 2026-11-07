@@ -462,7 +462,11 @@ function getReturnHrefByVenue(venueId, seanceId) {
 
   let base = "./index.html";
 
-  if (venue === "academy") base = "./index-academy.html";
+  // Public Academy storefront is hosted on the VA domain.
+  // Keep the legacy storefronts for all other venues unchanged.
+  if (venue === "academy" || venue === "academy-ruhu") {
+    base = "https://vash-admin.com/afisha/";
+  }
   if (venue === "shevchenko") base = "./index-shevchenko.html";
 
   const params = new URLSearchParams();
@@ -588,7 +592,12 @@ async function loadPaidOrder() {
 
   let returnHref = "";
 
-  if (seanceId) {
+  // For Academy orders always return to the public VA storefront, even if
+  // sessionStorage still contains the former GitHub Pages / index-academy URL.
+  // Rely on the paid order's actual venue, never on an untrusted URL flag.
+  if (actualVenue === "academy" || actualVenue === "academy-ruhu") {
+    returnHref = getReturnHrefByVenue(actualVenue, seanceId);
+  } else if (seanceId) {
     try {
       returnHref =
         sessionStorage.getItem(`va_return_url:${seanceId}`) || "";
@@ -597,7 +606,7 @@ async function loadPaidOrder() {
     }
   }
 
-  // Fallback only if the exact source page was not saved.
+  // Preserve the original fallback for every other venue / demo.
   if (!returnHref) {
     returnHref = getReturnHrefByVenue(venueId, seanceId);
   }
