@@ -3013,6 +3013,36 @@ function copyJson(){
   alert("Скопійовано");
 }
 
+// VA Academy temporary admin protection.
+// The editor secret is never embedded in the page, URL, or browser storage.
+function askVASeanceEditorSecret(){
+  return new Promise(resolve => {
+    const dialog = document.createElement("dialog");
+    dialog.style.cssText = "background:#13233b;color:#fff;border:1px solid #426080;border-radius:16px;padding:24px;max-width:min(440px,92vw);box-shadow:0 16px 60px #0008";
+    dialog.innerHTML = `
+      <form method="dialog" autocomplete="off">
+        <h3 style="margin:0 0 10px">Підтвердження адміністратора VA</h3>
+        <p style="color:#c7d3e7;font-size:14px;line-height:1.5">Введіть тимчасовий ключ редактора. Він використовується лише для цього запиту і не зберігається в браузері.</p>
+        <input id="vaSeanceSecretInput" type="password" autocomplete="off" spellcheck="false"
+          placeholder="Ключ редактора" style="display:block;width:100%;margin:14px 0 18px;padding:12px;color:#fff;background:#0c1a2e;border:1px solid #526d94;border-radius:9px" required>
+        <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap">
+          <button type="submit" value="cancel" formnovalidate style="padding:10px 18px">Скасувати</button>
+          <button type="submit" value="confirm" style="padding:10px 18px;background:#2ecc71;border:0;border-radius:8px;font-weight:bold">Підтвердити</button>
+        </div>
+      </form>`;
+    dialog.addEventListener("close", () => {
+      const input = dialog.querySelector("#vaSeanceSecretInput");
+      const secret = dialog.returnValue === "confirm" ? String(input?.value || "").trim() : "";
+      if (input) input.value = "";
+      dialog.remove();
+      resolve(secret);
+    }, { once:true });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    dialog.querySelector("#vaSeanceSecretInput")?.focus();
+  });
+}
+
 async function saveSeanceToServer({ publishNow = false } = {}) {
   const seance = seanceId.value.trim();
   if (!seance) return alert("Вкажіть Seance ID");
@@ -3061,6 +3091,9 @@ async function saveSeanceToServer({ publishNow = false } = {}) {
   }
 
   const payload = buildSeanceEditorPayload();
+  let editorSecret = await askVASeanceEditorSecret();
+  if (!editorSecret) return;
+
   const originalSaveText = saveSeanceBtn?.textContent || "💾 Зберегти";
   const originalPublishText = publish?.textContent || "🚀 Опублікувати";
 
@@ -3077,7 +3110,8 @@ async function saveSeanceToServer({ publishNow = false } = {}) {
     const res = await fetch(SUPABASE_FUNCTION_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "x-va-editor-secret": editorSecret
       },
       body: JSON.stringify({
         ...payload,
@@ -3134,6 +3168,7 @@ async function saveSeanceToServer({ publishNow = false } = {}) {
   } catch (err) {
     alert("❌ Помилка: " + err.message);
   } finally {
+    editorSecret = "";
     if (saveSeanceBtn) {
       saveSeanceBtn.disabled = false;
       saveSeanceBtn.textContent = originalSaveText;
