@@ -770,12 +770,7 @@ async function setSelectedSeanceActive(enabled){
   if(enabled && status === "draft") return alert("Чернетку спочатку опублікуйте в Редакторі сеансу. Активація не замінює публікацію.");
   if(!confirm(enabled ? "Активувати обраний сеанс?" : "Деактивувати обраний сеанс? Він зникне з публічного продажу, але залишиться у Квитковому відділі.")) return;
   try{
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(s.id)}`,{
-      method:"PATCH",
-      headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Content-Type":"application/json",Prefer:"return=representation"},
-      body:JSON.stringify({active:!!enabled})
-    });
-    if(!res.ok) throw new Error(await res.text());
+    await VAAdminOps.request("seance.set_active", {seance_id:String(s.id), active:!!enabled});
     await loadSeances();
     if(Array.from(seanceSelect.options).some(o=>o.value===String(s.id))){
       seanceSelect.value=String(s.id);
