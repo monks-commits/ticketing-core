@@ -67,38 +67,15 @@
     return data;
   }
 
+ 
   async function rpc(name, body){
-    const res = await fetch(
-      `${state.cfg.supabaseUrl}/rest/v1/rpc/${name}`,
-      {
-        method:"POST",
-        headers:headers({
-          "Content-Type":"application/json"
-        }),
-        body:JSON.stringify(body || {})
-      }
-    );
-
-    const text = await res.text();
-
-    let data = null;
-
-    try{
-      data = text ? JSON.parse(text) : null;
-    }catch{
-      data = text;
+    if(!window.VAAdminOps){
+      throw new Error("VA Admin Operations client не завантажено");
     }
 
-    if(!res.ok){
-      throw new Error(
-        typeof data === "string"
-          ? data
-          : JSON.stringify(data)
-      );
-    }
-
-    return data;
+    return await window.VAAdminOps.rpc(name, body || {});
   }
+
 
   function mount(){
     if($("vaRecoveryActionsModal")) return;
