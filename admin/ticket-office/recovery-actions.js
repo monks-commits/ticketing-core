@@ -646,113 +646,22 @@
     );
   }
 
-  async function createRecoveryToken(
-    event,
-    t
-  ){
+ 
+  async function createRecoveryToken(event, t){
+    if(!window.VAAdminOps){
+      throw new Error("VA Admin Operations client не завантажено");
+    }
 
-    const token =
-      normalize(
-        t.qr_payload ||
-        t.ticket_number ||
-        t.id
-      );
+    const token = normalize(t?.qr_payload || t?.ticket_number || t?.id);
 
     if(!token){
-      throw new Error(
-        "У квитка немає QR/token."
-      );
+      throw new Error("У квитка немає QR/token.");
     }
 
-    /*
-      Дубликат проверяем ТОЛЬКО внутри конкретного recovery_event.
-
-      В другом цикле тот же token допустим.
-    */
-    if(
-      await existingToken(
-        event.id,
-        token
-      )
-    ){
-      return {
-        status:"exists",
-        token
-      };
-    }
-
-    await rest(
-      "recovery_tokens",
-      {
-        method:"POST",
-
-        headers:{
-          "Content-Type":"application/json",
-          Prefer:"return=representation"
-        },
-
-        body:JSON.stringify({
-
-          recovery_event_id:
-            event.id,
-
-          token,
-
-          seat_label:"",
-
-          owner_name:
-            t.buyer_name ||
-            "",
-
-          owner_email:
-            t.buyer_email ||
-            null,
-
-          compensation_allowed:
-            true,
-
-          compensation_used:
-            false,
-
-          /*
-            Источником нового права является именно тот сеанс,
-            который сейчас был прерван.
-          */
-          source_seance_id:
-            state.seanceId,
-
-          source_ticket_id:
-            String(
-              t.id || ""
-            ),
-
-          source_order_id:
-            String(
-              t.order_id || ""
-            ),
-
-          source_show_slug:
-            t.show_slug ||
-            "",
-
-          source_seat_label:
-            t.seat_label ||
-            "",
-
-          source_checked_in_at:
-            t.checked_in_at ||
-            null,
-
-          note:
-            "Компенсаційний прохід без місця"
-        })
-      }
-    );
-
-    return {
-      status:"created",
+    return await window.VAAdminOps.request("recovery.create_token", {
+      event_id: String(event?.id || ""),
       token
-    };
+    });
   }
 
   async function activateOne(){
