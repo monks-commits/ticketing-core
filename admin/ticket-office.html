@@ -1008,14 +1008,20 @@ await loadSeances();
       VASeanceOps.openIncident(id,type);
     }
 
-    async function restoreSeanceFromArchive(id){
-      const s = SEANCES.find(x=>String(x.id)===String(id));
-      const cancelled = String(s?.status || "").toLowerCase() === "cancelled" || !!s?.cancelled_at;
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({archived:false,active:cancelled?false:true})});
-      if(!res.ok){alert("Помилка відновлення сеансу.");return;}
-      await loadSeances();
-      showSeanceStatus("archive",false);
-    }
+   
+async function restoreSeanceFromArchive(id){
+  try {
+    await VAAdminOps.request("seance.restore_archive", {
+      seance_id: String(id)
+    });
+
+    await loadSeances();
+    showSeanceStatus("archive", false);
+
+  } catch(e) {
+    alert("Помилка відновлення сеансу:\n" + String(e.message || e));
+  }
+}
 
     function renderStatusSeances(kind){
       const box=document.getElementById("statusSeanceList");
