@@ -70,8 +70,11 @@
   }
 
   async function rpc(name,payload){
-    return apiJson(`rpc/${name}`,{method:"POST",body:JSON.stringify(payload||{})});
+  if(!window.VAAdminOps){
+    throw new Error("VA Admin Operations client не завантажено");
   }
+  return window.VAAdminOps.rpc(name,payload||{});
+}
 
   function mount(){
     if(document.getElementById("va-postpone-modal")) return;
