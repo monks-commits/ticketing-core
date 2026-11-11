@@ -405,97 +405,21 @@
     Один и тот же сеанс может быть прерван несколько раз.
     Каждое новое прерывание должно иметь собственный recovery_event_id.
   */
+
+
   async function createRecoveryEventForSeance(id){
-
-    const s =
-      await loadSeanceById(id);
-
-    if(!s){
-      throw new Error(
-        "Сеанс не знайдено: " + id
-      );
+    if(!window.VAAdminOps){
+      throw new Error("VA Admin Operations client не завантажено");
     }
 
-    const title =
-      seanceTitle(s);
-
-    const reason =
-      $("vaRecoveryReason")?.value ||
-      "other";
-
-    const note =
-      normalize(
-        $("vaRecoveryNote")?.value
-      );
-
-    const created =
-      await rest(
-        "recovery_events",
-        {
-          method:"POST",
-
-          headers:{
-            "Content-Type":"application/json",
-            Prefer:"return=representation"
-          },
-
-          body:JSON.stringify({
-
-            title:
-              `Компенсація: ${title}`,
-
-            original_event:
-              title,
-
-            recovery_event:
-              "Компенсаційний прохід без місця",
-
-            source_seance_id:
-              id,
-
-            venue_id:
-              s.venue_id ||
-              s.hall ||
-              "",
-
-            venue_name:
-              s.venue_id ||
-              s.hall ||
-              "",
-
-            locality:"",
-
-            event_scope:
-              "repertoire",
-
-            incident_type:
-              "interrupted_after_start",
-
-            incident_reason:
-              reason,
-
-            incident_note:
-              note,
-
-            target_policy:
-              "any_repertoire",
-
-            operational_status:
-              "ACTIVE",
-
-            status:
-              "active"
-          })
-        }
-      );
-
-    return (
-      Array.isArray(created)
-        ? created[0]
-        : created
-    );
+    return await window.VAAdminOps.request("recovery.create_event", {
+      seance_id: String(id),
+      reason: $("vaRecoveryReason")?.value || "other",
+      note: normalize($("vaRecoveryNote")?.value)
+    });
   }
 
+  
   /*
     Один рабочий цикл на одно открытое окно Recovery.
   */
