@@ -500,35 +500,19 @@
     );
   }
 
-  async function existingToken(
-    eventId,
-    token
-  ){
+   async function existingToken(eventId, token){
+    if(!window.VAAdminOps){
+      throw new Error("VA Admin Operations client не завантажено");
+    }
 
-    const rows =
-      await rest(
-        `recovery_tokens?` +
-        `recovery_event_id=eq.${encodeURIComponent(eventId)}` +
-        `&token=eq.${encodeURIComponent(token)}` +
-        `&select=id,token` +
-        `&limit=1`
-      );
-
-    return (
-      Array.isArray(rows) &&
-      rows.length
-        ? rows[0]
-        : null
+    return await window.VAAdminOps.request(
+      "recovery.token_exists",
+      {
+        event_id: String(eventId),
+        token: normalize(token)
+      }
     );
   }
-
-  /*
-    Зрители, которые вошли на текущий сеанс
-    по предыдущему Recovery.
-
-    Именно этого слоя не хватало для реального сценария Академии:
-    сеанс №1 -> Recovery -> сеанс №2 -> снова прерван.
-  */
   async function loadUsedRecoveryEntrants(
     seanceId
   ){
