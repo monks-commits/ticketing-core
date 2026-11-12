@@ -517,23 +517,12 @@
     seanceId
   ){
 
-    const rows =
-      await rest(
-        `recovery_tokens?` +
-        `used_seance_id=eq.${encodeURIComponent(seanceId)}` +
-        `&compensation_used=eq.true` +
-        `&select=` +
-        `id,` +
-        `token,` +
-        `seat_label,` +
-        `owner_name,` +
-        `owner_email,` +
-        `source_ticket_id,` +
-        `source_order_id,` +
-        `source_show_slug,` +
-        `source_seat_label,` +
-        `compensation_used_at`
-      );
+       const rows = await window.VAAdminOps.request(
+      "recovery.used_entrants",
+      {
+        seance_id: String(seanceId)
+      }
+    );
 
     return (
       Array.isArray(rows)
