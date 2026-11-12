@@ -1229,9 +1229,9 @@ async function loadTurnover(seanceId){
       `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
     );
 
-const recoveryTokens = await api(
-  "recovery_tokens",
-  `?source_seance_id=eq.${encodeURIComponent(seanceId)}&select=id,compensation_used`
+const recoveryStats = await VAAdminOps.request(
+  "recovery.turnover_stats",
+  { seance_id: seanceId }
 );
     
     const soldSeats = new Set(
@@ -1276,8 +1276,8 @@ const recoveryTokens = await api(
 
     const returned = tickets.filter(t => String(t.status || "").toLowerCase() === "returned").length;
 
-   const compTotal = recoveryTokens.length;
-const compUsed = recoveryTokens.filter(t => t.compensation_used === true).length;
+   const compTotal = Number(recoveryStats?.total || 0);
+const compUsed = Number(recoveryStats?.used || 0);
 const compUnused = Math.max(compTotal - compUsed, 0);
 
     const used = tickets.filter(t => !!t.checked_in_at).length;
