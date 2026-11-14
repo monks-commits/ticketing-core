@@ -451,6 +451,7 @@
 </head>
 <body>
   <script src="../../shared/gateway-client.js"></script>
+<script src="../../shared/va-native-hold-v2-client.js"></script>
   <script src="../../shared/va-cro-tracker.js"></script>
   <div class="page">
 
@@ -697,34 +698,12 @@ if (refCode) {
 
     async function clearSeatBooking(seatKey){
       if (GATEWAY_MODE) {
-        const nextSeats = seats.filter(s => s !== seatKey);
-        if (nextSeats.length) {
-          await window.VA_GATEWAY.setHold(seance, GATEWAY_HOLD_REF, nextSeats);
-        } else {
-          await window.VA_GATEWAY.releaseHold(seance, GATEWAY_HOLD_REF);
-        }
+        const nextSeats=seats.filter(s=>s!==seatKey);
+        if (nextSeats.length) await window.VA_GATEWAY.setHold(seance,GATEWAY_HOLD_REF,nextSeats);
+        else await window.VA_GATEWAY.releaseHold(seance,GATEWAY_HOLD_REF);
         return;
       }
-
-      const resp = await fetch(
-        `https://${PROJECT_REF}.functions.supabase.co/clear-booking-seat`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            seance_id: seance,
-            seats: [seatKey]
-          })
-        }
-      );
-
-      const data = await resp.json().catch(() => ({}));
-
-      if (!resp.ok || !data?.ok) {
-        throw new Error(data?.error || "Не вдалося зняти бронювання");
-      }
+      await window.VANativeHoldV2.release({seance_id:seance,seat:seatKey});
     }
 
     async function loadSeanceMeta(){
