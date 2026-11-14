@@ -190,7 +190,7 @@ ${docType==='kg8'?`<p><b>Документ видачі:</b> ${htmlEsc(doc.issue_
       p_note:el('vaAcademyNote').value.trim()||null,
     };
     busy=true;el('vaAcademySubmit').disabled=true;
-    message('Перевіряємо квоту й резервуємо місця…');
+    message('Перевіряємо місця й створюємо бронювання…');
     try {
       const result=await call('va_academy_office_reserve_v1',payload);
       message(`${result.code==='already_reserved'?'Резерв уже створено':'Резерв створено'}: ${result.seats?.length||seats.length} місць, ${result.amount} грн`);
@@ -221,7 +221,7 @@ ${docType==='kg8'?`<p><b>Документ видачі:</b> ${htmlEsc(doc.issue_
     if (!sid) { text(target,'Оберіть сеанс Академії руху.');return; }
     if (venue && venue!=='academy') {text(target,'Цей розділ працює лише для Академії руху.');return;}
     const root=document.createElement('section');root.className='panel';
-    const heading=document.createElement('h3');text(heading,'VA • Академія руху — резерв квоти');
+    const heading=document.createElement('h3');text(heading,'Бронювання місць — Академія руху');
     const description=document.createElement('p');
     text(description,'Внутрішні групові та комісіонерські резерви. Без оплати й випуску квитків. Перевірка місць і ціни виконується сервером. КГ-7/КГ-8 оформлюються через захищений сервер. Друк — з журналу резервів.');
     root.append(heading,description);
@@ -241,16 +241,87 @@ ${docType==='kg8'?`<p><b>Документ видачі:</b> ${htmlEsc(doc.issue_
     form.append(row('Телефон','vaAcademyPhone','tel'));
     form.append(row('Email','vaAcademyEmail','email'));
     form.append(row('Уповноважений / агент VA','vaAcademyAgent'));
+    // Reuse the existing VAPartners directory and original commissioner -> hall route.
+    // This is a read-only directory lookup. The actual reservation is performed
+    // by protected va_academy_office_reserve_v1 in hall-cash partner_attach mode.
+    const partnerField=document.createElement('label');
+    partnerField.style.cssText='display:flex;flex-direction:column;gap:5px;margin-bottom:9px';
+    text(partnerField,'Комісіонер із довідника VA');
+    const partnerSelect=document.createElement('select');
+    partnerSelect.id='vaAcademyPartnerSelect';
+    partnerSelect.style.cssText='padding:9px;border:1px solid #64748b;border-radius:7px;width:100%;background:#111827;color:white';
+    partnerField.append(partnerSelect);
+    form.append(partnerField);
+    let commissionerRows=[];
+    async function loadCommissioners() {
+      partnerSelect.replaceChildren(new Option('Завантаження довідника…',''));
+      partnerSelect.disabled=true;
+      try {
+        if (!window.VAPartners?.loadPartners) throw new Error('Довідник комісіонерів VA недоступний');
+        await window.VAPartners.loadPartners();
+        commissionerRows=(window.VAPartners.state?.partners||[]).filter(p=>p && p.active!==false);
+        partnerSelect.replaceChildren(new Option('Оберіть комісіонера',''));
+        for (const partner of commissionerRows) {
+          partnerSelect.add(new Option(String(partner.name||''),String(partner.id||'')));
+        }
+        partnerSelect.disabled=false;
+        if (!commissionerRows.length) message('Немає активних комісіонерів у довіднику VA',true);
+      } catch(error) {
+        partnerSelect.replaceChildren(new Option('Помилка завантаження довідника',''));
+        message('Комісіонери: '+String(error?.message||error),true);
+      }
+    }
+    function chosenCommissioner() {
+      return commissionerRows.find(p=>String(p.id)===String(partnerSelect.value))||null;
+    }
+    partnerSelect.addEventListener('change',()=>{
+      const p=chosenCommissioner();
+      if (!p) return;
+      el('vaAcademyOrg').value=String(p.name||'');
+      el('vaAcademyPerson').value=String(p.contact_name||p.name||'');
+      el('vaAcademyPhone').value=String(p.phone||'');
+      el('vaAcademyEmail').value=String(p.email||'');
+      el('vaAcademyAgent').value=String(p.name||'');
+    });
     form.append(row('Контрольний термін (не звільняє автоматично)','vaAcademyExpiry','datetime-local'));
     form.append(row('Місця через кому','vaAcademySeats','text','P2-M7, P2-M8'));
     form.append(row('Примітка','vaAcademyNote'));
     const controls=document.createElement('div');
     const submit=document.createElement('button');submit.id='vaAcademySubmit';
-    submit.type='submit';submit.className='btn green';text(submit,'Зарезервувати в квоті VA');
-    controls.append(submit);form.append(controls);
+    submit.type='submit';submit.className='btn green';text(submit,'Забронювати місця');
+    controls.append(submit);
+    // The existing hall-cash.html already supports ?partner_attach=1: one selected
+    // commissioner, multiple seat clicks, and a single protected server reservation.
+    const chooseOnHall=button('🎭 Вибрати місця на схемі',()=>{
+      if (kind.value!=='commissioner') {
+        message('Спочатку оберіть тип «Комісіонер VA»',true);return;
+      }
+      const partner=chosenCommissioner();
+      if (!partner) {message('Оберіть комісіонера з довідника VA',true);return;}
+      try {
+        const sid=checkedSeance();
+        if (!window.VAPartners?.openPartnerHallPicker) throw Error('Маршрут комісіонера на схему недоступний');
+        window.VAPartners.state.seanceId=sid;
+        window.VAPartners.state.partnerId=String(partner.id);
+        window.VAPartners.openPartnerHallPicker();
+        message('Оберіть на схемі кілька вільних місць і натисніть «ДО РЕЗЕРВУ». Після оформлення оновіть журнал.');
+      } catch(e) {message(String(e?.message||e),true);}
+    });
+    chooseOnHall.id='vaAcademyOpenPartnerHall';
+    chooseOnHall.style.marginLeft='8px';
+    controls.append(chooseOnHall);
+    form.append(controls);
+    function setCommissionerMode() {
+      const enabled=kind.value==='commissioner';
+      partnerField.style.display=enabled?'flex':'none';
+      chooseOnHall.style.display=enabled?'inline-block':'none';
+      if (enabled && !commissionerRows.length) loadCommissioners();
+    }
+    kind.addEventListener('change',setCommissionerMode);
+    setCommissionerMode();
     const status=document.createElement('p');status.id='vaAcademyMsg';status.setAttribute('role','status');
     root.append(form,status);
-    const listTitle=document.createElement('h3');text(listTitle,'Резерви VA на цьому сеансі');root.append(listTitle);
+    const listTitle=document.createElement('h3');text(listTitle,'Бронювання на сеансі');root.append(listTitle);
     const refreshBtn=button('Оновити список',()=>refresh().catch(e=>message(e.message,true)));
     root.append(refreshBtn);
     const table=document.createElement('table');table.style.cssText='width:100%;font-size:13px';
