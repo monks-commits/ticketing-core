@@ -333,6 +333,7 @@
 <!-- VAReturns відключено: КГ-8 ведеться через VAPartners / Комісіонери -->
 <!-- <script src="./ticket-office/va-returns.js"></script> -->
 <script src="./ticket-office/va-partners.js"></script>
+<script src="./ticket-office/va-academy-office.js"></script>
 <script src="./ticket-office/va-compensations.js"></script>
 
   
@@ -583,7 +584,7 @@
 
 <div class="buttons" style="margin:10px 0 12px;">
   <button class="btn ghost" onclick="setTurnoverJournal('sales')">Продажі</button>
-  <button class="btn ghost" onclick="setTurnoverJournal('booking')">Бронь</button>
+  <button class="btn ghost" onclick="setTurnoverJournal('booking')">Бронь / VA Академія</button>
   <button class="btn ghost" onclick="setTurnoverJournal('partners')">Комісіонери / КГ-7 / КГ-8</button>
   <button class="btn ghost" onclick="setTurnoverJournal('comp')">Компенсації</button>
   <button class="btn ghost" onclick="setTurnoverJournal('used')">Погашення</button>
@@ -1219,15 +1220,23 @@ async function loadTurnover(seanceId){
 
     const issued = Number(seances?.[0]?.capacity || 0);
 
-    const tickets = await api(
-      "tickets",
-      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
-    );
-
-    const bookings = await api(
-      "bookings",
-      `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`
-    );
+    // Academy pilot: staff-only read. Closing public SELECT on tickets/bookings
+    // must not break the ticket-office turnover screen or expose buyer PII.
+    const selectedVenue = (SEANCES.find(s => String(s.id) === String(seanceId)) || {}).venue_id;
+    let tickets, bookings;
+    if (selectedVenue === "academy") {
+      const officeData = await VAAdminOps.rpc(
+        "va_academy_office_turnover_v1", {p_seance_id: seanceId}
+      );
+      if (!officeData || officeData.ok !== true) {
+        throw new Error("Захищені дані Академії недоступні");
+      }
+      tickets = officeData.tickets || [];
+      bookings = officeData.bookings || [];
+    } else {
+      tickets = await api("tickets", `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`);
+      bookings = await api("bookings", `?seance_id=eq.${encodeURIComponent(seanceId)}&select=*`);
+    }
 
 const recoveryStats = await VAAdminOps.request(
   "recovery.turnover_stats",
@@ -1348,6 +1357,11 @@ renderTurnoverWorkspace();
   }
 }
 
+// After an Academy office mutation refresh the protected turnover snapshot.
+window.addEventListener('va-academy-office-changed', () => {
+  const sid = selectedSeanceId();
+  if (sid) loadTurnover(sid);
+});
 function setTurnoverJournal(type){
 
     CURRENT_TURNOVER_JOURNAL = type || "sales"; 
@@ -1427,7 +1441,10 @@ function renderTurnoverWorkspace() {
 
 
         case "booking":
-
+            if (selectedSeanceRow()?.venue_id === "academy") {
+              VAAcademyOffice.render("turnoverWorkspace");
+              break;
+            }
             VABooking.render({
                 targetId: "turnoverWorkspace",
                 seanceId: selectedSeanceId(),
@@ -1437,7 +1454,10 @@ function renderTurnoverWorkspace() {
             break;
 
                 case "partners":
-
+            if (selectedSeanceRow()?.venue_id === "academy") {
+              VAAcademyOffice.render("turnoverWorkspace");
+              break;
+            }
             if (window.VAPartners) {
 
                 VAPartners.render({
