@@ -1887,6 +1887,7 @@ body.va-static-bg-active .hall-section-title{
 <script src="../../shared/config.js"></script>
 <script src="../../shared/config-helper.js"></script>
 <script src="../../shared/gateway-client.js"></script>
+<script src="../../shared/va-native-hold-v2-client.js"></script>
 <script src="../../shared/va-cro-tracker.js"></script>
   
   <script>
@@ -2526,93 +2527,42 @@ btn.addEventListener("mouseleave", () => {
   return btn;
 }
 
-    // ===== Supabase loaders =====
-    async function loadTakenSeats(){
-      if (!SEANCE_ID) return;
-
-      try {
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/tickets?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seat_label`,
-          {
-            headers:{
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-            }
-          }
-        );
-
-        const rows = await res.json();
-        takenSeats = new Set((rows || []).map(r => r.seat_label));
-      } catch(e){
-        console.warn("loadTakenSeats error", e);
-      }
-    }
-
-    async function loadBookingSeats() {
-  if (!SEANCE_ID) return;
-
-  try {
-    const nowIso = new Date().toISOString();
-
-    holdSeats.clear();
-    reservedSeats.clear();
-
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=seats,expires_at,status`,
-      {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        cache: "no-store"
-      }
-    );
-
-    const bookings = await res.json();
-    if (!Array.isArray(bookings)) return;
-
-    for (const b of bookings) {
-      const status = String(b.status || "").trim();
-      const arr = Array.isArray(b.seats) ? b.seats : [];
-
-      // Эти статусы НЕ блокируют место
-      if (
-        status === "partner_returned" ||
-        status === "cancelled" ||
-        status === "canceled" ||
-        status === "released" ||
-        status === "expired"
-      ) {
-        continue;
-      }
-
-      // Временный hold
-      if (status === "hold") {
-        if (b.expires_at && b.expires_at <= nowIso) continue;
-
-        for (const seat of arr) {
-          if (seat) holdSeats.add(String(seat).trim());
+    // ===== VA SECURE PUBLIC SEAT OCCUPANCY V1 (PREVIEW ONLY) =====
+    // This endpoint returns seat keys, NOT personal data or booking IDs.
+    // When unavailable, do not let users select seats based on stale information.
+    let vaSeatStateHealthy = false;
+    let vaSeatStateCachedAt = 0;
+    let vaSeatStateInFlight = null;
+    async function vaLoadSeatState(force = false) {
+      if (!SEANCE_ID) throw new Error('seance_id_missing');
+      if (vaSeatStateInFlight) return await vaSeatStateInFlight;
+      if (!force && vaSeatStateHealthy && Date.now() - vaSeatStateCachedAt < 1200) return;
+      const url = `${SUPABASE_URL}/functions/v1/va-public-seat-state-v1?seance_id=${encodeURIComponent(SEANCE_ID)}`;
+      vaSeatStateInFlight = (async () => {
+        const res = await fetch(url, {
+          headers: { apikey: SUPABASE_ANON_KEY, Accept: 'application/json' },
+          cache: 'no-store'
+        });
+        if (!res.ok) throw new Error(`seat_state_http_${res.status}`);
+        const data = await res.json();
+        if (!data?.ok || !Array.isArray(data.taken) ||
+            !Array.isArray(data.hold) || !Array.isArray(data.reserved)) {
+          throw new Error('seat_state_invalid_response');
         }
-
-        continue;
-      }
-
-      // Активная бронь + выдано по КГ-7
-      if (
-        status === "reserved" ||
-        status === "issued_to_partner"
-      ) {
-        for (const seat of arr) {
-          if (seat) reservedSeats.add(String(seat).trim());
-        }
-
-        continue;
-      }
+        takenSeats = new Set(data.taken.map(String));
+        holdSeats.clear();
+        reservedSeats.clear();
+        data.hold.forEach(x => holdSeats.add(String(x)));
+        data.reserved.forEach(x => reservedSeats.add(String(x)));
+        vaSeatStateHealthy = true;
+        vaSeatStateCachedAt = Date.now();
+      })();
+      try { await vaSeatStateInFlight; }
+      catch (e) { vaSeatStateHealthy = false; vaSeatStateCachedAt = 0; throw e; }
+      finally { vaSeatStateInFlight = null; }
     }
-  } catch (e) {
-    console.warn("loadBookingSeats error", e);
-  }
-}
+    async function loadTakenSeats() { return vaLoadSeatState(true); }
+    async function loadBookingSeats() { return vaLoadSeatState(false); }
     async function loadSeanceConfig() {
       if (!SEANCE_ID) return null;
 
@@ -4741,6 +4691,10 @@ async function onSeatClick(btn, key, meta, price){
     return;
   }
 
+  if (!vaSeatStateHealthy && !selected.has(key)) {
+    alert('Стан місць тимчасово недоступний. Оновіть схему залу.');
+    return;
+  }
   const cfg = applySeanceConfig(meta);
 
   if (cfg?.sale === false) {
@@ -4758,95 +4712,40 @@ async function onSeatClick(btn, key, meta, price){
 
   if (selected.has(key)) {
     try {
-      const findRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&status=eq.hold&select=id,seats`,
-        {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        }
-      );
-
-      const rows = await findRes.json();
-
-      const myHold = Array.isArray(rows)
-        ? rows.find(r => Array.isArray(r.seats) && r.seats.includes(key))
-        : null;
-
-      if (myHold?.id) {
-        await fetch(
-          `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(myHold.id)}`,
-          {
-            method: "PATCH",
-            headers: {
-              apikey: SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              status: "cancelled"
-            })
-          }
-        );
-      }
-    } catch (e) {
-      console.warn("cancel hold error", e);
+      await window.VANativeHoldV2.release({seance_id:SEANCE_ID,seat:key});
+    } catch(e) {
+      console.error('native hold release failed',e);
+      alert('Не вдалося звільнити місце. Спробуйте ще раз.');
+      return; // Do not visually release a seat unless server confirmed it.
     }
-
     selected.delete(key);
     holdSeats.delete(key);
-
-    btn.classList.remove("seat--selected", "seat--hold");
-    btn.disabled = false;
-
+    btn.classList.remove('seat--selected','seat--hold');
+    btn.disabled=false;
     updateSummary();
     return;
   }
-
   if (holdSeats.has(key)) return;
-
+  if (selected.size >= 12) {
+    alert('Можна обрати не більше 12 місць в одному замовленні.');
+    return;
+  }
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=representation"
-      },
-      body: JSON.stringify({
-        seance_id: SEANCE_ID,
-        show_slug: showSlug || "demo",
-        seats: [key],
-        status: "hold",
-        amount: Number(price || 0),
-        order_id: `hold-${Date.now()}`,
-        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-      })
+    const result=await window.VANativeHoldV2.acquire({
+      seance_id:SEANCE_ID,seat:key,amount:Number(price || 0),show_slug:showSlug || 'demo'
     });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("hold create error", data);
-      return;
-    }
-
+    if (!result?.ok) throw Error('hold_not_accepted');
     holdSeats.add(key);
-
-    btn.classList.add("seat--hold", "seat--selected");
-    btn.disabled = false;
-
-    selected.set(key, { meta, price });
-
+    btn.classList.add('seat--hold','seat--selected');
+    btn.disabled=false;
+    selected.set(key,{meta,price});
     updateSummary();
-
-    // CRO counts a seat only after the native HOLD insert succeeded.
-    croTrackSeatSelected(key, "native");
-
-  } catch (e) {
-    console.error("booking insert error", e);
+    croTrackSeatSelected(key,'native');
+  } catch(e) {
+    console.error('native hold failed',e);
+    alert('Не вдалося утримати це місце. Можливо, воно вже зайняте.');
+    btn.disabled=false;
+    try { await loadBookingSeats(); } catch (_) {}
   }
 }
 function updateSummary(){
@@ -4974,23 +4873,23 @@ renderPageVideoBackground();
   // setTimeout(applyMobileHallScale, 0);
 
   if (returnSeats.length) {
-    for (const key of returnSeats) {
-      const btn = document.querySelector(`.seat[data-key="${key}"]`);
-      if (!btn) continue;
-
-      if (takenSeats.has(key) || reservedSeats.has(key) || holdSeats.has(key)) {
-        btn.classList.remove("seat--selected");
-        continue;
-      }
-
+    for (const key of returnSeats.slice(0,12)) {
+      const btn = document.querySelector('.seat[data-key="' + key + '"]');
+      if (!btn || takenSeats.has(key) || reservedSeats.has(key)) continue;
       const price = Number(returnPrices[key] || btn.dataset.price || 0);
-
-      selected.set(key, {
-        meta: null,
-        price
-      });
-
-      btn.classList.add("seat--selected");
+      try {
+        const proof=await window.VANativeHoldV2.acquire({
+          seance_id: SEANCE_ID, seat:key, amount:price, show_slug:showSlug || 'native'
+        });
+        if (!proof?.ok) continue;
+        selected.set(key,{meta:null,price});
+        holdSeats.add(key);
+        btn.classList.add('seat--selected','seat--hold');
+        btn.disabled=false;
+      } catch(e) {
+        console.warn('native return seat verification rejected',key,e?.code || e);
+        btn.classList.remove('seat--selected');
+      }
     }
   }
 
@@ -5004,8 +4903,14 @@ renderPageVideoBackground();
   finishHallBoot();
 
   setInterval(async () => {
-    await loadTakenSeats();
-    await loadBookingSeats();
+    try {
+      await loadTakenSeats();
+      await loadBookingSeats();
+    } catch (e) {
+      // Never use stale occupancy after backend failure.
+      console.warn('VA secure seat refresh unavailable', e);
+      return;
+    }
 
     let summaryChanged = false;
 
