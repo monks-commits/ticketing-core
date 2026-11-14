@@ -1279,6 +1279,7 @@ body{
 
   <script src="../shared/config.js"></script>
 <script src="../shared/config-helper.js"></script>
+  <script src="../admin/ticket-office/va-admin-ops-client.js"></script>
   <script>
 
 let takenSeatsOnline = new Set();
@@ -2307,10 +2308,168 @@ document.getElementById("promoValue")?.addEventListener("input", () => {
 refreshPromoControls();
     
     
-async function applyStatusToSelectedLocal(status){
+// ===== VA CASH RESERVATION: server confirmation first (Academy phase) =====
+// No direct anon INSERT/DELETE on bookings. The cashier does not hold service keys.
+let vaCashReservePending = null;
+let vaCashReserveBusy = false;
+function vaCashIsAcademy() {
+  return String(SHOW_META?.venue_id || VENUE_ID || '').trim() === 'academy';
+}
+function vaCashOffice() {
+  if (!window.VAAdminOps?.rpc) {
+    throw new Error('VA Admin Operations не завантажено. Перевірте admin/ticket-office/va-admin-ops-client.js.');
+  }
+  return window.VAAdminOps;
+}
+function vaCashInput(id) { return document.getElementById(id); }
+async function vaCashReserveSelected(partner = null, explicitSeats = null) {
+  if (vaCashReserveBusy) return;
+  const sourceSeats = explicitSeats || Array.from(selected.entries())
+    .filter(([, v]) => v?.reservedRemove !== true).map(([key]) => key);
+  const seats = sourceSeats.map(v => String(v || '').trim()).filter(Boolean);
+  if (!SEANCE_ID || !seats.length || new Set(seats).size !== seats.length) {
+    alert('Оберіть вільні місця для бронювання.');
+    return;
+  }
+  if (!explicitSeats && Array.from(selected.values()).some(v => v?.reservedRemove)) {
+    alert('У виборі є вже заброньовані місця. Зніміть вибір і оберіть лише вільні.');
+    return;
+  }
+  // The already installed service-only RPC only permits the Academy venue.
+  // Never display a fake local reservation for other venues.
+  if (!vaCashIsAcademy()) {
+    alert('Серверне бронювання цієї площадки ще не підключено. Локальний резерв не створено.');
+    return;
+  }
+  const buyerName = vaCashInput('cash-buyer-name');
+  const buyerPhone = vaCashInput('cash-buyer-phone');
+  const buyerEmail = vaCashInput('cash-buyer-email');
+  let organization = String(partner?.name || buyerName?.value || '').trim();
+  if (!organization) {
+    const name = prompt('Для кого бронюємо? Прізвище або назва організації:');
+    if (!name?.trim()) return;
+    organization = name.trim();
+    if (buyerName) buyerName.value = organization;
+  }
+  const contactName = String(partner?.contact_name || buyerName?.value || '').trim() || organization;
+  let phone = String(partner?.phone || buyerPhone?.value || '').trim();
+  if (phone.length < 5) {
+    const entered = prompt('Контактний телефон броні (мінімум 5 символів):', phone);
+    if (!entered || entered.trim().length < 5) return;
+    phone = entered.trim();
+    if (buyerPhone) buyerPhone.value = phone;
+  }
+  const kind = partner ? 'commissioner' : 'group';
+  const agent = partner ? String(partner.name || '').trim() : null;
+  if (kind === 'commissioner' && !agent) {
+    alert('Комісіонера не обрано.'); return;
+  }
+  const normalized = seats.slice().sort();
+  const payload = {
+    p_seance_id: SEANCE_ID, p_seats: normalized, p_kind: kind,
+    p_organization: organization, p_contact_name: contactName,
+    p_phone: phone, p_email: String(partner?.email || buyerEmail?.value || '').trim() || null,
+    p_agent: agent, p_expires_at: null,
+    p_note: ('Оформлено в касі; cashier_id=' + getCashierId()).slice(0, 500)
+  };
+  const fingerprint = JSON.stringify(payload);
+  if (!vaCashReservePending || vaCashReservePending.fingerprint !== fingerprint) {
+    vaCashReservePending = { fingerprint, id: crypto.randomUUID() };
+  }
+  if (partner && !confirm(`Закріпити за ${organization}: ${seats.length} місць?\n${seats.join(', ')}`)) return;
+  vaCashReserveBusy = true;
+  const reserveButton = document.getElementById('btn-reserve');
+  if (reserveButton) reserveButton.disabled = true;
+  try {
+    const result = await vaCashOffice().rpc('va_academy_office_reserve_v1', {
+      p_request_id: vaCashReservePending.id, ...payload
+    });
+    if (!result || result.ok !== true) {
+      throw new Error(String(result?.code || result?.error || 'Резерв не підтверджено'));
+    }
+    // Only now update the displayed state. Do NOT create a local-only reserve.
+    const confirmed = Array.isArray(result.seats) ? result.seats : normalized;
+    await loadBookingSeatsOnline();
+    for (const seat of confirmed) {
+      delete CASH_PATCH[seat];
+      reservedSeatsOnline.add(String(seat));
+    }
+    saveCashPatch(CASH_PATCH);
+    pushCashLog({ts: Date.now(), type: partner ? 'PARTNER_RESERVE' : 'RESERVE', seats: confirmed, total: Number(result.amount || 0)});
+    clearSelection();
+    reapplyAllStatuses();
+    vaCashReservePending = null;
+    alert(`Бронювання підтверджено сервером: ${confirmed.length} місць.`);
+  } catch (error) {
+    console.error('va cash protected reserve failed', error);
+    alert('Бронь НЕ створено локально. Відповідь сервера: ' + (error?.message || String(error)));
+    // Keep request id for idempotent retry on a lost network response.
+  } finally {
+    vaCashReserveBusy = false;
+    updateSummary();
+  }
+}
+// Cancellation is limited to precisely identified Academy office bookings.
+// Unlike legacy clear-booking-seat, it never deletes anonymous users' HOLDs.
+async function vaCashClearSelected() {
+  const entries = Array.from(selected.entries());
+  if (!entries.length) { clearSelection(); return; }
+  const reserved = entries.filter(([,v]) => v?.reservedRemove === true).map(([k]) => k);
+  if (!reserved.length) { clearSelection(); return; }
+  if (reserved.length !== entries.length) {
+    alert('Виберіть окремо тільки бронь для зняття.'); return;
+  }
+  // Old failed anon writes may have left an orange LOCAL-ONLY marker.
+  // Allow clearing that marker without touching any server booking or HOLD.
+  const ghost = reserved.filter(seat =>
+    !reservedSeatsOnline.has(seat) && CASH_PATCH[seat]?.status === 'reserved');
+  if (ghost.length === reserved.length) {
+    if (!confirm('Ці місця зарезервовано лише локально. Очистити позначки на цьому ПК?')) return;
+    for (const seat of ghost) delete CASH_PATCH[seat];
+    saveCashPatch(CASH_PATCH);
+    clearSelection();
+    reapplyAllStatuses();
+    alert('Локальні позначки прибрано. Серверні броні не змінено.');
+    return;
+  }
+  if (!vaCashIsAcademy()) {
+    alert('Зняття серверної броні цієї площадки поки не підключено.'); return;
+  }
+  try {
+    const result = await vaCashOffice().rpc('va_academy_office_list_v1', {p_seance_id: SEANCE_ID});
+    if (!result?.ok || !Array.isArray(result.rows)) throw new Error(result?.code || 'Список броней недоступний');
+    const matches = result.rows.filter(row => row.status === 'reserved' &&
+      Array.isArray(row.seats) && row.seats.some(seat => reserved.includes(seat)));
+    const covered = new Set(matches.flatMap(row => row.seats || []));
+    if (reserved.some(seat => !covered.has(seat))) {
+      throw new Error('Ця бронь створена іншим маршрутом. Її не можна знімати кнопкою каси.');
+    }
+    if (matches.some(row => String(row.note || '').startsWith('[VA commissioner]') || row.issue_doc)) {
+      throw new Error('Бронь комісіонера скасовуйте через КГ-8 у Квитковому відділі.');
+    }
+    const toRelease = [...new Set(matches.flatMap(row => row.seats || []))];
+    if (!confirm(`Скасувати ${matches.length} бронювання на ${toRelease.length} місць?\n${toRelease.join(', ')}`)) return;
+    for (const row of matches) {
+      const canceled = await vaCashOffice().rpc('va_academy_office_cancel_v1', {p_booking_id: row.id});
+      if (!canceled?.ok) throw new Error(canceled?.code || 'Скасування не підтверджено');
+    }
+    await loadBookingSeatsOnline();
+    for (const seat of toRelease) {
+      delete CASH_PATCH[seat];
+      reservedSeatsOnline.delete(seat);
+    }
+    saveCashPatch(CASH_PATCH);
+    clearSelection();
+    reapplyAllStatuses();
+    alert('Сервер підтвердив скасування броні.');
+  } catch (e) {
+    alert('Бронь не знято локально: ' + (e?.message || String(e)));
+  }
+}
+
+async function applyStatusToSelectedLocal(status) {
   const keys = Array.from(selected.keys());
   if (!keys.length) return;
-
   // оставляем старое поведение для не-reserved, если вдруг понадобится
   if (status !== "reserved") {
     for (const k of keys){
@@ -2332,88 +2491,9 @@ async function applyStatusToSelectedLocal(status){
     return;
   }
 
-  try {
-    // 1. забираем все bookings по сеансу
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/bookings?seance_id=eq.${encodeURIComponent(SEANCE_ID)}&select=id,seats,status`,
-      {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      }
-    );
-
-    const rows = await res.json();
-
-    // 2. удаляем старые hold/reserved по выбранным местам
-    for (const row of rows || []) {
-      const seats = Array.isArray(row.seats) ? row.seats.map(s => String(s).trim()) : [];
-      const hasSelected = seats.some(s => keys.includes(s));
-      if (!hasSelected) continue;
-
-      await fetch(
-        `${SUPABASE_URL}/rest/v1/bookings?id=eq.${encodeURIComponent(row.id)}`,
-        {
-          method: "DELETE",
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        }
-      );
-    }
-
-    // 3. создаём новый ДОЛГИЙ reserve
-    for (const k of keys) {
-      await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation"
-        },
-        body: JSON.stringify({
-          seance_id: SEANCE_ID,
-          show_slug: showSlug || "cash",
-          seats: [k],
-          status: "reserved",
-          amount: 0,
-          order_id: `reserved-${Date.now()}-${Math.random().toString(16).slice(2,8)}`
-        })
-      });
-
-      // локально тоже сразу фиксируем
-      takenSeatsBooking.delete(k);
-      if (typeof reservedSeatsOnline !== "undefined") {
-        reservedSeatsOnline.add(k);
-      }
-      CASH_PATCH[k] = { status: "reserved", ts: Date.now() };
-    }
-
-    saveCashPatch(CASH_PATCH);
-
-    pushCashLog({
-      ts: Date.now(),
-      type: "RESERVE",
-      seats: keys,
-      total: Array.from(selected.values()).reduce((s,x)=>s+(x.price||0),0)
-    });
-
-    clearSelection();
-
-    if (typeof loadBookingSeatsOnline === "function") {
-      await loadBookingSeatsOnline();
-    }
-
-    reapplyAllStatuses();
-
-  } catch(e){
-    console.warn("applyStatusToSelectedLocal reserved error", e);
-  }
+  await vaCashReserveSelected();
 }
-    
+
     // ---- op_id generator ----
     function genOpId(){
       const d = new Date();
@@ -4085,61 +4165,10 @@ function renderSimpleRows(hallData) {
 
     // ---- кнопки ----
 
-document.getElementById("btn-clear")?.addEventListener("click", async ()=>{
-
-  const keys = Array.from(selected.keys()).map(k => String(k).trim());
-
-  if (!keys.length){
-    clearSelection();
-    return;
-  }
-
-  try {
-    const resp = await fetch(
-      `https://${PROJECT_REF}.functions.supabase.co/clear-booking-seat`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          seance_id: SEANCE_ID,
-          seats: keys
-        })
-      }
-    );
-
-    const data = await resp.json();
-
-    if (!resp.ok || !data?.ok) {
-      console.warn("btn-clear function error", data);
-      alert("Помилка при знятті резерву.");
-      return;
-    }
-
-    for (const k of keys){
-      delete CASH_PATCH[k];
-      takenSeatsBooking.delete(k);
-      if (typeof reservedSeatsOnline !== "undefined") {
-        reservedSeatsOnline.delete(k);
-      }
-    }
-
-    saveCashPatch(CASH_PATCH);
-
-    await loadBookingSeatsOnline();
-    await loadTakenSeatsOnline();
-
-    clearSelection();
-    reapplyAllStatuses();
-    updateSummary();
-
-  } catch(e){
-    console.warn("clear bookings error", e);
-    alert("Помилка при знятті резерву.");
-  }
+document.getElementById("btn-clear")?.addEventListener("click", () => {
+  void vaCashClearSelected();
 });
-    document.getElementById("btn-reserve")?.addEventListener("click", ()=> applyStatusToSelectedLocal("reserved"));
+        document.getElementById("btn-reserve")?.addEventListener("click", ()=> applyStatusToSelectedLocal("reserved"));
     document.getElementById("btn-sell")?.addEventListener("click", ()=> sellAndPrintOffline());
     document.getElementById("btn-sync")?.addEventListener("click", ()=> syncQueue());
     document.getElementById("btn-reprint")?.addEventListener("click", ()=> reprintLastSale());
@@ -4224,26 +4253,16 @@ if (topQueueStatusEl) {
       return !!ev && ev.origin === window.location.origin;
     }
 
-function applyStatusFromBackoffice(status, seats){
+async function applyStatusFromBackoffice(status, seats){
 
   const list = Array.isArray(seats) ? seats : [];
   if (!list.length) return;
 
   clearSelection();
 
-  // === RESERVED ===
-  if (status === "reserved"){
-    for (const k of list){
-      if (takenSeatsOnline.has(k)) continue;
-      CASH_PATCH[k] = { status: "reserved", ts: Date.now() };
-    }
-
-    saveCashPatch(CASH_PATCH);
-
-    if (typeof repaintAllStatuses === "function"){
-      repaintAllStatuses();
-    }
-
+  // A backoffice reserve also requires a protected server commit.
+  if (status === "reserved") {
+    await vaCashReserveSelected(null, list);
     return;
   }
 
@@ -5017,107 +5036,8 @@ async function loadDirectorData() {
     return PARTNERS.find(p => String(p.id) === String(id)) || null;
   }
 
-  async function reserveSelectedForPartner(partner){
-    const entries = Array.from(selected.entries())
-      .filter(([, meta]) => meta?.reservedRemove !== true);
-
-    const seats = entries
-      .map(([key]) => String(key || "").trim())
-      .filter(Boolean);
-
-    if (!seats.length) {
-      alert("Оберіть місця на схемі.");
-      return;
-    }
-
-    const ok = confirm(
-      `Закріпити за ${partner.name}: ${seats.length} місць?\n\n` +
-      seats.join(", ")
-    );
-
-    if (!ok) return;
-
-    let created = 0;
-
-    try {
-      for (const seat of seats) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            "Content-Type": "application/json",
-            Prefer: "return=representation"
-          },
-          body: JSON.stringify({
-            seance_id: SEANCE_ID,
-            show_slug: showSlug || "partner",
-            seats: [seat],
-            status: "reserved",
-            amount: 0,
-            order_id: `partner-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
-
-            buyer_name: partner.contact_name || partner.name,
-            buyer_email: partner.email || null,
-            buyer_phone: partner.phone || null,
-
-            organization: partner.name,
-            contact_name: partner.contact_name || "",
-            agent: partner.name,
-
-            note: `Комісіонер: ${partner.name}`
-          })
-        });
-
-        if (!res.ok) {
-          console.error("partner reserve error:", await res.text());
-          continue;
-        }
-
-        created += 1;
-
-        if (typeof reservedSeatsOnline !== "undefined") {
-          reservedSeatsOnline.add(seat);
-        }
-
-       
-      }
-
-     
-
-      if (typeof pushCashLog === "function") {
-        pushCashLog({
-          ts: Date.now(),
-          type: "PARTNER_RESERVE",
-          seats,
-          total: 0
-        });
-      }
-
-      if (typeof clearSelection === "function") {
-        clearSelection();
-      }
-
-      if (typeof loadBookingSeatsOnline === "function") {
-        await loadBookingSeatsOnline();
-      }
-
-      if (typeof reapplyAllStatuses === "function") {
-        reapplyAllStatuses();
-      }
-
-      alert(`Закріплено за ${partner.name}: ${created} місць.`);
-
-      if (window.opener && !window.opener.closed) {
-        try {
-          window.opener.location.reload();
-        } catch(e) {}
-      }
-
-    } catch(e) {
-      console.error("reserveSelectedForPartner exception:", e);
-      alert("Помилка закріплення місць за комісіонером.");
-    }
+  async function reserveSelectedForPartner(partner) {
+    await vaCashReserveSelected(partner);
   }
 
   reserveBtn.addEventListener("click", () => {
