@@ -484,6 +484,7 @@
   </div>
 
   <script src="../../shared/gateway-client.js"></script>
+<script src="../../shared/va-native-hold-v2-client.js"></script>
   <script src="../../shared/va-cro-tracker.js"></script>
 
   <script>
@@ -862,6 +863,10 @@ function readMarketingAttribution(){
         }
       }
 
+       if (!GATEWAY_MODE && !window.VANativeHoldV2?.getToken(seance)) {
+         showCheckoutError('Ваше бронювання не знайдено. Поверніться до схеми залу.');
+         return;
+       }
       const idempotencyKey = newIdempotencyKey();
 
       const payload = {
@@ -879,8 +884,9 @@ function readMarketingAttribution(){
         utm_source: marketingAttribution?.utm_source || null,
         utm_medium: marketingAttribution?.utm_medium || null,
         utm_campaign: marketingAttribution?.utm_campaign || null,
-        gateway
-      };
+         gateway,
+         native_hold_token: GATEWAY_MODE ? null : window.VANativeHoldV2.getToken(seance)
+       };
 
       try {
         const r = await fetch(LIQPAY_INIT_URL, {
@@ -922,6 +928,18 @@ function readMarketingAttribution(){
         // liqpay-init has accepted this exact idempotency key and is about
         // to hand the buyer to LiqPay. This is the last browser-side funnel step.
         croTrackPaymentStarted(idempotencyKey);
+        // This proof stays on the same browser origin; it is NEVER placed in
+        // the LiqPay result URL, logging, or the public Supabase table.
+        if (!GATEWAY_MODE) {
+          const paidOrderId=String(j.order_id||'').trim();
+          const nativeProof=window.VANativeHoldV2?.getToken(seance)||'';
+          if (!/^ORD-[A-Za-z0-9-]{12,100}$/.test(paidOrderId) ||
+              !/^[a-f0-9]{64}$/.test(nativeProof)) {
+            throw Error('Відсутній захищений ключ замовлення');
+          }
+          sessionStorage.setItem(`va:paid-order-proof:v1:${paidOrderId}`,nativeProof);
+          sessionStorage.setItem(`va:paid-order-seance:v1:${paidOrderId}`,seance);
+        }
         submitToLiqPay(j.data, j.signature);
 
       } catch (e) {
