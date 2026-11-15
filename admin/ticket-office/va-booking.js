@@ -4,6 +4,17 @@ window.VABooking = {
     bookings: []
   },
 
+  isAcademy() {
+    return typeof selectedSeanceRow === "function" &&
+      String(selectedSeanceRow()?.id || "") === String(this.state.seanceId) &&
+      selectedSeanceRow()?.venue_id === "academy";
+  },
+
+  openHall() {
+    if (!this.state.seanceId) return alert("Оберіть сеанс.");
+    window.open(`../hybrid/hall-cash.html?seance=${encodeURIComponent(this.state.seanceId)}`, "_blank");
+  },
+
   render({ targetId, seanceId, bookings = [] }) {
     const target = document.getElementById(targetId);
     if (!target) return;
@@ -100,6 +111,19 @@ window.VABooking = {
       </div>
     `;
 
+    if (this.isAcademy()) {
+      // Стару форму не підміняємо. Для нової броні відкриваємо існуючу схему.
+      const buttons = target.querySelector(".panel .buttons");
+      if (buttons) {
+        const open = document.createElement("button");
+        open.className = "btn green"; open.type = "button";
+        open.textContent = "🎭 Вибрати місця на схемі";
+        open.addEventListener("click", () => this.openHall());
+        buttons.prepend(open);
+      }
+      const note = target.querySelector(".panel .note");
+      if (note) note.textContent = "Бронювання здійснюється на схемі залу з підтвердженням сервера. Журнал зберігає всі поточні стани. КГ-7 / КГ-8 — у розділі Комісіонери.";
+    }
     this.fillReservedSeatsField();
     this.renderJournal(this.state.bookings);
 
@@ -240,10 +264,27 @@ window.VABooking = {
         >
           Обрати
         </button>
+        ${this.isAcademy() && String(b.channel || "") === "va_academy_office" && String(b.status || "") === "reserved" ? `
+          <button type="button" class="btn red" style="min-height:32px;padding:0 10px;margin-left:5px;" onclick="window.VABooking.cancelAcademyByIndex(${index})">Скасувати</button>
+        ` : ""}
       </td>
     </tr>
   `).join("");
 },
+
+  async cancelAcademyByIndex(index) {
+    if (!this.isAcademy()) return;
+    const b = (this.state.bookings || [])[Number(index)];
+    if (!b || b.status !== "reserved" || b.channel !== "va_academy_office") return;
+    if (!confirm(`Скасувати бронювання ${this.seatsFromBooking(b).join(", ")}?`)) return;
+    try {
+      if (!window.VAAdminOps?.rpc) throw Error("VA Admin Operations недоступний");
+      const result = await VAAdminOps.rpc("va_academy_office_cancel_v1", {p_booking_id:b.id});
+      if (!result || result.ok !== true) throw Error(result?.code || "Скасування не виконано");
+      alert("Бронювання скасовано сервером. Місця повернулися у продаж.");
+      if (typeof loadTurnover === "function") await loadTurnover(this.state.seanceId);
+    } catch(e) { alert("Скасування не виконано: " + (e.message || e)); }
+  },
 
 pickBookingByIndex(index) {
   const booking = (this.state.bookings || [])[Number(index)];
@@ -283,6 +324,7 @@ pickBookingByIndex(index) {
 },
   
   async save() {
+    if (this.isAcademy()) { alert("Зміна вже створеної броні без захищеної операції заборонена. Нову бронь створюйте кнопкою «Вибрати місця на схемі»."); return; }
     const seanceId = this.state.seanceId;
 
     if (!seanceId) {
@@ -400,6 +442,7 @@ pickBookingByIndex(index) {
   },
 
   async issue() {
+    if (this.isAcademy()) { alert("Видача КГ-7 та повернення КГ-8 для Академії здійснюються у відновленому розділі «Комісіонери / КГ-7 / КГ-8»."); return; }
     const seanceId = this.state.seanceId;
 
     if (!seanceId) {
