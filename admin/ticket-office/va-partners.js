@@ -8,6 +8,118 @@ window.VAPartners = {
     selected: new Set()
   },
 
+  // Лише адаптер викликів для існуючої форми. Жодних нових форм або таблиць.
+  isAcademy() {
+    return typeof selectedSeanceRow === "function" &&
+      String(selectedSeanceRow()?.id || "") === String(this.state.seanceId) &&
+      selectedSeanceRow()?.venue_id === "academy";
+  },
+
+  async academyRpc(name, params) {
+    if (!window.VAAdminOps?.rpc) throw new Error("VA Admin Operations недоступний");
+    const result = await VAAdminOps.rpc(name, params);
+    if (!result || result.ok !== true) throw new Error(result?.code || result?.error || "Сервер відхилив операцію");
+    return result;
+  },
+
+  academyDocumentRows(doc) {
+    return (Array.isArray(doc?.rows) ? doc.rows : []).map(x => ({
+      seat: String(x.seat || ""), price: Number(x.price || 0), amount: Number(x.price || 0),
+      organization: doc.organization || this.currentPartner()?.name || "",
+      contact_name: doc.contact_name || this.currentPartner()?.contact_name || "",
+      note: doc.doc_no || ""
+    }));
+  },
+
+  academySelectedBooking(statuses) {
+    const chosen = this.selectedItems().filter(x => statuses.includes(x.status));
+    if (!chosen.length) { alert("Виберіть місця потрібного статусу."); return null; }
+    const unique = [...new Set(chosen.map(x => String(x.booking_id || "")))];
+    if (unique.length !== 1) {
+      alert("Для одного документа оберіть місця одного закріплення. Різні броні оформлюються окремо.");
+      return null;
+    }
+    if (this.isAcademy() && String(chosen[0].booking?.channel || "") !== "va_academy_office") {
+      alert("Цей запис належить до старого обліку. Захищений КГ-7/КГ-8 не змінюватиме його без окремої перевіреної міграції.");
+      return null;
+    }
+    return { bookingId: unique[0], booking: chosen[0].booking, seats: chosen.map(x => x.seat) };
+  },
+
+  async academyIssueSelected() {
+    const selection = this.academySelectedBooking(["reserved"]);
+    if (!selection) return;
+    const all = this.seatsFromBooking(selection.booking);
+    if (selection.seats.length !== all.length || all.some(seat => !selection.seats.includes(seat))) {
+      alert("Для КГ-7 виберіть усі місця цього закріплення. Часткову видачу треба оформити окремою бронню.");
+      return;
+    }
+    if (!confirm(`Видати КГ-7 на ${all.length} місць комісіонеру ${this.currentPartner()?.name || ""}?`)) return;
+    let issued;
+    try {
+      issued = await this.academyRpc("va_academy_kg7_issue_v1", {
+        p_request_id: crypto.randomUUID(), p_booking_id: selection.bookingId
+      });
+    } catch(e) { console.error(e); alert("КГ-7 НЕ оформлено: " + (e.message || e)); return; }
+    // Після серверного успіху жодна помилка друку не означає помилку видачі.
+    try { await this.reload(); } catch(e) { console.warn("KG-7 reload failed",e); }
+    try {
+      const doc = await this.academyRpc("va_academy_kg_document_v1", {
+        p_booking_id: selection.bookingId, p_doc_type: "kg7", p_doc_id: null
+      });
+      this.openKG7PrintWindow({
+        docNo: issued.doc_no || doc.doc_no,
+        meta: { show: doc.show, date: doc.date, time: doc.time, id: doc.seance_id },
+        rows: this.academyDocumentRows(doc)
+      });
+    } catch(e) {
+      console.error(e);
+      alert(`КГ-7 №${issued.doc_no || "—"} ОФОРМЛЕНО на сервері. Не вдалося відкрити друк: ${e.message || e}. Для повтору друку використайте кнопку «Друк КГ-7».`);
+    }
+  },
+
+  async academyPrintKG7() {
+    const selection = this.academySelectedBooking(["issued_to_partner"]);
+    if (!selection) return;
+    try {
+      const doc = await this.academyRpc("va_academy_kg_document_v1", {
+        p_booking_id: selection.bookingId, p_doc_type: "kg7", p_doc_id: null
+      });
+      this.openKG7PrintWindow({
+        docNo: doc.doc_no,
+        meta: {show: doc.show, date: doc.date, time: doc.time, id: doc.seance_id},
+        rows: this.academyDocumentRows(doc)
+      });
+    } catch(e) { console.error(e); alert("Друк КГ-7: " + (e.message || e)); }
+  },
+
+  async academyReturnSelected() {
+    const selection = this.academySelectedBooking(["issued_to_partner"]);
+    if (!selection) return;
+    if (!confirm(`Оформити КГ-8: повернення ${selection.seats.length} місць?\n${selection.seats.join(", ")}`)) return;
+    let returned;
+    try {
+      returned = await this.academyRpc("va_academy_kg8_return_v1", {
+        p_request_id: crypto.randomUUID(), p_booking_id: selection.bookingId,
+        p_return_seats: selection.seats
+      });
+    } catch(e) { console.error(e); alert("КГ-8 НЕ оформлено: " + (e.message || e)); return; }
+    try { await this.reload(); } catch(e) { console.warn("KG-8 reload failed",e); }
+    try {
+      const doc = await this.academyRpc("va_academy_kg_document_v1", {
+        p_booking_id: selection.bookingId, p_doc_type: "kg8", p_doc_id: returned.return_id || null
+      });
+      this.openKG8PrintWindow({
+        docNo: returned.doc_no || doc.doc_no,
+        meta: {show: doc.show, title: doc.show, date: doc.date, time: doc.time, id: doc.seance_id},
+        partner: this.currentPartner(), rows: this.academyDocumentRows(doc)
+      });
+    } catch(e) {
+      console.error(e);
+      alert(`КГ-8 №${returned.doc_no || "—"} ОФОРМЛЕНО на сервері. Не вдалося відкрити друк: ${e.message || e}.`);
+    }
+  },
+
   render({ targetId, seanceId, bookings = [] }) {
     const target = document.getElementById(targetId);
     if (!target) return;
@@ -55,6 +167,17 @@ window.VAPartners = {
 
     const rows = await res.json();
     this.state.partners = Array.isArray(rows) ? rows : [];
+    if (this.isAcademy()) {
+      // Повертаємо в стару таблицю тільки дані служби, не публічні дані глядачів.
+      const office = await this.academyRpc("va_academy_office_list_v1", {p_seance_id:this.state.seanceId});
+      const secureRows = Array.isArray(office.rows) ? office.rows : [];
+      const byId = new Map(secureRows.map(b => [String(b.id), b]));
+      // Показуємо також історичні броні з поточного обороту, але не видаємо
+      // їх за новою КГ-7 без захищеного каналу va_academy_office.
+      const all = (this.state.bookings || []).map(b => ({...b,...(byId.get(String(b.id)) || {})}));
+      const seen = new Set(all.map(b => String(b.id)));
+      this.state.bookings = all.concat(secureRows.filter(b => !seen.has(String(b.id))));
+    }
 
     if (!this.state.partnerId || !this.state.partners.some(p => String(p.id) === String(this.state.partnerId))) {
       this.state.partnerId = this.state.partners[0]?.id || "";
@@ -485,6 +608,10 @@ renderPartnerCard() {
 },
   
   async addPartnerPrompt() {
+    if (this.isAcademy()) {
+      alert("Додавання до довідника комісіонерів потребує окремої захищеної адміністративної операції. Наявних комісіонерів можна вибирати та обслуговувати через КГ-7 / КГ-8.");
+      return;
+    }
     const name = prompt("Назва комісіонера / організації:", "");
     if (!name || !name.trim()) return;
 
@@ -593,6 +720,26 @@ renderPartnerCard() {
 
     const ok = confirm(`Закріпити за ${partner.name}: ${cleanSeats.length} місць?`);
     if (!ok) return;
+
+    if (this.isAcademy()) {
+      if (String(partner.phone || "").trim().length < 5) {
+        alert("У довіднику комісіонера відсутній контактний телефон (не менше 5 символів)."); return;
+      }
+      try {
+        const request = {
+          p_request_id: crypto.randomUUID(), p_seance_id: this.state.seanceId,
+          p_seats: cleanSeats, p_kind: "commissioner", p_organization: String(partner.name),
+          p_contact_name: String(partner.contact_name || partner.name),
+          p_phone: String(partner.phone), p_email: String(partner.email || "") || null,
+          p_agent: String(partner.name), p_expires_at: expiresAt,
+          p_note: note || "Закріплено у Квитковому відділі"
+        };
+        const r = await this.academyRpc("va_academy_office_reserve_v1", request);
+        alert(`Закріплено сервером: ${(r.seats || cleanSeats).length} місць. Блокування діє на всіх схемах.`);
+        await this.reload();
+      } catch (e) { console.error(e); alert("Бронь не створена: " + (e.message || e)); }
+      return;
+    }
 
     try {
       let created = 0;
@@ -815,6 +962,7 @@ async commitDocNo(docType, docNo) {
 },
   
   async issueSelected() {
+    if (this.isAcademy()) return this.academyIssueSelected();
     const items = this.selectedItems().filter(x => ["reserved", "hold"].includes(x.status));
 
     if (!items.length) {
@@ -896,6 +1044,7 @@ await this.commitDocNo("kg7", docNo);
   },
 
   async printKG7Selected() {
+    if (this.isAcademy()) return this.academyPrintKG7();
     const items = this.selectedItems().filter(x => x.status === "issued_to_partner");
 
     if (!items.length) {
@@ -943,6 +1092,7 @@ await this.commitDocNo("kg7", docNo);
   },
 
 async returnSelected() {
+    if (this.isAcademy()) return this.academyReturnSelected();
   const partner = this.currentPartner();
 
   if (!partner) {
@@ -1232,6 +1382,9 @@ async returnSelected() {
     const showTitle = meta?.show || meta?.id || this.state.seanceId || "—";
     const dateTime = [meta?.date, meta?.time].filter(Boolean).join(" ");
     const today = new Date().toLocaleDateString("uk-UA");
+    const issuerName = this.isAcademy()
+      ? "ВАШ АДМІН"
+      : "Дніпровський національний академічний український музично-драматичний театр ім. Т. Г. Шевченка";
 
     const linesHtml = grouped.map(g => `
       <tr>
@@ -1274,7 +1427,7 @@ async returnSelected() {
   <div class="sheet">
     <div class="top">
       <div class="small">
-        Дніпровський національний академічний український музично-драматичний театр ім. Т. Г. Шевченка<br>
+        ${this.escape(issuerName)}<br>
         Ідентифікаційний код за ЄДРПОУ: __________
       </div>
       <div class="form">Форма № КГ-7<br>Накладна на видачу квитків / абонементів</div>
