@@ -327,13 +327,15 @@
 <script src="./shared/va-toolbar.js"></script>
 
 <script src="./ticket-office/va-admin-ops-client.js"></script>
+<!-- Відновлені існуючі вересневі робочі модулі -->
+<script src="./ticket-office/va-sales-journal.js"></script>
+<script src="./ticket-office/va-booking.js"></script>
 <script src="./ticket-office/seance-operations.js"></script>
 <script src="./ticket-office/recovery-actions.js"></script>
   
 <!-- VAReturns відключено: КГ-8 ведеться через VAPartners / Комісіонери -->
 <!-- <script src="./ticket-office/va-returns.js"></script> -->
 <script src="./ticket-office/va-partners.js"></script>
-<script src="./ticket-office/va-academy-office.js"></script>
 <script src="./ticket-office/va-compensations.js"></script>
 
   
@@ -584,7 +586,7 @@
 
 <div class="buttons" style="margin:10px 0 12px;">
   <button class="btn ghost" onclick="setTurnoverJournal('sales')">Продажі</button>
-  <button class="btn ghost" onclick="setTurnoverJournal('booking')">Бронь / VA Академія</button>
+  <button class="btn ghost" onclick="setTurnoverJournal('booking')">Бронь</button>
   <button class="btn ghost" onclick="setTurnoverJournal('partners')">Комісіонери / КГ-7 / КГ-8</button>
   <button class="btn ghost" onclick="setTurnoverJournal('comp')">Компенсації</button>
   <button class="btn ghost" onclick="setTurnoverJournal('used')">Погашення</button>
@@ -1441,10 +1443,6 @@ function renderTurnoverWorkspace() {
 
 
         case "booking":
-            if (selectedSeanceRow()?.venue_id === "academy") {
-              VAAcademyOffice.render("turnoverWorkspace");
-              break;
-            }
             VABooking.render({
                 targetId: "turnoverWorkspace",
                 seanceId: selectedSeanceId(),
@@ -1454,10 +1452,6 @@ function renderTurnoverWorkspace() {
             break;
 
                 case "partners":
-            if (selectedSeanceRow()?.venue_id === "academy") {
-              VAAcademyOffice.render("turnoverWorkspace");
-              break;
-            }
             if (window.VAPartners) {
 
                 VAPartners.render({
