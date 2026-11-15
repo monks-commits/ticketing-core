@@ -530,91 +530,173 @@ async function resolveVenueIdFromOrder(orderRow) {
   return "";
 }
 
-async function loadPaidOrder() {
-  const orderIdFromQs = (qs.get("order_id") || "").trim();
-
-  if (!orderIdFromQs) {
-    orderEl.textContent = "—";
-    amountEl.textContent = "—";
-    debugEl.textContent = "order_id is missing from result URL";
-    msgEl.textContent =
-      "Не вдалося визначити конкретне замовлення. Дані інших або останніх оплат не завантажуються з міркувань безпеки.";
-    return;
-  }
-
-  const url =
-    `${SUPABASE_URL}/rest/v1/orders` +
-    `?select=*` +
-    `&order_id=eq.${encodeURIComponent(orderIdFromQs)}` +
-    `&status=eq.paid` +
-    `&limit=1`;
-
-  const orderRes = await fetchJson(url);
-
-  debugEl.textContent =
-    `GET ${url}\nstatus=${orderRes.status}\nresponse:\n${orderRes.text}`;
-
-  if (!orderRes.ok) {
-    msgEl.textContent =
-      "Оплату отримано, але дані цього замовлення не завантажились. Оновіть сторінку або зверніться до підтримки.";
-    return;
-  }
-
-  const rows = Array.isArray(orderRes.json) ? orderRes.json : [];
-
-  if (!rows.length) {
-    msgEl.textContent =
-      "Платіж ще обробляється. Оновіть сторінку через 10–20 секунд.";
-    return;
-  }
-
-  const o = rows[0];
-
-  orderEl.textContent = o.order_id || "—";
-  amountEl.textContent =
-    `${Number(o.amount || 0).toFixed(2)} ${o.currency || "UAH"}`;
-
-  const venueId = await resolveVenueIdFromOrder(o);
-  // Do not use an untrusted ?venue= URL flag to identify the paid order's venue.
-  // Prefer the authoritative paid order, or read its actual seance when needed.
-  let actualVenue = String(o.venue_id || "").trim();
-  if (!actualVenue && o.seance_id) {
-    try {
-      const check = await fetchJson(
-        `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(o.seance_id)}&select=venue_id&limit=1`
-      );
-      actualVenue = Array.isArray(check.json) ? String(check.json[0]?.venue_id || "").trim() : "";
-    } catch(e) { console.warn("Demo order venue check unavailable",e); }
-  }
-  VA_DEMO_I18N = actualVenue === "demo-fullcycle";
-  vaDemoApplyLabels();
-  const seanceId = String(o.seance_id || "").trim();
-
-  let returnHref = "";
-
-  // For Academy orders always return to the public VA storefront, even if
-  // sessionStorage still contains the former GitHub Pages / index-academy URL.
-  // Rely on the paid order's actual venue, never on an untrusted URL flag.
-  if (actualVenue === "academy" || actualVenue === "academy-ruhu") {
-    returnHref = getReturnHrefByVenue(actualVenue, seanceId);
-  } else if (seanceId) {
-    try {
-      returnHref =
-        sessionStorage.getItem(`va_return_url:${seanceId}`) || "";
-    } catch (e) {
-      console.warn("Cannot read saved return target", e);
+// VA_ACADEMY_SECURE_ORDER_STATUS_GATE_V3
+// Academy status is proven by a private, same-tab HOLD token; never read
+// Academy buyer records in the browser. Historical venues retain legacy route
+// until their own secure order-status endpoints are ready.
+function academyProofCandidates(orderId) {
+  const proofs = [];
+  const add = (token, seance) => {
+    const value = String(token || '').trim();
+    if (!/^[a-f0-9]{64}$/.test(value)) return;
+    if (!proofs.some(x => x.token === value)) {
+      proofs.push({token:value, seance:String(seance || '').trim()});
     }
+  };
+  let mappedSeance = '';
+  try {
+    mappedSeance = sessionStorage.getItem(`va:paid-order-seance:v1:${orderId}`) || '';
+    add(sessionStorage.getItem(`va:paid-order-proof:v1:${orderId}`), mappedSeance);
+    // HOLD V2 stores the proof by seance, not by order. LiqPay's return URL
+    // typically has only order_id, so discover matching same-tab proofs.
+    for (let i=0; i<sessionStorage.length && proofs.length<16; i++) {
+      const key = sessionStorage.key(i) || '';
+      const prefix='va:native-hold:v2:';
+      if (!key.startsWith(prefix)) continue;
+      add(sessionStorage.getItem(key), key.slice(prefix.length));
+    }
+  } catch (_) { /* storage can be unavailable on privacy-restricted tabs */ }
+  return {proofs, mappedSeance};
+}
+
+async function safeSeanceVenue(seanceId) {
+  if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,159}$/.test(String(seanceId || ''))) return '';
+  try {
+    const response = await fetchJson(
+      `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seanceId)}` +
+      '&select=venue_id&limit=1'
+    );
+    return response.ok && Array.isArray(response.json)
+      ? String(response.json[0]?.venue_id || '') : '';
+  } catch (_) { return ''; }
+}
+
+async function authenticatedAcademyOrder(orderId, proofs) {
+  const url = `${SUPABASE_URL}/functions/v1/va-academy-order-status-v1`;
+  let unavailable = false;
+  for (const {token} of proofs) {
+    try {
+      const r = await fetch(url, {
+        method:'POST',
+        headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY},
+        body:JSON.stringify({order_id:orderId,hold_token:token}),
+        cache:'no-store'
+      });
+      if (r.status===404) continue;  // Another seance's token: not authorized
+      const result = await r.json().catch(() => null);
+      if (r.ok && result?.ok &&
+          result.venue_id==='academy' && result.order_id===orderId) {
+        return {result,unavailable:false};
+      }
+      unavailable = true; // network/API error: do not silently call public orders
+    } catch (_) {unavailable = true;}
+  }
+  return {result:null,unavailable};
+}
+
+function showAcademyProcessing() {
+  // A return from LiqPay is NOT in itself proof of payment confirmation.
+  const successTitle = document.querySelector('.success-title');
+  const successText = document.querySelector('.success-text');
+  if (successTitle) successTitle.textContent='Платіж обробляється';
+  if (successText) successText.textContent='Статус оплати очікує підтвердження.';
+  const hero = document.querySelector('.hero-title');
+  if (hero) hero.textContent='Дякуємо за замовлення!';
+}
+
+async function loadPaidOrder() {
+  const orderIdFromQs = (qs.get('order_id') || '').trim();
+  if (!orderIdFromQs) {
+    orderEl.textContent='—'; amountEl.textContent='—';
+    debugEl.textContent='order_id is missing from result URL';
+    msgEl.textContent='Не вдалося визначити конкретне замовлення. Дані інших оплат не завантажуються.';
+    return;
   }
 
-  // Preserve the original fallback for every other venue / demo.
-  if (!returnHref) {
-    returnHref = getReturnHrefByVenue(venueId, seanceId);
+  const {proofs,mappedSeance} = academyProofCandidates(orderIdFromQs);
+  const mappedVenue = mappedSeance ? await safeSeanceVenue(mappedSeance) : '';
+  const academyByCheckout = mappedVenue==='academy' || mappedVenue==='academy-ruhu';
+  const claim = proofs.length ? await authenticatedAcademyOrder(orderIdFromQs,proofs)
+                             : {result:null,unavailable:false};
+  const protectedOrder = claim.result;
+
+  if (protectedOrder || academyByCheckout) {
+    const seanceId = String(protectedOrder?.seance_id || mappedSeance || '').trim();
+    returnLinkEl.href = getReturnHrefByVenue('academy',seanceId);
+    VA_DEMO_I18N = false;
+    debugEl.textContent = protectedOrder
+      ? 'Protected Academy order summary; personal data not requested'
+      : 'Protected Academy order verification unavailable';
+    if (!protectedOrder) {
+      showAcademyProcessing();
+      msgEl.textContent='Перевірка замовлення в цій вкладці недоступна. Квитки надсилаються на email після підтвердження оплати.';
+      return;
+    }
+    orderEl.textContent=String(protectedOrder.order_id);
+    amountEl.textContent=`${Number(protectedOrder.amount || 0).toFixed(2)} ${String(protectedOrder.currency || 'UAH')}`;
+    if (String(protectedOrder.status || '') !== 'paid') {
+      showAcademyProcessing();
+      msgEl.textContent='Платіж ще обробляється. Оновіть сторінку через 10–20 секунд.';
+    }
+    return;
   }
 
-  returnLinkEl.href = returnHref;
+  // A ?venue=academy hint is untrusted, but it is sufficient to FAIL CLOSED:
+  // never use public orders as a fallback when the buyer declares Academy.
+  const claimedVenue = String(qs.get('venue') || '').trim();
+  const claimedSeance = String(qs.get('seance') || qs.get('seance_id') || '').trim();
+  const hintVenue = claimedSeance ? await safeSeanceVenue(claimedSeance) : '';
+  if (claimedVenue==='academy' || claimedVenue==='academy-ruhu' ||
+      hintVenue==='academy' || hintVenue==='academy-ruhu') {
+    returnLinkEl.href=getReturnHrefByVenue('academy',claimedSeance || mappedSeance);
+    showAcademyProcessing();
+    debugEl.textContent='Academy proof not present in this browser session';
+    msgEl.textContent='Підтвердити оплату в цій вкладці не вдалося. Квитки надсилаються на email після підтвердження платежу.';
+    return;
+  }
 
-  debugEl.textContent += `\n\nresolved venue_id: ${venueId || "(empty)"}`;
-  debugEl.textContent += `\nresolved seance_id: ${seanceId || "(empty)"}`;
+  // Existing non-Academy/Gateway workflow. The direct read is temporary;
+  // DO NOT close global orders SELECT until these venues are migrated too.
+  const url = `${SUPABASE_URL}/rest/v1/orders` +
+    `?select=*` + `&order_id=eq.${encodeURIComponent(orderIdFromQs)}` +
+    `&status=eq.paid` + `&limit=1`;
+  const orderRes = await fetchJson(url);
+  debugEl.textContent = `GET orders\nstatus=${orderRes.status}`;
+  if (!orderRes.ok) {
+    msgEl.textContent='Оплату отримано, але дані замовлення не завантажились. Оновіть сторінку або зверніться до підтримки.';
+    return;
+  }
+  const rows = Array.isArray(orderRes.json) ? orderRes.json : [];
+  if (!rows.length) {
+    msgEl.textContent='Платіж ще обробляється. Оновіть сторінку через 10–20 секунд.';
+    return;
+  }
+  const o=rows[0];
+  // Do not trust URL flags over order/seance data.
+  const venueId = await resolveVenueIdFromOrder(o);
+  let actualVenue = String(o.venue_id || '').trim();
+  if (!actualVenue && o.seance_id) actualVenue = await safeSeanceVenue(o.seance_id);
+  // Never display Academy order metadata from the legacy public endpoint.
+  if (actualVenue==='academy' || actualVenue==='academy-ruhu') {
+    returnLinkEl.href=getReturnHrefByVenue('academy',o.seance_id);
+    showAcademyProcessing();
+    msgEl.textContent='Для підтвердження замовлення потрібна початкова вкладка оплати. Квитки надсилаються на email.';
+    debugEl.textContent='Academy legacy order display blocked';
+    return;
+  }
+  orderEl.textContent=o.order_id || '—';
+  amountEl.textContent=`${Number(o.amount || 0).toFixed(2)} ${o.currency || 'UAH'}`;
+  VA_DEMO_I18N = actualVenue==='demo-fullcycle';
+  vaDemoApplyLabels();
+  const seanceId=String(o.seance_id || '').trim();
+  let returnHref='';
+  if (seanceId) {
+    try {returnHref=sessionStorage.getItem(`va_return_url:${seanceId}`) || '';} catch (_) {}
+  }
+  if (!returnHref) returnHref=getReturnHrefByVenue(venueId,seanceId);
+  returnLinkEl.href=returnHref;
+  debugEl.textContent += `\nresolved venue_id: ${actualVenue || venueId || '(empty)'}`;
+  debugEl.textContent += `\nresolved seance_id: ${seanceId || '(empty)'}`;
   debugEl.textContent += `\nreturn href: ${returnHref}`;
 }
 
