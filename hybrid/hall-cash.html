@@ -1261,12 +1261,12 @@ body{
       </div>
 
       <div class="formRow">
-        <label for="inpSecret">CASHIER_SYNC_SECRET (якщо використовується)</label>
-        <input id="inpSecret" placeholder="(можна лишити пустим)" />
+        <label for="inpSecret">CASHIER_SYNC_SECRET (обов’язковий для SYNC)</label>
+        <input id="inpSecret" placeholder="Введіть секрет для серверної синхронізації" />
       </div>
 
       <div class="k-mini">
-        Якщо секрет пустий — запит піде без заголовка <code>x-cashier-secret</code>.
+        Без секрету сервер відхилить синхронізацію. Вводьте його лише в налаштуваннях цього ПК.
       </div>
 
       <div class="modalActions">
@@ -1284,11 +1284,65 @@ body{
 
 let takenSeatsOnline = new Set();
 
+// VA SECURITY GATE / ACADEMY: one sanitized seat-state request per refresh.
+// No personal booking, ticket, or order records are requested for Academy seats.
+let vaAcademySeatSnapshot = null;
+let vaAcademySeatSnapshotAt = 0;
+let vaAcademySeatInFlight = null;
+let vaAcademySeatHealthy = false;
+async function vaAcademyReadSeatState(force = false) {
+  if (!SEANCE_ID) throw new Error('academy_seance_required');
+  if (vaAcademySeatInFlight) return vaAcademySeatInFlight;
+  if (!force && vaAcademySeatSnapshot && Date.now() - vaAcademySeatSnapshotAt < 1500) {
+    return vaAcademySeatSnapshot;
+  }
+  vaAcademySeatInFlight = (async () => {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/va-public-seat-state-v1?seance_id=${encodeURIComponent(SEANCE_ID)}`,
+      { headers: { apikey: SUPABASE_ANON_KEY, Accept: 'application/json' }, cache: 'no-store' }
+    );
+    if (!response.ok) throw new Error(`academy_seat_state_http_${response.status}`);
+    const data = await response.json();
+    if (!data?.ok || data.seance_id !== SEANCE_ID ||
+        !Array.isArray(data.taken) || !Array.isArray(data.hold) ||
+        !Array.isArray(data.reserved)) throw new Error('academy_seat_state_invalid');
+    return data;
+  })();
+  try {
+    const result = await vaAcademySeatInFlight;
+    vaAcademySeatSnapshot = result;
+    vaAcademySeatSnapshotAt = Date.now();
+    vaAcademySeatHealthy = true;
+    return result;
+  } catch (error) {
+    vaAcademySeatHealthy = false;
+    vaAcademySeatSnapshot = null;
+    vaAcademySeatSnapshotAt = 0;
+    // Fail closed: never present apparently free seats after a server error.
+    console.warn('Academy seat-state unavailable. Cash sales/booking blocked.', error);
+    throw error;
+  } finally {
+    vaAcademySeatInFlight = null;
+  }
+}
+
+
 async function loadTakenSeatsOnline(){
 
-  takenSeatsOnline.clear();
-
   if (!SEANCE_ID) return;
+
+  // Academy reads ONLY seat keys / statuses. Legacy venues remain unchanged.
+  if (vaCashIsAcademy()) {
+    try {
+      const data = await vaAcademyReadSeatState(true);
+      takenSeatsOnline = new Set(data.taken.map(String));
+    } catch (error) {
+      // Status renderer blocks every Academy seat while the API is unavailable.
+      console.warn('Academy sold-seat refresh failed', error);
+    }
+    return;
+  }
+  takenSeatsOnline.clear();
 
   try {
 
@@ -1354,10 +1408,21 @@ let reservedSeatsOnline = new Set();
 
 async function loadBookingSeatsOnline(){
 
+  if (!SEANCE_ID) return;
+
+  // Same snapshot as loadTakenSeatsOnline(): no direct SELECT on bookings.
+  if (vaCashIsAcademy()) {
+    try {
+      const data = await vaAcademyReadSeatState(false);
+      takenSeatsBooking = new Set(data.hold.map(String));
+      reservedSeatsOnline = new Set(data.reserved.map(String));
+    } catch (error) {
+      console.warn('Academy booking-state refresh failed', error);
+    }
+    return;
+  }
   takenSeatsBooking.clear();
   reservedSeatsOnline.clear();
-
-  if (!SEANCE_ID) return;
 
   const nowIso = new Date().toISOString();
 
@@ -1984,6 +2049,8 @@ async function loadShowMeta(){
 
     function getEffectiveStatus(key){
 
+  // Fail closed on an unreadable Academy seat-state: no unverified seat sale.
+  if (vaCashIsAcademy() && !vaAcademySeatHealthy) return "hold";
   if (takenSeatsOnline.has(key)) return "sold";
 
   // 🟠 общий reserve из bookings
@@ -2324,6 +2391,10 @@ function vaCashOffice() {
 function vaCashInput(id) { return document.getElementById(id); }
 async function vaCashReserveSelected(partner = null, explicitSeats = null) {
   if (vaCashReserveBusy) return;
+  if (vaCashIsAcademy() && !vaAcademySeatHealthy) {
+    alert('Стан місць Академії недоступний. Бронювання заборонено до відновлення зв’язку.');
+    return;
+  }
   const sourceSeats = explicitSeats || Array.from(selected.entries())
     .filter(([, v]) => v?.reservedRemove !== true).map(([key]) => key);
   const seats = sourceSeats.map(v => String(v || '').trim()).filter(Boolean);
@@ -3036,6 +3107,10 @@ function calcFinalPrice(basePrice) {
     // ---- ПРОДАЖА (офлайн) ----
 
 async function sellAndPrintOffline(){
+  if (vaCashIsAcademy() && !vaAcademySeatHealthy) {
+    alert('Стан місць Академії недоступний. Новий продаж заборонено до відновлення зв’язку.');
+    return;
+  }
 
   const entries = Array.from(selected.entries());
   const keys = entries.map(([k]) => k);
