@@ -703,7 +703,19 @@ if (refCode) {
         else await window.VA_GATEWAY.releaseHold(seance,GATEWAY_HOLD_REF);
         return;
       }
-      await window.VANativeHoldV2.release({seance_id:seance,seat:seatKey});
+      try {
+        await window.VANativeHoldV2.release({seance_id:seance,seat:seatKey});
+      } catch (e) {
+        // HOLD is no longer active or does not belong to this browser session.
+        // There is nothing this browser may release on the server. It is safe
+        // to remove only the obsolete seat selection from its own local cart.
+        // Keep other errors visible: do not claim an actual release on 5xx.
+        if (e?.code === "hold_not_owned_or_expired") {
+          console.info("VA: no active owned HOLD; clearing local cart selection", seatKey);
+          return;
+        }
+        throw e;
+      }
     }
 
     async function loadSeanceMeta(){
