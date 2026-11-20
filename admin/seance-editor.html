@@ -500,6 +500,7 @@ Seance ID — технічний ключ.
         <div class="actions">
           <button class="btn btn-neutral" onclick="loadSeance()">Завантажити</button>
           <button class="btn btn-success" onclick="createNewSeance()">➕ Новий сеанс</button>
+          <button class="btn btn-neutral" type="button" onclick="duplicateSeance()" title="Новий сеанс з цінами, кольорами та обмеженнями місць вихідного сеансу">🗂️ Дублювати сеанс</button>
       
         </div>
       </section>
@@ -969,6 +970,10 @@ let currentActive = false;
 let CURRENT_PREVIEW_HALL = null;
 let CURRENT_VA_CAPACITY = 0;
 let CURRENT_VA_PRICE_SEGMENTS = {};
+// Track a real loaded source and a pending unsaved copy.  A duplicate is never
+// persisted until the user explicitly chooses Save; it cannot be published first.
+let vaLoadedSeanceSource = null;
+let vaPendingDuplicate = null;
   
   
 const VENUE_ID_ALIASES = {
@@ -2620,6 +2625,165 @@ function applyUrlParams(){
   }
 }
   
+// Duplicating differs from “Скопіювати”: it keeps only seat configuration and
+// event type, and intentionally starts a NEW, unpublished seance.  No transactional
+// tables (orders, tickets, bookings, holds, payments) are read or copied.
+function vaDuplicateSlug(title){
+  const map = {
+    "а":"a","б":"b","в":"v","г":"h","ґ":"g","д":"d","е":"e","є":"ye",
+    "ж":"zh","з":"z","и":"y","і":"i","ї":"yi","й":"y","к":"k",
+    "л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s",
+    "т":"t","у":"u","ф":"f","х":"kh","ц":"ts","ч":"ch","ш":"sh",
+    "щ":"shch","ь":"","ю":"yu","я":"ya","ы":"y","э":"e",
+    "ё":"yo","ъ":"","ə":"a"
+  };
+  return String(title || "").toLowerCase().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .split("").map(ch => map[ch] ?? ch).join("")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+    .slice(0, 75) || "seance";
+}
+
+function vaAskDuplicateDetails(sourceId){
+  return new Promise(resolve => {
+    const dialog = document.createElement("dialog");
+    dialog.style.cssText = "background:#13233b;color:#fff;border:1px solid #426080;border-radius:16px;padding:23px;max-width:min(520px,94vw);width:100%;box-shadow:0 16px 60px #0008";
+    dialog.innerHTML = `
+      <form method="dialog" autocomplete="off">
+        <h3 style="margin:0 0 10px">🗂️ Дублювати сеанс</h3>
+        <p style="color:#c7d3e7;line-height:1.5;font-size:14px">Копіюємо лише розцінку, кольори та доступність місць. Замовлення, квитки й HOLD не переносимо. Новий сеанс створюється як чернетка.</p>
+        <p style="font-size:13px">Джерело: <b id="vaDuplicateSource"></b></p>
+        <label style="display:block;margin:10px 0">Нова назва вистави
+          <input id="vaDuplicateTitle" required maxlength="200" style="display:block;width:100%;padding:10px;margin-top:4px;box-sizing:border-box">
+        </label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <label style="flex:1;min-width:140px">Нова дата
+            <input id="vaDuplicateDate" type="date" required style="display:block;width:100%;padding:10px;margin-top:4px;box-sizing:border-box">
+          </label>
+          <label style="flex:1;min-width:120px">Новий час
+            <input id="vaDuplicateTime" type="time" required style="display:block;width:100%;padding:10px;margin-top:4px;box-sizing:border-box">
+          </label>
+        </div>
+        <label style="display:block;margin:10px 0">Новий Seance ID (латиниця, можна виправити)
+          <input id="vaDuplicateId" required pattern="[A-Za-z0-9][A-Za-z0-9._-]{3,159}" maxlength="160" style="display:block;width:100%;padding:10px;margin-top:4px;box-sizing:border-box">
+        </label>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+          <button type="submit" value="cancel" formnovalidate style="padding:10px 16px">Скасувати</button>
+          <button type="submit" value="confirm" style="background:#2ecc71;color:#102016;border:0;border-radius:8px;padding:10px 16px;font-weight:bold">Створити чернетку</button>
+        </div>
+      </form>`;
+    const sourceLabel = dialog.querySelector("#vaDuplicateSource");
+    sourceLabel.textContent = sourceId;
+    const titleField = dialog.querySelector("#vaDuplicateTitle");
+    const dateField = dialog.querySelector("#vaDuplicateDate");
+    const timeField = dialog.querySelector("#vaDuplicateTime");
+    const idField = dialog.querySelector("#vaDuplicateId");
+    let editedId = false;
+    idField.addEventListener("input", () => { editedId = true; });
+    const suggestId = () => {
+      if (editedId) return;
+      const day = dateField.value;
+      const time = timeField.value;
+      idField.value = (day && time && titleField.value.trim())
+        ? `${vaDuplicateSlug(titleField.value)}-${day}-${time.replace(":", "-")}`
+        : "";
+    };
+    [titleField, dateField, timeField].forEach(el => el.addEventListener("input", suggestId));
+    dialog.addEventListener("close", () => {
+      const result = dialog.returnValue === "confirm" ? {
+        id: idField.value.trim(),
+        title: titleField.value.trim(),
+        date: dateField.value,
+        time: timeField.value
+      } : null;
+      dialog.remove();
+      resolve(result);
+    }, { once:true });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    titleField.focus();
+  });
+}
+
+async function vaEnsureNewSeanceId(id){
+  const headers = {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+  };
+  for (const [table, col] of [["seances", "id"], ["seances_pricing", "seance_id"]]) {
+    const url = `${SUPABASE_URL}/rest/v1/${table}?${col}=eq.${encodeURIComponent(id)}&select=${col}&limit=1`;
+    const res = await fetch(url, { headers, cache:"no-store" });
+    if (!res.ok) throw new Error(`Не вдалося перевірити новий ID (${table}): HTTP ${res.status}`);
+    const rows = await res.json();
+    if (!Array.isArray(rows)) throw new Error(`Некоректна відповідь перевірки ID (${table})`);
+    if (rows.length) throw new Error(`Seance ID «${id}» вже існує. Оберіть інший ID, щоб не перезаписати сеанс.`);
+  }
+}
+
+async function duplicateSeance(){
+  const sourceId = seanceId.value.trim();
+  const venueId = venueToDbVenueId(venueSelect.value);
+  if (!vaLoadedSeanceSource || vaLoadedSeanceSource.id !== sourceId ||
+      vaLoadedSeanceSource.venueId !== venueId) {
+    alert("Спочатку оберіть вихідний сеанс і натисніть «Завантажити». Не змінюйте його Seance ID вручну.");
+    return;
+  }
+  if (!Object.keys(data.pricing || {}).length &&
+      !Object.keys(data.seat_overrides || {}).length) {
+    alert("У вихідному сеансі немає розцінки або налаштувань місць. Дублювання зупинено.");
+    return;
+  }
+  // Keep immutable copies before any asynchronous operation.
+  const pricingCopy = clonePlainObject(data.pricing);
+  const overrideCopy = clonePlainObject(data.seat_overrides);
+  const typeCopy = eventType?.value || "";
+  const genreCopy = genre?.value || "";
+  const details = await vaAskDuplicateDetails(sourceId);
+  if (!details) return;
+  if (!details.title || !/^\d{4}-\d{2}-\d{2}$/.test(details.date) ||
+      !/^\d{2}:\d{2}$/.test(details.time) ||
+      !/^[A-Za-z0-9][A-Za-z0-9._-]{3,159}$/.test(details.id)) {
+    alert("Вкажіть коректні назву, дату, час і новий Seance ID латиницею.");
+    return;
+  }
+  if (details.id === sourceId) {
+    alert("Новий Seance ID має відрізнятися від вихідного!");
+    return;
+  }
+  try {
+    await vaEnsureNewSeanceId(details.id);
+  } catch(e) {
+    alert("Дублювання скасовано: " + e.message);
+    return;
+  }
+  if (sourceId !== seanceId.value.trim() || venueId !== venueToDbVenueId(venueSelect.value)) {
+    alert("Вихідний сеанс змінився під час операції. Завантажте його повторно.");
+    return;
+  }
+  data.pricing = pricingCopy;
+  data.seat_overrides = overrideCopy;
+  seanceId.value = details.id;
+  showName.value = details.title;
+  showDate.value = details.date;
+  showTime.value = details.time;
+  if (eventType) eventType.value = typeCopy;
+  updateGenreSelect(genreCopy);
+  if (showStatus) showStatus.value = "draft";
+  if (showActive) showActive.value = "false";
+  currentActive = false;
+  vaPendingDuplicate = { targetId: details.id, sourceId, venueId };
+  vaLoadedSeanceSource = null;
+  if (venueSeanceSelect) venueSeanceSelect.value = "";
+  render();
+  await renderPreview();
+  const stats = updateVACapacityCounter();
+  alert("✅ Підготовлено НОВУ чернетку «" + details.title + "».\n" +
+        "Джерело: " + sourceId + "\n" +
+        "Новий ID: " + details.id + "\n" +
+        "Місць у випуску VA: " + stats.released + "\n\n" +
+        "Перевірте схему й натисніть «💾 Зберегти». Вихідний сеанс не змінено.");
+}
+
 function createNewSeance(){
   const venue = venueSelect.value;
 
@@ -2638,6 +2802,8 @@ function createNewSeance(){
   if(!time) return;
 
   const id = `${showSlug}-${date}-${time}`;
+  vaLoadedSeanceSource = null;
+  vaPendingDuplicate = null;
   seanceId.value = id;
 
   if (!showName.value.trim()) showName.value = showSlug;
@@ -3058,6 +3224,27 @@ async function saveSeanceToServer({ publishNow = false } = {}) {
   const venueId = venueToDbVenueId(venueSelect.value);
   const hall = getHallNameByVenue(venueId);
 
+  if (vaPendingDuplicate) {
+    if (publishNow) {
+      alert("Спочатку збережіть нову чернетку. Опублікувати її можна після окремої перевірки.");
+      return;
+    }
+    if (seance !== vaPendingDuplicate.targetId || venueId !== vaPendingDuplicate.venueId) {
+      alert("Для дубліката змінено Seance ID або майданчик. Поверніть значення з вікна дублювання або повторіть операцію.");
+      return;
+    }
+    if (showStatus?.value !== "draft" || showActive?.value !== "false") {
+      alert("Спочатку збережіть дублікат як чернетку без публікації на сайті.");
+      return;
+    }
+    try {
+      await vaEnsureNewSeanceId(seance);
+    } catch (e) {
+      alert("Збереження дубліката зупинено: " + e.message);
+      return;
+    }
+  }
+
   let status = showStatus?.value || "draft";
   let active = showActive
     ? showActive.value === "true"
@@ -3151,6 +3338,9 @@ async function saveSeanceToServer({ publishNow = false } = {}) {
     }
 
     currentActive = active;
+    // A successfully saved duplicate becomes an ordinary loaded seance.
+    vaPendingDuplicate = null;
+    vaLoadedSeanceSource = { id: seance, venueId };
     render();
     await loadVenueSeances();
 
@@ -3192,6 +3382,9 @@ publish?.addEventListener("click", () => {
 async function loadSeance(){
   const seance = seanceId.value.trim();
   if(!seance) return;
+  // Only a full successful load authorizes duplication; never reuse stale data.
+  vaLoadedSeanceSource = null;
+  vaPendingDuplicate = null;
 
   const seanceRes = await fetch(
     `${SUPABASE_URL}/rest/v1/seances?id=eq.${encodeURIComponent(seance)}&select=show,date,time,poster_url,venue_id,status,event_type,active`,
@@ -3203,13 +3396,20 @@ async function loadSeance(){
     }
   );
 
+  if (!seanceRes.ok) throw new Error("Не вдалося завантажити сеанс: HTTP " + seanceRes.status);
   const seanceRows = await seanceRes.json();
   const seanceRow = Array.isArray(seanceRows) && seanceRows.length ? seanceRows[0] : null;
+  if (!seanceRow) {
+    alert("Сеанс не знайдено. Дублювання недоступне.");
+    return;
+  }
 
   if (seanceRow) {
     showName.value = seanceRow.show || "";
     showDate.value = seanceRow.date || "";
     showTime.value = seanceRow.time || "";
+    if (eventType) eventType.value = seanceRow.event_type || "";
+    updateGenreSelect();
    
 showStatus.value = seanceRow.status || "draft";
  currentActive = seanceRow.active !== false;
@@ -3231,12 +3431,14 @@ showStatus.value = seanceRow.status || "draft";
     }
   );
 
+  if (!res.ok) throw new Error("Не вдалося завантажити розцінку: HTTP " + res.status);
   const rows = await res.json();
   if(!rows.length){
     data.pricing = {};
     data.seat_overrides = {};
     render();
     renderPreview();
+    // No price settings means this is not a safe seat template.
     return;
   }
 
@@ -3250,6 +3452,10 @@ showStatus.value = seanceRow.status || "draft";
   // Repair legacy Opera rules such as A14-16 -> P14-16 in editor memory.
   // The corrected canonical key is persisted on the next explicit Save/Publish.
   data.pricing = normalizeLoadedPricingForCurrentHall(data.pricing);
+  vaLoadedSeanceSource = {
+    id: seance,
+    venueId: venueToDbVenueId(venueSelect.value)
+  };
 
   render();
   renderPreview();
