@@ -60,7 +60,7 @@ main{max-width:1520px;margin:auto;padding:22px}.top{display:flex;align-items:fle
   <div class="field"><label>Результат</label><select id="filterResult"><option value="">Усі результати</option><option value="not_sent">Ще не відправлено</option><option value="pending">Модерація</option><option value="published">Опубліковано</option><option value="rejected">Відхилено</option><option value="skipped">Пропущено</option></select></div>
  </div>
  <div class="routebar">
-  <div class="flex"><b>🎯 Вибір груп для поточного матеріалу</b><span id="selectedCount" class="counter">Не обрано</span></div>
+  <div class="flex"><b>🎯 Вибір груп (можна до створення матеріалу)</b><span id="selectedCount" class="counter">Не обрано</span></div>
   <div class="flex" style="margin-top:9px"><button class="btn primary" id="selectVisibleBtn">✓ Обрати видимі</button><button class="btn" id="unselectVisibleBtn">− Зняти з видимих</button><button class="btn" id="clearTargetsBtn">Очистити вибір</button><button class="btn green" id="nextTargetBtn">→ Наступна обрана група</button></div>
   <div id="routeInfo" class="hint">Спочатку збережіть матеріал. Ці кнопки ніде нічого не публікують.</div>
  </div>
@@ -72,6 +72,9 @@ main{max-width:1520px;margin:auto;padding:22px}.top{display:flex;align-items:fle
 <script>
 'use strict';
 const KEY='va_fb_groups_desk_v1', BRIDGE_KEY='va_fb_groups_handoff_v1';
+// Allow recipient selection before creating a campaign; no publishing happens.
+const DRAFT_TARGET_KEY='__draft__';
+function activeTargetKey(){return selectedCampaign||DRAFT_TARGET_KEY}
 const POLICY={unknown:'Не перевірено',open:'Без модерації',moderated:'Модерація',agreement:'За домовленістю',paid:'Платно',banned:'Реклама заборонена'};
 const RESULT={not_sent:'Не відправлено',pending:'На модерації',published:'Опубліковано',rejected:'Відхилено',skipped:'Пропущено'};
 const PRIORITY={high:'1 · Культура / події',medium:'2 · Місто / райони',low:'3 · Оголошення',skip:'4 · Непрофільні'};
@@ -93,18 +96,17 @@ function normalizeTargets(){
  if(!db.targets||typeof db.targets!=='object'||Array.isArray(db.targets))db.targets={};
  const ids=new Set(db.groups.map(g=>g.id));
  Object.keys(db.targets).forEach(cid=>{
-  if(!db.campaigns.some(c=>c.id===cid)){delete db.targets[cid];return}
+  if(cid!==DRAFT_TARGET_KEY&&!db.campaigns.some(c=>c.id===cid)){delete db.targets[cid];return}
   const a=Array.isArray(db.targets[cid])?db.targets[cid]:[];
   db.targets[cid]=[...new Set(a.map(String).filter(gid=>ids.has(gid)))];
  });
 }
-function chosenIds(){return new Set(selectedCampaign?(db.targets?.[selectedCampaign]||[]):[])}
+function chosenIds(){return new Set(db.targets?.[activeTargetKey()]||[])}
 function isBlocked(g){return !!g.excluded||['banned','paid'].includes(g.policy)}
 function mayChoose(g){const st=record(g.id,selectedCampaign)?.status||'not_sent';return !isBlocked(g)&&st!=='published'&&st!=='pending'}
 function chosenGroups(){const ids=chosenIds();return db.groups.filter(g=>ids.has(g.id)&&mayChoose(g)).sort((a,b)=>(PRIORITY_ORDER[a.priority]??9)-(PRIORITY_ORDER[b.priority]??9)||a.name.localeCompare(b.name,'uk'))}
 function setTargets(ids){
- if(!selectedCampaign){msg('Спочатку збережіть або виберіть матеріал.','bad');return}
- db.targets[selectedCampaign]=[...new Set(ids)];
+ db.targets[activeTargetKey()]=[...new Set(ids)];
  if(save())render();
 }
 function pruneGroupFromTargets(gid){for(const cid of Object.keys(db.targets||{}))db.targets[cid]=(db.targets[cid]||[]).filter(x=>x!==gid)}
@@ -121,7 +123,7 @@ function msg(s,type='good'){const e=$('statusMessage');e.innerHTML=s?`<div class
 function currentCampaign(){return db.campaigns.find(x=>x.id===selectedCampaign)||null}
 function record(gid,cid){return db.journal.filter(x=>x.groupId===gid&&x.campaignId===cid).slice(-1)[0]||null}
 function validateCampaign(){let title=$('campaignTitle').value.trim(),text=$('campaignText').value.trim(),target=$('campaignUrl').value.trim(),media=$('campaignMedia').value.trim();if(!title)throw Error('Вкажіть назву події.');if(!text)throw Error('Додайте текст публікації.');if(target&&!safeUrl(target))throw Error('Перевірте посилання (https://...) або залиште його порожнім для прогріву.');if(media&&!safeUrl(media))throw Error('Некоректне посилання на афішу.');return {title,text,targetUrl:safeUrl(target),mediaUrl:safeUrl(media),updatedAt:new Date().toISOString()}}
-function upsertCampaign(){const fields=validateCampaign();let existing=currentCampaign();if(existing)Object.assign(existing,fields);else{existing={id:id(),...fields};db.campaigns.unshift(existing);selectedCampaign=existing.id}if(save()){renderCampaigns();render();msg('Матеріал збережено.')}return existing}
+function upsertCampaign(){const fields=validateCampaign();let existing=currentCampaign();if(existing)Object.assign(existing,fields);else{existing={id:id(),...fields};db.campaigns.unshift(existing);db.targets[existing.id]=[...(db.targets[DRAFT_TARGET_KEY]||[])];selectedCampaign=existing.id}if(save()){renderCampaigns();render();msg('Матеріал збережено.')}return existing}
 function payload(){const c=currentCampaign();if(!c)throw Error('Збережіть матеріал для публікації.');return c.targetUrl&&c.text.includes(c.targetUrl)?c.text:[c.text,c.targetUrl].filter(Boolean).join('\n\n')}
 async function copy(s){if(!s)throw Error('Немає тексту для копіювання.');try{await navigator.clipboard.writeText(s)}catch{const e=document.createElement('textarea');e.value=s;document.body.appendChild(e);e.select();if(!document.execCommand('copy'))throw Error('Копіювання не підтримується.');e.remove()}}
 function renderCampaigns(){const s=$('campaignSelect');s.innerHTML='<option value="">Оберіть матеріал…</option>'+db.campaigns.map(x=>`<option value="${safe(x.id)}">${safe(x.title)}</option>`).join('');if(selectedCampaign&&db.campaigns.some(x=>x.id===selectedCampaign))s.value=selectedCampaign;else{s.value='';selectedCampaign=null}const c=currentCampaign();$('campaignTitle').value=c?.title||'';$('campaignText').value=c?.text||'';$('campaignUrl').value=c?.targetUrl||'';$('campaignMedia').value=c?.mediaUrl||''}
@@ -149,18 +151,18 @@ function render(){
  $('kPublished').textContent=c?db.groups.filter(g=>record(g.id,c.id)?.status==='published').length:0;
  $('kPending').textContent=c?db.groups.filter(g=>record(g.id,c.id)?.status==='pending').length:0;
  $('shownCount').textContent=`Показано ${visible.length} із ${db.groups.length}`;
- $('selectedCount').textContent=c?`Обрано ${chosen.length} груп`:'Матеріал не обраний';
- $('routeInfo').textContent=!c?'Збережіть матеріал, щоб вибрати адресатів. Нічого не надсилається автоматично.':chosen.length?`Підготовлено ${chosen.length} груп. Відкривати та публікувати потрібно вручну по одній. Неперевірені групи спочатку відкрийте та перегляньте їхні правила.`:'Виберіть вручну потрібні групи або відфільтруйте та натисніть «Обрати видимі». Нічого не публікується автоматично.';
- $('nextTargetBtn').disabled=!c||chosen.length===0;
- $('selectVisibleBtn').disabled=!c;
- $('unselectVisibleBtn').disabled=!c;
- $('clearTargetsBtn').disabled=!c||!ids.size;
+ $('selectedCount').textContent=c?`Обрано ${chosen.length} груп`:`Попередньо обрано ${chosen.length} груп`;
+ $('routeInfo').textContent=!c?`Попередній вибір: ${chosen.length} груп. Збережіть матеріал пізніше — цей список автоматично перейде до нього. Нічого не публікується.`:chosen.length?`Підготовлено ${chosen.length} груп. Відкривати та публікувати потрібно вручну по одній. Неперевірені групи спочатку відкрийте та перегляньте їхні правила.`:'Виберіть вручну потрібні групи або відфільтруйте та натисніть «Обрати видимі». Нічого не публікується автоматично.';
+ $('nextTargetBtn').disabled=chosen.length===0;
+ $('selectVisibleBtn').disabled=false;
+ $('unselectVisibleBtn').disabled=false;
+ $('clearTargetsBtn').disabled=!ids.size;
  $('groupsList').innerHTML=visible.length?visible.map(g=>{
   const v=record(g.id,selectedCampaign),status=v?.status||'not_sent';
   const blocked=isBlocked(g),checked=ids.has(g.id)&&!blocked,canPick=mayChoose(g),noCopy=['unknown','paid','banned','agreement'].includes(g.policy);
   return `<div class="group ${g.id===selectedGroup?'selected':''} ${blocked?'excluded':''}">
    <div class="flex">
-    <input class="target-check" type="checkbox" aria-label="Обрати ${safe(g.name)}" data-target-id="${safe(g.id)}" ${checked?'checked':''} ${!c||(!checked&&!canPick)?'disabled':''} title="Обрати для поточного матеріалу" />
+    <input class="target-check" type="checkbox" aria-label="Обрати ${safe(g.name)}" data-target-id="${safe(g.id)}" ${checked?'checked':''} ${!checked&&!canPick?'disabled':''} title="Обрати групу; матеріал можна додати пізніше" />
     <span class="name">${safe(g.name)}</span>
     <span class="tag priority-tag">${safe(PRIORITY[g.priority]||'4 · Непрофільні')}</span>
     <span class="tag ${blocked?'bad':g.policy==='unknown'?'warn':'ok'}">${blocked?'Виключено':safe(POLICY[g.policy]||g.policy)}</span>
@@ -184,7 +186,7 @@ function renderDetail(){const g=db.groups.find(x=>x.id===selectedGroup),root=$('
  $('editGroupBtn').onclick=()=>groupEdit(g);$('excludeGroupBtn').onclick=()=>{g.excluded=!g.excluded;if(g.policy==='banned'||g.policy==='paid')g.excluded=true;if(g.excluded)pruneGroupFromTargets(g.id);g.updatedAt=new Date().toISOString();if(save()){render();msg(g.excluded?'Групу виключено зі списків розміщення. Історію збережено.':'Групу повернено до доступного переліку.')}};$('deleteGroupBtn').onclick=()=>{if(!confirm('Видалити групу «'+g.name+'» та її історію розміщень?'))return;db.groups=db.groups.filter(x=>x.id!==g.id);db.journal=db.journal.filter(x=>x.groupId!==g.id);pruneGroupFromTargets(g.id);selectedGroup=null;save();groupFormClear();render();msg('Групу видалено.');};$('openGroupBtn').onclick=()=>window.open(g.url,'_blank','noopener,noreferrer');$('saveJournalBtn').onclick=()=>{try{addJournal(g.id,$('journalStatus').value,$('journalUrl').value,$('journalNote').value)}catch(e){msg(e.message,'bad')}}}
 function download(filename,content,type){const blob=new Blob([content],{type}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1000)}
 function exportJSON(){download('VA_FB_GROUPS_BACKUP_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({exportedAt:new Date().toISOString(),...db},null,2),'application/json')}
-function parseJSON(s){const obj=JSON.parse(s);if(!obj||obj.version!==1||!Array.isArray(obj.groups)||!Array.isArray(obj.campaigns)||!Array.isArray(obj.journal))throw Error('Непідтримуваний файл резервної копії.');if(obj.groups.length>3000||obj.campaigns.length>1000||obj.journal.length>250000)throw Error('Занадто великий файл резервної копії.');const groups=[],ids=new Set(),urls=new Set();for(const g of obj.groups){const url=normalizeGroupUrl(g.url);if(!url||ids.has(String(g.id))||urls.has(url))continue;ids.add(String(g.id));urls.add(url);groups.push({id:String(g.id),name:String(g.name||url).slice(0,200),url,policy:POLICY[g.policy]?g.policy:'unknown',priority:PRIORITY[g.priority]?g.priority:suggestPriority(g.name),excluded:!!g.excluded,tags:String(g.tags||'').slice(0,200),notes:String(g.notes||'').slice(0,500),updatedAt:String(g.updatedAt||'')})}const campaigns=obj.campaigns.filter(x=>x?.id).map(x=>({id:String(x.id),title:String(x.title||'').slice(0,200),text:String(x.text||'').slice(0,20000),targetUrl:safeUrl(x.targetUrl),mediaUrl:safeUrl(x.mediaUrl),updatedAt:String(x.updatedAt||'')}));const cs=new Set(campaigns.map(x=>x.id));const journal=obj.journal.filter(x=>ids.has(String(x.groupId))&&cs.has(String(x.campaignId))&&RESULT[x.status]).map(x=>({id:String(x.id||id()),groupId:String(x.groupId),campaignId:String(x.campaignId),status:x.status,url:safeUrl(x.url),note:String(x.note||'').slice(0,500),at:String(x.at||'')}));const targets={};if(obj.targets&&typeof obj.targets==='object'&&!Array.isArray(obj.targets)){for(const [cid,arr] of Object.entries(obj.targets)){if(!cs.has(cid)||!Array.isArray(arr))continue;targets[cid]=[...new Set(arr.map(String).filter(gid=>ids.has(gid)&&!groups.find(g=>g.id===gid)?.excluded))]}}return{version:1,groups,campaigns,journal,targets}}
+function parseJSON(s){const obj=JSON.parse(s);if(!obj||obj.version!==1||!Array.isArray(obj.groups)||!Array.isArray(obj.campaigns)||!Array.isArray(obj.journal))throw Error('Непідтримуваний файл резервної копії.');if(obj.groups.length>3000||obj.campaigns.length>1000||obj.journal.length>250000)throw Error('Занадто великий файл резервної копії.');const groups=[],ids=new Set(),urls=new Set();for(const g of obj.groups){const url=normalizeGroupUrl(g.url);if(!url||ids.has(String(g.id))||urls.has(url))continue;ids.add(String(g.id));urls.add(url);groups.push({id:String(g.id),name:String(g.name||url).slice(0,200),url,policy:POLICY[g.policy]?g.policy:'unknown',priority:PRIORITY[g.priority]?g.priority:suggestPriority(g.name),excluded:!!g.excluded,tags:String(g.tags||'').slice(0,200),notes:String(g.notes||'').slice(0,500),updatedAt:String(g.updatedAt||'')})}const campaigns=obj.campaigns.filter(x=>x?.id).map(x=>({id:String(x.id),title:String(x.title||'').slice(0,200),text:String(x.text||'').slice(0,20000),targetUrl:safeUrl(x.targetUrl),mediaUrl:safeUrl(x.mediaUrl),updatedAt:String(x.updatedAt||'')}));const cs=new Set(campaigns.map(x=>x.id));const journal=obj.journal.filter(x=>ids.has(String(x.groupId))&&cs.has(String(x.campaignId))&&RESULT[x.status]).map(x=>({id:String(x.id||id()),groupId:String(x.groupId),campaignId:String(x.campaignId),status:x.status,url:safeUrl(x.url),note:String(x.note||'').slice(0,500),at:String(x.at||'')}));const targets={};if(obj.targets&&typeof obj.targets==='object'&&!Array.isArray(obj.targets)){for(const [cid,arr] of Object.entries(obj.targets)){if((cid!==DRAFT_TARGET_KEY&&!cs.has(cid))||!Array.isArray(arr))continue;targets[cid]=[...new Set(arr.map(String).filter(gid=>ids.has(gid)&&!groups.find(g=>g.id===gid)?.excluded))]}}return{version:1,groups,campaigns,journal,targets}}
 function csv(s){return '"'+String(s??'').replaceAll('"','""')+'"'}
 function importBridge(){let raw;try{raw=JSON.parse(localStorage.getItem(BRIDGE_KEY)||'null')}catch{return}if(!raw||!raw.updated_at||!raw.title||!raw.id||!raw.venue_id&&raw.venue_id!=='' )return;const cid='studio-'+String(raw.id),v={title:String(raw.title).slice(0,200),text:String(raw.text||'').slice(0,20000),targetUrl:safeUrl(raw.target_url),mediaUrl:safeUrl(raw.media_url),updatedAt:String(raw.updated_at)};let c=db.campaigns.find(x=>x.id===cid);if(c){if(c.updatedAt!==v.updatedAt)Object.assign(c,v)}else db.campaigns.unshift({id:cid,...v});selectedCampaign=cid;save();localStorage.removeItem(BRIDGE_KEY);msg('Матеріал отримано з Content Studio / Розповсюдження. Перевірте текст і посилання на конкретний сеанс.','good')}
 $('saveGroupBtn').onclick=saveGroup;$('cancelEditBtn').onclick=groupFormClear;$('bulkImportBtn').onclick=importBulk;$('exportBtn').onclick=exportJSON;
@@ -198,7 +200,7 @@ $('groupsList').onclick=async e=>{const btn=e.target.closest('button[data-action
 $('groupsList').addEventListener('change',e=>{
  const cb=e.target.closest('input[data-target-id]');if(!cb)return;
  const g=db.groups.find(x=>x.id===cb.dataset.targetId);
- if(!g||!selectedCampaign){cb.checked=false;msg('Спочатку збережіть матеріал.','bad');return}
+ if(!g){cb.checked=false;msg('Групу не знайдено.','bad');return}
  const ids=chosenIds();if(cb.checked){if(!mayChoose(g)){cb.checked=false;return}ids.add(g.id)}else ids.delete(g.id);
  setTargets([...ids]);
 });
@@ -206,7 +208,7 @@ $('selectVisibleBtn').onclick=()=>{
  const ids=chosenIds();visibleGroups().filter(g=>mayChoose(g)&&g.priority!=='skip').forEach(g=>ids.add(g.id));setTargets([...ids]);
 };
 $('unselectVisibleBtn').onclick=()=>{const ids=chosenIds();visibleGroups().forEach(g=>ids.delete(g.id));setTargets([...ids])};
-$('clearTargetsBtn').onclick=()=>{if(!selectedCampaign)return;if(!confirm('Зняти вибір усіх груп для поточного матеріалу?'))return;setTargets([])};
+$('clearTargetsBtn').onclick=()=>{if(!confirm('Зняти вибір усіх груп для поточного списку?'))return;setTargets([])};
 $('nextTargetBtn').onclick=nextTarget;
 load();if(db.groups.length===0){db.groups.push({id:id(),name:'Група 1107907784152777',url:'https://www.facebook.com/groups/1107907784152777/',policy:'unknown',priority:'high',excluded:false,tags:'Кривий Ріг',notes:'Додана з наданого посилання; умови розміщення слід перевірити',updatedAt:new Date().toISOString()});save()}importBridge();if(!selectedCampaign)selectedCampaign=db.campaigns[0]?.id||null;if(!selectedGroup)selectedGroup=db.groups[0]?.id||null;renderCampaigns();render();
 </script>
