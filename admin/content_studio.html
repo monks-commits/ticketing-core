@@ -903,6 +903,7 @@
           <button class="nav-btn" data-section="venue-library">
             Бібліотека майданчика
           </button>
+          <button class="nav-btn" data-section="digests">🗓 Зведені афіші</button>
           <!--
 <button class="nav-btn" data-section="service">
   Службова робота
@@ -911,6 +912,36 @@
         </nav>
       </header>
       <div id="globalMessage"></div>
+
+      <!-- VA WEEKLY DIGEST: standalone advertising issue, not a ticketing seance -->
+      <section class="section" id="section-digests">
+        <div class="card">
+          <h2>🗓 Зведена афіша / добірка подій</h2>
+          <div class="notice warn"><b>Окремий рекламний випуск, а не сеанс.</b> Події лише включаються до добірки: квитки, місця, ціни та <code>seance_id</code> не змінюються. Поки схема серверного складу не підтверджена, чернетки зберігаються у браузері; зберігайте резервний JSON.</div>
+          <div class="grid-2">
+            <div class="field"><label>Назва рекламного випуску</label><input id="digestTitle" maxlength="200" placeholder="Афіша Академії руху · 23–29 листопада" /></div>
+            <div class="field"><label>Цільове посилання (каталог / Telegram-канал / вітрина)</label><input id="digestTarget" type="url" maxlength="1500" value="https://vash-admin.com/afisha" /></div>
+            <div class="field"><label>Початок періоду</label><input type="date" id="digestFrom" /></div>
+            <div class="field"><label>Кінець періоду</label><input type="date" id="digestTo" /></div>
+          </div>
+          <div class="field"><label>Події для зведеної афіші (можна обрати декілька)</label><div id="digestSeanceList" class="compact" style="max-height:260px;overflow:auto"></div></div>
+          <div class="toolbar"><button class="btn blue" id="digestGenerateBtn">Скласти текст із подій</button><span class="muted">Текст можна довільно відредагувати.</span></div>
+          <div class="field"><label>Український текст публікації</label><textarea id="digestText" class="editor" maxlength="20000" placeholder="🎭 Афіша на тиждень..."></textarea></div>
+          <div class="grid-2">
+            <div class="field"><label>URL зведеної PNG-афіші (необов'язково)</label><input id="digestMedia" type="url" maxlength="1600" placeholder="https://.../weekly-poster.png" /></div>
+            <div class="field"><label>Завантажити готову зведену PNG (не змінює оригінальні афіші)</label><input id="digestImageFile" type="file" accept="image/png" /><button class="btn small" id="digestUploadBtn" style="margin-top:8px">Завантажити PNG у Storage</button></div>
+          </div>
+          <div class="toolbar">
+            <button class="btn green" id="digestSaveBtn">Зберегти випуск</button>
+            <button class="btn blue" id="digestToOfficeBtn">Передати в Рекламний відділ</button>
+            <button class="btn" id="digestNewBtn">+ Новий випуск</button>
+            <button class="btn" id="digestExportBtn">⬇ Архів випусків JSON</button>
+            <label class="btn" style="cursor:pointer">⬆ Відновити JSON<input type="file" id="digestImportFile" accept="application/json,.json" style="display:none" /></label>
+          </div>
+          <div id="digestMessage" role="status"></div>
+        </div>
+        <div class="card"><h3>Збережені сводні афіші</h3><div id="digestSavedList"></div></div>
+      </section>
 
       <section class="section active" id="section-projects">
         <div class="grid-main">
@@ -3863,6 +3894,7 @@
             x.classList.toggle("active", x.dataset.section === name),
           );
         $(`section-${name}`).classList.add("active");
+        if (name === "digests") renderDigests();
         if (name === "venue-library") renderVenueLibrary();
         if (name === "service") renderServiceSection();
       }
@@ -6963,6 +6995,129 @@
         "serviceResultNote",
       ].forEach((id) => $(id)?.addEventListener("input", renderServicePreview));
       $("serviceTemplateSelect")?.addEventListener("change", () => {});
+      // ===== VA WEEKLY DIGEST v1: intentionally isolated from ticketing tables =====
+      const DIGEST_STORE_KEY = "va_studio_weekly_digests_v1";
+      const DIGEST_BRIDGE_KEY = "va_advertising_weekly_handoff_v1";
+      let digestCurrentId = null;
+      function digestUrl(v) {
+        try { const u = new URL(String(v || "").trim()); return ["https:", "http:"].includes(u.protocol) ? u.href : ""; }
+        catch { return ""; }
+      }
+      function digestRows() {
+        try { const r = JSON.parse(localStorage.getItem(DIGEST_STORE_KEY) || "[]"); return Array.isArray(r) ? r : []; }
+        catch { return []; }
+      }
+      function digestSetRows(rows) { localStorage.setItem(DIGEST_STORE_KEY, JSON.stringify(rows)); }
+      function digestNotice(s,kind="ok") { $("digestMessage").innerHTML = s ? `<div class="notice ${kind}">${esc(s)}</div>` : ""; }
+      function digestPeriodSeances() {
+        const from=$("digestFrom")?.value || "", to=$("digestTo")?.value || "", venue=state.currentVenue || "";
+        return state.seances.filter(s=> (!venue || venueKey(s)===venue) && (!from || String(s.date||"")>=from) && (!to || String(s.date||"")<=to)).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.time||"").localeCompare(String(b.time||"")));
+      }
+      function renderDigestSeanceChoices(preselect) {
+        const root=$("digestSeanceList"); if(!root) return;
+        const chosen=preselect instanceof Set ? preselect : new Set([...root.querySelectorAll("[data-digest-seance]:checked")].map(x=>x.value));
+        const rows=digestPeriodSeances().slice(0,150);
+        root.innerHTML= rows.length ? rows.map(s=>`<label style="display:flex;gap:9px;align-items:center;margin-bottom:8px;color:#f7fbff"><input type="checkbox" data-digest-seance value="${esc(s.id)}" ${chosen.has(String(s.id))?"checked":""} style="width:auto"/><span>${esc(seanceLabel(s))} · ${esc(venueName(venueKey(s)))}</span></label>`).join("") : '<p class="muted">Немає сеансів за вибраний період і майданчик. Можна змінити період або обрати «Усі майданчики».</p>';
+      }
+      function digestChosen() { return [...document.querySelectorAll("[data-digest-seance]:checked")].map(x=>x.value); }
+      function digestNew() {
+        digestCurrentId=null;
+        $("digestTitle").value=""; $("digestText").value=""; $("digestMedia").value="";
+        $("digestTarget").value="https://vash-admin.com/afisha"; $("digestImageFile").value="";
+        $("digestSaveBtn").textContent="Зберегти випуск";
+        renderDigestSeanceChoices(new Set()); digestNotice("");
+      }
+      function digestGenerateText() {
+        const ids=new Set(digestChosen()), events=state.seances.filter(x=>ids.has(String(x.id))).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.time||"").localeCompare(String(b.time||"")));
+        if(!events.length) throw new Error("Оберіть хоча б один сеанс зі списку.");
+        const from=$("digestFrom").value,to=$("digestTo").value;
+        const ukDate=(raw)=>{if(!raw)return "";const d=new Date(raw+"T12:00:00");return Number.isNaN(d.getTime())?raw:new Intl.DateTimeFormat("uk-UA",{day:"numeric",month:"long"}).format(d);};
+        $("digestText").value=`🎭 Афіша ${from&&to?`на ${ukDate(from)} — ${ukDate(to)}`:"найближчих подій"}\n\n`+events.map(s=>`🎟 ${ukDate(s.date)} ${s.time||""} — ${s.show||s.title||s.name||"Подія"}`).join("\n")+`\n\nОбирайте виставу та місця онлайн.\n👇 Афіша й квитки: ${$("digestTarget").value.trim()}`;
+        digestNotice("Текст сформовано. Перевірте дати, афіші та посилання перед збереженням.");
+      }
+      function digestPayload() {
+        const title=$("digestTitle").value.trim(),target=digestUrl($("digestTarget").value),mediaRaw=$("digestMedia").value.trim(),media=mediaRaw?digestUrl(mediaRaw):"";
+        const from=$("digestFrom").value,to=$("digestTo").value,body=$("digestText").value.trim(),chosen=digestChosen();
+        if(!title) throw new Error("Вкажіть назву випуску.");
+        if(from&&to&&from>to) throw new Error("Дата завершення передує початку.");
+        if(!target) throw new Error("Укажіть правильне посилання на вітрину або канал.");
+        if(mediaRaw&&!media) throw new Error("Неправильний URL PNG-афіші.");
+        if(!body) throw new Error("Додайте текст публікації.");
+        if(!chosen.length) throw new Error("Оберіть щонайменше один реальний сеанс. Фіктивні сеанси не створюються.");
+        return { id:digestCurrentId||`weekly-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,9)}`,
+          title,venue_id:state.currentVenue||"",date_from:from,date_to:to,seance_ids:chosen,
+          target_url:target,media_url:media,text:body,channel:"facebook",kind:"weekly_digest",
+          updated_at:new Date().toISOString() };
+      }
+      function digestSave() {
+        const r=digestPayload(),rows=digestRows(),idx=rows.findIndex(x=>x.id===r.id);
+        if(idx>=0){ r.created_at=rows[idx].created_at||r.updated_at; rows[idx]=r; }
+        else {r.created_at=r.updated_at;rows.unshift(r);}
+        digestSetRows(rows); digestCurrentId=r.id; renderDigests(); digestNotice("Зведений випуск збережено локально. Зробіть JSON-копію для захисту від втрати даних."); return r;
+      }
+      function digestEdit(id) {
+        const r=digestRows().find(x=>x.id===id);if(!r)return;
+        digestCurrentId=r.id;
+        $("digestTitle").value=r.title||"";$("digestTarget").value=r.target_url||"";
+        $("digestFrom").value=r.date_from||"";$("digestTo").value=r.date_to||"";
+        $("digestText").value=r.text||"";$("digestMedia").value=r.media_url||"";
+        $("digestSaveBtn").textContent="Оновити випуск";
+        renderDigestSeanceChoices(new Set(r.seance_ids||[]));digestNotice("Відкрито збережений випуск.");
+      }
+      function renderDigests() {
+        renderDigestSeanceChoices();
+        const root=$("digestSavedList");if(!root)return;
+        const rows=digestRows().filter(r=>!state.currentVenue||!r.venue_id||r.venue_id===state.currentVenue);
+        root.innerHTML=rows.length?rows.map(r=>`<div class="list-item"><div class="item-title">${esc(r.title)}</div><div class="meta">${esc(r.date_from||"—")} — ${esc(r.date_to||"—")} · ${r.seance_ids?.length||0} сеансів · ${esc(r.updated_at?.slice(0,16)||"")}</div><div class="actions"><button class="btn small" data-digest-edit="${esc(r.id)}">Редагувати</button><button class="btn red small" data-digest-delete="${esc(r.id)}">Видалити</button></div></div>`).join(""):'<div class="empty">Зведених випусків ще немає.</div>';
+      }
+      function digestHandoff() {
+        const r=digestSave();
+        localStorage.setItem(DIGEST_BRIDGE_KEY,JSON.stringify(r));
+        const destination=new URL("./advertising-office.html?view=distribution",window.location.href).href;
+        // Studio is often opened inside Advertising Office iframe; leave the iframe clean.
+        if(window.top && window.top!==window) window.top.location.assign(destination);
+        else window.location.assign(destination);
+      }
+      async function digestUpload() {
+        const file=$("digestImageFile").files?.[0];
+        if(!file)throw new Error("Оберіть PNG-файл зведеної афіші.");
+        if(file.type!=="image/png"||!file.name.toLowerCase().endsWith(".png"))throw new Error("Потрібен PNG, без зміни оригінальних театральних афіш.");
+        if(file.size>15*1024*1024)throw new Error("PNG завеликий (максимум 15 МБ).");
+        const path=`ready/digests/${Date.now()}-${safeSlug(file.name)}`;
+        const url=await uploadStorage(path,file);$("digestMedia").value=url;
+        digestNotice("Зведену PNG-афішу завантажено. Збережіть випуск, щоб запам'ятати URL.");
+      }
+      function digestExport() {
+        const payload={kind:"va_studio_weekly_digests",version:1,exported_at:new Date().toISOString(),items:digestRows()};
+        const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+        a.href=url;a.download=`VA_WEEKLY_DIGESTS_${new Date().toISOString().slice(0,10)}.json`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+        digestNotice("Архів збережено. Він містить адреси PNG, але не самі файли.");
+      }
+      async function digestImport(input) {
+        const f=input.files?.[0];if(!f)return;
+        if(f.size>2*1024*1024)throw new Error("JSON завеликий.");
+        const data=JSON.parse(await f.text());
+        if(data.kind!=="va_studio_weekly_digests"||data.version!==1||!Array.isArray(data.items)||data.items.length>1000)throw new Error("Непідтримуваний архів випусків.");
+        const rows=data.items.filter(r=>r&&typeof r.id==="string"&&typeof r.title==="string"&&typeof r.text==="string"&&digestUrl(r.target_url)&&Array.isArray(r.seance_ids)).map(r=>({...r,id:r.id.slice(0,100),title:r.title.slice(0,200),text:r.text.slice(0,20000),seance_ids:r.seance_ids.map(String).slice(0,150),target_url:digestUrl(r.target_url),media_url:digestUrl(r.media_url),kind:"weekly_digest"}));
+        if(!confirm(`Відновити ${rows.length} випусків? Поточні локальні випуски будуть замінені. Перед цим експортуйте архів.`))return;
+        digestSetRows(rows);digestNew();renderDigests();digestNotice("Архів випусків відновлено.");
+      }
+      ["digestFrom","digestTo"].forEach(id=>$(id).addEventListener("change",()=>renderDigestSeanceChoices()));
+      bind("digestGenerateBtn","click",digestGenerateText);
+      bind("digestSaveBtn","click",digestSave);
+      bind("digestToOfficeBtn","click",digestHandoff);
+      bind("digestUploadBtn","click",digestUpload);
+      bind("digestExportBtn","click",digestExport);
+      $("digestNewBtn").addEventListener("click",digestNew);
+      $("digestSavedList").addEventListener("click",e=>{
+        const edit=e.target.closest("[data-digest-edit]"),del=e.target.closest("[data-digest-delete]");
+        if(edit)digestEdit(edit.dataset.digestEdit);
+        if(del&&confirm("Видалити локальний зведений випуск?")){digestSetRows(digestRows().filter(r=>r.id!==del.dataset.digestDelete)); if(digestCurrentId===del.dataset.digestDelete)digestNew();renderDigests();}
+      });
+      $("digestImportFile").addEventListener("change",async e=>{
+        try {await digestImport(e.target);}catch(error){digestNotice(error.message||String(error),"bad");}finally{e.target.value="";}
+      });
+
       async function boot() {
         try {
           await loadAll();

@@ -154,6 +154,7 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
         <div id="publicationQueue" class="queue-list"></div>
       </div>
 
+      <div class="notice" id="weeklyLocalInfo">🗓 Зведені афіші: випуски з Content Studio без фіктивного сеансу. Поки вони локальні: тільки ручне розміщення і JSON-архів у Studio, без автопублікації та серверних продажних звітів.</div>
       <div id="warehouseWarning" class="notice warn hidden">Таблиця складу готової продукції поки недоступна. Studio і решта робочого місця продовжують працювати.</div>
       <div class="distribution-layout">
         <div class="card">
@@ -233,6 +234,17 @@ function handoffToFacebookGroups(output){
 }
 
 const state={venues:[],projects:[],seances:[],outputs:[],publications:[],socialConnections:[],socialQueue:[],socialSchemaReady:false,selectedOutputId:null,currentApp:null,socialSelectedChannel:null};
+const WEEKLY_KEY="va_studio_weekly_digests_v1";
+const WEEKLY_BRIDGE="va_advertising_weekly_handoff_v1";
+function weeklyLocalOutputs(){
+  let rows=[];try{const v=JSON.parse(localStorage.getItem(WEEKLY_KEY)||"[]");if(Array.isArray(v))rows=v;}catch{}
+  return rows.filter(x=>x?.kind==="weekly_digest"&&x.id&&x.title&&x.text).map(x=>({
+    id:"local-digest:"+x.id,local_weekly:true,venue_id:x.venue_id||"",project_id:"",seance_id:"",channel:"facebook",status:"ready",file_kind:"png",format_code:"weekly",
+    title:x.title,publication_text:x.text,target_url:x.target_url,file_url:x.media_url||"",created_at:x.created_at,updated_at:x.updated_at,
+    date_from:x.date_from,date_to:x.date_to,seance_ids:x.seance_ids||[]
+  }));
+}
+
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 function message(text,type=""){ $("globalMessage").innerHTML=text?`<div class="notice ${type}">${esc(text)}</div>`:""; }
@@ -659,18 +671,26 @@ function populateSeances(keep=""){
   if([...$("seanceSelect").options].some(o=>o.value===String(keep))) $("seanceSelect").value=String(keep);
   updateContext();
 }
-function filteredOutputs(){const c=context(),q=$("distributionSearch")?.value.trim().toLowerCase()||"",status=$("distributionStatus")?.value||"",channel=$("distributionChannel")?.value||"";return state.outputs.filter(x=>(!c.venue_id||String(x.venue_id||"")===String(c.venue_id))&&(!c.project_id||String(x.project_id||"")===String(c.project_id))&&(!c.seance_id||String(x.seance_id||"")===String(c.seance_id))&&(!status||String(x.status||"")===status)&&(!channel||String(x.channel||"")===channel)&&(!q||`${x.title||""} ${x.file_name||""} ${x.publication_text||""} ${x.body_text||""} ${x.channel||""} ${seanceName(x.seance_id)}`.toLowerCase().includes(q))).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))}
+function filteredOutputs(){const c=context(),q=$("distributionSearch")?.value.trim().toLowerCase()||"",status=$("distributionStatus")?.value||"",channel=$("distributionChannel")?.value||"";return [...state.outputs,...weeklyLocalOutputs()].filter(x=>(!c.venue_id||String(x.venue_id||"")===String(c.venue_id))&&(!c.project_id||String(x.project_id||"")===String(c.project_id))&&(!c.seance_id||String(x.seance_id||"")===String(c.seance_id))&&(!status||String(x.status||"")===status)&&(!channel||String(x.channel||"")===channel)&&(!q||`${x.title||""} ${x.file_name||""} ${x.publication_text||""} ${x.body_text||""} ${x.channel||""} ${seanceName(x.seance_id)}`.toLowerCase().includes(q))).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))}
 function serviceUrl(){const c=context(),p=new URLSearchParams({source:"advertising"});if(c.venue_id)p.set("venue",c.venue_id);if(c.project_id)p.set("project",c.project_id);if(c.seance_id)p.set("seance",c.seance_id);return `./service-communications.html?${p.toString()}`}
 function updateServiceLinks(){const url=serviceUrl();if($("serviceNavLink"))$("serviceNavLink").href=url;if($("serviceDashboardLink"))$("serviceDashboardLink").href=url}
 function updateContext(){persistContext();const c=context(),parts=[];if(c.venue_id)parts.push(venueName(c.venue_id));if(c.project_id)parts.push(projectName(c.project_id));if(c.seance_id)parts.push(seanceName(c.seance_id));$("contextBadge").textContent=`Контекст: ${parts.length?parts.join(" → "):"усі дані"}`;renderDashboard();renderDistribution();renderSocialConnections();renderQueue();updateServiceLinks();if(state.currentApp){const url=appUrl(state.currentApp);$("moduleExternal").href=url}}
 function scopedOutputs(){const c=context();return state.outputs.filter(x=>(!c.venue_id||String(x.venue_id||"")===String(c.venue_id))&&(!c.project_id||String(x.project_id||"")===String(c.project_id))&&(!c.seance_id||String(x.seance_id||"")===String(c.seance_id)))}
 function renderDashboard(){const c=context(),now=new Date(),seances=state.seances.filter(s=>(!c.venue_id||venueId(s)===String(c.venue_id))&&(!c.project_id||String(s.project_id||"")===String(c.project_id))&&(!c.seance_id||String(s.id)===String(c.seance_id))&&(!s.date||new Date(`${s.date}T${s.time||"00:00"}`)>=now)),out=scopedOutputs();$("kpiSeances").textContent=seances.length;$("kpiReady").textContent=out.filter(x=>["ready","approved"].includes(String(x.status))).length;$("kpiPublished").textContent=out.filter(x=>String(x.status)==="published").length;$("kpiChannels").textContent=new Set(out.map(x=>x.channel).filter(Boolean)).size}
 function previewHtml(x,large=false){if(!x?.file_url)return '<div class="empty">Файл відсутній</div>';if(String(x.file_kind||"").toLowerCase()==="mp4"||String(x.mime_type||"").startsWith("video/"))return `<video ${large?"controls":"muted"} preload="metadata" src="${esc(x.file_url)}"></video>`;return `<img src="${esc(x.file_url)}" alt="${esc(x.title||x.file_name||"Готовий комплект")}" />`}
-function renderChannels(){const current=$("distributionChannel").value,chs=[...new Set(state.outputs.map(x=>x.channel).filter(Boolean))].sort();$("distributionChannel").innerHTML='<option value="">Усі канали</option>'+chs.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if([...$("distributionChannel").options].some(o=>o.value===current))$("distributionChannel").value=current}
+function renderChannels(){const current=$("distributionChannel").value,chs=[...new Set([...state.outputs,...weeklyLocalOutputs()].map(x=>x.channel).filter(Boolean))].sort();$("distributionChannel").innerHTML='<option value="">Усі канали</option>'+chs.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if([...$("distributionChannel").options].some(o=>o.value===current))$("distributionChannel").value=current}
 function renderDistribution(){if(!$("outputGrid"))return;renderChannels();const rows=filteredOutputs();if(!rows.length){renderSocialConnections();renderQueue();$("outputGrid").innerHTML='<div class="empty">Готових комплектів за вибраними умовами немає.</div>';$("outputDetail").innerHTML='<div class="empty">Оберіть інший контекст або створіть готовий комплект у Content Studio.</div>';return}if(!rows.some(x=>String(x.id)===String(state.selectedOutputId)))state.selectedOutputId=rows[0].id;renderSocialConnections();renderQueue();$("outputGrid").innerHTML=rows.map(x=>`<article class="output-card ${String(x.id)===String(state.selectedOutputId)?"active":""}" data-output-id="${esc(x.id)}"><div class="preview">${previewHtml(x)}</div><h4>${esc(x.title||x.file_name||"Готовий комплект")}</h4><div class="tags"><span class="mini ${x.status==="published"?"ok":x.status==="archived"?"warn":""}">${esc(x.status||"ready")}</span><span class="mini">${esc(x.channel||"—")}</span><span class="mini">${esc(x.placement||x.format_code||"—")}</span></div><div class="meta">${esc(projectName(x.project_id))}<br>${esc(seanceName(x.seance_id))}</div></article>`).join("");document.querySelectorAll("[data-output-id]").forEach(el=>el.addEventListener("click",()=>{state.selectedOutputId=el.dataset.outputId;renderDistribution()}));renderDetail(rows.find(x=>String(x.id)===String(state.selectedOutputId)))}
 function fullText(x){return x.publication_text||[x.subject,x.body_text,x.hashtags,x.cta_text,x.target_url].filter(Boolean).join("\n\n")}
 function renderDetail(x){
   if(!x){$("outputDetail").innerHTML='<div class="empty">Оберіть готовий комплект.</div>';return}
+  if(x.local_weekly){
+    $("outputDetail").innerHTML=`<h3>${esc(x.title)}</h3><div class="tags"><span class="mini">Зведена афіша</span><span class="mini warn">Локальний випуск</span></div><div class="meta">${esc(x.date_from||"")} — ${esc(x.date_to||"")} · ${x.seance_ids?.length||0} подій</div><div class="detail-media">${previewHtml(x,true)}</div><div class="publication">${esc(x.publication_text||"")}</div><div class="field"><label>Цільове посилання</label><input value="${esc(x.target_url||"")}" readonly /></div><div class="notice warn">Для цього випуску автоматична Facebook-публікація і серверний облік ще не підключені. Передавайте у групи вручну. Індивідуальні VAC-CH додавайте тільки зі справжнього Marketing.</div><div class="actions"><button class="btn small" id="copyWeeklyBtn">Копіювати текст</button><button class="btn blue small" id="sendWeeklyFbBtn">Передати у групи Facebook</button><button class="btn" id="openWeeklyStudioBtn">Відкрити Studio</button></div>`;
+    $("copyWeeklyBtn").addEventListener("click",async()=>{await navigator.clipboard.writeText(fullText(x)||"");message("Текст зведеної афіші скопійовано.")});
+    $("sendWeeklyFbBtn").addEventListener("click",()=>handoffToFacebookGroups(x));
+    $("openWeeklyStudioBtn").addEventListener("click",()=>{window.location.href="./content_studio.html"});
+    return;
+  }
+
   const channel=normalizeSocialChannel(x.channel),cfg=SOCIAL_CHANNELS[channel],venueId=String(x.venue_id||socialVenueId()),conn=channel?socialConnection(venueId,channel):null,connMeta=socialStatusMeta(conn?.status);
   const automation=channel?`<div class="automation-box"><h4>Автоматична публікація через API</h4><div class="connection-inline"><span class="mini ${connMeta.cls}">${esc(cfg.label)}: ${esc(connMeta.label)}</span><button class="btn small" id="connectFromOutputBtn">Підключення акаунта</button></div><p>Комплект повністю готовий до передачі: текст, медіа, формат, CTA і цільове посилання. Без акаунта завдання буде збережене у черзі зі статусом очікування.</p><div class="field"><label>Дата і час для відкладеної публікації</label><input id="scheduleAtInput" type="datetime-local" /></div><div class="actions"><button class="btn blue small" id="publishNowBtn">Опублікувати зараз</button><button class="btn violet small" id="schedulePublicationBtn">Запланувати</button></div></div>`:`<div class="notice warn">Канал «${esc(x.channel||"—")}" не належить до підключуваних соцмереж. Для нього залишається ручне розміщення.</div>`;
   $("outputDetail").innerHTML=`<div class="detail-media">${previewHtml(x,true)}</div><h3>${esc(x.title||x.file_name||"Готовий комплект")}</h3><div class="tags"><span class="mini">${esc(x.channel||"—")}</span><span class="mini">${esc(x.placement||"—")}</span><span class="mini ${x.status==="published"?"ok":""}">${esc(x.status||"ready")}</span><span class="mini">v${esc(x.version||1)}</span></div><div class="meta">${esc(venueName(x.venue_id))} → ${esc(projectName(x.project_id))} → ${esc(seanceName(x.seance_id))}</div><div class="publication">${esc(fullText(x)||"Текст публікації не збережено.")}</div><div class="field"><label>Цільове посилання</label><input value="${esc(x.target_url||"")}" readonly /></div>${automation}<div class="field"><label>Фактичний URL публікації</label><input id="publishedUrlInput" value="${esc(x.published_url||"")}" placeholder="Вставте адресу після ручного розміщення" /></div><div class="actions"><a class="btn green small" href="${esc(x.file_url||"#")}" target="_blank" rel="noopener">Відкрити файл</a><button class="btn small" id="copyPublicationBtn">Копіювати публікацію</button><button class="btn blue small" id="sendToFbGroupsBtn">Передати у групи Facebook</button><button class="btn gold small" id="markPublishedBtn">Позначити опублікованим</button><button class="btn blue small" id="openStudioBtn">Відкрити Studio</button></div>`;
@@ -697,7 +717,12 @@ $("closeSocialModalBtn").addEventListener("click",closeSocialModal);
 $("socialConnectModal").addEventListener("click",e=>{if(e.target===$("socialConnectModal"))closeSocialModal()});
 $("requestSocialConnectionBtn").addEventListener("click",async()=>{try{const venueId=socialVenueId(),channel=state.socialSelectedChannel;if(!venueId||!channel)return;await saveConnectionRequest(venueId,channel);message(`${SOCIAL_CHANNELS[channel].label}: запит на підключення підготовлено.`,"warn");closeSocialModal()}catch(e){message(`Не вдалося зберегти запит: ${e.message}`,"bad")}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("socialConnectModal").classList.contains("hidden"))closeSocialModal()});
-document.addEventListener("DOMContentLoaded",()=>loadData(false));
+document.addEventListener("DOMContentLoaded",async()=>{
+  await loadData(false);
+  try {const w=JSON.parse(localStorage.getItem(WEEKLY_BRIDGE)||"null");
+    if(w?.id){$("venueSelect").value=w.venue_id||"";populateProjects("","");state.selectedOutputId="local-digest:"+w.id;localStorage.removeItem(WEEKLY_BRIDGE);showView("distribution");renderDistribution();}
+  }catch(e){console.warn("Weekly handoff",e)}
+});
 </script>
 </body>
 </html>
