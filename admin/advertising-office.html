@@ -63,6 +63,7 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
       <button class="nav-btn" data-app="studio">🎬 Content Studio</button>
       <button class="nav-btn" data-app="visual">🖼️ Visual Editor</button>
       <button class="nav-btn" data-view="distribution">📦 Розповсюдження</button>
+        <a class="nav-btn" href="./facebook-groups.html" id="fbGroupsNavLink">📣 Групи Facebook · вручну</a>
       <div class="nav-separator"></div>
       <a class="nav-btn" id="serviceNavLink" href="./service-communications.html">✉️ Службові комунікації</a>
       <a class="back-link" href="./control-center.html">← VA Control Center</a>
@@ -113,6 +114,7 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
         <article class="card"><h3>🎬 Content Studio</h3><p>Бібліотека, виробництво, кабінети каналів і склад готової продукції.</p><div class="actions"><button class="btn violet" data-open-app="studio">Відкрити</button></div></article>
         <article class="card"><h3>🖼️ Visual Editor</h3><p>Візуальне оформлення сеансу. Також доступний безпосередньо у розділі «Виробництво» Studio.</p><div class="actions"><button class="btn blue" data-open-app="visual">Відкрити</button></div></article>
         <article class="card"><h3>📦 Розповсюдження</h3><p>Готова продукція, підключення офіційних акаунтів, черга, розклад, ручне розміщення та майбутня автоматична публікація через API.</p><div class="actions"><button class="btn green" data-open-view="distribution">Перейти</button></div></article>
+        <article class="card"><h3>📣 Facebook-групи і сторінки</h3><p>Ручні публікації у вибраних адресатів, правила і пріоритети, окремий журнал кожної групи. Дані адресатів залишаються в її власному реєстрі.</p><div class="actions"><a class="btn blue" href="./facebook-groups.html">Відкрити адресатів</a></div></article>
         <article class="card"><h3>✉️ Службові комунікації</h3><p>Окреме застосування для повідомлень глядачам, партнерам, ЗМІ та службових розсилок. Контекст майданчика, проєкту й сеансу передається автоматично.</p><div class="actions"><a class="btn" id="serviceDashboardLink" href="./service-communications.html">Відкрити модуль</a></div></article>
       </div>
     </section>
@@ -131,6 +133,7 @@ select,input,textarea{width:100%;border:1px solid var(--line);border-radius:11px
         <div class="api-path"><span>Content Studio</span><i>→</i><span>Готовий комплект</span><i>→</i><span>Черга</span><i>→</i><span>Акаунт клієнта</span><i>→</i><span>API соцмережі</span><i>→</i><span>URL і результат</span></div>
       </div>
 
+      <div class="notice"><b>Групи Facebook:</b> публікації у сторонніх групах розміщуються вручну. <a href="./facebook-groups.html">Відкрити реєстр адресатів і журнал</a>. Офіційні сторінки через API залишаються окремим каналом нижче.</div>
       <div class="card social-ready-panel">
         <div class="section-row">
           <div><h3>Підключені канали майданчика</h3><p>Паролі не передаються VA. Клієнт входить до свого офіційного акаунта і підтверджує дозволи. Токени надалі зберігаються тільки у захищеному серверному контурі.</p></div>
@@ -199,6 +202,36 @@ const SOCIAL_CHANNELS={
 };
 const SOCIAL_CONNECTIONS_LOCAL_KEY="va_social_connections_v1";
 const SOCIAL_QUEUE_LOCAL_KEY="va_social_publication_queue_v1";
+// VA FB Groups bridge V1 — local, explicit, same-origin hand-off.
+// Only passes the selected ready text/link; never modifies recipient registry.
+const FB_GROUPS_BRIDGE_KEY="va_fb_groups_handoff_v1";
+function handoffToFacebookGroups(output){
+  if(!output || !output.id){message("Виберіть готовий комплект для передачі.","warn");return;}
+  const current=context();
+  const title=String(output.title||output.file_name||"Матеріал для Facebook").trim();
+  const rawText=String(fullText(output)||"").trim();
+  const target=String(output.target_url||"").trim();
+  if(!title || !rawText){message("У комплекті немає назви або тексту. Додайте текст у Studio.","warn");return;}
+  const data={
+    id:String(output.id),
+    source:"va_ticketing_advertising_office",
+    venue_id:String(output.venue_id||current.venue_id||""),
+    project_id:String(output.project_id||current.project_id||""),
+    seance_id:String(output.seance_id||current.seance_id||""),
+    title, text:rawText,
+    target_url:target,
+    media_url:String(output.file_url||""),
+    updated_at:String(output.updated_at||output.created_at||new Date().toISOString())
+  };
+  try{
+    // The hand-off is designed for these two files on the SAME GitHub Pages origin.
+    localStorage.setItem(FB_GROUPS_BRIDGE_KEY,JSON.stringify(data));
+    window.open("./facebook-groups.html","_self");
+  }catch(error){
+    message("Не вдалося передати матеріал: "+String(error.message||error),"bad");
+  }
+}
+
 const state={venues:[],projects:[],seances:[],outputs:[],publications:[],socialConnections:[],socialQueue:[],socialSchemaReady:false,selectedOutputId:null,currentApp:null,socialSelectedChannel:null};
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
@@ -640,8 +673,9 @@ function renderDetail(x){
   if(!x){$("outputDetail").innerHTML='<div class="empty">Оберіть готовий комплект.</div>';return}
   const channel=normalizeSocialChannel(x.channel),cfg=SOCIAL_CHANNELS[channel],venueId=String(x.venue_id||socialVenueId()),conn=channel?socialConnection(venueId,channel):null,connMeta=socialStatusMeta(conn?.status);
   const automation=channel?`<div class="automation-box"><h4>Автоматична публікація через API</h4><div class="connection-inline"><span class="mini ${connMeta.cls}">${esc(cfg.label)}: ${esc(connMeta.label)}</span><button class="btn small" id="connectFromOutputBtn">Підключення акаунта</button></div><p>Комплект повністю готовий до передачі: текст, медіа, формат, CTA і цільове посилання. Без акаунта завдання буде збережене у черзі зі статусом очікування.</p><div class="field"><label>Дата і час для відкладеної публікації</label><input id="scheduleAtInput" type="datetime-local" /></div><div class="actions"><button class="btn blue small" id="publishNowBtn">Опублікувати зараз</button><button class="btn violet small" id="schedulePublicationBtn">Запланувати</button></div></div>`:`<div class="notice warn">Канал «${esc(x.channel||"—")}" не належить до підключуваних соцмереж. Для нього залишається ручне розміщення.</div>`;
-  $("outputDetail").innerHTML=`<div class="detail-media">${previewHtml(x,true)}</div><h3>${esc(x.title||x.file_name||"Готовий комплект")}</h3><div class="tags"><span class="mini">${esc(x.channel||"—")}</span><span class="mini">${esc(x.placement||"—")}</span><span class="mini ${x.status==="published"?"ok":""}">${esc(x.status||"ready")}</span><span class="mini">v${esc(x.version||1)}</span></div><div class="meta">${esc(venueName(x.venue_id))} → ${esc(projectName(x.project_id))} → ${esc(seanceName(x.seance_id))}</div><div class="publication">${esc(fullText(x)||"Текст публікації не збережено.")}</div><div class="field"><label>Цільове посилання</label><input value="${esc(x.target_url||"")}" readonly /></div>${automation}<div class="field"><label>Фактичний URL публікації</label><input id="publishedUrlInput" value="${esc(x.published_url||"")}" placeholder="Вставте адресу після ручного розміщення" /></div><div class="actions"><a class="btn green small" href="${esc(x.file_url||"#")}" target="_blank" rel="noopener">Відкрити файл</a><button class="btn small" id="copyPublicationBtn">Копіювати публікацію</button><button class="btn gold small" id="markPublishedBtn">Позначити опублікованим</button><button class="btn blue small" id="openStudioBtn">Відкрити Studio</button></div>`;
+  $("outputDetail").innerHTML=`<div class="detail-media">${previewHtml(x,true)}</div><h3>${esc(x.title||x.file_name||"Готовий комплект")}</h3><div class="tags"><span class="mini">${esc(x.channel||"—")}</span><span class="mini">${esc(x.placement||"—")}</span><span class="mini ${x.status==="published"?"ok":""}">${esc(x.status||"ready")}</span><span class="mini">v${esc(x.version||1)}</span></div><div class="meta">${esc(venueName(x.venue_id))} → ${esc(projectName(x.project_id))} → ${esc(seanceName(x.seance_id))}</div><div class="publication">${esc(fullText(x)||"Текст публікації не збережено.")}</div><div class="field"><label>Цільове посилання</label><input value="${esc(x.target_url||"")}" readonly /></div>${automation}<div class="field"><label>Фактичний URL публікації</label><input id="publishedUrlInput" value="${esc(x.published_url||"")}" placeholder="Вставте адресу після ручного розміщення" /></div><div class="actions"><a class="btn green small" href="${esc(x.file_url||"#")}" target="_blank" rel="noopener">Відкрити файл</a><button class="btn small" id="copyPublicationBtn">Копіювати публікацію</button><button class="btn blue small" id="sendToFbGroupsBtn">Передати у групи Facebook</button><button class="btn gold small" id="markPublishedBtn">Позначити опублікованим</button><button class="btn blue small" id="openStudioBtn">Відкрити Studio</button></div>`;
   $("copyPublicationBtn").addEventListener("click",async()=>{await navigator.clipboard.writeText(fullText(x)||"");message("Публікацію скопійовано.")});
+  $("sendToFbGroupsBtn").addEventListener("click",()=>handoffToFacebookGroups(x));
   $("markPublishedBtn").addEventListener("click",()=>markPublished(x));
   $("openStudioBtn").addEventListener("click",()=>openApp("studio"));
   if(channel){$("connectFromOutputBtn").addEventListener("click",()=>openSocialModal(channel));$("publishNowBtn").addEventListener("click",()=>enqueueOutput(x,"now").catch(e=>message(e.message,"bad")));$("schedulePublicationBtn").addEventListener("click",()=>enqueueOutput(x,"scheduled").catch(e=>message(e.message,"bad")))}
