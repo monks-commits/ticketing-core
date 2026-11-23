@@ -924,7 +924,20 @@
             <div class="field"><label>Початок періоду</label><input type="date" id="digestFrom" /></div>
             <div class="field"><label>Кінець періоду</label><input type="date" id="digestTo" /></div>
           </div>
+          <div class="field"><label>Майданчик добірки</label><select id="digestVenueFilter"><option value="">Усі майданчики</option></select><div class="field-note">Фільтр відбору подій. Для міської афіші можна обрати декілька майданчиків.</div></div>
           <div class="field"><label>Події для зведеної афіші (можна обрати декілька)</label><div id="digestSeanceList" class="compact" style="max-height:260px;overflow:auto"></div></div>
+          <div class="card" style="background:#081b30;margin-bottom:14px;border-color:#365f83">
+            <h3>🎨 Візуали для зведеної афіші</h3>
+            <p class="muted" style="margin:0 0 12px">Використовуйте затверджені афіші з бібліотеки проєкту або виберіть вихідні PNG з комп'ютера. Вихідні файли не змінюються. Збережена зведена PNG — окремий рекламний файл.</p>
+            <div id="digestVisualSources" class="grid-2"></div>
+            <div class="toolbar" style="margin:10px 0">
+              <button class="btn blue" id="digestBuildImageBtn">Скласти зведену PNG</button>
+              <button class="btn" id="digestDownloadImageBtn" disabled>⬇ Завантажити PNG</button>
+              <button class="btn green" id="digestPublishImageBtn" disabled>Зберегти PNG у Storage</button>
+            </div>
+            <canvas id="digestPreviewCanvas" width="1200" height="1500" class="hidden" style="display:block;width:min(100%,480px);height:auto;border-radius:10px;border:1px solid #365f83" aria-label="Попередній перегляд зведеної афіші"></canvas>
+            <div class="field-note">Під час вибору локальних PNG вони використовуються лише для цієї збірки в браузері. Після завантаження композиції у Storage її URL зберігається разом із випуском.</div>
+          </div>
           <div class="toolbar"><button class="btn blue" id="digestGenerateBtn">Скласти текст із подій</button><span class="muted">Текст можна довільно відредагувати.</span></div>
           <div class="field"><label>Український текст публікації</label><textarea id="digestText" class="editor" maxlength="20000" placeholder="🎭 Афіша на тиждень..."></textarea></div>
           <div class="grid-2">
@@ -940,7 +953,7 @@
           </div>
           <div id="digestMessage" role="status"></div>
         </div>
-        <div class="card"><h3>Збережені сводні афіші</h3><div id="digestSavedList"></div></div>
+        <div class="card"><h3>Збережені зведені афіші</h3><div id="digestSavedList"></div></div>
       </section>
 
       <section class="section active" id="section-projects">
@@ -6523,6 +6536,8 @@
             .map((x) => `<option value="${esc(x)}">${esc(x)}</option>`)
             .join("");
         renderProjects();
+        digestVenueChoices();
+        renderDigestSeanceChoices();
         renderVenueLibrary();
         renderServiceSection();
         if (state.selectedProject) {
@@ -6999,6 +7014,8 @@
       const DIGEST_STORE_KEY = "va_studio_weekly_digests_v1";
       const DIGEST_BRIDGE_KEY = "va_advertising_weekly_handoff_v1";
       let digestCurrentId = null;
+      const digestVisuals = new Map(); // current browser session: src URL or File
+      let digestBuiltImage = null; // regenerated when selection or materials change
       function digestUrl(v) {
         try { const u = new URL(String(v || "").trim()); return ["https:", "http:"].includes(u.protocol) ? u.href : ""; }
         catch { return ""; }
@@ -7009,8 +7026,16 @@
       }
       function digestSetRows(rows) { localStorage.setItem(DIGEST_STORE_KEY, JSON.stringify(rows)); }
       function digestNotice(s,kind="ok") { $("digestMessage").innerHTML = s ? `<div class="notice ${kind}">${esc(s)}</div>` : ""; }
+      function digestVenueChoices() {
+        const sel=$("digestVenueFilter"); if(!sel)return;
+        const current=sel.dataset.initialized ? sel.value : (state.currentVenue||"");
+        const venues=[...new Map([...state.venues.map(v=>[canonicalVenueId(v.id||v.slug||v.code),{name:venueName(v.id||v.slug||v.code)}]), ...state.seances.map(s=>[venueKey(s),{name:venueName(venueKey(s))}])].filter(([id])=>!!id)).entries()];
+        sel.innerHTML='<option value="">Усі майданчики</option>'+venues.map(([id,meta])=>`<option value="${esc(id)}">${esc(meta.name)}</option>`).join("");
+        sel.value=venues.some(([id])=>id===current)?current:"";
+        sel.dataset.initialized="true";
+      }
       function digestPeriodSeances() {
-        const from=$("digestFrom")?.value || "", to=$("digestTo")?.value || "", venue=state.currentVenue || "";
+        const from=$("digestFrom")?.value || "", to=$("digestTo")?.value || "", venue=$("digestVenueFilter")?.value || "";
         return state.seances.filter(s=> (!venue || venueKey(s)===venue) && (!from || String(s.date||"")>=from) && (!to || String(s.date||"")<=to)).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.time||"").localeCompare(String(b.time||"")));
       }
       function renderDigestSeanceChoices(preselect) {
@@ -7018,10 +7043,125 @@
         const chosen=preselect instanceof Set ? preselect : new Set([...root.querySelectorAll("[data-digest-seance]:checked")].map(x=>x.value));
         const rows=digestPeriodSeances().slice(0,150);
         root.innerHTML= rows.length ? rows.map(s=>`<label style="display:flex;gap:9px;align-items:center;margin-bottom:8px;color:#f7fbff"><input type="checkbox" data-digest-seance value="${esc(s.id)}" ${chosen.has(String(s.id))?"checked":""} style="width:auto"/><span>${esc(seanceLabel(s))} · ${esc(venueName(venueKey(s)))}</span></label>`).join("") : '<p class="muted">Немає сеансів за вибраний період і майданчик. Можна змінити період або обрати «Усі майданчики».</p>';
+        renderDigestVisualSources();
       }
       function digestChosen() { return [...document.querySelectorAll("[data-digest-seance]:checked")].map(x=>x.value); }
+      function digestResetPreview() {
+        digestBuiltImage=null;
+        $("digestPreviewCanvas").classList.add("hidden");
+        $("digestDownloadImageBtn").disabled=true;
+        $("digestPublishImageBtn").disabled=true;
+      }
+      function digestPosterAssets(s) {
+        // Exact project or seance associations only; never guess by a title collision.
+        const allowedTypes=new Set(["source_poster","poster","cover","adapted"]);
+        return state.projectAssets.filter(a=>
+          (String(a.seance_id||"")===String(s.id) || (s.project_id && String(a.project_id)===String(s.project_id))) &&
+          a.status==="approved" && allowedTypes.has(a.asset_type) &&
+          String(a.mime_type||"").startsWith("image/") && digestUrl(a.public_url)
+        ).sort((a,b)=>Number(!!b.is_primary)-Number(!!a.is_primary));
+      }
+      function digestPosterFromSeance(s) {
+        for(const k of ["poster_url","poster","image_url","image","afisha_url"]) {
+          const u=digestUrl(s[k]); if(u)return u;
+        }
+        return "";
+      }
+      function renderDigestVisualSources() {
+        const root=$("digestVisualSources");if(!root)return;
+        const ids=digestChosen();
+        root.innerHTML=ids.length?ids.map(id=>{
+          const s=state.seances.find(x=>String(x.id)===id);if(!s)return "";
+          const assets=digestPosterAssets(s),seancePoster=digestPosterFromSeance(s);
+          const saved=digestVisuals.get(id)||{};
+          const options=[{url:"",label:"— Оберіть афішу —"},...assets.map(a=>({url:a.public_url,label:`Бібліотека: ${a.title||a.file_name||a.asset_type}`}))];
+          if(seancePoster&&!options.some(x=>x.url===seancePoster))options.push({url:seancePoster,label:"З картки сеансу"});
+          if(saved.url&&!options.some(x=>x.url===saved.url))options.push({url:saved.url,label:"Раніше обраний URL"});
+          if(!saved.url&&!saved.file&&options.length===2)digestVisuals.set(id,{url:options[1].url});
+          const current=digestVisuals.get(id)||{};
+          return `<div class="compact" data-digest-visual-id="${esc(id)}"><b>${esc(s.show||s.title||s.name||s.id)}</b><div class="meta">${esc(s.date||"")} ${esc(s.time||"")}</div><div class="field" style="margin-top:9px"><label>З бібліотеки / сеансу</label><select data-digest-source="${esc(id)}">${options.map(o=>`<option value="${esc(o.url)}" ${current.url===o.url?"selected":""}>${esc(o.label)}</option>`).join("")}</select></div><div class="field"><label>Або оригінальна PNG з комп'ютера</label><input type="file" accept="image/png" data-digest-file="${esc(id)}"/></div><div class="field-note" data-digest-file-note="${esc(id)}">${current.file?`Обрано: ${esc(current.file.name)}`:"Файл не вибрано"}</div></div>`;
+        }).join(""):'<div class="muted">Позначте спектаклі вище, щоб вибрати їхні афіші.</div>';
+      }
+      function digestPickFile(id,file) {
+        if(!file)return;
+        if(file.type!=="image/png"||!file.name.toLowerCase().endsWith(".png"))throw new Error("Для ручного вибору потрібен оригінальний PNG.");
+        if(file.size>15*1024*1024)throw new Error("PNG завеликий (максимум 15 МБ).");
+        digestVisuals.set(id,{file,url:""});
+        digestResetPreview();
+        const note=document.querySelector(`[data-digest-file-note="${CSS.escape(id)}"]`);if(note)note.textContent=`Обрано: ${file.name}`;
+      }
+      async function digestLoadPicture(source){
+        let url=source.file?URL.createObjectURL(source.file):source.url;
+        if(!url)throw new Error("Для одного з вибраних сеансів немає PNG.");
+        try {return await new Promise((resolve,reject)=>{
+          const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error("Не вдалося відкрити афішу. Для віддаленого URL перевірте доступ до зображення (CORS)."));
+          if(!source.file)img.crossOrigin="anonymous";
+          img.src=url;
+        });}finally{if(source.file)URL.revokeObjectURL(url);}
+      }
+      function digestCanvasText(ctx,text,x,y,maxWidth,size=35,weight="600",color="#f7f6f1"){
+        ctx.fillStyle=color;ctx.font=`${weight} ${size}px Arial, sans-serif`;
+        const content=String(text||"").trim();
+        if(!content)return;
+        if(ctx.measureText(content).width<=maxWidth){ctx.fillText(content,x,y);return;}
+        let trimmed=content;
+        while(trimmed.length>2&&ctx.measureText(trimmed+"…").width>maxWidth)trimmed=trimmed.slice(0,-1);
+        ctx.fillText(trimmed+"…",x,y);
+      }
+      async function digestBuildImage() {
+        const ids=digestChosen(); if(!ids.length)throw new Error("Оберіть спектаклі для афіші.");
+        if(ids.length>8)throw new Error("На одному графічному аркуші можна розмістити до 8 афіш.");
+        const selected=ids.map(id=>({id,seance:state.seances.find(s=>String(s.id)===id),source:digestVisuals.get(id)||{}}));
+        const images=await Promise.all(selected.map(x=>digestLoadPicture(x.source)));
+        const canvas=$("digestPreviewCanvas"),ctx=canvas.getContext("2d");
+        if(!ctx)throw new Error("Canvas недоступний у цьому браузері.");
+        const W=1200,H=ids.length<=2?1200:1500;
+        canvas.width=W;canvas.height=H;
+        ctx.fillStyle="#071528";ctx.fillRect(0,0,W,H);
+        const grd=ctx.createLinearGradient(0,0,W,H);grd.addColorStop(0,"#102c46");grd.addColorStop(1,"#050d19");ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+        ctx.fillStyle="#e8c27d";ctx.fillRect(48,40,W-96,3);
+        const venue=$("digestVenueFilter").value;
+        digestCanvasText(ctx,venue?venueName(venue):"ВАШ АДМІН · АФІША МІСТА",60,110,W-120,42,"700","#f4dfa7");
+        digestCanvasText(ctx,"Афіша на тиждень",60,170,W-120,55,"700");
+        const ukDate=raw=>raw?new Intl.DateTimeFormat("uk-UA",{day:"numeric",month:"long"}).format(new Date(raw+"T12:00:00")):"";
+        digestCanvasText(ctx,`${ukDate($( "digestFrom" ).value)} — ${ukDate($( "digestTo" ).value)}`,60,218,W-120,28,"500","#c9d9e9");
+        const cols=ids.length===1?1:2,rows=Math.ceil(ids.length/cols),gap=20;
+        const top=270,bottom=136,outer=54;
+        const cellW=(W-2*outer-(cols-1)*gap)/cols;
+        const cellH=(H-top-bottom-(rows-1)*gap)/rows;
+        for(let i=0;i<images.length;i++){
+          const img=images[i],s=selected[i].seance,col=i%cols,row=Math.floor(i/cols);
+          const x=outer+col*(cellW+gap),y=top+row*(cellH+gap);
+          ctx.fillStyle="#061120";ctx.fillRect(x,y,cellW,cellH);
+          const availH=cellH-80,ratio=Math.min((cellW-12)/img.width,(availH-12)/img.height);
+          const dw=img.width*ratio,dh=img.height*ratio;
+          ctx.drawImage(img,x+(cellW-dw)/2,y+(availH-dh)/2,dw,dh);
+          ctx.strokeStyle="#d6b76f";ctx.lineWidth=3;ctx.strokeRect(x+1.5,y+1.5,cellW-3,cellH-3);
+          ctx.fillStyle="#102c46";ctx.fillRect(x+3,y+availH,cellW-6,80);
+          digestCanvasText(ctx,s.show||s.title||s.name||s.id,x+15,y+availH+29,cellW-30,27,"700");
+          digestCanvasText(ctx,`${s.date?new Intl.DateTimeFormat("uk-UA",{day:"2-digit",month:"2-digit"}).format(new Date(s.date+"T12:00:00")):""} · ${s.time||""}`,x+15,y+availH+62,cellW-30,24,"500","#e9c67b");
+        }
+        ctx.fillStyle="#e8c27d";ctx.fillRect(48,H-117,W-96,2);
+        digestCanvasText(ctx,"Афіша та квитки: " + ($( "digestTarget" ).value.trim()||""),60,H-70,W-120,29,"600","#f7f6f1");
+        digestCanvasText(ctx,"Оберіть виставу та свої місця онлайн",60,H-29,W-120,24,"400","#c9d9e9");
+        canvas.classList.remove("hidden");
+        digestBuiltImage=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Не вдалося створити PNG. Спробуйте локальні файли замість віддалених URL.")),"image/png"));
+        $("digestDownloadImageBtn").disabled=false;$("digestPublishImageBtn").disabled=false;
+        digestNotice("Зведену PNG сформовано із вибраних афіш. Оригінали залишилися незмінними. Можна завантажити файл або зберегти PNG у Storage.");
+      }
+      function digestBuiltFile(){if(!digestBuiltImage)throw new Error("Спочатку натисніть «Скласти зведену PNG».");return new File([digestBuiltImage],`VA-Afisha-${$("digestFrom").value||"period"}.png`,{type:"image/png"});}
+      function digestDownloadImage(){
+        const f=digestBuiltFile(),url=URL.createObjectURL(f),a=document.createElement("a");
+        a.href=url;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+      }
+      async function digestPublishImage(){
+        const f=digestBuiltFile();if(f.size>15*1024*1024)throw new Error("PNG завеликий (максимум 15 МБ).");
+        const path=`ready/digests/${Date.now()}-${safeSlug(f.name)}`;
+        const u=await uploadStorage(path,f);$("digestMedia").value=u;
+        digestNotice("Зведену PNG завантажено у Storage. Тепер натисніть «Зберегти випуск».");
+      }
       function digestNew() {
-        digestCurrentId=null;
+        digestCurrentId=null;digestVisuals.clear();digestResetPreview();
         $("digestTitle").value=""; $("digestText").value=""; $("digestMedia").value="";
         $("digestTarget").value="https://vash-admin.com/afisha"; $("digestImageFile").value="";
         $("digestSaveBtn").textContent="Зберегти випуск";
@@ -7045,7 +7185,8 @@
         if(!body) throw new Error("Додайте текст публікації.");
         if(!chosen.length) throw new Error("Оберіть щонайменше один реальний сеанс. Фіктивні сеанси не створюються.");
         return { id:digestCurrentId||`weekly-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,9)}`,
-          title,venue_id:state.currentVenue||"",date_from:from,date_to:to,seance_ids:chosen,
+          title,venue_id:$("digestVenueFilter").value||"",date_from:from,date_to:to,seance_ids:chosen,
+          visual_sources:Object.fromEntries(chosen.map(id=>[id,digestVisuals.get(id)?.url||""]).filter(([,url])=>!!digestUrl(url))),
           target_url:target,media_url:media,text:body,channel:"facebook",kind:"weekly_digest",
           updated_at:new Date().toISOString() };
       }
@@ -7057,7 +7198,9 @@
       }
       function digestEdit(id) {
         const r=digestRows().find(x=>x.id===id);if(!r)return;
-        digestCurrentId=r.id;
+        digestCurrentId=r.id;digestVisuals.clear();digestResetPreview();
+        for(const [id,url] of Object.entries(r.visual_sources||{}))if(digestUrl(url))digestVisuals.set(id,{url});
+        digestVenueChoices();if([...$("digestVenueFilter").options].some(o=>o.value===String(r.venue_id||"")))$("digestVenueFilter").value=r.venue_id||"";
         $("digestTitle").value=r.title||"";$("digestTarget").value=r.target_url||"";
         $("digestFrom").value=r.date_from||"";$("digestTo").value=r.date_to||"";
         $("digestText").value=r.text||"";$("digestMedia").value=r.media_url||"";
@@ -7065,6 +7208,7 @@
         renderDigestSeanceChoices(new Set(r.seance_ids||[]));digestNotice("Відкрито збережений випуск.");
       }
       function renderDigests() {
+        digestVenueChoices();
         renderDigestSeanceChoices();
         const root=$("digestSavedList");if(!root)return;
         const rows=digestRows().filter(r=>!state.currentVenue||!r.venue_id||r.venue_id===state.currentVenue);
@@ -7102,7 +7246,17 @@
         if(!confirm(`Відновити ${rows.length} випусків? Поточні локальні випуски будуть замінені. Перед цим експортуйте архів.`))return;
         digestSetRows(rows);digestNew();renderDigests();digestNotice("Архів випусків відновлено.");
       }
-      ["digestFrom","digestTo"].forEach(id=>$(id).addEventListener("change",()=>renderDigestSeanceChoices()));
+      ["digestFrom","digestTo","digestVenueFilter"].forEach(id=>$(id).addEventListener("change",()=>{renderDigestSeanceChoices();digestResetPreview();}));
+      $("digestSeanceList").addEventListener("change",()=>{renderDigestVisualSources();digestResetPreview();});
+      $("digestVisualSources").addEventListener("change",e=>{
+        const id=e.target.dataset.digestSource||e.target.dataset.digestFile;
+        if(!id)return;
+        if(e.target.dataset.digestFile){try{digestPickFile(id,e.target.files?.[0]);}catch(error){digestNotice(error.message||String(error),"bad");e.target.value="";}}
+        else{digestVisuals.set(id,{url:digestUrl(e.target.value)});digestResetPreview();}
+      });
+      bind("digestBuildImageBtn","click",digestBuildImage);
+      bind("digestDownloadImageBtn","click",digestDownloadImage);
+      bind("digestPublishImageBtn","click",digestPublishImage);
       bind("digestGenerateBtn","click",digestGenerateText);
       bind("digestSaveBtn","click",digestSave);
       bind("digestToOfficeBtn","click",digestHandoff);
