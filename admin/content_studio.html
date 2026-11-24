@@ -1,3 +1,4 @@
+<!-- VA Content Studio: softened social copy length guidance; preserves selection toggles, seance and text agent keys. -->
 <!doctype html>
 <html lang="uk">
   <head>
@@ -2948,8 +2949,9 @@
           label: "Facebook · стрічка",
           channel: "facebook",
           placement: "feed",
-          min: 650,
-          max: 1400,
+          min: 250,
+          max: 1000,
+          softMin: true,
         },
         facebookStory: {
           label: "Facebook · Stories",
@@ -2957,20 +2959,23 @@
           placement: "story",
           min: 80,
           max: 350,
+          softMin: true,
         },
         facebookReels: {
           label: "Facebook · Reels",
           channel: "facebook",
           placement: "reels",
-          min: 120,
-          max: 600,
+          min: 80,
+          max: 500,
+          softMin: true,
         },
         instagramPost: {
           label: "Instagram · допис",
           channel: "instagram",
           placement: "feed",
-          min: 450,
-          max: 1000,
+          min: 200,
+          max: 850,
+          softMin: true,
         },
         instagramStory: {
           label: "Instagram · Stories",
@@ -2978,6 +2983,7 @@
           placement: "story",
           min: 60,
           max: 300,
+          softMin: true,
         },
         instagramReels: {
           label: "Instagram · Reels",
@@ -2985,6 +2991,7 @@
           placement: "reels",
           min: 120,
           max: 600,
+          softMin: true,
         },
         tiktokPost: {
           label: "TikTok",
@@ -2992,6 +2999,7 @@
           placement: "post",
           min: 120,
           max: 600,
+          softMin: true,
         },
         youtubeVideo: {
           label: "YouTube · відео",
@@ -2999,6 +3007,7 @@
           placement: "video",
           min: 500,
           max: 2200,
+          softMin: true,
         },
         youtubeShorts: {
           label: "YouTube · Shorts",
@@ -3006,6 +3015,7 @@
           placement: "shorts",
           min: 120,
           max: 700,
+          softMin: true,
         },
         youtubeCommunity: {
           label: "YouTube · спільнота",
@@ -3013,13 +3023,15 @@
           placement: "community",
           min: 200,
           max: 900,
+          softMin: true,
         },
         telegram: {
           label: "Telegram",
           channel: "telegram",
           placement: "message",
-          min: 300,
-          max: 700,
+          min: 150,
+          max: 650,
+          softMin: true,
         },
         viber: {
           label: "Viber",
@@ -3027,6 +3039,7 @@
           placement: "message",
           min: 140,
           max: 420,
+          softMin: true,
         },
         email: {
           label: "Email",
@@ -4222,8 +4235,8 @@
             ok: words >= s.wordsMin && words <= s.wordsMax,
           };
         return {
-          label: `${chars} симв. / ${s.min || 0}–${s.max || "∞"}`,
-          ok: (!s.min || chars >= s.min) && (!s.max || chars <= s.max),
+          label: s.softMin ? `${chars} симв. · орієнтир ${s.min || 0}–${s.max || "∞"}` : `${chars} симв. / ${s.min || 0}–${s.max || "∞"}`,
+          ok: (s.softMin ? chars > 0 : (!s.min || chars >= s.min)) && (!s.max || chars <= s.max),
         };
       }
       // Remember chosen formats only for this browser tab and each project.
@@ -4247,7 +4260,7 @@
         $("productionChannels").innerHTML = Object.entries(TEXT_SPECS)
           .map(
             ([k, v]) =>
-              `<label class="package-option"><input type="checkbox" value="${k}"${selected.has(k) ? " checked" : ""}><div><b>${esc(v.label)}</b><span>${v.wordsMax ? `${v.wordsMin}–${v.wordsMax} слів` : `${v.min || 0}–${v.max || "∞"} символів`}</span></div></label>`,
+              `<label class="package-option"><input type="checkbox" value="${k}"${selected.has(k) ? " checked" : ""}><div><b>${esc(v.label)}</b><span>${v.wordsMax ? `${v.wordsMin}–${v.wordsMax} слів` : `${v.softMin ? "Орієнтир: " : ""}${v.min || 0}–${v.max || "∞"} символів`}</span></div></label>`,
           )
           .join("");
         syncProductionChannelSelection();
