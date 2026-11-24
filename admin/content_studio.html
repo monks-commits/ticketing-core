@@ -4109,22 +4109,45 @@
           ),
         );
       }
+      // VA STUDIO LINK FIX: project binding is an admin-only operation.
+      // Never PATCH public seances through the anon REST client: an RLS-filtered
+      // zero-row update may return HTTP 204, misleading the operator.
       async function setSeanceProject(id, pid) {
-        await sb(`seances?id=eq.${encodeURIComponent(id)}`, {
-          method: "PATCH",
-          body: JSON.stringify({ project_id: pid || null }),
-        });
-        await logActivity(pid ? "Привʼязано сеанс" : "Відвʼязано сеанс", {
-          area: "project",
-          entity_type: "seance",
-          entity_id: id,
-        });
-        await loadAll();
-        fillProject(
-          state.projects.find(
-            (x) => String(x.id) === String(selectedProjectId()),
-          ),
-        );
+        const projectId = selectedProjectId();
+        const action = pid ? "link" : "unlink";
+        if (!projectId || state.selectedProject?.isNew)
+          throw new Error("Спочатку збережіть проєкт.");
+        const key = String(localStorage.getItem("va_content_agent_key") || "").trim();
+        if (!key)
+          throw new Error("Для прив'язки потрібен ключ Studio. Відкрийте «Виробництво → Текстовий відділ» і збережіть VA_AGENT_ACCESS_KEY.");
+        const buttons = [...document.querySelectorAll("[data-link-seance], [data-unlink-seance]")];
+        buttons.forEach((b) => { b.disabled = true; });
+        try {
+          const response = await fetch(`${SUPABASE_URL}/functions/v1/va-studio-link-seance`, {
+            method: "POST",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              "Content-Type": "application/json",
+              "x-va-agent-key": key,
+            },
+            body: JSON.stringify({ action, seance_id: String(id), project_id: String(projectId) }),
+          });
+          const raw = await response.text();
+          let data;
+          try { data = raw ? JSON.parse(raw) : {}; }
+          catch { data = { error: raw.slice(0, 400) }; }
+          if (!response.ok || data?.ok !== true)
+            throw new Error(data?.error || `Не вдалося прив'язати сеанс (HTTP ${response.status}).`);
+          await loadAll();
+          const changed = state.seances.find((s) => String(s.id) === String(id));
+          if (!changed || String(changed.project_id || "") !== String(pid || ""))
+            throw new Error("Сервер відповів успішно, але оновлений зв'язок не видно в переліку сеансів. Перевірте RLS SELECT / оновіть дані.");
+          const project = state.projects.find((p) => String(p.id) === String(projectId));
+          if (project) fillProject(project);
+          setMessage(pid ? "Сеанс прив'язано до проєкту. Тепер він доступний у текстовому відділі." : "Сеанс відв'язано від проєкту.", "ok");
+        } finally {
+          buttons.forEach((b) => { b.disabled = false; });
+        }
       }
       function projectMasters() {
         return state.materials
