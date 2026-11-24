@@ -3853,16 +3853,32 @@
         );
         return v?.name_uk || v?.name || v?.title || id || "Без майданчика";
       }
+      // Academy seances must open their own public poster, never a technical hall.
+      // Other venues retain their existing route until their storefront is configured.
+      function isAcademySeance(s) {
+        return ["academy", "academy-ruhu"].includes(String(venueKey(s)));
+      }
       function defaultStorefrontUrl(s) {
         const seanceId = String(s?.id || "").trim();
         if (!seanceId) return "";
-
-        // Content Studio lives in /admin/. The public buyer hall is in /universal/.
-        // URL is built from the current deployment address, so it works both on
-        // GitHub Pages and on an individual client domain/server.
-        const url = new URL("../universal/hall.html", location.href);
+        const url = isAcademySeance(s)
+          ? new URL("https://vash-admin.com/afisha/")
+          : new URL("../universal/hall.html", location.href);
         url.searchParams.set("seance", seanceId);
         return url.toString();
+      }
+      // Detect only obsolete Academy URLs; keep explicit tracking/deep links intact.
+      function isOutdatedAcademySaleLink(value, s) {
+        if (!isAcademySeance(s)) return false;
+        const raw = String(value || "").trim();
+        if (!raw) return false;
+        try {
+          const url = new URL(raw, location.href);
+          if (/\/(?:universal|site-project\/pages)\/hall\.html$/i.test(url.pathname)) return true;
+          return url.hostname === "vash-admin.com" &&
+            url.pathname.replace(/\/$/, "") === "/afisha" &&
+            url.searchParams.get("seance") !== String(s?.id || "");
+        } catch (_) { return false; }
       }
       function storefrontUrl(s) {
         const saved = String(
@@ -3875,7 +3891,8 @@
             s?.url ||
             "",
         ).trim();
-        return saved || defaultStorefrontUrl(s);
+        return saved && !isOutdatedAcademySaleLink(saved, s)
+          ? saved : defaultStorefrontUrl(s);
       }
       function linkedSeances() {
         const p = selectedProjectId();
@@ -5869,8 +5886,13 @@
         $("cabinetBody").value = p?.body || "";
         $("cabinetHashtags").value = p?.hashtags || "";
         $("cabinetCta").value = p?.cta_text || defaultCta(state.currentChannel);
+        // Refresh old technical hall URL when reopening a saved Academy draft.
+        // Preserve any deliberate valid seance link (including tracking params).
+        const previouslySavedTarget = p?.target_url || "";
         $("cabinetTargetUrl").value =
-          p?.target_url || exactSeanceUrl(currentSeance());
+          isOutdatedAcademySaleLink(previouslySavedTarget, currentSeance())
+            ? exactSeanceUrl(currentSeance())
+            : previouslySavedTarget || exactSeanceUrl(currentSeance());
         $("cabinetPublishedUrl").value = p?.published_url || "";
         loadCompositionSettings(meta.composition || {});
         syncComposerSource();
