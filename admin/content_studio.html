@@ -1050,6 +1050,18 @@
               </div>
 
               <div class="subpanel" id="project-tab-seances">
+                <div class="toolbar" style="margin-bottom: 12px; flex-wrap: wrap">
+                  <label for="studioAdminKey">Ключ прив’язки сеансів</label>
+                  <input
+                    id="studioAdminKey"
+                    type="password"
+                    autocomplete="off"
+                    placeholder="VA_STUDIO_ADMIN_KEY"
+                    style="width: 260px; max-width: 100%"
+                  />
+                  <button class="btn small" id="saveStudioAdminKeyBtn">Зберегти ключ прив’язки</button>
+                  <span class="muted" style="font-size: 12px">Окремий від ключа текстового агента</span>
+                </div>
                 <div class="toolbar">
                   <div class="grow">
                     <input
@@ -4117,9 +4129,9 @@
         const action = pid ? "link" : "unlink";
         if (!projectId || state.selectedProject?.isNew)
           throw new Error("Спочатку збережіть проєкт.");
-        const key = String(localStorage.getItem("va_content_agent_key") || "").trim();
+        const key = String(localStorage.getItem("va_studio_admin_key") || "").trim();
         if (!key)
-          throw new Error("Для прив'язки потрібен ключ Studio. Відкрийте «Виробництво → Текстовий відділ» і збережіть VA_AGENT_ACCESS_KEY.");
+          throw new Error("Для прив’язки потрібен окремий VA_STUDIO_ADMIN_KEY. Введіть його у вкладці «Сеанси» та натисніть «Зберегти ключ прив’язки».");
         const buttons = [...document.querySelectorAll("[data-link-seance], [data-unlink-seance]")];
         buttons.forEach((b) => { b.disabled = true; });
         try {
@@ -6821,6 +6833,12 @@
       bind("deleteProjectBtn", "click", removeProject);
       bind("reloadSeancesBtn", "click", loadAll);
       bind("refreshAllBtn", "click", loadAll);
+      bind("saveStudioAdminKeyBtn", "click", () => {
+        const key = $("studioAdminKey").value.trim();
+        if (!key) { setMessage("Введіть VA_STUDIO_ADMIN_KEY, щоб зберегти ключ прив’язки.", "bad"); return; }
+        localStorage.setItem("va_studio_admin_key", key);
+        setMessage("Ключ прив’язки збережено у цьому браузері. Ключ текстового агента не змінено.", "ok");
+      });
       bind("saveAgentKeyBtn", "click", () => {
         localStorage.setItem(
           "va_content_agent_key",
@@ -7300,6 +7318,8 @@
           await loadAll();
           $("apiBadge").textContent = "Supabase: підключено";
           $("apiBadge").className = "badge ok";
+          const studioKey = localStorage.getItem("va_studio_admin_key");
+          if (studioKey) $("studioAdminKey").value = studioKey;
           const saved = localStorage.getItem("va_content_agent_key");
           if (saved) $("agentKey").value = saved;
         } catch (e) {
