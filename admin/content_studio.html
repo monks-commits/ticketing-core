@@ -4904,7 +4904,8 @@
         if (
           role === "main" &&
           profile.assetTypes?.length &&
-          !profile.assetTypes.includes(a.asset_type)
+          !profile.assetTypes.includes(a.asset_type) &&
+          !(a.asset_type === "source_poster" && profile.assetTypes.includes("poster"))
         )
           return false;
         const required = normalizeRatio(
