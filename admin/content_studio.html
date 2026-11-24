@@ -1207,6 +1207,11 @@
                     placeholder="Підставляється із сеансу"
                   />
                 </div>
+                <div class="toolbar" style="margin: 4px 0 10px; align-items: center">
+                  <button class="btn small" type="button" id="clearProductionChannelsBtn">Зняти всі</button>
+                  <button class="btn small" type="button" id="selectAllProductionChannelsBtn">Обрати всі</button>
+                  <span class="muted" id="productionChannelCount" aria-live="polite">Обрано: 0</span>
+                </div>
                 <div class="package-options" id="productionChannels"></div>
                 <div class="toolbar" style="margin-top: 12px">
                   <button class="btn green" id="generateTextsBtn">
@@ -4221,6 +4226,15 @@
           ok: (!s.min || chars >= s.min) && (!s.max || chars <= s.max),
         };
       }
+      // Remember chosen formats only for this browser tab and each project.
+      // Empty selection by default prevents accidental bulk API generation.
+      const productionChannelSelections = new Map();
+      function syncProductionChannelSelection() {
+        const inputs = [...document.querySelectorAll("#productionChannels input[type=checkbox]")];
+        const selected = new Set(inputs.filter((x) => x.checked).map((x) => x.value));
+        productionChannelSelections.set(String(selectedProjectId()), selected);
+        $("productionChannelCount").textContent = `Обрано: ${selected.size} із ${inputs.length}`;
+      }
       function renderProduction() {
         if (!state.selectedProject) return;
         populateSeanceSelect("productionSeance");
@@ -4229,12 +4243,14 @@
         );
         if (s && !$("productionLink").dataset.manual)
           $("productionLink").value = exactSeanceUrl(s);
+        const selected = productionChannelSelections.get(String(selectedProjectId())) || new Set();
         $("productionChannels").innerHTML = Object.entries(TEXT_SPECS)
           .map(
             ([k, v]) =>
-              `<label class="package-option"><input type="checkbox" value="${k}" checked><div><b>${esc(v.label)}</b><span>${v.wordsMax ? `${v.wordsMin}–${v.wordsMax} слів` : `${v.min || 0}–${v.max || "∞"} символів`}</span></div></label>`,
+              `<label class="package-option"><input type="checkbox" value="${k}"${selected.has(k) ? " checked" : ""}><div><b>${esc(v.label)}</b><span>${v.wordsMax ? `${v.wordsMin}–${v.wordsMax} слів` : `${v.min || 0}–${v.max || "∞"} символів`}</span></div></label>`,
           )
           .join("");
+        syncProductionChannelSelection();
         renderProductionTexts();
         renderTools();
       }
@@ -6845,6 +6861,15 @@
           $("agentKey").value.trim(),
         );
         setProductionMessage("Ключ збережено лише у цьому браузері.", "ok");
+      });
+      $("productionChannels").addEventListener("change", syncProductionChannelSelection);
+      bind("clearProductionChannelsBtn", "click", () => {
+        document.querySelectorAll("#productionChannels input[type=checkbox]").forEach((x) => { x.checked = false; });
+        syncProductionChannelSelection();
+      });
+      bind("selectAllProductionChannelsBtn", "click", () => {
+        document.querySelectorAll("#productionChannels input[type=checkbox]").forEach((x) => { x.checked = true; });
+        syncProductionChannelSelection();
       });
       bind("generateTextsBtn", "click", () => invokeTexts());
       bind("saveAllTextsBtn", "click", () => saveAllTexts("review"));
