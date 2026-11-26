@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VA — Facebook-групи · Link Fix 1.1 · CRO 1</title>
+<title>VA — Facebook-групи · Link Fix 1.1 · CRO 1 · Finance 1</title>
 <style>
 :root{--bg:#071426;--panel:#102641;--p2:#091d33;--line:#294563;--text:#f7fbff;--muted:#b4c5d8;--blue:#358eff;--green:#1caa67;--yellow:#ecc14d;--red:#d96262}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
@@ -70,6 +70,16 @@ main{max-width:1520px;margin:auto;padding:22px}.top{display:flex;align-items:fle
   <div class="routebar" style="margin-top:12px">
    <div class="flex"><b>Статистика переходів CRO</b><select id="croDays" aria-label="Період статистики"><option value="1">Останні 24 години</option><option value="7">Останні 7 днів</option><option value="30">Останні 30 днів</option></select><button class="btn primary" id="croRefreshBtn" type="button">Оновити статистику</button></div>
    <div class="hint" id="croStatus" role="status" style="margin-top:6px"></div>
+   <div style="border-top:1px solid #7775;margin-top:12px;padding-top:12px">
+    <b>Фінансові результати VA · захищений доступ</b>
+    <div id="financeLogin" class="formgrid" style="margin-top:8px">
+     <div class="field"><label for="financeEmail">Email адміністратора</label><input id="financeEmail" type="email" autocomplete="username" /></div>
+     <div class="field"><label for="financePassword">Пароль</label><input id="financePassword" type="password" autocomplete="current-password" /></div>
+     <div class="span2"><button class="btn primary" id="financeLoginBtn" type="button">Увійти в VA</button></div>
+    </div>
+    <div id="financeActions" class="flex" hidden style="margin-top:8px"><button class="btn primary" id="financeRefreshBtn" type="button">Оновити фінансові результати</button><button class="btn" id="financeLogoutBtn" type="button">Вийти</button></div>
+    <div class="hint" id="financeStatus" role="status" style="margin-top:6px"></div>
+   </div>
   </div>
   <div id="routeInfo" class="hint">Спочатку збережіть матеріал. Ці кнопки ніде нічого не публікують.</div>
  </div>
@@ -335,6 +345,83 @@ async function refreshGroupCro(){
  finally{groupCroBusy=false;renderGroupCro();}
 }
 
+// Staff-only RPC: actual JWT, not the anon/publishable key as authorization.
+// No stored password, access token, refresh token or financial report.
+const FIN_BASE='https://fhusjlkneckbvnrdhbil.supabase.co';
+const FIN_RPC=FIN_BASE+'/rest/v1/rpc/va_staff_placement_finance_v1';
+let finSession=null,finReport=null,finBusy=false,finMessage='',finEpoch=0,finTimer=null;
+function financeActive(){return !!finSession&&Date.now()<finSession.expires;}
+function financeClear(message='Вхід потрібен для фінансових результатів.'){
+ finEpoch++;finSession=null;finReport=null;finBusy=false;finMessage=message;
+ clearTimeout(finTimer);finTimer=null;$('financePassword').value='';renderFinance();
+}
+function financeRows(data,ctx,code){
+ if(!data||data.seance_id!==ctx.seance||data.tracking_campaign_id!==code)throw Error('Невідповідність фінансового звіту.');
+ const out={};for(const k of ['paid_orders','tickets','revenue_uah']){
+  const v=data[k],n=Number(v);if(!['number','string'].includes(typeof v)||String(v).trim()===''||!Number.isFinite(n)||(k!=='revenue_uah'&&(!Number.isSafeInteger(n)||n<0)))throw Error('Некоректний фінансовий показник.');out[k]=n;
+ }return out;
+}
+function financeLabel(gid,ctx){
+ if(!financeActive())return '';
+ const code=ctx&&groupCroCode(getGroupTrackingUrl(gid),ctx.seance);
+ if(!code)return '';
+ if(finReport?.key!==ctx.key)return 'Фінанси: звіт ще не завантажено.';
+ const r=finReport.rows.get(code);if(!r)return 'Фінанси: звіт не отримано.';
+ if(r.error)return 'Фінанси: '+r.error;
+ return `Фінанси · Оплачені замовлення: ${r.paid_orders} · Квитки: ${r.tickets} · Виручка: ${r.revenue_uah.toLocaleString('uk-UA',{minimumFractionDigits:2,maximumFractionDigits:2})} грн`;
+}
+function renderFinance(){
+ const active=financeActive(),ctx=groupCroContext();
+ $('financeLogin').style.display=active?'none':'';
+ $('financeActions').hidden=!active;$('financeActions').style.display=active?'flex':'none';
+ $('financeLoginBtn').disabled=finBusy;$('financeRefreshBtn').disabled=!active||!ctx||finBusy;
+ $('financeStatus').textContent=finMessage||(active?'Вхід виконано. Оновіть фінансові результати.':'Увійдіть з обліковим записом VA. Пароль і токен не зберігаються.');
+ for(const el of document.querySelectorAll('[data-fin-group]'))el.textContent=financeLabel(el.dataset.finGroup,ctx);
+}
+async function financeLogin(){
+ if(finBusy||financeActive())return;
+ const email=$('financeEmail').value.trim(),password=$('financePassword').value;
+ if(!email||!password){finMessage='Вкажіть email і пароль.';renderFinance();return;}
+ $('financePassword').value='';finBusy=true;finMessage='Вхід…';const epoch=++finEpoch;renderFinance();
+ try{
+  const r=await fetch(FIN_BASE+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:CRO_PUBLIC_KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+  if(!r.ok)throw Error('Вхід не виконано (HTTP '+r.status+'). Перевірте email і пароль.');
+  const data=await r.json();if(typeof data.access_token!=='string'||!data.access_token||!Number.isFinite(Number(data.expires_in))||Number(data.expires_in)<=0)throw Error('Некоректна відповідь авторизації.');
+  if(epoch!==finEpoch)return;
+  finSession={token:data.access_token,expires:Date.now()+Number(data.expires_in)*1000-5000};
+  finTimer=setTimeout(()=>financeClear('Сесію завершено. Увійдіть знову.'),Math.max(0,finSession.expires-Date.now()));
+  finMessage='Вхід виконано. Оновіть фінансові результати.';
+ }catch(e){if(epoch===finEpoch)finMessage=e.message||'Помилка входу.';}
+ finally{if(epoch===finEpoch){finBusy=false;renderFinance();}}
+}
+async function financeLogout(){
+ const token=finSession?.token;financeClear('Ви вийшли з фінансового кабінету.');
+ if(token)try{await fetch(FIN_BASE+'/auth/v1/logout?scope=local',{method:'POST',headers:{apikey:CRO_PUBLIC_KEY,Authorization:'Bearer '+token}});}catch{}
+}
+async function refreshFinance(){
+ const ctx=groupCroContext();if(!financeActive()||!ctx||finBusy)return;
+ const codes=[...new Set(db.groups.map(g=>groupCroCode(getGroupTrackingUrl(g.id),ctx.seance)).filter(Boolean))];
+ if(!codes.length){finMessage='Немає індивідуальних VAC-CH для цього матеріалу.';renderFinance();return;}
+ const epoch=finEpoch,token=finSession.token,now=new Date(),from=new Date(now.getTime()-ctx.days*86400000),rows=new Map();
+ finBusy=true;finMessage='Завантаження фінансових результатів…';finReport=null;renderFinance();
+ try{
+  for(let i=0;i<codes.length;i+=4){
+   if(epoch!==finEpoch||!financeActive())return;
+   await Promise.all(codes.slice(i,i+4).map(async code=>{
+    try{
+     const r=await fetch(FIN_RPC,{method:'POST',headers:{apikey:CRO_PUBLIC_KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({p_seance_id:ctx.seance,p_tracking_campaign:code,p_from:from.toISOString(),p_to:now.toISOString()})});
+     if(r.status===401){if(epoch===finEpoch)financeClear('Сесію завершено. Увійдіть знову.');return;}
+     if(!r.ok)throw Error('Звіт недоступний (HTTP '+r.status+').');
+     rows.set(code,financeRows(await r.json(),ctx,code));
+    }catch(e){rows.set(code,{error:e.message||'Помилка запиту.'});}
+   }));
+  }
+  if(epoch===finEpoch&&financeActive()){
+   finReport={key:ctx.key,rows};const good=[...rows.values()].filter(r=>!r.error).length;
+   finMessage=`Фінансовий звіт за ${ctx.days} дн. · отримано ${good} із ${codes.length} · ${now.toLocaleString('uk-UA')}. Замовлення, створені в періоді та згодом оплачені.`;
+  }
+ }finally{if(epoch===finEpoch){finBusy=false;renderFinance();}}
+}
 function render(){
  const c=currentCampaign(),ids=chosenIds(),visible=visibleGroups(),chosen=chosenGroups();
  $('kTotal').textContent=db.groups.length;
@@ -364,11 +451,13 @@ function render(){
    </div>
    <div class="group-info">${safe(g.tags||g.url)}${g.notes?'<br>'+safe(g.notes):''}</div>
    <div class="hint" data-cro-group="${safe(g.id)}" style="margin:5px 0"></div>
+   <div class="hint" data-fin-group="${safe(g.id)}" style="margin:5px 0"></div>
    <div class="actions"><button class="btn" data-action="choose" data-id="${safe(g.id)}">Журнал / результат</button><button class="btn soft" data-action="open" data-id="${safe(g.id)}">${recipientKind(g.url)==='page_or_profile'?'Відкрити сторінку':'Відкрити групу'}</button><button class="btn soft" data-action="copy" data-id="${safe(g.id)}" ${!c||!checked||noCopy||status==='published'||status==='pending'?'disabled title="Оберіть групу й перевірте правила"':''}>Копіювати допис</button><button class="btn ${blocked?'green':'red'}" data-action="exclude" data-id="${safe(g.id)}" ${['banned','paid'].includes(g.policy)?'disabled title="Змініть умови розміщення у картці групи"':''}>${['banned','paid'].includes(g.policy)?'Заборонено умовами':blocked?'Повернути до списку':'Виключити'}</button></div>
   </div>`
  }).join(''):'<p class="muted">Групи не знайдені. Змініть фільтр.</p>';
  renderDetail();
  renderGroupCro();
+ renderFinance();
 }
 function nextTarget(){
  const items=chosenGroups();if(!items.length){msg('Спочатку виберіть групи.','bad');return}
@@ -420,8 +509,12 @@ $('clearTargetsBtn').onclick=()=>{if(!confirm('Зняти вибір усіх г
 $('nextTargetBtn').onclick=nextTarget;
 $('marketingCampaignSelect').onchange=()=>renderTrackingControls();
 $('assignTrackingBtn').onclick=assignTracking;
-$('croDays').onchange=renderGroupCro;
+$('croDays').onchange=()=>{renderGroupCro();finReport=null;finMessage=financeActive()?'Період змінено. Оновіть фінансові результати.':'';renderFinance();};
 $('croRefreshBtn').onclick=refreshGroupCro;
+$('financeLoginBtn').onclick=financeLogin;
+$('financeRefreshBtn').onclick=refreshFinance;
+$('financeLogoutBtn').onclick=financeLogout;
+$('financePassword').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();financeLogin();}});
 load();if(db.groups.length===0){db.groups.push({id:id(),name:'Група 1107907784152777',url:'https://www.facebook.com/groups/1107907784152777/',policy:'unknown',priority:'high',excluded:false,tags:'Кривий Ріг',notes:'Додана з наданого посилання; умови розміщення слід перевірити',updatedAt:new Date().toISOString()});save()}importBridge();if(!selectedCampaign)selectedCampaign=db.campaigns[0]?.id||null;if(!selectedGroup)selectedGroup=db.groups[0]?.id||null;renderCampaigns();render();
 </script>
 </body></html>
