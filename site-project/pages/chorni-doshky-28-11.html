@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1528">
+<title>Чорні дошки • Академія руху • Відеоафіша</title>
+<meta name="description" content="28 листопада о 16:00. Відеоафіша вистави-реквієму «Чорні дошки» театру «Академія руху». Купити квитки — вибір місць після відео.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="uk_UA">
+<meta property="og:site_name" content="Ваш Адмін • Академія руху">
+<meta property="og:title" content="Чорні дошки • 28 листопада о 16:00">
+<meta property="og:description" content="28 листопада о 16:00. Відеоафіша вистави-реквієму «Чорні дошки» театру «Академія руху». Купити квитки — вибір місць після відео.">
+<meta property="og:image" content="https://monks-commits.github.io/ticketing-core/site-project/pages/chorni-doshky.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Афіша вистави «Чорні дошки»">
+<meta property="og:url" content="https://monks-commits.github.io/ticketing-core/site-project/pages/chorni-doshky-28-11.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Чорні дошки • Квитки">
+<meta name="twitter:image" content="https://monks-commits.github.io/ticketing-core/site-project/pages/chorni-doshky.png">
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:radial-gradient(ellipse at top,#263254 0%,#101827 50%,#090f19 100%);color:#fff}
+.wrap{width:min(470px,calc(100% - 30px));margin:0 auto;padding:18px 0 max(36px,env(safe-area-inset-bottom));text-align:center}
+.brand{color:#d6dfea;font-size:12px;font-weight:800;letter-spacing:.12em}
+h1{margin:10px 0 4px;font-size:clamp(25px,7vw,34px)}.date{color:#c8d3e8;margin:4px 0 14px;font-size:15px}
+.frame{width:100%;height:auto;aspect-ratio:465/672;position:relative;background:#05090f;border-radius:14px;overflow:hidden;border:1px solid #536280;box-shadow:0 13px 42px #0008}
+#poster,#video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#05090f}
+#poster{display:block}#video{display:none}
+#mediaTap{position:absolute;inset:0;z-index:3;background:transparent;border:0;color:#fff;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center}
+#playGlyph{background:#091629bb;border:2px solid #fff9;border-radius:100px;font-size:35px;width:68px;height:68px;display:grid;place-items:center;padding-left:4px;box-shadow:0 5px 25px #0009}
+#overlayHint{position:absolute;left:10px;right:10px;bottom:12px;z-index:4;background:#0b172de6;border:1px solid #ffffff55;border-radius:10px;padding:9px 5px;font-size:13px;font-weight:700;pointer-events:none}
+.controls{display:flex;gap:10px;margin-top:13px;flex-wrap:wrap}
+.btn{appearance:none;display:block;flex:1 1 100%;padding:15px;border-radius:12px;border:1px solid #ffdfa0;background:linear-gradient(#f9d278,#db9e40);color:#231808;font-size:19px;font-weight:900;cursor:pointer}
+.secondary{flex:1 1 49%;font-size:14px;padding:12px;background:#25344e;color:#fff;border-color:#6b7892;display:none}
+.note{font-size:13px;color:#b9c6dc;line-height:1.5;margin-top:12px}
+#status{font-size:13px;color:#fde3ab;min-height:1.4em;margin-top:7px}
+button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+</style>
+</head>
+<body><main class="wrap">
+<div class="brand">ТЕАТР «АКАДЕМІЯ РУХУ»</div>
+<h1>Чорні дошки</h1><p class="date">28 листопада 2026 • 16:00</p>
+<div class="frame">
+  <img id="poster" src="chorni-doshky.png" alt="Афіша вистави «Чорні дошки»">
+  <video id="video" playsinline preload="metadata" muted aria-label="Відеоафіша «Чорні дошки»"></video>
+  <button id="mediaTap" type="button" aria-label="Відтворити відеоафішу"><span id="playGlyph">▶</span></button>
+  <div id="overlayHint">▶ Відеоафіша → вибір місць</div>
+</div>
+<div class="controls">
+<button id="buy" class="btn" type="button">Купити квитки</button>
+<button id="sound" class="btn secondary" type="button">🔇 Увімкнути звук</button>
+<button id="skip" class="btn secondary" type="button">Пропустити відео → місця</button>
+</div>
+<p id="status" role="status">Завантажуємо відеоафішу…</p>
+<p class="note">Після відео відкриється схема залу. Можна пропустити ролик.</p>
+</main>
+<script>
+'use strict';
+// Independent one-seance social landing. Does not mutate ticketing data.
+const SEANCE_ID='chorni-doshky-2026-11-28-16-00';
+const PUBLIC_SUPABASE_URL='https://fhusjlkneckbvnrdhbil.supabase.co';
+const PUBLIC_KEY='sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS';
+const hallUrl=new URL('./hall.html?seance='+encodeURIComponent(SEANCE_ID),location.href).href;
+const poster=document.getElementById('poster');
+const video=document.getElementById('video');
+const mediaTap=document.getElementById('mediaTap');
+const playGlyph=document.getElementById('playGlyph');
+const status=document.getElementById('status');
+const buy=document.getElementById('buy');
+const skip=document.getElementById('skip');
+const sound=document.getElementById('sound');
+const overlay=document.getElementById('overlayHint');
+let videoUrl='';
+let started=false;
+let loading=null;
+let canSell=false;
+function note(message){status.textContent=message;}
+function validUrl(input){try{const u=new URL(String(input||''),location.href);return u.protocol==='https:'?u.href:''}catch{return ''}}
+function storeReturn(){try{sessionStorage.setItem('va_return_url:'+SEANCE_ID,location.href)}catch(_){}}
+function toHall(){if(!canSell){note('Продаж зараз недоступний.');return;}storeReturn();location.assign(hallUrl)}
+function unavailable(message){note(message);overlay.textContent='Відео тимчасово недоступне — перейти до місць';buy.textContent='Перейти до вибору місць';mediaTap.onclick=toHall;buy.onclick=toHall;skip.style.display='none';sound.style.display='none';video.style.display='none';poster.style.display='block';playGlyph.style.display='grid';}
+async function getRows(table,qs){
+  const response=await fetch(PUBLIC_SUPABASE_URL+'/rest/v1/'+table+'?'+qs,{headers:{apikey:PUBLIC_KEY,Authorization:'Bearer '+PUBLIC_KEY},cache:'no-store'});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const rows=await response.json();return Array.isArray(rows)?rows:[];
+}
+function showPlaying(){poster.style.display='none';video.style.display='block';playGlyph.style.display='none';overlay.style.display='none';skip.style.display='block';sound.style.display='block';}
+async function startVideo(withSound=false){
+  if(!canSell)return;
+  if(!videoUrl){if(loading)await loading;if(!videoUrl){unavailable('Відеоафіша не підключена. Можна перейти до схеми залу.');return}}
+  if(started){
+    if(withSound){video.muted=false;sound.textContent='🔊 Вимкнути звук'}
+    if(video.paused){try{await video.play()}catch(_){note('Натисніть ▶, щоб запустити відео.')}}
+    return;
+  }
+  started=true;
+  video.muted=!withSound;
+  video.src=videoUrl;
+  showPlaying();
+  try{await video.play();note('Відеоафіша • після завершення відкриється схема залу.');}
+  catch(e){
+    // Audible autoplay can be forbidden after a social-app navigation.
+    video.muted=true;
+    try{await video.play();note('Відео відтворюється без звуку. Для озвучення натисніть «Увімкнути звук».');}
+    catch(_){started=false;poster.style.display='block';video.style.display='none';playGlyph.style.display='grid';overlay.style.display='block';sound.style.display='none';skip.style.display='block';note('Натисніть на афішу або «Купити квитки», щоб відтворити відео.');}
+  }
+}
+video.addEventListener('ended',toHall);
+video.addEventListener('error',()=>unavailable('Помилка відтворення відео. Можна перейти до схеми залу.'));
+mediaTap.addEventListener('click',()=>startVideo(true));
+buy.addEventListener('click',()=>startVideo(true));
+skip.addEventListener('click',toHall);
+sound.addEventListener('click',()=>{video.muted=!video.muted;sound.textContent=video.muted?'🔇 Увімкнути звук':'🔊 Вимкнути звук';if(video.paused)video.play().catch(()=>{});});
+loading=(async()=>{
+  try{
+    const [ss,vs]=await Promise.all([
+      getRows('seances','select=id,venue_id,active,status&id=eq.'+encodeURIComponent(SEANCE_ID)+'&limit=1'),
+      getRows('seance_visuals','select=live_poster_url,poster_url,enable_live_poster&seance_id=eq.'+encodeURIComponent(SEANCE_ID)+'&enabled=eq.true&limit=1')
+    ]);
+    const s=ss[0],v=vs[0];
+    if(!s||s.venue_id!=='academy'||s.active===false||['cancelled','canceled','archived'].includes(String(s.status||'').toLowerCase())){
+      buy.disabled=true;mediaTap.disabled=true;note('Сеанс зараз недоступний для продажу.');return;
+    }
+    canSell=true;
+    const livePoster=validUrl(v?.poster_url);
+    if(livePoster)poster.src=livePoster;
+    if(v?.enable_live_poster!==false) videoUrl=validUrl(v?.live_poster_url);
+    if(!videoUrl){unavailable('Для цього сеансу Live Poster не підключено.');return;}
+    note('Запускаємо відеоафішу…');
+    // On opening a social link, muted autoplay can usually start; audio requires a user gesture.
+    await startVideo(false);
+  }catch(e){
+    console.error('Solo Live Poster read failed',e);
+    // Do not claim missing sale or redirect without a verified seance.
+    note('Не вдалося перевірити сеанс. Оновіть сторінку.');
+  }
+})();
+</script>
+</body></html>
