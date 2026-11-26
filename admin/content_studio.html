@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VA Content Studio V1.8.3</title>
+    <title>VA Content Studio V1.8.3 · Route Fix 1</title>
     <style>
       :root {
         --bg: #061426;
@@ -1519,7 +1519,7 @@
                       </div>
                       <div class="field" id="cabinetTargetTypeField">
                         <label>Перехід</label><select id="cabinetTargetType">
-                          <option value="seance">Схема залу конкретного сеансу</option>
+                          <option value="seance">Конкретний сеанс</option>
                           <option value="venue">Вітрина майданчика</option>
                           <option value="custom">Інша адреса</option>
                         </select>
@@ -3862,7 +3862,7 @@
         const seanceId = String(s?.id || "").trim();
         if (!seanceId) return "";
         const url = isAcademySeance(s)
-          ? new URL("https://vash-admin.com/afisha/")
+          ? new URL("https://vash-admin.com/afisha")
           : new URL("../universal/hall.html", location.href);
         url.searchParams.set("seance", seanceId);
         return url.toString();
@@ -3881,6 +3881,8 @@
         } catch (_) { return false; }
       }
       function storefrontUrl(s) {
+        // Academy's seance route is canonical; the Marketing module owns placement tags.
+        if (isAcademySeance(s)) return defaultStorefrontUrl(s);
         const saved = String(
           s?.ticket_url ||
             s?.sale_url ||
@@ -3893,6 +3895,34 @@
         ).trim();
         return saved && !isOutdatedAcademySaleLink(saved, s)
           ? saved : defaultStorefrontUrl(s);
+      }
+      // Only Academy's public route is changed. Other venues keep their existing behavior.
+      function academyTargetType(raw, savedType) {
+        if (["seance", "venue", "custom"].includes(savedType)) return savedType;
+        if (!String(raw || "").trim() || raw === "{{ticket_url}}") return "seance";
+        try {
+          const u = new URL(raw, location.href);
+          const path = u.pathname.replace(/\/$/, "");
+          if (u.origin === "https://vash-admin.com" && path === "/afisha")
+            return u.searchParams.has("seance") || u.searchParams.has("seance_id") ? "seance" : "venue";
+          if (u.origin === "https://monks-commits.github.io" &&
+              /^\/ticketing-core\/(?:universal\/hall|site-project\/pages\/(?:hall|campaign-entry|chorni-doshky-28-11|omriyani-zori-28-11))\.html$/i.test(path)) return "seance";
+        } catch (_) {}
+        return "custom";
+      }
+      function academyTargetUrl(s, type, raw = "") {
+        if (type === "custom") return String(raw || "").trim();
+        if (type === "venue") return "https://vash-admin.com/afisha";
+        return defaultStorefrontUrl(s);
+      }
+      function setAcademyCabinetTarget(s, type, raw = "") {
+        $("cabinetTargetType").value = type;
+        $("cabinetTargetUrl").readOnly = type !== "custom";
+        $("cabinetTargetUrl").value = academyTargetUrl(s, type, raw);
+      }
+      function cabinetTargetValue(s) {
+        const raw = $("cabinetTargetUrl").value.trim();
+        return isAcademySeance(s) ? academyTargetUrl(s, $("cabinetTargetType").value, raw) : raw;
       }
       function linkedSeances() {
         const p = selectedProjectId();
@@ -5439,7 +5469,7 @@
           width:dimensions.width, height:dimensions.height, duration_sec:durationSec, file_size:file.size,
           title:`${state.selectedProject?.title||facts.title||"Проєкт"} · ${CHANNELS[state.currentChannel]?.label||state.currentChannel} · ${profile.label}`,
           subject:parts.subject||"", body_text:$("cabinetBody")?.value||"", publication_text:parts.finalText||"", hashtags:$("cabinetHashtags")?.value?.trim()||"",
-          cta_text:$("cabinetCta")?.value?.trim()||"", target_url:$("cabinetTargetUrl")?.value?.trim()||"",
+          cta_text:$("cabinetCta")?.value?.trim()||"", target_url:parts.targetUrl||"",
           price_label:facts.price||"", event_date_label:[facts.date,facts.time].filter(Boolean).join(" · "), venue_label:facts.venue||venueName(projectVenue(state.selectedProject)),
           version, status:"ready", layout:settings,
           metadata:{source:"content_studio_v1_8",recipient:CHANNELS[state.currentChannel]?.label||state.currentChannel,placement_label:profile.label,fields,facts,source_asset_id:composerSelectedMedia()?.id||null,frame_asset_id:composerSelectedFrame()?.id||null}
@@ -5889,10 +5919,13 @@
         // Refresh old technical hall URL when reopening a saved Academy draft.
         // Preserve any deliberate valid seance link (including tracking params).
         const previouslySavedTarget = p?.target_url || "";
-        $("cabinetTargetUrl").value =
-          isOutdatedAcademySaleLink(previouslySavedTarget, currentSeance())
-            ? exactSeanceUrl(currentSeance())
-            : previouslySavedTarget || exactSeanceUrl(currentSeance());
+        if (isAcademySeance(currentSeance())) {
+          setAcademyCabinetTarget(currentSeance(), academyTargetType(previouslySavedTarget, meta.target_type), previouslySavedTarget);
+        } else {
+          $("cabinetTargetType").value = "seance";
+          $("cabinetTargetUrl").readOnly = false;
+          $("cabinetTargetUrl").value = previouslySavedTarget || exactSeanceUrl(currentSeance());
+        }
         $("cabinetPublishedUrl").value = p?.published_url || "";
         loadCompositionSettings(meta.composition || {});
         syncComposerSource();
@@ -5915,7 +5948,8 @@
           $("cabinetCta").value =
             v.call_to_action || defaultCta(state.currentChannel);
         }
-        $("cabinetTargetUrl").value = exactSeanceUrl(s);
+        if (!isAcademySeance(s)) $("cabinetTargetUrl").value = exactSeanceUrl(s);
+        else if ($("cabinetTargetType").value === "seance") setAcademyCabinetTarget(s, "seance");
         if (refresh) updateCabinetPreview();
       }
       function publicationParts() {
@@ -5925,7 +5959,7 @@
           core = $("cabinetBody").value.trim(),
           tags = $("cabinetHashtags").value.trim(),
           cta = $("cabinetCta").value.trim(),
-          url = $("cabinetTargetUrl").value.trim(),
+          url = cabinetTargetValue(s),
           title = $("cabinetHeadline").value.trim() || f.title;
         const dateLine = [f.date, f.time].filter(Boolean).join(" • "),
           placeLine = [f.city, f.venue, f.hall].filter(Boolean).join(" · "),
@@ -6036,7 +6070,7 @@
           default:
             finalText = [core, ticket, tags].filter(Boolean).join("\n\n");
         }
-        return { subject, finalText, linkLabel, facts: f, profile };
+        return { subject, finalText, linkLabel, facts: f, profile, targetUrl: url };
       }
       function updateCabinetPreview() {
         if (state.currentChannel === "site") return;
@@ -6257,8 +6291,14 @@
         for (const p of clone.publications || []) {
           p.headline = materialize(p.headline, s);
           p.body = materialize(p.body, s);
-          p.target_url = materialize(p.target_url, s);
+          const rawTarget = p.target_url;
+          const targetType = isAcademySeance(s) ? academyTargetType(rawTarget, p.metadata?.target_type) : null;
+          p.target_url = materialize(rawTarget, s);
           p.metadata = materializeDeep(p.metadata || {}, s);
+          if (targetType) {
+            p.target_url = academyTargetUrl(s, targetType, p.target_url);
+            p.metadata.target_type = targetType;
+          }
         }
         clone.release_seance = seanceData(s);
         clone.created_at = new Date().toISOString();
@@ -6396,9 +6436,10 @@
           text_variant_id:$("cabinetTextVariant").value||null, media_asset_id:$("cabinetMedia").value||null,
           venue_asset_id:$("cabinetFrame").value||null, headline:$("cabinetHeadline").value.trim()||null,
           body:$("cabinetBody").value, hashtags:$("cabinetHashtags").value.trim()||null,
-          cta_text:$("cabinetCta").value.trim()||null, target_url:$("cabinetTargetUrl").value.trim()||null,
+          cta_text:$("cabinetCta").value.trim()||null, target_url:parts.targetUrl||null,
           status:statusOverride||$("cabinetStatus").value, published_url:$("cabinetPublishedUrl").value.trim()||null,
           metadata:{standard_profile:profileKey(),standard_label:profile.label,required_ratio:profile.ratio,fields,
+            ...(isAcademySeance(s)?{target_type:$("cabinetTargetType").value}:{}),
             final_text:templateize(parts.finalText,s),final_subject:templateize(parts.subject,s),
             media_ratio:media?assetRatio(media):null,frame_ratio:frame?assetRatio(frame):null,
             composition:collectCompositionSettings(),...extraMetadata}
@@ -6977,6 +7018,11 @@
       $("cabinetFrame")?.addEventListener("change",updateCabinetPreview);
       $("cabinetTargetType").addEventListener("change", () => {
         const s = currentSeance();
+        if (isAcademySeance(s)) {
+          setAcademyCabinetTarget(s, $("cabinetTargetType").value, $("cabinetTargetUrl").value);
+          updateCabinetPreview();
+          return;
+        }
         if ($("cabinetTargetType").value === "seance")
           $("cabinetTargetUrl").value = exactSeanceUrl(s);
         if ($("cabinetTargetType").value === "venue")
