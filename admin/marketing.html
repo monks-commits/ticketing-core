@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.25 — Marketing Operating Loop V1</title>
+  <title>VA Marketing V2.25 — Protected Read 1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -10,6 +10,7 @@
   <script src="../shared/va-client-rfm.js?v=1.0.1"></script>
 
   <style>
+    #vaStaffWorkspace[hidden],#vaStaffForm[hidden],#vaStaffLogout[hidden]{display:none!important;}
     body{margin:0;font-family:Arial,sans-serif;background:#071a35;color:#fff}
     .wrap{max-width:1280px;margin:0 auto;padding:28px}
     h1{margin:0 0 8px;font-size:34px}
@@ -501,12 +502,26 @@ textarea::placeholder{
 
 <body>
 <div class="wrap">
+  <div class="card" id="vaStaffAccess">
+    <h2>Захищений доступ VA</h2>
+    <div class="muted">Академія руху · Вхід адміністратора. Пароль і сесія не зберігаються у localStorage.</div>
+    <form id="vaStaffForm" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
+      <input class="box" id="vaStaffEmail" type="email" autocomplete="username" placeholder="Email" required>
+      <input class="box" id="vaStaffPassword" type="password" autocomplete="current-password" placeholder="Пароль" required>
+      <button class="btn" id="vaStaffLogin" type="submit">Увійти в VA</button>
+    </form>
+    <button class="btn secondary" id="vaStaffLogout" type="button" hidden>Вийти</button>
+    <div id="vaStaffStatus" class="muted" role="status" style="margin-top:10px">Увійдіть для завантаження даних.</div>
+  </div>
+  <div id="vaStaffWorkspace" hidden>
+
 
   <div class="card hero">
     <div class="hero-head">
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
         <h1>Marketing Control Center V2.25</h1>
+        <div class="muted">Protected Read 1 · Академія руху</div>
         <div class="muted">
           Робоче місце маркетолога: факт → дослідження → аудиторія → рішення → дія → Paid → Retention/LTV → Advocacy → нове знання.
           Operating Loop V1 не створює нових функцій — він з'єднує вже перевірені модулі VA в один робочий цикл.
@@ -562,11 +577,54 @@ textarea::placeholder{
   </div>
 
 </div>
+</div>
 
 <script>
 const SUPABASE_URL = "https://fhusjlkneckbvnrdhbil.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS";
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}
+});
+let VA_STAFF_READY = false;
+let VA_STAFF_BUSY = false;
+function vaStaffStatus(message){document.getElementById("vaStaffStatus").textContent=message;}
+async function vaStaffSignIn(event){
+  event.preventDefault();
+  if(VA_STAFF_BUSY||VA_STAFF_READY)return;
+  VA_STAFF_BUSY=true;
+  const form=document.getElementById("vaStaffForm"),button=document.getElementById("vaStaffLogin");
+  const password=document.getElementById("vaStaffPassword");
+  button.disabled=true;
+  vaStaffStatus("Перевіряємо доступ…");
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email:document.getElementById("vaStaffEmail").value.trim(),password:password.value});
+    password.value="";
+    if(error||!data?.session)throw new Error("Не вдалося увійти в VA. Перевірте email і пароль.");
+    // The RPC, not the browser, decides whether the user is authorized.
+    await fetchAll("seances","id",null,1);
+    await boot();
+    VA_STAFF_READY=true;
+    form.hidden=true;form.style.display="none";
+    document.getElementById("vaStaffLogout").hidden=false;
+    document.getElementById("vaStaffWorkspace").hidden=false;
+    vaStaffStatus("Вхід підтверджено · Академія руху · дані завантажено. Журнал: читання; захищений запис ще не підключено.");
+  }catch(e){
+    password.value="";
+    VA_STAFF_READY=false;
+    document.getElementById("vaStaffWorkspace").hidden=true;
+    if(CAMPAIGN_LIVE_TIMER){clearInterval(CAMPAIGN_LIVE_TIMER);CAMPAIGN_LIVE_TIMER=null;}
+    ORDERS=[];TICKETS=[];SEANCES=[];JOURNAL=[];CLIENTS=[];SERVICE_MESSAGES=[];SERVICE_RECIPIENTS=[];SERVICE_DELIVERIES=[];
+    try{await sb.auth.signOut({scope:"local"})}catch(_){}
+    vaStaffStatus("Доступ / завантаження: "+(e?.message||"помилка"));
+  }finally{VA_STAFF_BUSY=false;button.disabled=false;}
+}
+async function vaStaffSignOut(){
+  VA_STAFF_READY=false;
+  document.getElementById("vaStaffWorkspace").hidden=true;
+  if(CAMPAIGN_LIVE_TIMER)clearInterval(CAMPAIGN_LIVE_TIMER);
+  try{await sb.auth.signOut({scope:"local"})}finally{location.reload();}
+}
+
 
 let CLIENTS = [];
 let SEANCES = [];
@@ -1106,24 +1164,11 @@ async function refreshActiveCampaignData({rerender=true, silent=true} = {}){
   CAMPAIGN_LIVE_BUSY = true;
   try{
     const [ordersRes, ticketsRes, seanceRes, journalRes] = await Promise.all([
-      sb.from("orders")
-        .select("*")
-        .eq("seance_id", sid),
-      sb.from("tickets")
-        .select("id,order_id,seance_id,seat_label,price,checked_in_at,channel,ticket_type,created_at")
-        .eq("seance_id", sid),
-      sb.from("seances")
-        .select("id,show,date,time,show_slug,event_type,genre,venue_id,status,capacity")
-        .eq("id", sid)
-        .limit(1),
-      sb.from("marketing_journal")
-        .select("id,created_at,seance_id,action_date,action_type,channel,budget,comment,result,conclusion,author")
-        .eq("seance_id", sid)
-    ]);
-
-    for(const res of [ordersRes,ticketsRes,seanceRes,journalRes]){
-      if(res.error) throw res.error;
-    }
+      fetchAll("orders","*",sid),
+      fetchAll("tickets","*",sid),
+      fetchAll("seances","*",sid),
+      fetchAll("marketing_journal","*",sid)
+    ]).then(rows=>rows.map(data=>({data})));
 
     ORDERS = replaceSeanceRows(ORDERS, ordersRes.data || [], sid);
     TICKETS = replaceSeanceRows(TICKETS, ticketsRes.data || [], sid);
@@ -1948,24 +1993,26 @@ function fmtDate(v){
   return d.toLocaleDateString("uk-UA");
 }
 
-async function fetchAll(table, select="*"){
+async function fetchAll(table, select="*", seanceId=null, probeLimit=null){
   let all = [];
   let from = 0;
-  const size = 1000;
-
+  const size = probeLimit||1000;
   while(true){
-    const { data, error } = await sb.from(table).select(select).range(from, from + size - 1);
-    if(error) throw error;
-    all = all.concat(data || []);
-    if(!data || data.length < size) break;
-    from += size;
+    const {data,error}=await sb.rpc("va_staff_marketing_read_v1",{
+      p_dataset:table,p_seance_id:seanceId,p_offset:from,p_limit:size
+    });
+    if(error)throw new Error(table+": "+error.message);
+    if(!Array.isArray(data))throw new Error(table+": невірний формат відповіді RPC");
+    all=all.concat(data);
+    if(probeLimit||data.length<size)break;
+    from+=size;
   }
   return all;
 }
 
 async function fetchAllOptional(table, select="*"){
-  try{ return await fetchAll(table, select); }
-  catch(e){ console.warn(`Optional table ${table}`, e); return []; }
+  // Do not substitute zero on a failed protected read.
+  return fetchAll(table,select);
 }
 
 async function refreshServiceCommunicationData(){
@@ -3792,6 +3839,7 @@ function campaignAudienceRecipients(campaign){
 }
 
 function sendCampaignToServiceCommunications(){
+  return alert("Передача контактів тимчасово призупинена до перевірки захисту Службових комунікацій. Кампанія збережена локально.");
   const campaign = getActiveCampaign();
   if(!campaign) return alert("Спочатку відкрийте або збережіть кампанію.");
   if(String(campaign.status||"draft") !== "active") return alert("Перед відправленням запустіть кампанію. Так стартовий зріз буде зафіксовано до першого листа.");
@@ -4529,9 +4577,8 @@ function renderJournalSection(){
       <textarea id="jComment" class="box" style="width:100%;margin-top:12px;box-sizing:border-box" rows="3" placeholder="Коментар"></textarea>
       <textarea id="jResult" class="box" style="width:100%;margin-top:12px;box-sizing:border-box" rows="2" placeholder="Результат"></textarea>
 
-      <button class="btn" style="margin-top:12px" onclick="saveJournalEntry()">
-        Зберегти дію
-      </button>
+      <button class="btn" style="margin-top:12px" disabled>Зберегти дію</button>
+      <div class="micro">Захищений запис журналу ще не підключено. Історія доступна для читання.</div>
     </div>
 
     <div class="box" style="margin-top:16px">
@@ -4581,63 +4628,9 @@ function renderJournalSection(){
 }
 
 async function saveJournalEntry(){
-  const seanceIds = getActiveSeanceIds();
-
-  if(!seanceIds.length){
-    alert("Оберіть хоча б один сеанс.");
-    return;
-  }
-
-  const action_date = document.getElementById("jDate").value;
-  const action_type = document.getElementById("jType").value.trim();
-  const channel = document.getElementById("jChannel").value.trim();
-  const budget = Number(document.getElementById("jBudget").value || 0);
-  const comment = document.getElementById("jComment").value.trim();
-  const result = document.getElementById("jResult").value.trim();
-
-  const rows = seanceIds.map(seance_id => ({
-    seance_id,
-    action_date,
-    action_type,
-    channel,
-    budget,
-    comment,
-    result,
-    author: "admin"
-  }));
-
-  const { data, error } = await sb
-    .from("marketing_journal")
-    .insert(rows)
-    .select("*");
-
-  if(error){
-    console.error(error);
-    alert("Помилка збереження: " + error.message);
-    return;
-  }
-
-  JOURNAL = JOURNAL.concat(data || []);
-  renderOperatingLoop();
-
-  if(PLAN_JOURNAL_PENDING_ID){
-    completePlanFromJournal(PLAN_JOURNAL_PENDING_ID, data || []);
-    PLAN_JOURNAL_PENDING_ID="";
-  }
-
-  const campaign = getActiveCampaign();
-  if(campaign && Array.isArray(data)){
-    const ids = data.map(x => x?.id).filter(Boolean).map(String);
-    campaign.journalIds = Array.from(new Set([...(campaign.journalIds || []).map(String), ...ids]));
-    campaign.budget = Number(campaign.budget || 0) + budget;
-    campaign.updated_at = new Date().toISOString();
-    saveLocalCampaigns();
-    renderContextBridge();
-  }
-
-  renderJournalSection();
+  alert("Захищений запис журналу ще не підключено. Дані не змінено.");
 }
-  
+
 function renderEfficiencySection(){
   const panel = document.getElementById("activeSectionPanel");
   const seanceIds = getActiveSeanceIds();
@@ -8102,10 +8095,21 @@ async function boot(){
       <h2>Помилка</h2>
       <div class="box">${esc(e.message)}</div>
     `;
+    throw e;
   }
 }
 
-document.addEventListener("DOMContentLoaded", boot);
+document.addEventListener("DOMContentLoaded",()=>{
+  document.getElementById("vaStaffForm").addEventListener("submit",vaStaffSignIn);
+  document.getElementById("vaStaffLogout").addEventListener("click",vaStaffSignOut);
+});
+sb.auth.onAuthStateChange((event)=>{
+  if(event==="SIGNED_OUT" && VA_STAFF_READY){
+    VA_STAFF_READY=false;
+    document.getElementById("vaStaffWorkspace").hidden=true;
+    location.reload();
+  }
+});
 </script>
 </body>
 </html>
