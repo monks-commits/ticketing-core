@@ -44,13 +44,13 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 <h1>Омріяні зорі</h1><p class="date">28 листопада 2026 • 12:00</p>
 <div class="frame">
   <img id="poster" src="omriyani-zori.png" alt="Афіша вистави «Омріяні зорі»">
-  <video id="video" playsinline preload="metadata" muted aria-label="Відеоафіша «Омріяні зорі»"></video>
+  <video id="video" playsinline preload="metadata" aria-label="Відеоафіша «Омріяні зорі»"></video>
   <button id="mediaTap" type="button" aria-label="Відтворити відеоафішу"><span id="playGlyph">▶</span></button>
   <div id="overlayHint">▶ Відеоафіша → вибір місць</div>
 </div>
 <div class="controls">
 <button id="buy" class="btn" type="button">Купити квитки</button>
-<button id="sound" class="btn secondary" type="button">🔇 Увімкнути звук</button>
+<button id="sound" class="btn secondary" type="button">🔊 Вимкнути звук</button>
 <button id="skip" class="btn secondary" type="button">Пропустити відео → місця</button>
 </div>
 <p id="status" role="status">Завантажуємо відеоафішу…</p>
@@ -86,31 +86,43 @@ async function getRows(table,qs){
   if(!response.ok)throw Error('HTTP '+response.status);
   const rows=await response.json();return Array.isArray(rows)?rows:[];
 }
-function showPlaying(){poster.style.display='none';video.style.display='block';playGlyph.style.display='none';overlay.style.display='none';skip.style.display='block';sound.style.display='block';}
-async function startVideo(withSound=false){
-  if(!canSell)return;
-  if(!videoUrl){if(loading)await loading;if(!videoUrl){unavailable('Відеоафіша не підключена. Можна перейти до схеми залу.');return}}
-  if(started){
-    if(withSound){video.muted=false;sound.textContent='🔊 Вимкнути звук'}
-    if(video.paused){try{await video.play()}catch(_){note('Натисніть ▶, щоб запустити відео.')}}
-    return;
-  }
+function showPlaying(){sound.textContent="🔊 Вимкнути звук";poster.style.display='none';video.style.display='block';playGlyph.style.display='none';overlay.style.display='none';skip.style.display='block';sound.style.display='block';}
+function startVideo(){
+  // Call play() synchronously during the tap so that audio is allowed.
+  if(!canSell){note('Зачекайте, перевіряємо сеанс…');return;}
+  if(!videoUrl){note('Відео ще завантажується. Натисніть ще раз.');return;}
+  if(started && !video.paused)return;
+  video.removeAttribute('muted');
+  video.defaultMuted=false;
+  video.muted=false;
+  video.volume=1;
+  if(!video.getAttribute('src'))video.src=videoUrl;
   started=true;
-  video.muted=!withSound;
-  video.src=videoUrl;
   showPlaying();
-  try{await video.play();note('Відеоафіша • після завершення відкриється схема залу.');}
-  catch(e){
-    // Audible autoplay can be forbidden after a social-app navigation.
-    video.muted=true;
-    try{await video.play();note('Відео відтворюється без звуку. Для озвучення натисніть «Увімкнути звук».');}
-    catch(_){started=false;poster.style.display='block';video.style.display='none';playGlyph.style.display='grid';overlay.style.display='block';sound.style.display='none';skip.style.display='block';note('Натисніть на афішу або «Купити квитки», щоб відтворити відео.');}
+  const attempt=video.play();
+  if(attempt && typeof attempt.then==='function'){
+    attempt.then(()=>{
+      note('Відеоафіша зі звуком • після завершення відкриється схема залу.');
+    }).catch(err=>{
+      console.warn('Sound-on playback blocked',err);
+      started=false;
+      video.pause();
+      poster.style.display='block';
+      video.style.display='none';
+      playGlyph.style.display='grid';
+      overlay.style.display='block';
+      overlay.textContent='▶ Натисніть, щоб увімкнути відео зі звуком';
+      sound.style.display='none';
+      note('Браузер не дозволив відтворення зі звуком. Натисніть ▶ ще раз.');
+    });
+  } else {
+    note('Відеоафіша зі звуком • після завершення відкриється схема залу.');
   }
 }
 video.addEventListener('ended',toHall);
 video.addEventListener('error',()=>unavailable('Помилка відтворення відео. Можна перейти до схеми залу.'));
-mediaTap.addEventListener('click',()=>startVideo(true));
-buy.addEventListener('click',()=>startVideo(true));
+mediaTap.addEventListener('click',startVideo);
+buy.addEventListener('click',startVideo);
 skip.addEventListener('click',toHall);
 sound.addEventListener('click',()=>{video.muted=!video.muted;sound.textContent=video.muted?'🔇 Увімкнути звук':'🔊 Вимкнути звук';if(video.paused)video.play().catch(()=>{});});
 loading=(async()=>{
@@ -130,9 +142,12 @@ loading=(async()=>{
     // global storefront Live Poster toggle; do not change the storefront setting.
     videoUrl=validUrl(v?.live_poster_url);
     if(!videoUrl){unavailable('Для цього сеансу Live Poster не підключено.');return;}
-    note('Запускаємо відеоафішу…');
-    // On opening a social link, muted autoplay can usually start; audio requires a user gesture.
-    await startVideo(false);
+    // Load the video source before the tap; do not autoplay.
+    video.src=videoUrl;
+    video.preload='metadata';
+    // As on the VA storefront: show the static poster until the visitor clicks.
+    // IMPORTANT: never autoplay when the social link is opened.
+    note('Натисніть на афішу або «Купити квитки», щоб подивитися відеоафішу.');
   }catch(e){
     console.error('Solo Live Poster read failed',e);
     // Do not claim missing sale or redirect without a verified seance.
