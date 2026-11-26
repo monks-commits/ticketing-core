@@ -26,7 +26,7 @@ main{max-width:1520px;margin:auto;padding:22px}.top{display:flex;align-items:fle
   <div class="campaign-row"><div class="field"><label>Поточний матеріал / спектакль</label><select id="campaignSelect"></select></div><button class="btn" id="newCampaignBtn">+ Новий</button></div>
   <div class="formgrid" style="margin-top:10px">
    <div class="field"><label>Назва вистави / кампанії</label><input id="campaignTitle" maxlength="200" placeholder="Омріяні зорі · 28.11" /></div>
-   <div class="field"><label>Посилання (необов’язково; без нього — прогрів без продажів)</label><input id="campaignUrl" type="url" maxlength="1200" placeholder="https://vash-admin.com/afisha/?seance=..." /></div>
+   <div class="field"><label>Посилання (необов’язково; без нього — прогрів без продажів)</label><input id="campaignUrl" type="url" maxlength="1200" placeholder="https://vash-admin.com/afisha?seance=..." /></div>
    <div class="field span2"><label>Текст допису (українською)</label><textarea id="campaignText" placeholder="Короткий текст із Content Studio / Visual Editor"></textarea></div>
    <div class="field span2"><label>Посилання на афішу / відео (необов'язково)</label><input id="campaignMedia" type="url" maxlength="1600" placeholder="https://...png або mp4" /></div>
   </div>
@@ -63,6 +63,10 @@ main{max-width:1520px;margin:auto;padding:22px}.top{display:flex;align-items:fle
  <div class="routebar">
   <div class="flex"><b>🎯 Вибір груп (можна до створення матеріалу)</b><span id="selectedCount" class="counter">Не обрано</span></div>
   <div class="flex" style="margin-top:9px"><button class="btn primary" id="selectVisibleBtn">✓ Обрати видимі</button><button class="btn" id="unselectVisibleBtn">− Зняти з видимих</button><button class="btn" id="clearTargetsBtn">Очистити вибір</button><button class="btn green" id="nextTargetBtn">→ Наступна обрана група</button></div>
+  <div class="formgrid" style="margin-top:12px">
+   <div class="field span2"><label>Кампанія Marketing (V2.25)</label><select id="marketingCampaignSelect"></select></div>
+   <div class="span2 flex"><button class="btn blue primary" id="assignTrackingBtn" type="button">Сформувати посилання для обраних</button><a class="btn soft" href="./marketing.html" target="_blank" rel="noopener">Відкрити Marketing</a></div>
+  </div><div id="trackingInfo" class="hint" style="margin-top:6px"></div>
   <div id="routeInfo" class="hint">Спочатку збережіть матеріал. Ці кнопки ніде нічого не публікують.</div>
  </div>
  <div class="list" id="groupsList"></div>
@@ -75,6 +79,85 @@ main{max-width:1520px;margin:auto;padding:22px}.top{display:flex;align-items:fle
 const KEY='va_fb_groups_desk_v1', BRIDGE_KEY='va_fb_groups_handoff_v1';
 // Allow recipient selection before creating a campaign; no publishing happens.
 const DRAFT_TARGET_KEY='__draft__';
+// Reuse the established Marketing V2.25 campaign store and V2.28+ placement contract.
+// No separate ID scheme, no server writes, no automatic posting.
+const MARKETING_CAMPAIGN_KEY='va_marketing_campaigns_v24';
+const MARKETING_DIST_KEY='va_marketing_distribution_v228';
+const MARKETING_FB_KEY='va_marketing_fb_groups_v226';
+function readMarketingLocal(key, fallback){
+ const raw=localStorage.getItem(key);return raw===null?fallback:JSON.parse(raw);
+}
+function academySeanceTarget(raw){
+ try{const u=new URL(raw);if(u.origin!=='https://vash-admin.com'||!['/afisha','/afisha/'].includes(u.pathname)||u.username||u.password||u.hash||u.searchParams.has('seance_id'))return null;
+ const seance=u.searchParams.get('seance');if(!seance||seance.length>200||u.searchParams.getAll('seance').length!==1)return null;
+ return {seance,url:'https://vash-admin.com/afisha?seance='+encodeURIComponent(seance)};
+ }catch{return null}
+}
+function matchingMarketingCampaigns(c){
+ const t=academySeanceTarget(c?.targetUrl);if(!t)return [];
+ const all=readMarketingLocal(MARKETING_CAMPAIGN_KEY,[]);if(!Array.isArray(all))throw Error('Некоректний архів кампаній Marketing.');
+ return all.filter(x=>x&&/^VAC-[A-Za-z0-9_-]{1,150}$/.test(String(x.id||''))&&!String(x.id).startsWith('VAC-CH-')&&String(x.seance_id||'')===t.seance&&x.status!=='done');
+}
+function renderTrackingControls(){
+ const c=currentCampaign(), el=$('marketingCampaignSelect'), info=$('trackingInfo'), btn=$('assignTrackingBtn');
+ const before=el.dataset.material===c?.id?el.value:'';
+ el.dataset.material=c?.id||'';
+ try{
+ const all=matchingMarketingCampaigns(c);const preferred=c?.marketingCampaignId||before;
+ el.innerHTML='<option value="">Оберіть кампанію Marketing…</option>'+all.map(x=>`<option value="${safe(x.id)}">${safe(x.name||x.id)} · ${safe(x.status||'draft')}</option>`).join('');
+ el.value=all.some(x=>x.id===preferred)?preferred:all.length===1?all[0].id:'';
+ const n=chosenGroups().filter(g=>!!getGroupTrackingUrl(g.id)).length;
+ btn.disabled=!c||!chosenGroups().length||!el.value;
+ info.textContent=!c?'Оберіть готовий матеріал.':!academySeanceTarget(c.targetUrl)?'Цей крок доступний для конкретного сеансу Академії. Загальна афіша та прогрів залишаються без змін.':!all.length?'Немає незавершеної кампанії для цього сеансу у Marketing V2.25 в цьому браузері. Відкрийте Marketing і збережіть кампанію.':`Індивідуальні посилання: ${n} із ${chosenGroups().length} обраних. Коди зберігаються локально у чинному форматі Marketing. Публікації та серверна синхронізація не виконуються.`;
+ }catch(e){el.innerHTML='<option value="">Архів недоступний</option>';btn.disabled=true;info.textContent=e.message}
+}
+function assignedUrl(target,parent,p){
+ const u=new URL(target.url);u.searchParams.set('utm_source','facebook');u.searchParams.set('utm_medium','outreach');u.searchParams.set('utm_campaign',p.tracking_campaign_id);u.searchParams.set('utm_content',p.id);u.searchParams.set('va_parent_campaign',parent);return u.href;
+}
+function validPlacement(p,parent,recipient){return p&&p.parent_campaign_id===parent&&p.recipient_id===recipient&&p.route==='seance'&&p.channel==='facebook'&&/^DST-[0-9a-fA-F-]{16,64}$/.test(p.id)&&/^VAC-CH-[a-fA-F0-9]{32}$/.test(p.tracking_campaign_id||'')}
+function assignTracking(){
+ try{
+ const c=currentCampaign(),target=academySeanceTarget(c?.targetUrl),parent=$('marketingCampaignSelect').value;
+ if(!c||!target||!matchingMarketingCampaigns(c).some(x=>x.id===parent))throw Error('Оберіть збережений матеріал та кампанію цього сеансу.');
+ if($('campaignUrl').value.trim()!==c.targetUrl)throw Error('Збережіть зміни матеріалу перед формуванням посилань.');
+ if(c.marketingCampaignId&&c.marketingCampaignId!==parent&&Object.keys(db.trackingUrls?.[c.id]||{}).length)throw Error('Матеріал вже пов’язаний з іншою кампанією. Створіть новий матеріал для нової кампанії.');
+ const chosen=chosenGroups();if(!chosen.length)throw Error('Оберіть адресатів.');
+ const st=readMarketingLocal(MARKETING_DIST_KEY,{}),legacy=readMarketingLocal(MARKETING_FB_KEY,[]);
+ if(!st||typeof st!=='object'||Array.isArray(st)||!Array.isArray(legacy))throw Error('Некоректний архів Marketing. Дані не змінено.');
+ if(st.placements===undefined)st.placements={};
+ if(!st.placements||typeof st.placements!=='object'||Array.isArray(st.placements))throw Error('Некоректні розміщення Marketing. Дані не змінено.');
+ const links={...(db.trackingUrls?.[c.id]||{})};let created=0,reused=0,kept=0,conflicts=[];
+ for(const g of chosen){
+   const old=links[g.id];if(old){kept++;continue;} // Never overwrite an individual link already saved by the administrator.
+   const canonical=normalizeGroupUrl(g.url);if(!canonical){conflicts.push(g.name);continue;}
+   const matches=legacy.filter(x=>x&&normalizeGroupUrl(x.url)===canonical);
+   if(matches.length>1||matches.some(x=>x.excluded)){conflicts.push(g.name);continue;}
+   const rid=String(matches[0]?.id||g.id);if(!/^[A-Za-z0-9_-]{3,100}$/.test(rid)){conflicts.push(g.name);continue;}
+   // Original distPlaceKey: one placement per campaign, route and recipient.
+   const key=parent+'|seance|'+rid;let p=st.placements[key];
+   if(p){
+     if(!validPlacement(p,parent,rid)||p.status!=='draft'||(p.seance_id&&p.seance_id!==target.seance)||(p.studio_material_id&&p.studio_material_id!==c.id)){conflicts.push(g.name);continue;}
+     const expected=assignedUrl(target,parent,p);
+     if(p.target_url&&p.target_url!==expected){conflicts.push(g.name);continue;}
+     reused++;
+   }else{
+     // Same identity contract as original distPlacement(), now attached to current material.
+     p={id:'DST-'+crypto.randomUUID(),parent_campaign_id:parent,recipient_id:rid,channel:'facebook',route:'seance',status:'draft',created_at:new Date().toISOString(),tracking_campaign_id:'VAC-CH-'+crypto.randomUUID().replaceAll('-','')};created++;
+   }
+   const url=assignedUrl(target,parent,p);
+   st.placements[key]={...p,recipient_name:g.name,recipient_url:canonical,seance_id:target.seance,studio_material_id:c.id,target_url:url};links[g.id]=url;
+ }
+ if(created||reused){
+   // Persist canonical placement identities first; a retry reuses them if the second write fails.
+   localStorage.setItem(MARKETING_DIST_KEY,JSON.stringify(st));
+   const prev=db.trackingUrls?.[c.id],prevParent=c.marketingCampaignId;
+   db.trackingUrls=db.trackingUrls||{};db.trackingUrls[c.id]=links;c.marketingCampaignId=parent;
+   if(!save()){if(prev)db.trackingUrls[c.id]=prev;else delete db.trackingUrls[c.id];c.marketingCampaignId=prevParent;throw Error('Розміщення збережені у Marketing, але список посилань не записано. Повторіть операцію після звільнення місця.');}
+ }
+ render();msg(`Створено: ${created}; повторно використано: ${reused}; існуючі не змінено: ${kept}.`+(conflicts.length?' Пропущено через конфлікт/історію: '+conflicts.join(', ')+'.':'')+' Нічого не опубліковано. Синхронізація з Audience ще не виконана.',conflicts.length?'bad':'good');
+ }catch(e){msg(e.message,'bad')}
+}
+
 function activeTargetKey(){return selectedCampaign||DRAFT_TARGET_KEY}
 const POLICY={unknown:'Не перевірено',open:'Без модерації',moderated:'Модерація',agreement:'За домовленістю',paid:'Платно',banned:'Реклама заборонена'};
 const RESULT={not_sent:'Не відправлено',pending:'На модерації',published:'Опубліковано',rejected:'Відхилено',skipped:'Пропущено'};
@@ -192,6 +275,7 @@ function render(){
  $('shownCount').textContent=`Показано ${visible.length} із ${db.groups.length}`;
  $('selectedCount').textContent=c?`Обрано ${chosen.length} груп`:`Попередньо обрано ${chosen.length} груп`;
  $('routeInfo').textContent=!c?`Попередній вибір: ${chosen.length} груп. Збережіть матеріал пізніше — цей список автоматично перейде до нього. Нічого не публікується.`:chosen.length?`Підготовлено ${chosen.length} груп. Відкривати та публікувати потрібно вручну по одній. Неперевірені групи спочатку відкрийте та перегляньте їхні правила.`:'Виберіть вручну потрібні групи або відфільтруйте та натисніть «Обрати видимі». Нічого не публікується автоматично.';
+ renderTrackingControls();
  $('nextTargetBtn').disabled=chosen.length===0;
  $('selectVisibleBtn').disabled=false;
  $('unselectVisibleBtn').disabled=false;
@@ -222,13 +306,13 @@ function nextTarget(){
  msg('Наступна обрана група: '+g.name+'. Перевірте правила, відкрийте групу, скопіюйте допис і розмістіть вручну.');
 }
 function renderDetail(){const g=db.groups.find(x=>x.id===selectedGroup),root=$('groupDetail');if(!g){root.innerHTML='<p class="muted">Оберіть групу зі списку.</p>';return}const last=record(g.id,selectedCampaign),lock=isBlocked(g)||['unknown','agreement'].includes(g.policy);
- root.innerHTML=`<div class="name">${safe(g.name)}</div><div class="hint" style="margin-top:5px">${safe(g.url)} · ${recipientKind(g.url)==='page_or_profile'?'Сторінка / профіль':'Група'}</div><div class="flex" style="margin-top:10px"><button class="btn small" id="editGroupBtn">Редагувати</button><button class="btn red small" id="deleteGroupBtn">Видалити групу</button><button class="btn ${isBlocked(g)?'green':'red'} small" id="excludeGroupBtn" ${['banned','paid'].includes(g.policy)?'disabled title="Змініть умови розміщення у картці групи"':''}>${['banned','paid'].includes(g.policy)?'Заборонено умовами':isBlocked(g)?'Повернути до списку':'Виключити з розсилок'}</button></div><div class="notice ${lock?'':'good'}">${lock?'Спочатку перевірте правила групи або узгодьте розміщення з адміністратором.':'Перед публікацією переконайтеся, що реклама відповідає правилам групи.'}</div><div class="field" style="margin-top:12px"><label>Статус для поточної події</label><select id="journalStatus">${Object.entries(RESULT).map(([v,n])=>`<option value="${v}" ${last?.status===v?'selected':''}>${n}</option>`).join('')}</select></div><div class="field" style="margin-top:10px"><label>Посилання на опублікований пост (якщо є)</label><input id="journalUrl" placeholder="https://www.facebook.com/..." value="${safe(last?.url||'')}" /></div><div class="field" style="margin-top:10px"><label>Індивідуальне посилання для цієї групи (необов'язково, з Marketing)</label><input id="groupTrackingUrl" type="url" placeholder="https://vash-admin.com/afisha/?utm_campaign=VAC-CH-..." value="${safe(getGroupTrackingUrl(g.id))}" /></div><button class="btn small" id="saveTrackingBtn" type="button" style="margin-top:8px">Зберегти посилання групи</button><div class="hint">Вставляйте лише реальне посилання, видане Marketing. Реєстр не створює фіктивні VAC-CH чи DST.</div><div class="field" style="margin-top:10px"><label>Фактична дата/час публікації (для старих дописів теж)</label><input id="journalPublishedAt" type="datetime-local" value="${safe(dateTimeLocalValue(last?.publishedAt||''))}" /></div><div class="field" style="margin-top:10px"><label>Примітка: причина відмови, домовленість, дата відповіді</label><textarea id="journalNote" style="min-height:70px">${safe(last?.note||'')}</textarea></div><div class="flex" style="margin-top:10px"><button class="btn green" id="saveJournalBtn" ${!currentCampaign()?'disabled':''}>Записати результат</button><button class="btn" id="openGroupBtn">Відкрити адресата</button></div><hr class="divider"><h3>Останні дії</h3><div>${recent(g.id).map(x=>`<div class="event"><b>${safe(RESULT[x.status]||x.status)}</b> · ${safe(new Date(x.publishedAt||x.at).toLocaleString('uk-UA'))}${x.publishedAt?' · фактична дата':' · запис у журналі'}<br>${safe(db.campaigns.find(c=>c.id===x.campaignId)?.title||'—')}${x.note?'<br>'+safe(x.note):''}${x.url?'<br><a href="'+safe(x.url)+'" target="_blank" rel="noopener noreferrer">Відкрити публікацію</a>':''}</div>`).join('')||'<p class="hint">Поки немає записів.</p>'}</div>`;
+ root.innerHTML=`<div class="name">${safe(g.name)}</div><div class="hint" style="margin-top:5px">${safe(g.url)} · ${recipientKind(g.url)==='page_or_profile'?'Сторінка / профіль':'Група'}</div><div class="flex" style="margin-top:10px"><button class="btn small" id="editGroupBtn">Редагувати</button><button class="btn red small" id="deleteGroupBtn">Видалити групу</button><button class="btn ${isBlocked(g)?'green':'red'} small" id="excludeGroupBtn" ${['banned','paid'].includes(g.policy)?'disabled title="Змініть умови розміщення у картці групи"':''}>${['banned','paid'].includes(g.policy)?'Заборонено умовами':isBlocked(g)?'Повернути до списку':'Виключити з розсилок'}</button></div><div class="notice ${lock?'':'good'}">${lock?'Спочатку перевірте правила групи або узгодьте розміщення з адміністратором.':'Перед публікацією переконайтеся, що реклама відповідає правилам групи.'}</div><div class="field" style="margin-top:12px"><label>Статус для поточної події</label><select id="journalStatus">${Object.entries(RESULT).map(([v,n])=>`<option value="${v}" ${last?.status===v?'selected':''}>${n}</option>`).join('')}</select></div><div class="field" style="margin-top:10px"><label>Посилання на опублікований пост (якщо є)</label><input id="journalUrl" placeholder="https://www.facebook.com/..." value="${safe(last?.url||'')}" /></div><div class="field" style="margin-top:10px"><label>Індивідуальне посилання для цієї групи (необов'язково, з Marketing)</label><input id="groupTrackingUrl" type="url" placeholder="https://vash-admin.com/afisha?utm_campaign=VAC-CH-..." value="${safe(getGroupTrackingUrl(g.id))}" /></div><button class="btn small" id="saveTrackingBtn" type="button" style="margin-top:8px">Зберегти посилання групи</button><div class="hint">Вставляйте лише реальне посилання, видане Marketing. Нові коди створюються кнопкою «Сформувати посилання для обраних» за чинним форматом Marketing, з прив’язкою до кампанії. Серверний запис потребує окремої синхронізації.</div><div class="field" style="margin-top:10px"><label>Фактична дата/час публікації (для старих дописів теж)</label><input id="journalPublishedAt" type="datetime-local" value="${safe(dateTimeLocalValue(last?.publishedAt||''))}" /></div><div class="field" style="margin-top:10px"><label>Примітка: причина відмови, домовленість, дата відповіді</label><textarea id="journalNote" style="min-height:70px">${safe(last?.note||'')}</textarea></div><div class="flex" style="margin-top:10px"><button class="btn green" id="saveJournalBtn" ${!currentCampaign()?'disabled':''}>Записати результат</button><button class="btn" id="openGroupBtn">Відкрити адресата</button></div><hr class="divider"><h3>Останні дії</h3><div>${recent(g.id).map(x=>`<div class="event"><b>${safe(RESULT[x.status]||x.status)}</b> · ${safe(new Date(x.publishedAt||x.at).toLocaleString('uk-UA'))}${x.publishedAt?' · фактична дата':' · запис у журналі'}<br>${safe(db.campaigns.find(c=>c.id===x.campaignId)?.title||'—')}${x.note?'<br>'+safe(x.note):''}${x.url?'<br><a href="'+safe(x.url)+'" target="_blank" rel="noopener noreferrer">Відкрити публікацію</a>':''}</div>`).join('')||'<p class="hint">Поки немає записів.</p>'}</div>`;
  $('editGroupBtn').onclick=()=>groupEdit(g);$('excludeGroupBtn').onclick=()=>{g.excluded=!g.excluded;if(g.policy==='banned'||g.policy==='paid')g.excluded=true;if(g.excluded)pruneGroupFromTargets(g.id);g.updatedAt=new Date().toISOString();if(save()){render();msg(g.excluded?'Групу виключено зі списків розміщення. Історію збережено.':'Групу повернено до доступного переліку.')}};$('deleteGroupBtn').onclick=()=>{if(!confirm('Видалити групу «'+g.name+'» та її історію розміщень?'))return;db.groups=db.groups.filter(x=>x.id!==g.id);db.journal=db.journal.filter(x=>x.groupId!==g.id);pruneGroupFromTargets(g.id);selectedGroup=null;save();groupFormClear();render();msg('Групу видалено.');};$('openGroupBtn').onclick=()=>window.open(g.url,'_blank','noopener,noreferrer');$('saveTrackingBtn').onclick=()=>{try{saveGroupTrackingUrl(g.id,$('groupTrackingUrl').value);msg('Індивідуальне посилання збережено.')}catch(e){msg(e.message,'bad')}};$('saveJournalBtn').onclick=()=>{try{const when=parsePublishedDate($('journalPublishedAt').value);saveGroupTrackingUrl(g.id,$('groupTrackingUrl').value);addJournal(g.id,$('journalStatus').value,$('journalUrl').value,$('journalNote').value,when)}catch(e){msg(e.message,'bad')}}}
 function download(filename,content,type){const blob=new Blob([content],{type}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1000)}
 function exportJSON(){download('VA_FB_GROUPS_BACKUP_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({exportedAt:new Date().toISOString(),...db},null,2),'application/json')}
-function parseJSON(s){const obj=JSON.parse(s);if(!obj||obj.version!==1||!Array.isArray(obj.groups)||!Array.isArray(obj.campaigns)||!Array.isArray(obj.journal))throw Error('Непідтримуваний файл резервної копії.');if(obj.groups.length>3000||obj.campaigns.length>1000||obj.journal.length>250000)throw Error('Занадто великий файл резервної копії.');const groups=[],ids=new Set(),urls=new Set();for(const g of obj.groups){const url=normalizeGroupUrl(g.url);if(!url||ids.has(String(g.id))||urls.has(url))continue;ids.add(String(g.id));urls.add(url);groups.push({id:String(g.id),name:String(g.name||url).slice(0,200),url,kind:recipientKind(url),policy:POLICY[g.policy]?g.policy:'unknown',priority:PRIORITY[g.priority]?g.priority:suggestPriority(g.name),excluded:!!g.excluded,tags:String(g.tags||'').slice(0,200),notes:String(g.notes||'').slice(0,500),updatedAt:String(g.updatedAt||'')})}const campaigns=obj.campaigns.filter(x=>x?.id).map(x=>({id:String(x.id),title:String(x.title||'').slice(0,200),text:String(x.text||'').slice(0,20000),targetUrl:safeUrl(x.targetUrl),mediaUrl:safeUrl(x.mediaUrl),updatedAt:String(x.updatedAt||'')}));const cs=new Set(campaigns.map(x=>x.id));const journal=obj.journal.filter(x=>ids.has(String(x.groupId))&&cs.has(String(x.campaignId))&&RESULT[x.status]).map(x=>({id:String(x.id||id()),groupId:String(x.groupId),campaignId:String(x.campaignId),status:x.status,url:safeUrl(x.url),note:String(x.note||'').slice(0,500),at:String(x.at||''),publishedAt:String(x.publishedAt||'')}));const targets={};if(obj.targets&&typeof obj.targets==='object'&&!Array.isArray(obj.targets)){for(const [cid,arr] of Object.entries(obj.targets)){if((cid!==DRAFT_TARGET_KEY&&!cs.has(cid))||!Array.isArray(arr))continue;targets[cid]=[...new Set(arr.map(String).filter(gid=>ids.has(gid)&&!groups.find(g=>g.id===gid)?.excluded))]}}const trackingUrls={};const rawLinks=obj.trackingUrls;if(rawLinks&&typeof rawLinks==='object'&&!Array.isArray(rawLinks)){for(const [cid,mapping] of Object.entries(rawLinks)){if(!cs.has(cid)||!mapping||typeof mapping!=='object'||Array.isArray(mapping))continue;const v={};for(const [gid,raw] of Object.entries(mapping)){if(ids.has(gid)&&safeUrl(raw))v[gid]=safeUrl(raw);}if(Object.keys(v).length)trackingUrls[cid]=v;}}return{version:1,groups,campaigns,journal,targets,trackingUrls}}
+function parseJSON(s){const obj=JSON.parse(s);if(!obj||obj.version!==1||!Array.isArray(obj.groups)||!Array.isArray(obj.campaigns)||!Array.isArray(obj.journal))throw Error('Непідтримуваний файл резервної копії.');if(obj.groups.length>3000||obj.campaigns.length>1000||obj.journal.length>250000)throw Error('Занадто великий файл резервної копії.');const groups=[],ids=new Set(),urls=new Set();for(const g of obj.groups){const url=normalizeGroupUrl(g.url);if(!url||ids.has(String(g.id))||urls.has(url))continue;ids.add(String(g.id));urls.add(url);groups.push({id:String(g.id),name:String(g.name||url).slice(0,200),url,kind:recipientKind(url),policy:POLICY[g.policy]?g.policy:'unknown',priority:PRIORITY[g.priority]?g.priority:suggestPriority(g.name),excluded:!!g.excluded,tags:String(g.tags||'').slice(0,200),notes:String(g.notes||'').slice(0,500),updatedAt:String(g.updatedAt||'')})}const campaigns=obj.campaigns.filter(x=>x?.id).map(x=>({id:String(x.id),title:String(x.title||'').slice(0,200),text:String(x.text||'').slice(0,20000),targetUrl:safeUrl(x.targetUrl),mediaUrl:safeUrl(x.mediaUrl),updatedAt:String(x.updatedAt||''),marketingCampaignId:String(x.marketingCampaignId||'').slice(0,160),projectId:String(x.projectId||'').slice(0,200),seanceId:String(x.seanceId||'').slice(0,200),venueId:String(x.venueId||'').slice(0,200)}));const cs=new Set(campaigns.map(x=>x.id));const journal=obj.journal.filter(x=>ids.has(String(x.groupId))&&cs.has(String(x.campaignId))&&RESULT[x.status]).map(x=>({id:String(x.id||id()),groupId:String(x.groupId),campaignId:String(x.campaignId),status:x.status,url:safeUrl(x.url),note:String(x.note||'').slice(0,500),at:String(x.at||''),publishedAt:String(x.publishedAt||'')}));const targets={};if(obj.targets&&typeof obj.targets==='object'&&!Array.isArray(obj.targets)){for(const [cid,arr] of Object.entries(obj.targets)){if((cid!==DRAFT_TARGET_KEY&&!cs.has(cid))||!Array.isArray(arr))continue;targets[cid]=[...new Set(arr.map(String).filter(gid=>ids.has(gid)&&!groups.find(g=>g.id===gid)?.excluded))]}}const trackingUrls={};const rawLinks=obj.trackingUrls;if(rawLinks&&typeof rawLinks==='object'&&!Array.isArray(rawLinks)){for(const [cid,mapping] of Object.entries(rawLinks)){if(!cs.has(cid)||!mapping||typeof mapping!=='object'||Array.isArray(mapping))continue;const v={};for(const [gid,raw] of Object.entries(mapping)){if(ids.has(gid)&&safeUrl(raw))v[gid]=safeUrl(raw);}if(Object.keys(v).length)trackingUrls[cid]=v;}}return{version:1,groups,campaigns,journal,targets,trackingUrls}}
 function csv(s){return '"'+String(s??'').replaceAll('"','""')+'"'}
-function importBridge(){let raw;try{raw=JSON.parse(localStorage.getItem(BRIDGE_KEY)||'null')}catch{return}if(!raw||!raw.updated_at||!raw.title||!raw.id||!raw.venue_id&&raw.venue_id!=='' )return;const cid='studio-'+String(raw.id),v={title:String(raw.title).slice(0,200),text:String(raw.text||'').slice(0,20000),targetUrl:safeUrl(raw.target_url),mediaUrl:safeUrl(raw.media_url),updatedAt:String(raw.updated_at)};let c=db.campaigns.find(x=>x.id===cid);let activeId=cid;
+function importBridge(){let raw;try{raw=JSON.parse(localStorage.getItem(BRIDGE_KEY)||'null')}catch{return}if(!raw||!raw.updated_at||!raw.title||!raw.id||!raw.venue_id&&raw.venue_id!=='' )return;const cid='studio-'+String(raw.id),v={title:String(raw.title).slice(0,200),text:String(raw.text||'').slice(0,20000),targetUrl:safeUrl(raw.target_url),mediaUrl:safeUrl(raw.media_url),updatedAt:String(raw.updated_at),projectId:String(raw.project_id||''),seanceId:String(raw.seance_id||''),venueId:String(raw.venue_id||'')};let c=db.campaigns.find(x=>x.id===cid);let activeId=cid;
   if(c){
     if(c.updatedAt!==v.updatedAt){
       if(db.journal.some(j=>j.campaignId===cid)){
@@ -262,6 +346,8 @@ $('selectVisibleBtn').onclick=()=>{
 $('unselectVisibleBtn').onclick=()=>{const ids=chosenIds();visibleGroups().forEach(g=>ids.delete(g.id));setTargets([...ids])};
 $('clearTargetsBtn').onclick=()=>{if(!confirm('Зняти вибір усіх груп для поточного списку?'))return;setTargets([])};
 $('nextTargetBtn').onclick=nextTarget;
+$('marketingCampaignSelect').onchange=()=>renderTrackingControls();
+$('assignTrackingBtn').onclick=assignTracking;
 load();if(db.groups.length===0){db.groups.push({id:id(),name:'Група 1107907784152777',url:'https://www.facebook.com/groups/1107907784152777/',policy:'unknown',priority:'high',excluded:false,tags:'Кривий Ріг',notes:'Додана з наданого посилання; умови розміщення слід перевірити',updatedAt:new Date().toISOString()});save()}importBridge();if(!selectedCampaign)selectedCampaign=db.campaigns[0]?.id||null;if(!selectedGroup)selectedGroup=db.groups[0]?.id||null;renderCampaigns();render();
 </script>
 </body></html>
