@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VA — Facebook-групи · Link Fix 1.1</title>
+<title>VA — Facebook-групи · Link Fix 1.1 · CRO 1</title>
 <style>
 :root{--bg:#071426;--panel:#102641;--p2:#091d33;--line:#294563;--text:#f7fbff;--muted:#b4c5d8;--blue:#358eff;--green:#1caa67;--yellow:#ecc14d;--red:#d96262}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
@@ -67,6 +67,10 @@ main{max-width:1520px;margin:auto;padding:22px}.top{display:flex;align-items:fle
    <div class="field span2"><label>Основа розміщення</label><select id="marketingCampaignSelect"></select></div>
    <div class="span2 flex"><button class="btn blue primary" id="assignTrackingBtn" type="button">Сформувати посилання для обраних</button><a class="btn soft" href="./marketing.html" target="_blank" rel="noopener">Відкрити Marketing</a></div>
   </div><div id="trackingInfo" class="hint" style="margin-top:6px"></div>
+  <div class="routebar" style="margin-top:12px">
+   <div class="flex"><b>Статистика переходів CRO</b><select id="croDays" aria-label="Період статистики"><option value="1">Останні 24 години</option><option value="7">Останні 7 днів</option><option value="30">Останні 30 днів</option></select><button class="btn primary" id="croRefreshBtn" type="button">Оновити статистику</button></div>
+   <div class="hint" id="croStatus" role="status" style="margin-top:6px"></div>
+  </div>
   <div id="routeInfo" class="hint">Спочатку збережіть матеріал. Ці кнопки ніде нічого не публікують.</div>
  </div>
  <div class="list" id="groupsList"></div>
@@ -272,6 +276,65 @@ function visibleGroups(){
   return passesPolicy&&passesSelection&&(!pr||g.priority===pr)&&(!st||st===result)&&(!q||[g.name,g.tags,g.notes,g.url].join(' ').toLowerCase().includes(q))
  }).sort((a,b)=>(PRIORITY_ORDER[a.priority]??9)-(PRIORITY_ORDER[b.priority]??9)||a.name.localeCompare(b.name,'uk'));
 }
+
+// Read only the existing seance-level CRO report. No access to orders/tickets,
+// no new server permissions, no local-storage writes, no report secret in browser.
+const CRO_ENDPOINT='https://fhusjlkneckbvnrdhbil.supabase.co/rest/v1/rpc/cro_report_v1';
+const CRO_PUBLIC_KEY='sb_publishable_nCCfptJOb8Lzy1uAwGBJzA_OJtDneTS';
+let groupCroReport=null,groupCroBusy=false,groupCroError=null;
+function groupCroContext(){
+ const c=currentCampaign(),target=academySeanceTarget(c?.targetUrl),days=Number($('croDays').value);
+ if(!c||!target||![1,7,30].includes(days)||(c.seanceId&&c.seanceId!==target.seance))return null;
+ return {material:c.id,seance:target.seance,days,key:JSON.stringify([c.id,target.seance,days])};
+}
+function groupCroCode(raw,seance){
+ try{const u=new URL(raw),target=academySeanceTarget(raw),code=u.searchParams.get('utm_campaign');
+ return target?.seance===seance&&u.searchParams.getAll('utm_campaign').length===1&&/^VAC-CH-[a-fA-F0-9]{32}$/.test(code||'')?code:null;
+ }catch{return null;}
+}
+function groupCroRows(data){
+ if(!data||!Array.isArray(data.campaigns))throw Error('CRO: неочікуваний формат звіту.');
+ const rows=new Map();
+ for(const r of data.campaigns){
+  if(!r||typeof r.key!=='string'||!/^VAC-CH-[a-fA-F0-9]{32}$/.test(r.key))continue;
+  if(rows.has(r.key))throw Error('CRO: дубль рекламного коду у звіті.');
+  const out={};
+  for(const k of ['sessions','seat_selected','checkout_open','payment_started','paid']){
+   if((typeof r[k]!=='number'&&typeof r[k]!=='string')||String(r[k]).trim()===''||!Number.isSafeInteger(Number(r[k]))||Number(r[k])<0)throw Error('CRO: некоректний показник '+k+'.');
+   out[k]=Number(r[k]);
+  }
+  rows.set(r.key,out);
+ }
+ return rows;
+}
+function groupCroLabel(gid,ctx,report){
+ if(!ctx)return 'CRO: оберіть матеріал конкретного сеансу.';
+ const code=groupCroCode(getGroupTrackingUrl(gid),ctx.seance);
+ if(!code)return 'CRO: немає індивідуального VAC-CH для цього сеансу.';
+ if(!report||report.key!==ctx.key)return 'CRO: звіт ще не завантажено.';
+ const row=report.rows.get(code);
+ if(!row)return 'CRO: у звіті немає подій за цим кодом за обраний період.';
+ return `CRO · Сесії: ${row.sessions} · Вибір місць: ${row.seat_selected} · Checkout: ${row.checkout_open} · Початок оплати: ${row.payment_started} · Події оплати: ${row.paid}`;
+}
+function renderGroupCro(){
+ const ctx=groupCroContext(),report=groupCroReport?.key===ctx?.key?groupCroReport:null;
+ $('croRefreshBtn').disabled=!ctx||groupCroBusy;
+ $('croStatus').textContent=!ctx?'Доступно для матеріалу конкретного сеансу.':groupCroBusy?'Завантаження CRO…':groupCroError?.key===ctx.key?groupCroError.message:report?`Звіт за ${ctx.days} дн. · оновлено ${new Date(report.at).toLocaleString('uk-UA')}. Сесії та події CRO, не підтверджені продажі.`:'Натисніть «Оновити статистику». Показники CRO не є фінансовим звітом.';
+ for(const el of document.querySelectorAll('[data-cro-group]'))el.textContent=groupCroLabel(el.dataset.croGroup,ctx,report);
+}
+async function refreshGroupCro(){
+ const ctx=groupCroContext();if(!ctx||groupCroBusy)return;
+ groupCroBusy=true;groupCroError=null;groupCroReport=null;renderGroupCro();
+ const now=new Date(),from=new Date(now.getTime()-ctx.days*86400000);
+ try{
+  const response=await fetch(CRO_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',apikey:CRO_PUBLIC_KEY},body:JSON.stringify({p_seance_id:ctx.seance,p_from:from.toISOString(),p_to:now.toISOString()})});
+  if(!response.ok)throw Error('CRO: HTTP '+response.status+' — звіт недоступний.');
+  const rows=groupCroRows(await response.json());
+  groupCroReport={key:ctx.key,rows,at:now.toISOString()};
+ }catch(e){groupCroError={key:ctx.key,message:String(e?.message||'CRO: помилка завантаження.')};}
+ finally{groupCroBusy=false;renderGroupCro();}
+}
+
 function render(){
  const c=currentCampaign(),ids=chosenIds(),visible=visibleGroups(),chosen=chosenGroups();
  $('kTotal').textContent=db.groups.length;
@@ -300,10 +363,12 @@ function render(){
     <span class="tag ${status==='published'?'ok':status==='rejected'?'bad':status==='pending'?'warn':'dim'}">${safe(RESULT[status])}</span>
    </div>
    <div class="group-info">${safe(g.tags||g.url)}${g.notes?'<br>'+safe(g.notes):''}</div>
+   <div class="hint" data-cro-group="${safe(g.id)}" style="margin:5px 0"></div>
    <div class="actions"><button class="btn" data-action="choose" data-id="${safe(g.id)}">Журнал / результат</button><button class="btn soft" data-action="open" data-id="${safe(g.id)}">${recipientKind(g.url)==='page_or_profile'?'Відкрити сторінку':'Відкрити групу'}</button><button class="btn soft" data-action="copy" data-id="${safe(g.id)}" ${!c||!checked||noCopy||status==='published'||status==='pending'?'disabled title="Оберіть групу й перевірте правила"':''}>Копіювати допис</button><button class="btn ${blocked?'green':'red'}" data-action="exclude" data-id="${safe(g.id)}" ${['banned','paid'].includes(g.policy)?'disabled title="Змініть умови розміщення у картці групи"':''}>${['banned','paid'].includes(g.policy)?'Заборонено умовами':blocked?'Повернути до списку':'Виключити'}</button></div>
   </div>`
  }).join(''):'<p class="muted">Групи не знайдені. Змініть фільтр.</p>';
  renderDetail();
+ renderGroupCro();
 }
 function nextTarget(){
  const items=chosenGroups();if(!items.length){msg('Спочатку виберіть групи.','bad');return}
@@ -355,6 +420,8 @@ $('clearTargetsBtn').onclick=()=>{if(!confirm('Зняти вибір усіх г
 $('nextTargetBtn').onclick=nextTarget;
 $('marketingCampaignSelect').onchange=()=>renderTrackingControls();
 $('assignTrackingBtn').onclick=assignTracking;
+$('croDays').onchange=renderGroupCro;
+$('croRefreshBtn').onclick=refreshGroupCro;
 load();if(db.groups.length===0){db.groups.push({id:id(),name:'Група 1107907784152777',url:'https://www.facebook.com/groups/1107907784152777/',policy:'unknown',priority:'high',excluded:false,tags:'Кривий Ріг',notes:'Додана з наданого посилання; умови розміщення слід перевірити',updatedAt:new Date().toISOString()});save()}importBridge();if(!selectedCampaign)selectedCampaign=db.campaigns[0]?.id||null;if(!selectedGroup)selectedGroup=db.groups[0]?.id||null;renderCampaigns();render();
 </script>
 </body></html>
