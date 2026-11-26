@@ -126,7 +126,9 @@ loading=(async()=>{
     canSell=true;
     const livePoster=validUrl(v?.poster_url);
     if(livePoster)poster.src=livePoster;
-    if(v?.enable_live_poster!==false) videoUrl=validUrl(v?.live_poster_url);
+    // Solo social landing intentionally plays its own MP4 regardless of the
+    // global storefront Live Poster toggle; do not change the storefront setting.
+    videoUrl=validUrl(v?.live_poster_url);
     if(!videoUrl){unavailable('Для цього сеансу Live Poster не підключено.');return;}
     note('Запускаємо відеоафішу…');
     // On opening a social link, muted autoplay can usually start; audio requires a user gesture.
