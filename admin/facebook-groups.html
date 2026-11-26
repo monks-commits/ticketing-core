@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VA — Facebook-групи · Розповсюдження</title>
+<title>VA — Facebook-групи · Link Fix 1.1</title>
 <style>
 :root{--bg:#071426;--panel:#102641;--p2:#091d33;--line:#294563;--text:#f7fbff;--muted:#b4c5d8;--blue:#358eff;--green:#1caa67;--yellow:#ecc14d;--red:#d96262}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
@@ -64,7 +64,7 @@ main{max-width:1520px;margin:auto;padding:22px}.top{display:flex;align-items:fle
   <div class="flex"><b>🎯 Вибір груп (можна до створення матеріалу)</b><span id="selectedCount" class="counter">Не обрано</span></div>
   <div class="flex" style="margin-top:9px"><button class="btn primary" id="selectVisibleBtn">✓ Обрати видимі</button><button class="btn" id="unselectVisibleBtn">− Зняти з видимих</button><button class="btn" id="clearTargetsBtn">Очистити вибір</button><button class="btn green" id="nextTargetBtn">→ Наступна обрана група</button></div>
   <div class="formgrid" style="margin-top:12px">
-   <div class="field span2"><label>Кампанія Marketing (V2.25)</label><select id="marketingCampaignSelect"></select></div>
+   <div class="field span2"><label>Основа розміщення</label><select id="marketingCampaignSelect"></select></div>
    <div class="span2 flex"><button class="btn blue primary" id="assignTrackingBtn" type="button">Сформувати посилання для обраних</button><a class="btn soft" href="./marketing.html" target="_blank" rel="noopener">Відкрити Marketing</a></div>
   </div><div id="trackingInfo" class="hint" style="margin-top:6px"></div>
   <div id="routeInfo" class="hint">Спочатку збережіть матеріал. Ці кнопки ніде нічого не публікують.</div>
@@ -98,27 +98,34 @@ function matchingMarketingCampaigns(c){
  const all=readMarketingLocal(MARKETING_CAMPAIGN_KEY,[]);if(!Array.isArray(all))throw Error('Некоректний архів кампаній Marketing.');
  return all.filter(x=>x&&/^VAC-[A-Za-z0-9_-]{1,150}$/.test(String(x.id||''))&&!String(x.id).startsWith('VAC-CH-')&&String(x.seance_id||'')===t.seance&&x.status!=='done');
 }
+const MATERIAL_BASIS='__ready_material__';
 function renderTrackingControls(){
  const c=currentCampaign(), el=$('marketingCampaignSelect'), info=$('trackingInfo'), btn=$('assignTrackingBtn');
  const before=el.dataset.material===c?.id?el.value:'';
  el.dataset.material=c?.id||'';
  try{
- const all=matchingMarketingCampaigns(c);const preferred=c?.marketingCampaignId||before;
- el.innerHTML='<option value="">Оберіть кампанію Marketing…</option>'+all.map(x=>`<option value="${safe(x.id)}">${safe(x.name||x.id)} · ${safe(x.status||'draft')}</option>`).join('');
- el.value=all.some(x=>x.id===preferred)?preferred:all.length===1?all[0].id:'';
+ const target=academySeanceTarget(c?.targetUrl),all=matchingMarketingCampaigns(c);
+ const locked=c?.trackingBasis==='material'?MATERIAL_BASIS:c?.marketingCampaignId||'';
+ const preferred=locked||before;
+ el.innerHTML='<option value="">Оберіть основу…</option>'+(target?`<option value="${MATERIAL_BASIS}">Поточний готовий матеріал</option>`:'')+all.map(x=>`<option value="${safe(x.id)}">${safe(x.name||x.id)} · ${safe(x.status||'draft')}</option>`).join('');
+ if(locked&&locked!==MATERIAL_BASIS&&!all.some(x=>x.id===locked))el.insertAdjacentHTML('beforeend',`<option value="${safe(locked)}">Збережена кампанія · ${safe(locked)}</option>`);
+ el.value=locked||((preferred===MATERIAL_BASIS&&target)||all.some(x=>x.id===preferred)?preferred:all.length===1?all[0].id:target?MATERIAL_BASIS:'');
+ el.disabled=!!locked;
  const n=chosenGroups().filter(g=>!!getGroupTrackingUrl(g.id)).length;
- btn.disabled=!c||!chosenGroups().length||!el.value;
- info.textContent=!c?'Оберіть готовий матеріал.':!academySeanceTarget(c.targetUrl)?'Цей крок доступний для конкретного сеансу Академії. Загальна афіша та прогрів залишаються без змін.':!all.length?'Немає незавершеної кампанії для цього сеансу у Marketing V2.25 в цьому браузері. Відкрийте Marketing і збережіть кампанію.':`Індивідуальні посилання: ${n} із ${chosenGroups().length} обраних. Коди зберігаються локально у чинному форматі Marketing. Публікації та серверна синхронізація не виконуються.`;
+ btn.disabled=!c||!target||!chosenGroups().length||!el.value||!!(locked&&locked!==MATERIAL_BASIS&&!all.some(x=>x.id===locked));
+ info.textContent=!c?'Оберіть готовий матеріал.':!target?'Цей крок доступний для конкретного сеансу Академії.':`Індивідуальні посилання: ${n} із ${chosenGroups().length} обраних. `+(el.value===MATERIAL_BASIS?'Основа — поточний матеріал; зв’язок із кампанією Marketing ще не встановлено. ':'Основа — збережена кампанія Marketing. ')+'Коди зберігаються локально. Публікації та серверна синхронізація не виконуються.';
  }catch(e){el.innerHTML='<option value="">Архів недоступний</option>';btn.disabled=true;info.textContent=e.message}
 }
 function assignedUrl(target,parent,p){
- const u=new URL(target.url);u.searchParams.set('utm_source','facebook');u.searchParams.set('utm_medium','outreach');u.searchParams.set('utm_campaign',p.tracking_campaign_id);u.searchParams.set('utm_content',p.id);u.searchParams.set('va_parent_campaign',parent);return u.href;
+ const u=new URL(target.url);u.searchParams.set('utm_source','facebook');u.searchParams.set('utm_medium','outreach');u.searchParams.set('utm_campaign',p.tracking_campaign_id);u.searchParams.set('utm_content',p.id);if(parent)u.searchParams.set('va_parent_campaign',parent);return u.href;
 }
-function validPlacement(p,parent,recipient){return p&&p.parent_campaign_id===parent&&p.recipient_id===recipient&&p.route==='seance'&&p.channel==='facebook'&&/^DST-[0-9a-fA-F-]{16,64}$/.test(p.id)&&/^VAC-CH-[a-fA-F0-9]{32}$/.test(p.tracking_campaign_id||'')}
+function validPlacement(p,parent,recipient,material){return p&&p.parent_campaign_id===parent&&(!material||p.parent_material_id===material)&&p.recipient_id===recipient&&p.route==='seance'&&p.channel==='facebook'&&/^DST-[0-9a-fA-F-]{16,64}$/.test(p.id)&&/^VAC-CH-[a-fA-F0-9]{32}$/.test(p.tracking_campaign_id||'')}
 function assignTracking(){
  try{
- const c=currentCampaign(),target=academySeanceTarget(c?.targetUrl),parent=$('marketingCampaignSelect').value;
- if(!c||!target||!matchingMarketingCampaigns(c).some(x=>x.id===parent))throw Error('Оберіть збережений матеріал та кампанію цього сеансу.');
+ const c=currentCampaign(),target=academySeanceTarget(c?.targetUrl),basis=$('marketingCampaignSelect').value,materialOnly=basis===MATERIAL_BASIS,parent=materialOnly?null:basis;
+ if(!c||!target||(!materialOnly&&!matchingMarketingCampaigns(c).some(x=>x.id===parent)))throw Error('Оберіть збережений матеріал та основу розміщення.');
+ if(c.seanceId&&c.seanceId!==target.seance)throw Error('Сеанс матеріалу не відповідає посиланню.');
+ if((c.trackingBasis==='material'&&!materialOnly)||(c.marketingCampaignId&&materialOnly))throw Error('Основа розміщення вже зафіксована.');
  if($('campaignUrl').value.trim()!==c.targetUrl)throw Error('Збережіть зміни матеріалу перед формуванням посилань.');
  if(c.marketingCampaignId&&c.marketingCampaignId!==parent&&Object.keys(db.trackingUrls?.[c.id]||{}).length)throw Error('Матеріал вже пов’язаний з іншою кампанією. Створіть новий матеріал для нової кампанії.');
  const chosen=chosenGroups();if(!chosen.length)throw Error('Оберіть адресатів.');
@@ -134,15 +141,15 @@ function assignTracking(){
    if(matches.length>1||matches.some(x=>x.excluded)){conflicts.push(g.name);continue;}
    const rid=String(matches[0]?.id||g.id);if(!/^[A-Za-z0-9_-]{3,100}$/.test(rid)){conflicts.push(g.name);continue;}
    // Original distPlaceKey: one placement per campaign, route and recipient.
-   const key=parent+'|seance|'+rid;let p=st.placements[key];
+   const key=(materialOnly?'material:'+c.id:parent)+'|seance|'+rid;let p=st.placements[key];
    if(p){
-     if(!validPlacement(p,parent,rid)||p.status!=='draft'||(p.seance_id&&p.seance_id!==target.seance)||(p.studio_material_id&&p.studio_material_id!==c.id)){conflicts.push(g.name);continue;}
+     if(!validPlacement(p,parent,rid,materialOnly?c.id:null)||p.status!=='draft'||(p.seance_id&&p.seance_id!==target.seance)||(p.studio_material_id&&p.studio_material_id!==c.id)){conflicts.push(g.name);continue;}
      const expected=assignedUrl(target,parent,p);
      if(p.target_url&&p.target_url!==expected){conflicts.push(g.name);continue;}
      reused++;
    }else{
      // Same identity contract as original distPlacement(), now attached to current material.
-     p={id:'DST-'+crypto.randomUUID(),parent_campaign_id:parent,recipient_id:rid,channel:'facebook',route:'seance',status:'draft',created_at:new Date().toISOString(),tracking_campaign_id:'VAC-CH-'+crypto.randomUUID().replaceAll('-','')};created++;
+     p={id:'DST-'+crypto.randomUUID(),parent_campaign_id:parent,...(materialOnly?{parent_material_id:c.id}:{}),recipient_id:rid,channel:'facebook',route:'seance',status:'draft',created_at:new Date().toISOString(),tracking_campaign_id:'VAC-CH-'+crypto.randomUUID().replaceAll('-','')};created++;
    }
    const url=assignedUrl(target,parent,p);
    st.placements[key]={...p,recipient_name:g.name,recipient_url:canonical,seance_id:target.seance,studio_material_id:c.id,target_url:url};links[g.id]=url;
@@ -150,9 +157,9 @@ function assignTracking(){
  if(created||reused){
    // Persist canonical placement identities first; a retry reuses them if the second write fails.
    localStorage.setItem(MARKETING_DIST_KEY,JSON.stringify(st));
-   const prev=db.trackingUrls?.[c.id],prevParent=c.marketingCampaignId;
-   db.trackingUrls=db.trackingUrls||{};db.trackingUrls[c.id]=links;c.marketingCampaignId=parent;
-   if(!save()){if(prev)db.trackingUrls[c.id]=prev;else delete db.trackingUrls[c.id];c.marketingCampaignId=prevParent;throw Error('Розміщення збережені у Marketing, але список посилань не записано. Повторіть операцію після звільнення місця.');}
+   const prev=db.trackingUrls?.[c.id],prevParent=c.marketingCampaignId,prevBasis=c.trackingBasis;
+   db.trackingUrls=db.trackingUrls||{};db.trackingUrls[c.id]=links;c.marketingCampaignId=parent||'';c.trackingBasis=materialOnly?'material':'marketing';
+   if(!save()){if(prev)db.trackingUrls[c.id]=prev;else delete db.trackingUrls[c.id];c.marketingCampaignId=prevParent;c.trackingBasis=prevBasis;throw Error('Розміщення збережені у Marketing, але список посилань не записано. Повторіть операцію після звільнення місця.');}
  }
  render();msg(`Створено: ${created}; повторно використано: ${reused}; існуючі не змінено: ${kept}.`+(conflicts.length?' Пропущено через конфлікт/історію: '+conflicts.join(', ')+'.':'')+' Нічого не опубліковано. Синхронізація з Audience ще не виконана.',conflicts.length?'bad':'good');
  }catch(e){msg(e.message,'bad')}
@@ -310,12 +317,12 @@ function renderDetail(){const g=db.groups.find(x=>x.id===selectedGroup),root=$('
  $('editGroupBtn').onclick=()=>groupEdit(g);$('excludeGroupBtn').onclick=()=>{g.excluded=!g.excluded;if(g.policy==='banned'||g.policy==='paid')g.excluded=true;if(g.excluded)pruneGroupFromTargets(g.id);g.updatedAt=new Date().toISOString();if(save()){render();msg(g.excluded?'Групу виключено зі списків розміщення. Історію збережено.':'Групу повернено до доступного переліку.')}};$('deleteGroupBtn').onclick=()=>{if(!confirm('Видалити групу «'+g.name+'» та її історію розміщень?'))return;db.groups=db.groups.filter(x=>x.id!==g.id);db.journal=db.journal.filter(x=>x.groupId!==g.id);pruneGroupFromTargets(g.id);selectedGroup=null;save();groupFormClear();render();msg('Групу видалено.');};$('openGroupBtn').onclick=()=>window.open(g.url,'_blank','noopener,noreferrer');$('saveTrackingBtn').onclick=()=>{try{saveGroupTrackingUrl(g.id,$('groupTrackingUrl').value);msg('Індивідуальне посилання збережено.')}catch(e){msg(e.message,'bad')}};$('saveJournalBtn').onclick=()=>{try{const when=parsePublishedDate($('journalPublishedAt').value);saveGroupTrackingUrl(g.id,$('groupTrackingUrl').value);addJournal(g.id,$('journalStatus').value,$('journalUrl').value,$('journalNote').value,when)}catch(e){msg(e.message,'bad')}}}
 function download(filename,content,type){const blob=new Blob([content],{type}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1000)}
 function exportJSON(){download('VA_FB_GROUPS_BACKUP_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({exportedAt:new Date().toISOString(),...db},null,2),'application/json')}
-function parseJSON(s){const obj=JSON.parse(s);if(!obj||obj.version!==1||!Array.isArray(obj.groups)||!Array.isArray(obj.campaigns)||!Array.isArray(obj.journal))throw Error('Непідтримуваний файл резервної копії.');if(obj.groups.length>3000||obj.campaigns.length>1000||obj.journal.length>250000)throw Error('Занадто великий файл резервної копії.');const groups=[],ids=new Set(),urls=new Set();for(const g of obj.groups){const url=normalizeGroupUrl(g.url);if(!url||ids.has(String(g.id))||urls.has(url))continue;ids.add(String(g.id));urls.add(url);groups.push({id:String(g.id),name:String(g.name||url).slice(0,200),url,kind:recipientKind(url),policy:POLICY[g.policy]?g.policy:'unknown',priority:PRIORITY[g.priority]?g.priority:suggestPriority(g.name),excluded:!!g.excluded,tags:String(g.tags||'').slice(0,200),notes:String(g.notes||'').slice(0,500),updatedAt:String(g.updatedAt||'')})}const campaigns=obj.campaigns.filter(x=>x?.id).map(x=>({id:String(x.id),title:String(x.title||'').slice(0,200),text:String(x.text||'').slice(0,20000),targetUrl:safeUrl(x.targetUrl),mediaUrl:safeUrl(x.mediaUrl),updatedAt:String(x.updatedAt||''),marketingCampaignId:String(x.marketingCampaignId||'').slice(0,160),projectId:String(x.projectId||'').slice(0,200),seanceId:String(x.seanceId||'').slice(0,200),venueId:String(x.venueId||'').slice(0,200)}));const cs=new Set(campaigns.map(x=>x.id));const journal=obj.journal.filter(x=>ids.has(String(x.groupId))&&cs.has(String(x.campaignId))&&RESULT[x.status]).map(x=>({id:String(x.id||id()),groupId:String(x.groupId),campaignId:String(x.campaignId),status:x.status,url:safeUrl(x.url),note:String(x.note||'').slice(0,500),at:String(x.at||''),publishedAt:String(x.publishedAt||'')}));const targets={};if(obj.targets&&typeof obj.targets==='object'&&!Array.isArray(obj.targets)){for(const [cid,arr] of Object.entries(obj.targets)){if((cid!==DRAFT_TARGET_KEY&&!cs.has(cid))||!Array.isArray(arr))continue;targets[cid]=[...new Set(arr.map(String).filter(gid=>ids.has(gid)&&!groups.find(g=>g.id===gid)?.excluded))]}}const trackingUrls={};const rawLinks=obj.trackingUrls;if(rawLinks&&typeof rawLinks==='object'&&!Array.isArray(rawLinks)){for(const [cid,mapping] of Object.entries(rawLinks)){if(!cs.has(cid)||!mapping||typeof mapping!=='object'||Array.isArray(mapping))continue;const v={};for(const [gid,raw] of Object.entries(mapping)){if(ids.has(gid)&&safeUrl(raw))v[gid]=safeUrl(raw);}if(Object.keys(v).length)trackingUrls[cid]=v;}}return{version:1,groups,campaigns,journal,targets,trackingUrls}}
+function parseJSON(s){const obj=JSON.parse(s);if(!obj||obj.version!==1||!Array.isArray(obj.groups)||!Array.isArray(obj.campaigns)||!Array.isArray(obj.journal))throw Error('Непідтримуваний файл резервної копії.');if(obj.groups.length>3000||obj.campaigns.length>1000||obj.journal.length>250000)throw Error('Занадто великий файл резервної копії.');const groups=[],ids=new Set(),urls=new Set();for(const g of obj.groups){const url=normalizeGroupUrl(g.url);if(!url||ids.has(String(g.id))||urls.has(url))continue;ids.add(String(g.id));urls.add(url);groups.push({id:String(g.id),name:String(g.name||url).slice(0,200),url,kind:recipientKind(url),policy:POLICY[g.policy]?g.policy:'unknown',priority:PRIORITY[g.priority]?g.priority:suggestPriority(g.name),excluded:!!g.excluded,tags:String(g.tags||'').slice(0,200),notes:String(g.notes||'').slice(0,500),updatedAt:String(g.updatedAt||'')})}const campaigns=obj.campaigns.filter(x=>x?.id).map(x=>({id:String(x.id),title:String(x.title||'').slice(0,200),text:String(x.text||'').slice(0,20000),targetUrl:safeUrl(x.targetUrl),mediaUrl:safeUrl(x.mediaUrl),updatedAt:String(x.updatedAt||''),marketingCampaignId:String(x.marketingCampaignId||'').slice(0,160),trackingBasis:x.trackingBasis==='material'?'material':x.trackingBasis==='marketing'?'marketing':'',projectId:String(x.projectId||'').slice(0,200),seanceId:String(x.seanceId||'').slice(0,200),venueId:String(x.venueId||'').slice(0,200)}));const cs=new Set(campaigns.map(x=>x.id));const journal=obj.journal.filter(x=>ids.has(String(x.groupId))&&cs.has(String(x.campaignId))&&RESULT[x.status]).map(x=>({id:String(x.id||id()),groupId:String(x.groupId),campaignId:String(x.campaignId),status:x.status,url:safeUrl(x.url),note:String(x.note||'').slice(0,500),at:String(x.at||''),publishedAt:String(x.publishedAt||'')}));const targets={};if(obj.targets&&typeof obj.targets==='object'&&!Array.isArray(obj.targets)){for(const [cid,arr] of Object.entries(obj.targets)){if((cid!==DRAFT_TARGET_KEY&&!cs.has(cid))||!Array.isArray(arr))continue;targets[cid]=[...new Set(arr.map(String).filter(gid=>ids.has(gid)&&!groups.find(g=>g.id===gid)?.excluded))]}}const trackingUrls={};const rawLinks=obj.trackingUrls;if(rawLinks&&typeof rawLinks==='object'&&!Array.isArray(rawLinks)){for(const [cid,mapping] of Object.entries(rawLinks)){if(!cs.has(cid)||!mapping||typeof mapping!=='object'||Array.isArray(mapping))continue;const v={};for(const [gid,raw] of Object.entries(mapping)){if(ids.has(gid)&&safeUrl(raw))v[gid]=safeUrl(raw);}if(Object.keys(v).length)trackingUrls[cid]=v;}}return{version:1,groups,campaigns,journal,targets,trackingUrls}}
 function csv(s){return '"'+String(s??'').replaceAll('"','""')+'"'}
 function importBridge(){let raw;try{raw=JSON.parse(localStorage.getItem(BRIDGE_KEY)||'null')}catch{return}if(!raw||!raw.updated_at||!raw.title||!raw.id||!raw.venue_id&&raw.venue_id!=='' )return;const cid='studio-'+String(raw.id),v={title:String(raw.title).slice(0,200),text:String(raw.text||'').slice(0,20000),targetUrl:safeUrl(raw.target_url),mediaUrl:safeUrl(raw.media_url),updatedAt:String(raw.updated_at),projectId:String(raw.project_id||''),seanceId:String(raw.seance_id||''),venueId:String(raw.venue_id||'')};let c=db.campaigns.find(x=>x.id===cid);let activeId=cid;
   if(c){
     if(c.updatedAt!==v.updatedAt){
-      if(db.journal.some(j=>j.campaignId===cid)){
+      if(db.journal.some(j=>j.campaignId===cid)||(c.targetUrl!==v.targetUrl&&Object.keys(db.trackingUrls?.[cid]||{}).length)){
         activeId=cid+'-r'+Date.now().toString(36);
         db.campaigns.unshift({id:activeId,...v});
       }else Object.assign(c,v);
