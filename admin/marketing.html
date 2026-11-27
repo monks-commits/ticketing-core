@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>VA Marketing V2.25 — Protected Read 1</title>
+  <title>VA Marketing V2.25 — Protected Journal 1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../shared/event-taxonomy.js?v=1.0.0-20260901"></script>
@@ -521,7 +521,7 @@ textarea::placeholder{
       <div>
         <div class="eyebrow">VA • Marketing OS</div>
         <h1>Marketing Control Center V2.25</h1>
-        <div class="muted">Protected Read 1 · Академія руху</div>
+        <div class="muted">Protected Journal 1 · Академія руху</div>
         <div class="muted">
           Робоче місце маркетолога: факт → дослідження → аудиторія → рішення → дія → Paid → Retention/LTV → Advocacy → нове знання.
           Operating Loop V1 не створює нових функцій — він з'єднує вже перевірені модулі VA в один робочий цикл.
@@ -607,7 +607,7 @@ async function vaStaffSignIn(event){
     form.hidden=true;form.style.display="none";
     document.getElementById("vaStaffLogout").hidden=false;
     document.getElementById("vaStaffWorkspace").hidden=false;
-    vaStaffStatus("Вхід підтверджено · Академія руху · дані завантажено. Журнал: читання; захищений запис ще не підключено.");
+    vaStaffStatus("Вхід підтверджено · Академія руху · дані завантажено. Журнал: захищене читання і запис.");
   }catch(e){
     password.value="";
     VA_STAFF_READY=false;
@@ -4577,8 +4577,8 @@ function renderJournalSection(){
       <textarea id="jComment" class="box" style="width:100%;margin-top:12px;box-sizing:border-box" rows="3" placeholder="Коментар"></textarea>
       <textarea id="jResult" class="box" style="width:100%;margin-top:12px;box-sizing:border-box" rows="2" placeholder="Результат"></textarea>
 
-      <button class="btn" style="margin-top:12px" disabled>Зберегти дію</button>
-      <div class="micro">Захищений запис журналу ще не підключено. Історія доступна для читання.</div>
+      <button id="jSaveBtn" class="btn" style="margin-top:12px" onclick="saveJournalEntry()" ${JOURNAL_SAVE_BUSY?"disabled":""}>Зберегти дію</button>
+      <div class="micro" id="jSaveStatus" role="status">Захищений запис VA · повторіть ті самі поля у разі обриву зв’язку.</div>
     </div>
 
     <div class="box" style="margin-top:16px">
@@ -4627,8 +4627,83 @@ function renderJournalSection(){
   `;
 }
 
+let JOURNAL_SAVE_BUSY = false;
+const JOURNAL_PENDING_PREFIX = "va_marketing_journal_pending_v1:";
+async function journalPendingKey(rows, campaignId, planId){
+  const payload = JSON.stringify([rows, campaignId, planId]);
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
+  return JOURNAL_PENDING_PREFIX + Array.from(new Uint8Array(hash),x=>x.toString(16).padStart(2,"0")).join("");
+}
 async function saveJournalEntry(){
-  alert("Захищений запис журналу ще не підключено. Дані не змінено.");
+  if(!VA_STAFF_READY || JOURNAL_SAVE_BUSY) return;
+  const seanceIds = [...new Set(getActiveSeanceIds().map(String))].sort();
+  if(!seanceIds.length || seanceIds.length>100){alert("Оберіть від 1 до 100 сеансів.");return;}
+  if(seanceIds.some(id=>!SEANCES.some(s=>String(s.id)===id&&s.venue_id==="academy"))){alert("Доступні лише сеанси Академії руху.");return;}
+  const action_date = document.getElementById("jDate").value;
+  const action_type = document.getElementById("jType").value.trim();
+  const channel = document.getElementById("jChannel").value.trim();
+  const budget = Number(document.getElementById("jBudget").value || 0);
+  const comment = document.getElementById("jComment").value.trim();
+  const result = document.getElementById("jResult").value.trim();
+  if(!action_date || !action_type || !Number.isFinite(budget) || budget<0 || budget>1000000000 || action_type.length>200 || channel.length>200 || comment.length>20000 || result.length>20000){alert("Перевірте дату, назву дії, бюджет і довжину полів.");return;}
+  const campaign = getActiveCampaign();
+  const planId = PLAN_JOURNAL_PENDING_ID;
+  const base = seanceIds.map(seance_id=>({seance_id,action_date,action_type,channel,budget,comment,result}));
+  const button = document.getElementById("jSaveBtn");
+  const status = document.getElementById("jSaveStatus");
+  JOURNAL_SAVE_BUSY=true;
+  if(button)button.disabled=true;
+  if(status)status.textContent="Зберігаємо дію…";
+  let confirmed=false;
+  try{
+    const key=await journalPendingKey(base,String(campaign?.id||""),String(planId||""));
+    // Store only a fingerprint and UUIDs, not journal text or credentials.
+    const existing=localStorage.getItem(key);
+    const ids=existing?JSON.parse(existing):base.map(()=>crypto.randomUUID());
+    if(!Array.isArray(ids)||ids.length!==base.length||new Set(ids).size!==ids.length||ids.some(id=>typeof id!=="string"||! /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)))throw new Error("Невірний локальний ідентифікатор повтору. Не створюйте дубль.");
+    localStorage.setItem(key,JSON.stringify(ids));
+    const rows=base.map((r,i)=>({...r,id:ids[i]}));
+    const {data,error}=await sb.rpc("va_staff_marketing_journal_save_v1",{p_rows:rows});
+    if(error)throw new Error(error.message||"RPC error");
+    if(!Array.isArray(data)||data.length!==rows.length||rows.some(r=>!data.some(d=>d?.id===r.id&&d.seance_id===r.seance_id)))throw new Error("Неповне підтвердження запису.");
+    confirmed=true;
+    const savedIds=new Set(ids);
+    JOURNAL=JOURNAL.filter(j=>!savedIds.has(String(j.id))).concat(data);
+    // Preserve the original V2.25 campaign and plan bookkeeping.
+    // Do not increase the local budget if this exact batch is already linked.
+    if(campaign){
+      const previous=new Set((campaign.journalIds||[]).map(String));
+      const alreadyLinked=ids.some(id=>previous.has(id));
+      campaign.journalIds=[...new Set([...previous,...ids])];
+      if(!alreadyLinked)campaign.budget=Number(campaign.budget||0)+budget;
+      campaign.updated_at=new Date().toISOString();
+      // Persist explicitly: original helper suppresses storage errors.
+      localStorage.setItem(CAMPAIGN_STORAGE_KEY,JSON.stringify(CAMPAIGNS));
+    }
+    if(planId){
+      completePlanFromJournal(planId,data);
+      localStorage.setItem(MARKETING_PLAN_STORAGE_KEY,JSON.stringify(MARKETING_PLAN));
+      if(PLAN_JOURNAL_PENDING_ID===planId)PLAN_JOURNAL_PENDING_ID="";
+    }
+    localStorage.removeItem(key);
+    JOURNAL_SAVE_BUSY=false;
+    renderOperatingLoop();
+    if(campaign)renderContextBridge();
+    if(ACTIVE_SECTION===5){
+      renderJournalSection();
+      const done=document.getElementById("jSaveStatus");
+      if(done)done.textContent="Збережено записів: "+data.length;
+    }
+  }catch(e){
+    console.error(e);
+    const message=confirmed?"Запис на сервері підтверджено. Локальне завершення не вдалося: "+(e.message||e):"Запис не підтверджено: "+(e.message||e);
+    if(status)status.textContent=message+" Повторіть ті самі поля та контекст.";
+    alert(message+"\nПовторіть ті самі поля та контекст; не створюйте нову дію.");
+  }finally{
+    JOURNAL_SAVE_BUSY=false;
+    const current=document.getElementById("jSaveBtn");
+    if(current)current.disabled=false;
+  }
 }
 
 function renderEfficiencySection(){
